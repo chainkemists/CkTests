@@ -4,20 +4,20 @@
 // CK INPUT KEY-BINDING GYM - PlayerController
 //
 // Owns every mutation a VIEWER can perform. A key profile is per-local-player,
-// so there is nothing station-scoped to mutate: the exec commands below call
-// UCk_Utils_KeyBinding_UE directly and the stations pick the result up on their
-// next display tick. The unattended demo does the same thing from its own state
-// machine on the Remap + Conflict station.
+// so there is nothing station-scoped to mutate: the control-panel rows below
+// call UCk_Utils_KeyBinding_UE directly and the stations pick the result up on
+// their next display tick. The unattended demo does the same thing from its own
+// state machine on the Remap + Conflict station.
 //
-// REPORTS GO WHERE THE COMMAND IS ADVERTISED. Four report slots, not one: a
-// remap-family command reports on the Remap + Conflict panel, a reset-family one
+// REPORTS GO WHERE THE ROW'S SUBJECT LIVES. Four report slots, not one: a
+// remap-family row reports on the Remap + Conflict panel, a reset-family one
 // on Reset + Persistence, the dump on Binding Inspection, and the glyph refresh
-// on Key Icons. A viewer reading a command off a panel sees its outcome on that
-// same panel instead of hunting for it.
+// on Key Icons. A viewer who pressed a row sees its outcome on the station that
+// is about that row's subject instead of hunting for it.
 //
-// EVERY COMMAND HOLDS THE DEMO FIRST. Typing a command means wanting to watch
-// what it did, which is impossible while the demo keeps moving keys underneath
-// it. Ck_GymInput_Auto 1 lets it continue.
+// EVERY ROW HOLDS THE DEMO FIRST. Pressing a row means wanting to watch what it
+// did, which is impossible while the demo keeps moving keys underneath it. The
+// Auto demo toggle lets it continue.
 //
 // Registration happens in BeginPlay BEFORE Super, so the profile is populated
 // before the base flow spawns the stations and reaches Request_StartGym.
@@ -27,14 +27,14 @@
 // that can be mutated reset and re-save on DoEndPlay unless the viewer
 // explicitly suspends it. Suspending is what makes the persistence check
 // possible at all - a rebind cannot be observed surviving a PIE restart if
-// leaving PIE erases it - so it is offered as an exec rather than being
-// impossible, and re-arming is one command away.
+// leaving PIE erases it - so it is offered as a panel row rather than being
+// impossible, and that same row re-arms it.
 //
 // Two shipped-code traps this file deliberately steers around:
 //   - SwapKeys assigns Invalid to the other side when the SOURCE mapping is
-//     unbound, so Ck_GymInput_Swap refuses unless both rows currently hold a
+//     unbound, so the trade row refuses unless both rows currently hold a
 //     key (the CkInput docs anti-pattern 6).
-//   - RemapKeys reports success for an EMPTY name array, so the batch command
+//   - RemapKeys reports success for an EMPTY name array, so the batch row
 //     checks the array before calling.
 //============================================================================
 
@@ -51,6 +51,12 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
     private TArray<FCkGym_ColoredLine> _GlyphReportLines;
 
     private bool _TeardownArmed = true;
+
+    // Mirror of the demo state machine's auto flag. The machine lives on the
+    // Remap + Conflict station entity behind a broadcast message with no
+    // readback, so the panel keeps its own copy - and it starts TRUE, because
+    // gym_sm::Setup auto-starts the demo.
+    private bool _DemoRunning = true;
 
     FString Get_RemapReportLabel() const { return _RemapReportLabel; }
     FString Get_ResetReportLabel() const { return _ResetReportLabel; }
@@ -168,6 +174,8 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
     // reaching into a station script.
     private void Request_SetDemoRunning(bool InRunning)
     {
+        _DemoRunning = InRunning;
+
         auto Entities = utils_entity_tag::ForEach_Entity(ck::TransientEntity(), input_gym::k_Tag_RemapConflict);
         for (auto Entity : Entities)
         {
@@ -175,18 +183,11 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Auto Demo On/Off")
-    void Ck_GymInput_Auto(int32 InEnabled = 1)
-    {
-        Request_SetDemoRunning(InEnabled != 0);
-    }
-
     //------------------------------------------------------------------------
     // Inspection
     //------------------------------------------------------------------------
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Dump Profile")
-    void Ck_GymInput_Dump()
+    private void Request_DumpProfile()
     {
         Request_SetDemoRunning(false);
 
@@ -203,8 +204,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
     // Remap + conflict
     //------------------------------------------------------------------------
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Remap Jump To A Free Key")
-    void Ck_GymInput_RemapFree()
+    private void Request_RemapFree()
     {
         Request_SetDemoRunning(false);
 
@@ -212,8 +212,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
         Request_RemapJumpTo(PlayerController, input_gym::k_FreeKey, "Move Jump to a free key");
     }
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Remap Jump Onto Crouch (same category)")
-    void Ck_GymInput_RemapTakenSameCategory()
+    private void Request_RemapOntoCrouch()
     {
         Request_SetDemoRunning(false);
 
@@ -224,8 +223,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
         Request_RemapJumpTo(PlayerController, CrouchKey, "Move Jump onto Crouch's key");
     }
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Remap Jump Onto Interact (cross category)")
-    void Ck_GymInput_RemapTakenCrossCategory()
+    private void Request_RemapOntoInteract()
     {
         Request_SetDemoRunning(false);
 
@@ -264,8 +262,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
         Set_RemapReport(InLabel, Lines);
     }
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Swap Jump And Crouch")
-    void Ck_GymInput_Swap()
+    private void Request_SwapJumpAndCrouch()
     {
         Request_SetDemoRunning(false);
 
@@ -283,7 +280,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
         if (JumpKey.IsValid() == false || CrouchKey.IsValid() == false)
         {
             input_gym::Add_Line(Lines, "  Refused: both rows have to be bound before they can trade.", gym_palette::Red);
-            input_gym::Add_Line(Lines, "  Run Ck_GymInput_ResetAll first.", gym_palette::Cyan);
+            input_gym::Add_Line(Lines, "  Press the reset-every-row row first.", gym_palette::Cyan);
             Set_RemapReport("Trade Jump and Crouch", Lines);
             return;
         }
@@ -303,8 +300,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
         Set_RemapReport("Trade Jump and Crouch", Lines);
     }
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Unbind Conflict And Give Crouch's Key To Jump")
-    void Ck_GymInput_UnbindAndRemap()
+    private void Request_UnbindAndRemap()
     {
         Request_SetDemoRunning(false);
 
@@ -317,7 +313,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
         if (CrouchKey.IsValid() == false)
         {
             input_gym::Add_Line(Lines, "  Refused: Crouch holds no key to take.", gym_palette::Red);
-            input_gym::Add_Line(Lines, "  Run Ck_GymInput_ResetAll first.", gym_palette::Cyan);
+            input_gym::Add_Line(Lines, "  Press the reset-every-row row first.", gym_palette::Cyan);
             Set_RemapReport("Take Crouch's key for Jump", Lines);
             return;
         }
@@ -337,8 +333,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
         Set_RemapReport("Take Crouch's key for Jump", Lines);
     }
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Batch Remap Both Movement Rows")
-    void Ck_GymInput_RemapBatch()
+    private void Request_RemapBatch()
     {
         Request_SetDemoRunning(false);
 
@@ -379,8 +374,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
     // Reset + persistence
     //------------------------------------------------------------------------
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Reset Jump To Default")
-    void Ck_GymInput_ResetJump()
+    private void Request_ResetJump()
     {
         Request_SetDemoRunning(false);
 
@@ -398,8 +392,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
         Set_ResetReport("Put Jump back to its authored key", Lines);
     }
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Reset All To Defaults")
-    void Ck_GymInput_ResetAll()
+    private void Request_ResetAll()
     {
         Request_SetDemoRunning(false);
 
@@ -415,8 +408,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
         Set_ResetReport("Put every row back to its authored key", Lines);
     }
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Save Key Bindings")
-    void Ck_GymInput_Save()
+    private void Request_SaveBindings()
     {
         Request_SetDemoRunning(false);
 
@@ -430,8 +422,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
         Set_ResetReport("Save the current keys to disk", Lines);
     }
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Start Persistence Check")
-    void Ck_GymInput_StartPersistenceCheck()
+    private void Request_StartPersistenceCheck()
     {
         Request_SetDemoRunning(false);
 
@@ -457,34 +448,30 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
         Set_ResetReport("Start the persistence check", Lines);
     }
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Suspend Teardown On Exit")
-    void Ck_GymInput_SuspendTeardown()
+    // The suspend and arm halves are one row, because they were never two
+    // decisions - they are the two positions of the same switch.
+    private void Request_SetTeardownArmed(bool InArmed)
     {
         Request_SetDemoRunning(false);
-        _TeardownArmed = false;
+        _TeardownArmed = InArmed;
 
         auto Lines = TArray<FCkGym_ColoredLine>();
+
+        if (InArmed)
+        {
+            input_gym::Add_Line(Lines, "  Leaving the gym will put every row back and re-save.", gym_palette::White);
+            Set_ResetReport("Clean up when leaving", Lines);
+            return;
+        }
+
         input_gym::Add_Line(Lines, "  Leaving the gym will now LEAVE your key changes on disk.", gym_palette::Amber);
         input_gym::Add_Line(Lines, "  This is the only way to watch a change survive a restart.", gym_palette::White);
-        input_gym::Add_Line(Lines, "  Run Ck_GymInput_ResetAllAndSave when you are done.", gym_palette::Cyan);
+        input_gym::Add_Line(Lines, "  Press the reset-and-save row when you are done.", gym_palette::Cyan);
 
         Set_ResetReport("Keep changes when leaving", Lines);
     }
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Arm Teardown On Exit")
-    void Ck_GymInput_ArmTeardown()
-    {
-        Request_SetDemoRunning(false);
-        _TeardownArmed = true;
-
-        auto Lines = TArray<FCkGym_ColoredLine>();
-        input_gym::Add_Line(Lines, "  Leaving the gym will put every row back and re-save.", gym_palette::White);
-
-        Set_ResetReport("Clean up when leaving", Lines);
-    }
-
-    UFUNCTION(Exec, DisplayName = "Input Gym - Reset All And Save (teardown)")
-    void Ck_GymInput_ResetAllAndSave()
+    private void Request_ResetAllAndSave()
     {
         Request_SetDemoRunning(false);
 
@@ -505,8 +492,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
     // Key icons
     //------------------------------------------------------------------------
 
-    UFUNCTION(Exec, DisplayName = "Input Gym - Refresh Glyphs")
-    void Ck_GymInput_RefreshGlyphs()
+    private void Request_RefreshGlyphs()
     {
         Request_SetDemoRunning(false);
 
@@ -515,6 +501,78 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
         input_gym::Add_AllGlyphRows(Lines, PlayerController);
 
         Set_GlyphReport("Resolve every glyph again", Lines);
+    }
+
+    //------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Nothing in this gym reads a raw key: the EKeys it names are remap TARGETS
+    // written into the profile (J, X, Y) and the mapping context's own authored
+    // keys (SpaceBar, C, E, F, F8, F12), so the panel steers around those as
+    // well as the reserved ones - a row firing on a key the demo is busy moving
+    // would be indistinguishable from the demo doing it.
+    //
+    // Grouped the way the stations are: the remap family, the conflict
+    // resolutions, the reset-and-persistence family, then the two read-only
+    // dumps. Every row holds the demo first, exactly as the commands did.
+    //------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "KEY BINDING";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Header("DEMO"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::T, "T", "Auto demo", _DemoRunning));
+
+        Rows.Add(CkGym_Control::Header("MOVE ONE ROW'S KEY"));
+        Rows.Add(CkGym_Control::Action(EKeys::One,   "1", "Jump to a free key"));
+        Rows.Add(CkGym_Control::Action(EKeys::Two,   "2", "Jump onto Crouch (same category)"));
+        Rows.Add(CkGym_Control::Action(EKeys::Three, "3", "Jump onto Interact (cross category)"));
+
+        Rows.Add(CkGym_Control::Header("RESOLVE A COLLISION"));
+        Rows.Add(CkGym_Control::Action(EKeys::Four, "4", "Trade Jump and Crouch"));
+        Rows.Add(CkGym_Control::Action(EKeys::Five, "5", "Jump takes Crouch's key"));
+        Rows.Add(CkGym_Control::Action(EKeys::Six,  "6", "Move both movement rows at once"));
+
+        Rows.Add(CkGym_Control::Header("RESET + PERSISTENCE"));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Put Jump back"));
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Put every row back"));
+        Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Save the current keys to disk"));
+        Rows.Add(CkGym_Control::Action(EKeys::P, "P", "Start the persistence check"));
+        Rows.Add(CkGym_Control::ToggleNamed(EKeys::O, "O", "On leaving the gym", _TeardownArmed,
+            "put keys back", "KEEP CHANGES", true));
+        Rows.Add(CkGym_Control::Action(EKeys::L, "L", "Put everything back and save"));
+
+        Rows.Add(CkGym_Control::Header("READ THE PROFILE"));
+        Rows.Add(CkGym_Control::Action(EKeys::I, "I", "Dump the whole profile"));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Resolve every glyph again"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        // Row 0 is the DEMO header; the headers at 2, 6, 10 and 17 hold no key.
+        if (InRowIndex == 1) { Request_SetDemoRunning(_DemoRunning == false); }
+        else if (InRowIndex == 3) { Request_RemapFree(); }
+        else if (InRowIndex == 4) { Request_RemapOntoCrouch(); }
+        else if (InRowIndex == 5) { Request_RemapOntoInteract(); }
+        else if (InRowIndex == 7) { Request_SwapJumpAndCrouch(); }
+        else if (InRowIndex == 8) { Request_UnbindAndRemap(); }
+        else if (InRowIndex == 9) { Request_RemapBatch(); }
+        else if (InRowIndex == 11) { Request_ResetJump(); }
+        else if (InRowIndex == 12) { Request_ResetAll(); }
+        else if (InRowIndex == 13) { Request_SaveBindings(); }
+        else if (InRowIndex == 14) { Request_StartPersistenceCheck(); }
+        else if (InRowIndex == 15) { Request_SetTeardownArmed(_TeardownArmed == false); }
+        else if (InRowIndex == 16) { Request_ResetAllAndSave(); }
+        else if (InRowIndex == 18) { Request_DumpProfile(); }
+        else if (InRowIndex == 19) { Request_RefreshGlyphs(); }
     }
 
     //------------------------------------------------------------------------

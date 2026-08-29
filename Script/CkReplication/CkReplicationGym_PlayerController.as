@@ -83,9 +83,15 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
-    // The keyed rows send each setter's DEFAULT value, which is the one the gym's own placards talk about.
-    // Any other value still needs the console, and the panel says so.
+    // Both value setters are preset RINGS rather than single-value actions: each attribute is Min-clamped
+    // at 0 with no maximum (see the two entity scripts), so a ring that steps through the placard value,
+    // zero, a NEGATIVE value and a large one exercises the clamp the replicated attribute has to survive
+    // - and the clamped result is what has to arrive on the other side.
     //--------------------------------------------------------------------------------------------------------------------------
+
+    // -1 means nothing has been sent yet, so the row shows the ring instead of a value.
+    private int32 _ActorPresetIndex = -1;
+    private int32 _PawnPresetIndex = -1;
 
     FString Get_ControlPanelTitle() override
     {
@@ -96,25 +102,74 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Rows = TArray<FCkGym_ControlRow>();
 
-        Rows.Add(CkGym_Control::Action(EKeys::A, "A", "Set actor value to 100"));
-        Rows.Add(CkGym_Control::Action(EKeys::P, "P", "Set pawn value to 50"));
-        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Respawn replicated actor"));
-        Rows.Add(CkGym_Control::Action(EKeys::D, "D", "Dump replication state"));
-        Rows.Add(CkGym_Control::Status("Any other value: console only"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::One, "1", "Actor value", DoGet_ActorPresetLabel()));
+        Rows.Add(CkGym_Control::Cycle(EKeys::Two, "2", "Pawn value",  DoGet_PawnPresetLabel()));
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Respawn replicated actor"));
+        Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Dump replication state"));
 
         return Rows;
     }
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymReplication_SetActorValue(100); }
-        else if (InRowIndex == 1) { Ck_GymReplication_SetPawnValue(50); }
+        if (InRowIndex == 0)
+        {
+            auto Values = Get_ActorPresetValues();
+            _ActorPresetIndex = (_ActorPresetIndex + 1) % Values.Num();
+            Request_BroadcastToActor(Values[_ActorPresetIndex]);
+        }
+        else if (InRowIndex == 1)
+        {
+            auto Values = Get_PawnPresetValues();
+            _PawnPresetIndex = (_PawnPresetIndex + 1) % Values.Num();
+            Request_BroadcastToPawn(Values[_PawnPresetIndex]);
+        }
         else if (InRowIndex == 2) { Ck_GymReplication_RespawnActor(); }
         else if (InRowIndex == 3) { Ck_GymReplication_DumpRep(); }
     }
 
-    UFUNCTION(Exec, DisplayName="Replication Gym - Set Actor Value")
-    void Ck_GymReplication_SetActorValue(int32 InValue = 100)
+    // The negative entry is the point of the ring: it has to arrive clamped to the Min of 0.
+    private TArray<int32> Get_ActorPresetValues() const
+    {
+        auto Values = TArray<int32>();
+        Values.Add(100);
+        Values.Add(0);
+        Values.Add(-50);
+        Values.Add(9999);
+        return Values;
+    }
+
+    private TArray<int32> Get_PawnPresetValues() const
+    {
+        auto Values = TArray<int32>();
+        Values.Add(50);
+        Values.Add(0);
+        Values.Add(-25);
+        Values.Add(500);
+        return Values;
+    }
+
+    private FString DoGet_ActorPresetLabel() const
+    {
+        if (_ActorPresetIndex < 0)
+        { return "(100 / 0 / -50 / 9999)"; }
+
+        auto Values = Get_ActorPresetValues();
+        auto Current = Values[_ActorPresetIndex];
+        return f"sent {Current}";
+    }
+
+    private FString DoGet_PawnPresetLabel() const
+    {
+        if (_PawnPresetIndex < 0)
+        { return "(50 / 0 / -25 / 500)"; }
+
+        auto Values = Get_PawnPresetValues();
+        auto Current = Values[_PawnPresetIndex];
+        return f"sent {Current}";
+    }
+
+    private void Request_BroadcastToActor(int32 InValue)
     {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ReplicationGym_ReplicatedActor"))
         {
@@ -122,8 +177,7 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
-    UFUNCTION(Exec, DisplayName="Replication Gym - Set Pawn Value")
-    void Ck_GymReplication_SetPawnValue(int32 InValue = 50)
+    private void Request_BroadcastToPawn(int32 InValue)
     {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ReplicationGym_PawnExtra"))
         {

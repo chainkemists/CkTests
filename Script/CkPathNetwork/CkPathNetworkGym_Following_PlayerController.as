@@ -283,7 +283,7 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         auto Rows = TArray<FCkGym_ControlRow>();
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Restart every follower"));
         Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Rebuild the lane swap"));
-        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Clear"));
+        Rows.Add(CkGym_Control::Action(EKeys::Z, "Z", "Clear"));
         return Rows;
     }
 

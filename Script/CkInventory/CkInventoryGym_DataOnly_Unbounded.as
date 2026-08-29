@@ -52,7 +52,7 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_GenericEntityScript_UE
         AutoConfig.TotalSteps = 7;
         AutoConfig.Description = "Unlimited-capacity data-only inventory.\nTests add/remove/sort and OnItemsChanged.";
         AutoConfig.GlobalAutoCommand = "Ck_GymInventory_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymInventory_AutoUnbounded";
+        AutoConfig.PerStationAutoCommand = "panel [F] Re-arm auto (Data-only unbounded)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add 3 potions", 0, 0));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add 5 arrows", 1, 1));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add 1 sword", 2, 2));

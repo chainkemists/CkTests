@@ -16,7 +16,6 @@
 //
 // Tab opens the gym cycler menu; search "Stylize". Console:
 //   Ck_GymStylizeCrossHatch_RestartAll        - respawn the judge scene and re-apply Sketch
-//   Ck_GymStylizeCrossHatch_CyclePreset       - next preset without walking
 //   Ck_GymStylizeCrossHatch_CycleDebug        - next debug view of the CURRENT settings
 //   Ck_GymStylizeCrossHatch_ToggleNormalSpace - flip view-space <-> world-space normals, changing NOTHING
 //                                               else. THE headline A/B: orbit the sphere row and only the
@@ -434,16 +433,16 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
 
         Rows.Add(CkGym_Control::Header("THE A/B"));
         Rows.Add(CkGym_Control::ToggleNamed(EKeys::N, "N", "Normal space", Get_UsesWorldSpaceNormals(), "WORLD", "VIEW"));
-        Rows.Add(CkGym_Control::ToggleNamed(EKeys::A, "A", "Alignment", Get_NormalsFollowForm(), "follows form", "fixed angle"));
+        Rows.Add(CkGym_Control::ToggleNamed(EKeys::Y, "Y", "Alignment", Get_NormalsFollowForm(), "follows form", "fixed angle"));
 
         Rows.Add(CkGym_Control::Header("VIEW"));
-        Rows.Add(CkGym_Control::Cycle(EKeys::D, "D", "Debug view", Get_DebugNameAt(_DebugIndex), _DebugIndex != 0));
+        Rows.Add(CkGym_Control::Cycle(EKeys::J, "J", "Debug view", Get_DebugNameAt(_DebugIndex), _DebugIndex != 0));
 
         // An Action rather than a Toggle: each subject owns its own mask state, so there is no single
         // value to report and a two-state row here would be guessing at one.
-        Rows.Add(CkGym_Control::Action(EKeys::E, "E", "Flip entity masks"));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Flip entity masks"));
         Rows.Add(CkGym_Control::Toggle(EKeys::X, "X", "Stack Hand-Drawn over", _HandDrawnStacked));
-        Rows.Add(CkGym_Control::Toggle(EKeys::C, "C", "Stack ScreenDither over", _DitherStacked));
+        Rows.Add(CkGym_Control::Toggle(EKeys::M, "M", "Stack ScreenDither over", _DitherStacked));
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Rebuild judge scene"));
 
         // A debug view is not the effect. Someone who left one on and walked away would otherwise judge
@@ -478,21 +477,6 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
     void Ck_GymStylizeCrossHatch_RestartAll()
     {
         Request_RebuildGym();
-    }
-
-    // Cycles the PRESET row only: the mask and debug stations are views onto Sketch, not styles to walk.
-    UFUNCTION(Exec, DisplayName="Stylize Cross-Hatch Gym - Cycle Preset")
-    void Ck_GymStylizeCrossHatch_CyclePreset()
-    {
-        // Clamped into the preset row first: _ActiveStation can be -1 (nothing selected yet) or point at
-        // a mask/debug station, and while (-1 + 1) % 4 == 0 works by luck, (8 + 1) % 4 == 1 silently
-        // skips Sketch. Clamping makes the Exec mean "walk the preset row" from wherever the player is.
-        auto Current = _ActiveStation;
-        if (Current < 0 || Current >= k_CrossHatchGym_PresetStationCount)
-        { Current = -1; }
-
-        auto Next = (Current + 1) % k_CrossHatchGym_PresetStationCount;
-        Request_ApplyStation(Next);
     }
 
     // The stacking claim the Off station's panel makes, made testable. Cross-hatch and hand-drawn both

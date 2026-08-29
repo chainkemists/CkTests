@@ -233,12 +233,18 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
-    // Twenty-one console commands, and a manual interaction that has to be ENDED while it is still
-    // running - which is not something you can type. The curated set below is keyed; the per-station
-    // auto-drive commands keep to the console, and the panel says so rather than implying they are gone.
-    // 
-    // The two flips are Actions rather than Toggles: they broadcast a message with no readback, so
-    // there is no state to report and a two-state row would be inventing one.
+    // Every command this gym has is keyed, including the six per-station auto-drive re-arms, and a
+    // manual interaction that has to be ENDED while it is still running - which is not something you
+    // can type.
+    //
+    // The two flips and the seven auto-drive rows are Actions rather than Toggles: they broadcast a
+    // message with no readback, so there is no state to report and a two-state row would be inventing
+    // one. Worse for the auto rows, every station calls gym_auto::StopAuto (gym_sm::StopAuto for
+    // Manual) the moment any manual row fires, so a mirrored bool would read ON while the station had
+    // already stopped - an Action that re-arms is the only honest shape.
+    //
+    // The auto-drive letters carry no mnemonic: six stations exhaust every free initial, so they are
+    // a contiguous keyboard run instead.
     //--------------------------------------------------------------------------------------------------------------------------
 
     FString Get_ControlPanelTitle() override
@@ -260,7 +266,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Numbered(6, "Validation attempt", false));
 
         Rows.Add(CkGym_Control::Header("VALIDATION"));
-        Rows.Add(CkGym_Control::Action(EKeys::E, "E", "Flip enabled"));
+        Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Flip enabled"));
         Rows.Add(CkGym_Control::Action(EKeys::V, "V", "Flip custom validation"));
 
         Rows.Add(CkGym_Control::Header("INTENT AND TARGETS"));
@@ -271,15 +277,22 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Action(EKeys::U, "U", "Initiate resolution"));
 
         Rows.Add(CkGym_Control::Header("RUN"));
-        Rows.Add(CkGym_Control::Action(EKeys::A, "A", "Auto-drive every station"));
-        Rows.Add(CkGym_Control::Status("Per-station auto-drive: console only"));
+        Rows.Add(CkGym_Control::Action(EKeys::P, "P", "Auto-drive every station"));
+
+        Rows.Add(CkGym_Control::Header("RE-ARM AUTO-DRIVE (one station)"));
+        Rows.Add(CkGym_Control::Action(EKeys::F, "F", "Instant"));
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Timed"));
+        Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Manual"));
+        Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Validation"));
+        Rows.Add(CkGym_Control::Action(EKeys::L, "L", "Resolver"));
+        Rows.Add(CkGym_Control::Action(EKeys::M, "M", "DataBundle"));
 
         return Rows;
     }
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        // Rows 0, 8, 11 and 17 are headers, which hold no key and never arrive here.
+        // Rows 0, 8, 11, 17 and 19 are headers, which hold no key and never arrive here.
         if (InRowIndex == 1) { Ck_GymInteraction_TriggerInstant(); }
         else if (InRowIndex == 2) { Ck_GymInteraction_StartTimed(); }
         else if (InRowIndex == 3) { Ck_GymInteraction_StartManual(); }
@@ -295,6 +308,12 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
         else if (InRowIndex == 15) { Ck_GymInteraction_RemoveTarget(); }
         else if (InRowIndex == 16) { Ck_GymInteraction_InitiateResolution(); }
         else if (InRowIndex == 18) { Ck_GymInteraction_Auto(1); }
+        else if (InRowIndex == 20) { BroadcastAutoToTag(n"TAG_InteractionGym_Instant", true); }
+        else if (InRowIndex == 21) { BroadcastAutoToTag(n"TAG_InteractionGym_TimedTarget", true); }
+        else if (InRowIndex == 22) { BroadcastAutoToTag(n"TAG_InteractionGym_Manual", true); }
+        else if (InRowIndex == 23) { BroadcastAutoToTag(n"TAG_InteractionGym_Validation", true); }
+        else if (InRowIndex == 24) { BroadcastAutoToTag(n"TAG_InteractionGym_ResolverSource", true); }
+        else if (InRowIndex == 25) { BroadcastAutoToTag(n"TAG_InteractionGym_DataBundle", true); }
     }
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - Trigger Instant")
@@ -409,41 +428,5 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymInteraction_Auto(int32 InEnabled = 1)
     {
         BroadcastAutoToAll(InEnabled != 0);
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Instant")
-    void Ck_GymInteraction_AutoInstant()
-    {
-        BroadcastAutoToTag(n"TAG_InteractionGym_Instant", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Timed")
-    void Ck_GymInteraction_AutoTimed()
-    {
-        BroadcastAutoToTag(n"TAG_InteractionGym_TimedTarget", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Manual")
-    void Ck_GymInteraction_AutoManual()
-    {
-        BroadcastAutoToTag(n"TAG_InteractionGym_Manual", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Validation")
-    void Ck_GymInteraction_AutoValidation()
-    {
-        BroadcastAutoToTag(n"TAG_InteractionGym_Validation", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Resolver")
-    void Ck_GymInteraction_AutoResolver()
-    {
-        BroadcastAutoToTag(n"TAG_InteractionGym_ResolverSource", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto DataBundle")
-    void Ck_GymInteraction_AutoDataBundle()
-    {
-        BroadcastAutoToTag(n"TAG_InteractionGym_DataBundle", true);
     }
 }

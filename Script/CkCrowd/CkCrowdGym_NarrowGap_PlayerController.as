@@ -215,11 +215,11 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Rows = TArray<FCkGym_ControlRow>();
 
-        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Spawn 20 walkers"));
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Spawn 20 walkers"));
         Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Spawn blocker + 20 walkers"));
         Rows.Add(CkGym_Control::ToggleNamed(EKeys::F, "F", "Flank caps", _FlankWalls.Num() > 0, "CLOSED", "OPEN"));
-        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Reset - destroy agents"));
-        Rows.Add(CkGym_Control::Action(EKeys::D, "D", "Emit per-agent digest"));
+        Rows.Add(CkGym_Control::Action(EKeys::Z, "Z", "Reset - destroy agents"));
+        Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Emit per-agent digest"));
         Rows.Add(CkGym_Control::Status("Another agent count: console only"));
 
         return Rows;

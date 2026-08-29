@@ -51,7 +51,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Rows = TArray<FCkGym_ControlRow>();
         Rows.Add(CkGym_Control::Action(EKeys::M, "M", "Restart background music"));
-        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Fire the spatial cue"));
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Fire the spatial cue"));
         return Rows;
     }
 

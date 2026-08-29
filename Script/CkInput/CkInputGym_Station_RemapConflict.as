@@ -14,13 +14,12 @@
 // key bindings, a collision preview that mutates nothing, and the outcome of
 // the last remap-family command the viewer typed.
 //
-// WHY THE REPORT LIVES HERE. The PlayerController advertises its remap commands
-// on this panel, so this is where their outcome belongs - a viewer reading
-// about Ck_GymInput_Swap should not have to look at a different station to see
-// what it did.
+// WHY THE REPORT LIVES HERE. This station is what the remap rows are about, so
+// this is where their outcome belongs - a viewer who pressed the trade row
+// should not have to look at a different station to see what it did.
 //
-// A MANUAL COMMAND HOLDS THE DEMO. Every exec on the PlayerController pauses
-// this state machine first: someone poking commands by hand wants the panel to
+// A MANUAL PRESS HOLDS THE DEMO. Every control-panel row on the PlayerController
+// pauses this state machine first: someone driving the panel by hand wants it to
 // stay still while they read it.
 //
 // TEARDOWN. The demo leaves the profile customized between steps, so DoEndPlay
@@ -57,7 +56,7 @@ class UCk_EntityScript_InputGym_RemapConflict : UCk_GenericEntityScript_UE
         _StepMachine = gym_sm::Setup(InHandle, UCk_InputGym_Step_ResetBaseline);
 
         _StepConfig.Description = "Key remapping, conflicts and resolution, checked as it goes.";
-        _StepConfig.GlobalAutoCommand = "Ck_GymInput_Auto [0/1]";
+        _StepConfig.GlobalAutoCommand = "panel [T] Auto demo";
         _StepConfig.Steps.Add(FCkGym_SmStep(UCk_InputGym_Step_ResetBaseline,      "Start clean"));
         _StepConfig.Steps.Add(FCkGym_SmStep(UCk_InputGym_Step_RemapFree,          "Move to a free key"));
         _StepConfig.Steps.Add(FCkGym_SmStep(UCk_InputGym_Step_RemapOntoCrouch,    "Collide inside one category"));
@@ -118,7 +117,7 @@ class UCk_EntityScript_InputGym_RemapConflict : UCk_GenericEntityScript_UE
         }
         else
         {
-            input_gym::Add_Line(OutLines, "  Demo is held. Run Ck_GymInput_Auto 1 to let it continue.", gym_palette::Grey);
+            input_gym::Add_Line(OutLines, "  Demo is held. Press [T] on the control panel to let it continue.", gym_palette::Grey);
         }
 
         input_gym::Add_Spacer(OutLines, gym_palette::White);
@@ -180,13 +179,13 @@ class UCk_EntityScript_InputGym_RemapConflict : UCk_GenericEntityScript_UE
     private void Add_Commands(TArray<FCkGym_ColoredLine>& OutLines)
     {
         input_gym::Add_Spacer(OutLines, gym_palette::White);
-        input_gym::Add_Line(OutLines, "TRY IT YOURSELF (any of these holds the demo)", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_RemapFree                 move Jump somewhere free", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_RemapTakenSameCategory    move Jump onto Crouch", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_RemapTakenCrossCategory   move Jump onto Interact", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_Swap                      Jump and Crouch trade", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_UnbindAndRemap            Jump takes, holder loses", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_RemapBatch                move two rows at once", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_Auto 1                    let the demo continue", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "TRY IT YOURSELF - control panel (any of these holds the demo)", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  [1]   move Jump somewhere free", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  [2]   move Jump onto Crouch", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  [3]   move Jump onto Interact", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  [4]   Jump and Crouch trade", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  [5]   Jump takes, holder loses", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  [6]   move two rows at once", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  [T]   let the demo continue", gym_palette::Cyan);
     }
 }

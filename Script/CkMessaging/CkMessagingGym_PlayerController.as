@@ -8,6 +8,10 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
 {
     int32 SequenceCounter = 0;
 
+    // Ring position for the alert row. -1 means nothing has been sent yet, so the row advertises the
+    // ring instead of claiming a priority that was never broadcast.
+    private int32 _AlertPresetIndex = -1;
+
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
@@ -202,8 +206,12 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
     // A message gym shows nothing until a message is SENT, so every station here is dead on arrival until
-    // someone types a console command. The sends are Actions rather than Toggles: broadcasting has no
-    // readback, so there is no state to report and a two-state row would be inventing one.
+    // a row fires. The sends are Actions rather than Toggles: broadcasting has no readback, so there is
+    // no state to report and a two-state row would be inventing one.
+    //
+    // The alert row is the one exception - it carries a priority, so each press walks a 1/5/9 ring and
+    // sends at the value it lands on. Its value column reports the priority LAST SENT, which is the only
+    // thing about it that can be known.
     //--------------------------------------------------------------------------------------------------------------------------
 
     FString Get_ControlPanelTitle() override
@@ -221,16 +229,41 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Numbered(2, "One-shot", false));
         Rows.Add(CkGym_Control::Numbered(3, "Ping to dynamic", false));
         Rows.Add(CkGym_Control::Numbered(4, "Pong", false));
-        Rows.Add(CkGym_Control::Numbered(5, "Alert, priority 5", false));
+        Rows.Add(DoMake_AlertRow());
         Rows.Add(CkGym_Control::Numbered(6, "All types at once", false));
 
         Rows.Add(CkGym_Control::Header("BINDINGS"));
         Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Flip the dynamic bind"));
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Reset every station"));
 
-        Rows.Add(CkGym_Control::Status("Alert at another priority: console only"));
-
         return Rows;
+    }
+
+    private FCkGym_ControlRow DoMake_AlertRow() const
+    {
+        auto Row = CkGym_Control::Numbered(5, "Alert", false);
+        Row.Value = _AlertPresetIndex < 0 ? "(1 / 5 / 9)" : f"priority {DoGet_AlertPriority(_AlertPresetIndex)}";
+        return Row;
+    }
+
+    private int32 DoGet_AlertPriority(int32 InIndex) const
+    {
+        return InIndex == 0 ? 1 : InIndex == 1 ? 5 : 9;
+    }
+
+    // Each press walks the ring and sends at the value it lands on - the shape the attribute gym's
+    // preset rings already use. 5 is the priority the multi-type station's placard talks about; 1 and 9
+    // bracket it so the station's priority formatting is exercised at both ends.
+    private void DoCycleAlertPriority()
+    {
+        _AlertPresetIndex = (_AlertPresetIndex + 1) % 3;
+
+        auto Priority = DoGet_AlertPriority(_AlertPresetIndex);
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_MessagingGym_MultiType");
+        for (auto Entity : Entities)
+        {
+            utils_messaging::Broadcast(Entity, FCk_Message_MessagingGym_Alert("Warning!", Priority));
+        }
     }
 
     void Request_ControlActivated(int32 InRowIndex) override
@@ -241,7 +274,7 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
         else if (InRowIndex == 3) { Ck_GymMessaging_FireOneShot(); }
         else if (InRowIndex == 4) { Ck_GymMessaging_SendPingToDynamic(); }
         else if (InRowIndex == 5) { Ck_GymMessaging_SendPong(); }
-        else if (InRowIndex == 6) { Ck_GymMessaging_SendAlert(5); }
+        else if (InRowIndex == 6) { DoCycleAlertPriority(); }
         else if (InRowIndex == 7) { Ck_GymMessaging_SendAllTypes(); }
         else if (InRowIndex == 9) { Ck_GymMessaging_ToggleBind(); }
         else if (InRowIndex == 10) { Ck_GymMessaging_ResetAll(); }
@@ -326,16 +359,6 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
             utils_messaging::Broadcast(Entity, FCk_Message_MessagingGym_Pong("Console", SequenceCounter));
         }
         SequenceCounter++;
-    }
-
-    UFUNCTION(Exec, DisplayName="Messaging Gym - Send Alert")
-    void Ck_GymMessaging_SendAlert(int32 InPriority)
-    {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_MessagingGym_MultiType");
-        for (auto Entity : Entities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_MessagingGym_Alert("Warning!", InPriority));
-        }
     }
 
     UFUNCTION(Exec, DisplayName="Messaging Gym - Send All Types")

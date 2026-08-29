@@ -63,10 +63,10 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
     TArray<FCkGym_ControlRow> Get_ControlRows() override
     {
         auto Rows = TArray<FCkGym_ControlRow>();
-        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Spawn one agent"));
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Spawn one agent"));
         Rows.Add(CkGym_Control::Action(EKeys::T, "T", "Spawn ten agents"));
         Rows.Add(CkGym_Control::Action(EKeys::X, "X", "Remove the last agent"));
-        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Clear every agent"));
+        Rows.Add(CkGym_Control::Action(EKeys::Z, "Z", "Clear every agent"));
         return Rows;
     }
 

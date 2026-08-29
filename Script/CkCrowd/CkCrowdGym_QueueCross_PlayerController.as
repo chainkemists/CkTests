@@ -153,9 +153,9 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
     TArray<FCkGym_ControlRow> Get_ControlRows() override
     {
         auto Rows = TArray<FCkGym_ControlRow>();
-        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Spawn the line + crossers"));
-        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Reset - destroy agents"));
-        Rows.Add(CkGym_Control::Action(EKeys::D, "D", "Emit per-agent digest"));
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Spawn the line + crossers"));
+        Rows.Add(CkGym_Control::Action(EKeys::Z, "Z", "Reset - destroy agents"));
+        Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Emit per-agent digest"));
         return Rows;
     }
 

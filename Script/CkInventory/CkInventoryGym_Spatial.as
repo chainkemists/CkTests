@@ -52,7 +52,7 @@ class UCk_EntityScript_InvGym_Spatial : UCk_GenericEntityScript_UE
         AutoConfig.TotalSteps = 10;
         AutoConfig.Description = "8x6 grid with auto-placement, explicit\ncoordinates, and multi-cell items (3x1).";
         AutoConfig.GlobalAutoCommand = "Ck_GymInventory_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymInventory_AutoSpatial";
+        AutoConfig.PerStationAutoCommand = "panel [J] Re-arm auto (Spatial)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Auto-place 3x1 swords (x2)", 0, 1));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add shield (auto-place)", 2, 2));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Place sword at random coord", 3, 3));

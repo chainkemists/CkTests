@@ -93,7 +93,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_GenericEntityScript_UE
         AutoConfig.TotalSteps = 2;
         AutoConfig.Description = "Rapid stock/loot pump simulating in-game\nshelf operations. Watch total for drift.";
         AutoConfig.GlobalAutoCommand = "Ck_GymInventory_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymInventory_AutoShelf";
+        AutoConfig.PerStationAutoCommand = "panel [N] Re-arm auto (Shelf loot/stock)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Alternating stock/loot pump", 0, 1));
         AutoConfig.ManualCommands.Add("Ck_GymInventory_ShelfStart");
         AutoConfig.ManualCommands.Add("Ck_GymInventory_ShelfStop");

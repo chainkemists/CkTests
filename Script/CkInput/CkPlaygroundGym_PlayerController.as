@@ -57,15 +57,41 @@ class ACk_PlaygroundGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // ----------------------------------------------------------------------------------------------------------------
-    // CONSOLE COMMANDS
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Neither row may take a key the combat kit reads: LMB, RMB, W, LeftShift and Q are the matcher's
+    // subject keys (playground_gym::k_Key_*) and WASD is the pawn's own locomotion poll.
     // ----------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "INPUT PLAYGROUND";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        // The CVar itself is the state, and it reads back - so the row reports it rather than a mirror
+        // that anything typing the console command behind the panel's back would falsify.
+        Rows.Add(CkGym_Control::Toggle(EKeys::N, "N", "Near-miss recording",
+            utils_intent_matcher::Get_ScanDiagnosticsEnabled()));
+        Rows.Add(CkGym_Control::Action(EKeys::I, "I", "Why is nothing happening"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Request_SetScanDiagnostics(utils_intent_matcher::Get_ScanDiagnosticsEnabled() == false); }
+        else if (InRowIndex == 1) { Request_ReportStatus(); }
+    }
 
     // Scan diagnostics feed the CkIntentDebugger's near-miss ring; this is the manual switch until the combat
     // kit decides when recording should be on.
-    UFUNCTION(Exec, DisplayName = "Playground Gym - Near-Miss Recording On/Off")
-    void Ck_GymPlayground_Diagnostics(int32 InEnabled = 1)
+    private void Request_SetScanDiagnostics(bool InEnabled)
     {
-        if (InEnabled != 0)
+        if (InEnabled)
         {
             System::ExecuteConsoleCommand("ck.Intent.RecordScanDiagnostics 1");
             Print("[Playground] near-miss recording ON", 6.0f);
@@ -79,8 +105,7 @@ class ACk_PlaygroundGym_PlayerController : ACk_Gym_Base_PlayerController
     // When nothing arms, this says which of the three things the combat kit depends on
     // has not arrived: the player's source, the button space derived from it, or
     // the first sampled row.
-    UFUNCTION(Exec, DisplayName = "Playground Gym - Why Is Nothing Happening")
-    void Ck_GymPlayground_Status()
+    private void Request_ReportStatus()
     {
         auto Source = playground_gym::TryGet_PlayerSource();
 

@@ -57,7 +57,7 @@ class UCk_EntityScript_InteractionGym_Manual : UCk_GenericEntityScript_UE
 
         SmConfig.Description = "ManuallyCompleted policy - explicit end/cancel required.";
         SmConfig.GlobalAutoCommand = "Ck_GymInteraction_Auto [0/1]";
-        SmConfig.PerStationAutoCommand = "Ck_GymInteraction_AutoManual";
+        SmConfig.PerStationAutoCommand = "panel [J] Re-arm auto (Manual)";
         SmConfig.Steps.Add(FCkGym_SmStep(UCk_InteractionManualGym_Step_StartForSuccess, "Start manual interaction"));
         SmConfig.Steps.Add(FCkGym_SmStep(UCk_InteractionManualGym_Step_EndSuccess,      "End with success"));
         SmConfig.Steps.Add(FCkGym_SmStep(UCk_InteractionManualGym_Step_StartForFail,    "Start manual interaction"));

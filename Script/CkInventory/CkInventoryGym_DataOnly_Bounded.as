@@ -49,7 +49,7 @@ class UCk_EntityScript_InvGym_DataOnlyBounded : UCk_GenericEntityScript_UE
         AutoConfig.TotalSteps = 11;
         AutoConfig.Description = "Bounded inventory (max 5). Demonstrates\nRequest_OverrideBounds and rejection.";
         AutoConfig.GlobalAutoCommand = "Ck_GymInventory_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymInventory_AutoBounded";
+        AutoConfig.PerStationAutoCommand = "panel [I] Re-arm auto (Data-only bounded)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Fill to bound (5)", 0, 4));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Overfill (expect reject)", 5, 5));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Expand bound to 10", 6, 6));
@@ -57,7 +57,7 @@ class UCk_EntityScript_InvGym_DataOnlyBounded : UCk_GenericEntityScript_UE
         AutoConfig.Steps.Add(FCkGym_AutoStep("Clear all items", 9, 9));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Reset bound to 5", 10, 10));
         AutoConfig.ManualCommands.Add("Ck_GymInventory_FillBounded");
-        AutoConfig.ManualCommands.Add("Ck_GymInventory_SetBounds [n]");
+        AutoConfig.ManualCommands.Add("panel [B] Override the bound (5 / 10 / 20)");
         AutoConfig.ManualCommands.Add("Ck_GymInventory_RemoveFirst");
         AutoConfig.ManualCommands.Add("Ck_GymInventory_RestartAll");
 

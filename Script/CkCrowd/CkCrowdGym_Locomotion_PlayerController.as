@@ -85,9 +85,9 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         auto Rows = TArray<FCkGym_ControlRow>();
 
         Rows.Add(CkGym_Control::Header("AGENT"));
-        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Spawn the agent"));
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Spawn the agent"));
         Rows.Add(CkGym_Control::Action(EKeys::M, "M", "Move to -X 800cm"));
-        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Cancel the active move"));
+        Rows.Add(CkGym_Control::Action(EKeys::Z, "Z", "Cancel the active move"));
         Rows.Add(CkGym_Control::Action(EKeys::X, "X", "Destroy the agent"));
 
         Rows.Add(CkGym_Control::Header("PRINT TO LOG"));

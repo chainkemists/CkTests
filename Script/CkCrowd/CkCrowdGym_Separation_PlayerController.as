@@ -113,7 +113,7 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Numbered(1, "Head-on, east / west", false));
         Rows.Add(CkGym_Control::Numbered(2, "All four cardinals", false));
         Rows.Add(CkGym_Control::Numbered(3, "Cluster of 5 to centre", false));
-        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Clear every agent"));
+        Rows.Add(CkGym_Control::Action(EKeys::Z, "Z", "Clear every agent"));
 
         return Rows;
     }

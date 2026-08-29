@@ -64,7 +64,7 @@ class ACk_CrowdGym_AvoidanceVolume_PlayerController : ACk_Gym_Base_PlayerControl
         Description.Add(FText::FromString("5 inside escape; 6 confirmed removal and same-tick replacement."));
         Description.Add(FText::FromString("7 sealed Avoid If Possible fallback; 8 sealed Hard Exclude failure; 9 100-volume/100-agent stress."));
         Description.Add(FText::FromString("K selects exact (0 uu) or expanded (50 uu) path clearance for every scenario."));
-        Description.Add(FText::FromString("V toggles authored volume wireframes. C clears every tracked entity and nav markup."));
+        Description.Add(FText::FromString("V toggles authored volume wireframes. Z clears every tracked entity and nav markup."));
         Station.Description = Description;
         Stations.Add(Station);
         return Stations;
@@ -114,7 +114,7 @@ class ACk_CrowdGym_AvoidanceVolume_PlayerController : ACk_Gym_Base_PlayerControl
         Rows.Add(CkGym_Control::ToggleNamed(EKeys::K, "K", "Path clearance",
             _PathPlanningClearance > ExactPathPlanningClearance, "50 uu", "EXACT (0 uu)"));
         Rows.Add(CkGym_Control::Toggle(EKeys::V, "V", "Volume wireframe", _DrawVolume));
-        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Clear tracked entities and nav markup"));
+        Rows.Add(CkGym_Control::Action(EKeys::Z, "Z", "Clear tracked entities and nav markup"));
         Rows.Add(CkGym_Control::Status("Tracked", f"agents={_TrackedAgentEntities.Num()} volumes={_TrackedVolumeEntities.Num()} markup={_TrackedMarkup.Num()}", false));
         Rows.Add(CkGym_Control::Status("Stress", f"reached={_StressReached} failed={_StressFailed} / 100", _StressFailed > 0));
         Rows.Add(CkGym_Control::Status("Last result", _LastResult,

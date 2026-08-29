@@ -51,7 +51,7 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_GenericEntityScript_UE
         AutoConfig.TotalSteps = 6;
         AutoConfig.Description = "Request_StackItems, Request_SplitStack.\nBinds OnStackCountChanged per item.";
         AutoConfig.GlobalAutoCommand = "Ck_GymInventory_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymInventory_AutoStackable";
+        AutoConfig.PerStationAutoCommand = "panel [K] Re-arm auto (Stackable trait)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add potion (new stack)", 0, 0));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add potion (new stack)", 1, 1));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Merge first two stacks", 2, 2));
