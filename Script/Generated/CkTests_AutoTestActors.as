@@ -5181,6 +5181,19 @@ class ACk_AutoTest_Inventory_FillStacks_RespectsCustomStackValidation_Actor : AC
     }
 }
 
+class ACk_AutoTest_Inventory_MassTransfer_EndpointAdmission_SubmissionOrder_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_MassTransfer_EndpointAdmission_SubmissionOrder");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Inventory_MassTransfer_FullMove_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 6.0f;
@@ -5481,6 +5494,19 @@ class ACk_AutoTest_Inventory_Transfer_ConcurrentDataOnly_16x3_Actor : ACk_AutoTe
     }
 }
 
+class ACk_AutoTest_Inventory_Transfer_EndpointAdmission_SubmissionOrder_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_Transfer_EndpointAdmission_SubmissionOrder");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Inventory_Transfer_FullMoveReportsSuccess_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;
@@ -5500,6 +5526,19 @@ class ACk_AutoTest_Inventory_Transfer_PartialIntoTotalUnitsBound_Actor : ACk_Aut
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_Transfer_PartialIntoTotalUnitsBound");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Inventory_Transfer_SourceFifo_ReentrantCallback_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_Transfer_SourceFifo_ReentrantCallback");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
