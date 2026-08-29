@@ -138,6 +138,7 @@ namespace ck::auto_test::snapshot
         const auto ReloadTimeoutSeconds = InSpec.ReloadTimeoutSeconds;
         const auto ReloadSettled        = InSpec.ReloadSettled;
         const auto Assert               = InSpec.Assert;
+        const auto PostSave             = InSpec.PostSave;
 
         for (auto Cycle = 0; Cycle < InSpec.NumCycles; ++Cycle)
         {
@@ -181,6 +182,25 @@ namespace ck::auto_test::snapshot
                         return true;
                     }),
                     TEXT("SnapshotRoundTrip: save issued")));
+                ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(SettleFrames));
+            }
+
+            // Post-save window. NOT FCk_Latent_RunOnServer, for the same reason the save block above is not: a
+            // single-world OpenLevel load demotes the world to NM_Standalone, so from cycle 2 on it finds no
+            // server and silently DROPS its action - the test would then pass on a cycle where its setup never ran.
+            if (PostSave.IsBound())
+            {
+                ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(InTest,
+                    FCk_NetAutoTest_Assertion::CreateLambda([InTest, PostSave]() -> bool
+                    {
+                        auto* Server = Get_PostTravelServerWorld();
+                        if (Server == nullptr)
+                        { InTest->AddError(TEXT("SnapshotRoundTrip: no server world at PostSave")); return true; }
+
+                        PostSave.Execute(Server);
+                        return true;
+                    }),
+                    TEXT("SnapshotRoundTrip: post-save action ran")));
                 ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(SettleFrames));
             }
 
