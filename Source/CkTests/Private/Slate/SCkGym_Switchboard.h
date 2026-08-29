@@ -40,6 +40,10 @@ private:
         const FCkGym_Switchboard_Model& InModel) -> TSharedRef<SWidget>;
 
     auto
+    DoBuild_SettingsLine(
+        const FCkGym_Switchboard_Model& InModel) -> TSharedRef<SWidget>;
+
+    auto
     DoBuild_Footer(
         const FCkGym_Switchboard_Model& InModel) -> TSharedRef<SWidget>;
 };

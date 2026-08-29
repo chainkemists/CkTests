@@ -1,6 +1,7 @@
 #include "CkGym_Switchboard_Subsystem.h"
 
 #include "CkGymRegistry_Utils.h"
+#include "CkGymStartup_Utils.h"
 #include "CkGym_Registry.h"
 #include "CkTests/CkTests_Log.h"
 #include "Slate/SCkGym_ControlPanel.h"
@@ -614,6 +615,36 @@ auto
     if (InKey == EKeys::Left)  { DoMoveGroup(-1); return; }
     if (InKey == EKeys::Right) { DoMoveGroup(+1); return; }
 
+    if (InKey == EKeys::F1)
+    {
+        // Cycler -> Default -> Last -> Cycler.
+        const auto NextMode =
+            _Model.StartupMode == ECkGym_StartupMode::Cycler ? ECkGym_StartupMode::Default
+            : _Model.StartupMode == ECkGym_StartupMode::Default ? ECkGym_StartupMode::Last
+            : ECkGym_StartupMode::Cycler;
+
+        UCk_Utils_GymStartup_UE::Request_Set_StartupMode(NextMode);
+        DoRefreshSettingsInModel();
+        DoRefreshWidget();
+        return;
+    }
+
+    if (InKey == EKeys::F2)
+    {
+        // "Start here": pin the SELECTED gym as the startup default. Sets the mode too — a pinned
+        // name under any other mode would be a setting that visibly does nothing.
+        const auto& Rows = _Model.Get_ActiveRows();
+
+        if (Rows.IsValidIndex(_Model.SelectedRowIndex))
+        {
+            UCk_Utils_GymStartup_UE::Request_Set_DefaultGymName(Rows[_Model.SelectedRowIndex].DisplayName);
+            UCk_Utils_GymStartup_UE::Request_Set_StartupMode(ECkGym_StartupMode::Default);
+            DoRefreshSettingsInModel();
+            DoRefreshWidget();
+        }
+        return;
+    }
+
     if (InKey == EKeys::BackSpace)
     {
         if (_Model.Get_IsFiltered())
@@ -716,6 +747,16 @@ auto
 
 auto
     UCkGym_Switchboard_Subsystem::
+    DoRefreshSettingsInModel()
+    -> void
+{
+    _Model.StartupMode = UCk_Utils_GymStartup_UE::Get_StartupMode();
+    _Model.DefaultGymName = UCk_Utils_GymStartup_UE::Get_DefaultGymName();
+    _Model.LastGymName = UCk_Utils_GymStartup_UE::Get_LastGymName();
+}
+
+auto
+    UCkGym_Switchboard_Subsystem::
     DoBuildModel()
     -> void
 {
@@ -726,6 +767,7 @@ auto
     const auto Entries = UCk_Utils_GymRegistry_UE::Get_GymRegistry(LocalPlayer);
     _Model.Groups = Build_Groups(Entries);
     _Model.CurrentGymRegistryIndex = UCk_Utils_GymRegistry_UE::Get_CurrentGymIndex(LocalPlayer);
+    DoRefreshSettingsInModel();
 
     // Land the selection on the running gym so reopening the menu shows where you are.
     if (_Model.CurrentGymRegistryIndex != INDEX_NONE)

@@ -5,6 +5,7 @@
 #include "CkCore/Macros/CkMacros.h"
 
 #include "CkGym_ControlPanelTypes.h"
+#include "CkGym_StartupSettings.h"
 
 #include "CkInput/CkInputLayer_Fragment_Data.h"
 #include "CkInput/CkInputSource_Fragment_Data.h"
@@ -65,6 +66,12 @@ struct FCkGym_Switchboard_Model
     TArray<FCkGym_Switchboard_Row> FilteredRows;
 
     int32 CurrentGymRegistryIndex = INDEX_NONE;
+
+    // Snapshot of the per-user startup settings, so the menu surfaces (and edits) them without
+    // reaching into the CDO from widget code. F1 cycles the mode, F2 pins the selected gym.
+    ECkGym_StartupMode StartupMode = ECkGym_StartupMode::Cycler;
+    FString DefaultGymName;
+    FString LastGymName;
 
     static constexpr int32 MaxVisibleRows = 18;
 
@@ -206,6 +213,9 @@ private:
 private:
     auto
     DoRefreshPanelWidget() -> void;
+
+    auto
+    DoRefreshSettingsInModel() -> void;
 
 private:
     TSharedPtr<SCkGym_Switchboard> _RootWidget;
