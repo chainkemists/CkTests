@@ -24,7 +24,7 @@
 //   6. utils_goap_planner::AddAction(_AttackEnemy_AsPlanner, ...)
 //        -> AttackFromCover, AttackFromFlank, AttackOpen leaves.
 //
-// Scenarios (toggle WS keys via Goap.FEAR.* console commands):
+// Scenarios (toggle WS keys from the control panel):
 //
 //   Default reset                                  [WaitForEnemy]                   cost 999  (fallback)
 //   EnemyVisible=true                              [AttackEnemy -> AttackOpen]      cost 2.0
@@ -274,15 +274,15 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
             + "AttackEnemy sub-Planner (goal: EnemyNeutralized = true)\n"
             + f"  Status   {AttackStatusStr}\n"
             + f"  Plan     {AttackPlanStr}\n\n"
-            + "Console (Goap.FEAR.*)\n"
-            + "  SetTargetVisible / ClearTargetVisible\n"
-            + "  ToggleAtCover\n"
-            + "  ToggleBehindEnemy\n"
-            + "  ToggleHasAmmo\n"
-            + "  ToggleHasAmmoReserve\n"
-            + "  SetHeardSound / ClearHeardSound\n"
-            + "  Reset\n"
-            + "  IdealAmbush";
+            + "Control panel\n"
+            + "  panel [J]  EnemyVisible\n"
+            + "  panel [K]  AtCover\n"
+            + "  panel [L]  BehindEnemy\n"
+            + "  panel [M]  HasAmmo\n"
+            + "  panel [N]  HasAmmoReserve\n"
+            + "  panel [O]  HeardSound\n"
+            + "  panel [B]  Ideal ambush\n"
+            + "  panel [R]  Reset";
 
         CkGym_Common::Update_StationDisplay(ck::ToEntity(this),
             "STATION 1 / F.E.A.R. COMBATANT", Body,

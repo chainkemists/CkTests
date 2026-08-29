@@ -3,10 +3,10 @@
 //============================================================================
 // CkGoapEmpire_Gym - single-station 5-action plan
 //
-// Plan resolves to 5 steps. Player commands:
-//   Goap.Empire.ToggleFood / Gold / Wood / Barracks / Feudal
-//     - flip each resource WS bit individually.
-//   Goap.Empire.Reset
+// Plan resolves to 5 steps. Player controls:
+//   panel [J] / [K] / [L] / [M] / [N]
+//     - flip HasFood / HasGold / HasWood / BarracksBuilt / FeudalResearched.
+//   panel [R]
 //     - clear everything to false.
 //============================================================================
 
@@ -133,9 +133,9 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
             + f"  Plan length   {Plan.Num()}\n"
             + f"  Plan          {CkGoapGym_Common::Format_Plan(Plan, _KnownClasses, _KnownLabels)}\n"
             + f"  Plan cost     {Cost}\n\n"
-            + "Console\n"
-            + "  Goap.Empire.ToggleFood / Gold / Wood / Barracks / Feudal\n"
-            + "  Goap.Empire.Reset";
+            + "Control panel\n"
+            + "  panel [J] / [K] / [L] / [M] / [N]  Food / Gold / Wood / Barracks / Feudal\n"
+            + "  panel [R]                          Reset all keys to false";
 
         CkGym_Common::Update_StationDisplay(ck::ToEntity(this),
             "EMPIRE / FEUDAL RESEARCH", Body,

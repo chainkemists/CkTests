@@ -112,7 +112,7 @@ class UCk_EntityScript_SceneNodeTweenGym_SimpleStation : UCk_GenericEntityScript
 
         AutoConfig.TotalSteps = 1;
         AutoConfig.Description = "Single child tracks tweened root.\nDrift > 5 = propagation broken.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymSceneNodeTween_Auto [0/1]";
+        AutoConfig.GlobalAutoCommand = "panel [J] Auto (all stations)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Tween yoyo", 0, 0));
 
         return ECk_EntityScript_ConstructionFlow::Finished;
@@ -288,7 +288,7 @@ class UCk_EntityScript_SceneNodeTweenGym_ChainStation : UCk_GenericEntityScript_
         AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(1.0f));
         AutoConfig.TotalSteps = 1;
         AutoConfig.Description = "Root -> A -> B chain.\nTween drives root along +Y.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymSceneNodeTween_Auto [0/1]";
+        AutoConfig.GlobalAutoCommand = "panel [J] Auto (all stations)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Tween yoyo", 0, 0));
 
         return ECk_EntityScript_ConstructionFlow::Finished;
@@ -481,7 +481,7 @@ class UCk_EntityScript_SceneNodeTweenGym_DeepStation : UCk_GenericEntityScript_U
         AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(1.0f));
         AutoConfig.TotalSteps = 1;
         AutoConfig.Description = "5-level chain under a tweened root.\nStresses propagation depth.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymSceneNodeTween_Auto [0/1]";
+        AutoConfig.GlobalAutoCommand = "panel [J] Auto (all stations)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Tween yoyo", 0, 0));
 
         return ECk_EntityScript_ConstructionFlow::Finished;

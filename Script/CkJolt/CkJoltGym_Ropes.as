@@ -9,7 +9,7 @@
 //   lane 2 - Rigid chain, 14 segments with a heavy pendulum ball pinned to
 //            the tail, released swinging
 // Yank the tails, or CUT a rope (destroys its middle link - the lower half
-// drops). Enable ck.Jolt.DebugDraw.Enabled 1 to see segments + links.
+// drops). Toggle [J] to see segments + links.
 //============================================================================
 
 class ACk_JoltGym_Ropes_GameMode : ACkTests_Gym_Base_GameMode
@@ -27,6 +27,11 @@ class ACk_JoltGym_Ropes_PlayerController : ACk_Gym_Base_PlayerController
     private float _LaneSpacingY = 240.0;
     private float _GantryZ = 620.0;
 
+    // Mirror of ck.Jolt.DebugDraw.Enabled - mirrored in a member because the module exposes no
+    // AS readback for it; EndPlay writes it back to its default (off) only if this gym touched it.
+    private bool _JoltDrawEnabled = false;
+    private bool _JoltDrawTouched = false;
+
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
@@ -36,7 +41,7 @@ class ACk_JoltGym_Ropes_PlayerController : ACk_Gym_Base_PlayerController
         Station.Title = FText::FromString("JOLT ROPES");
         auto Description = TArray<FText>();
         Description.Add(FText::FromString("Rigid chain / stretchy rope / pendulum.\nBuilt by utils_jolt_rope::Create_Rope."));
-        Description.Add(FText::FromString("Ck_GymJoltRopes_Yank [0/1/2/-1]\nCk_GymJoltRopes_Cut [0/1/2]\nCk_GymJoltRopes_Reset\nck.Jolt.DebugDraw.Enabled 1"));
+        Description.Add(FText::FromString("Every control is on the panel:\n[B] yank all · [1/2/3] cut one rope · [R] reset · [J] Jolt debug draw."));
         Station.Description = Description;
         Station.AutoSize = true;
         Stations.Add(Station);
@@ -146,9 +151,49 @@ class ACk_JoltGym_Ropes_PlayerController : ACk_Gym_Base_PlayerController
         _RopeRoots.Add(Generic);
     }
 
+    // ---- Control panel ------------------------------------------------------------------------
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Header("ROPES"));
+        Rows.Add(CkGym_Control::Action(EKeys::B,     "B", "Yank all three tails"));
+        Rows.Add(CkGym_Control::Action(EKeys::One,   "1", "Cut rope 1 (rigid chain)"));
+        Rows.Add(CkGym_Control::Action(EKeys::Two,   "2", "Cut rope 2 (springy)"));
+        Rows.Add(CkGym_Control::Action(EKeys::Three, "3", "Cut rope 3 (pendulum)"));
+        Rows.Add(CkGym_Control::Action(EKeys::R,     "R", "Reset - rebuild all ropes"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::J,     "J", "Jolt debug draw", _JoltDrawEnabled));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 1)
+        { DoYank(-1); }
+        else if (InRowIndex >= 2 && InRowIndex <= 4)
+        { DoCut(InRowIndex - 2); }
+        else if (InRowIndex == 5)
+        { DoReset(); }
+        else if (InRowIndex == 6)
+        {
+            _JoltDrawEnabled = !_JoltDrawEnabled;
+            _JoltDrawTouched = true;
+            System::ExecuteConsoleCommand(f"ck.Jolt.DebugDraw.Enabled {(_JoltDrawEnabled ? 1 : 0)}");
+        }
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void EndPlay(EEndPlayReason EndPlayReason)
+    {
+        // No AS readback exists for the cvar, so a faithful capture/restore is impossible - put it
+        // back to its module default only if this gym flipped it, so a value the USER set outside
+        // the gym is never stomped by a gym they never touched the toggle in.
+        if (_JoltDrawTouched)
+        { System::ExecuteConsoleCommand("ck.Jolt.DebugDraw.Enabled 0"); }
+    }
+
     // InLaneIndex 0/1/2 yanks one rope's tail; anything else yanks all.
-    UFUNCTION(Exec, DisplayName="Jolt Ropes - Yank")
-    void Ck_GymJoltRopes_Yank(int32 InLaneIndex = -1)
+    private void DoYank(int32 InLaneIndex)
     {
         for (int32 i = 0; i < _Ropes.Num(); i++)
         {
@@ -167,8 +212,7 @@ class ACk_JoltGym_Ropes_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // Destroys the middle link of the given rope - the lower half drops free.
-    UFUNCTION(Exec, DisplayName="Jolt Ropes - Cut")
-    void Ck_GymJoltRopes_Cut(int32 InLaneIndex = 0)
+    private void DoCut(int32 InLaneIndex)
     {
         if (InLaneIndex < 0 || InLaneIndex >= _Ropes.Num())
         {
@@ -194,8 +238,7 @@ class ACk_JoltGym_Ropes_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace(f"JoltRopesGym: cut rope {InLaneIndex}");
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt Ropes - Reset")
-    void Ck_GymJoltRopes_Reset()
+    private void DoReset()
     {
         for (auto Root : _RopeRoots)
         {

@@ -54,12 +54,11 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_GenericEntityScript_UE
 		// Auto config
 		AutoConfig.TotalSteps = 1;
 		AutoConfig.Description = "Auto-cycles values beyond min/max to trigger OnMinClamped and OnMaxClamped.";
-		AutoConfig.GlobalAutoCommand = "Ck_GymInteger_Auto [0/1]";
-		AutoConfig.PerStationAutoCommand = "Ck_GymInteger_AutoClamping";
+		AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+		AutoConfig.PerStationAutoCommand = "panel [4] Clamping station auto";
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Cycling Resource value (0-100 range)", 0, 0));
-		AutoConfig.ManualCommands.Add("Ck_GymInteger_SetResource [val]");
-		AutoConfig.ManualCommands.Add("Ck_GymInteger_TestBoundaries");
-		AutoConfig.ManualCommands.Add("Ck_GymInteger_ResetClamping");
+		AutoConfig.ManualCommands.Add("panel [U] Resource preset · 50 / 0 / 100 / 150 / -50");
+		AutoConfig.ManualCommands.Add("panel [B] Test boundaries · [R] Reset clamping station");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

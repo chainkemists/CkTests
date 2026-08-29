@@ -34,26 +34,26 @@
 //   2. GoToWaypoint (promoted Planner) plans with goal AtWaypoint=true.
 //                      Picks Run (cost 1 < Walk's cost 2).
 //                      Chain = [GoToWaypoint, Run].
-//   3. Player sets AtWaypoint=true (Goap.Patrol.SetAtWaypoint).
+//   3. Player sets AtWaypoint=true (panel [G]).
 //                      GoToWaypoint's goal satisfied -> top Planner replans.
 //   4. Plan now starts at Observe -> [Observe, MarkDone].
 //                      Chain = [Observe].
 //   5. Observe (promoted Planner) plans with goal AreaScanned=true.
 //                      Picks LookAround (cost 1).
 //                      Chain = [Observe, LookAround].
-//   6. Player sets AreaScanned=true (Goap.Patrol.SetAreaScanned).
+//   6. Player sets AreaScanned=true (panel [I]).
 //                      Observe satisfied -> top Planner replans.
 //   7. Plan picks MarkDone (atomic leaf, no sub-plan).
 //                      Chain = [MarkDone].
-//   8. Player sets AreaPatrolled=true (Goap.Patrol.Complete) or let
+//   8. Player sets AreaPatrolled=true (panel [O]) or let
 //                    MarkDone's eff fire automatically if the runtime
 //                    applies effects (gym-only: player sets manually).
 //
 // Buttons:
-//   Goap.Patrol.SetAtWaypoint   - AtWaypoint=true
-//   Goap.Patrol.SetAreaScanned  - AreaScanned=true
-//   Goap.Patrol.Complete        - AreaPatrolled=true
-//   Goap.Patrol.Reset           - all keys back to false
+//   panel [G] - AtWaypoint=true
+//   panel [I] - AreaScanned=true
+//   panel [O] - AreaPatrolled=true
+//   panel [3] - all keys back to false
 //============================================================================
 
 // ---- Tier 1 composites (each promoted to Planner in the station) ----

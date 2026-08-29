@@ -164,10 +164,21 @@ class ACkGym_ControlPanelHUD : AHUD
         _SyncedKeys = Desired;
     }
 
+    // A HUD hosting its own text-input surface (VfxExamples' cloned search menu) overrides this to
+    // park the panel while that surface owns the keyboard - otherwise typing a letter the panel
+    // has a row on would both filter AND dispatch. Dies when such menus become input layers.
+    bool Get_PanelKeysSuspended()
+    {
+        return false;
+    }
+
     UFUNCTION()
     private void OnPanelCaptured(FCk_Handle_InputLayer InLayer, FCk_InputSource_RawEvent InEvent, FCk_InputLayer_Capture InCapture)
     {
         if (InEvent.Get_EventType() != ECk_InputSource_EventType::Pressed)
+        { return; }
+
+        if (Get_PanelKeysSuspended())
         { return; }
 
         auto Key = InEvent.Get_Key();

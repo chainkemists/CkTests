@@ -70,28 +70,56 @@ class ACk_GoapEmpireGym_PlayerController : ACk_Gym_Base_PlayerController
             utils_gameplay_tag::ResolveGameplayTag(InKey), InValue);
     }
 
-    UFUNCTION(Exec, DisplayName="Goap.Empire.ToggleFood")
-    void Goap_Empire_ToggleFood() { Flip(n"Gym.Goap.WS.Empire.HasFood"); }
+    private bool Get(FName InKey)
+    {
+        auto WS = Find_EmpireWS();
+        if (ck::Is_NOT_Valid(WS)) { return false; }
+        return utils_goap_world_state::Get_Value(WS,
+            utils_gameplay_tag::ResolveGameplayTag(InKey));
+    }
 
-    UFUNCTION(Exec, DisplayName="Goap.Empire.ToggleGold")
-    void Goap_Empire_ToggleGold() { Flip(n"Gym.Goap.WS.Empire.HasGold"); }
-
-    UFUNCTION(Exec, DisplayName="Goap.Empire.ToggleWood")
-    void Goap_Empire_ToggleWood() { Flip(n"Gym.Goap.WS.Empire.HasWood"); }
-
-    UFUNCTION(Exec, DisplayName="Goap.Empire.ToggleBarracks")
-    void Goap_Empire_ToggleBarracks() { Flip(n"Gym.Goap.WS.Empire.BarracksBuilt"); }
-
-    UFUNCTION(Exec, DisplayName="Goap.Empire.ToggleFeudal")
-    void Goap_Empire_ToggleFeudal() { Flip(n"Gym.Goap.WS.Empire.FeudalResearched"); }
-
-    UFUNCTION(Exec, DisplayName="Goap.Empire.Reset")
-    void Goap_Empire_Reset()
+    private void DoReset()
     {
         Set(n"Gym.Goap.WS.Empire.HasFood", false);
         Set(n"Gym.Goap.WS.Empire.HasGold", false);
         Set(n"Gym.Goap.WS.Empire.HasWood", false);
         Set(n"Gym.Goap.WS.Empire.BarracksBuilt", false);
         Set(n"Gym.Goap.WS.Empire.FeudalResearched", false);
+    }
+
+    //--------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Each toggle reads its world-state key back live, so the panel doubles as the WS readout the
+    // station text used to be the only source of.
+    //--------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "GOAP: EMPIRE";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Header("WORLD STATE"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::J, "J", "HasFood",           Get(n"Gym.Goap.WS.Empire.HasFood")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::K, "K", "HasGold",           Get(n"Gym.Goap.WS.Empire.HasGold")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::L, "L", "HasWood",           Get(n"Gym.Goap.WS.Empire.HasWood")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::M, "M", "BarracksBuilt",     Get(n"Gym.Goap.WS.Empire.BarracksBuilt")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::N, "N", "FeudalResearched",  Get(n"Gym.Goap.WS.Empire.FeudalResearched")));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Reset all keys to false"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        // Row 0 is a header, which holds no key and never arrives here.
+        if (InRowIndex == 1) { Flip(n"Gym.Goap.WS.Empire.HasFood"); }
+        else if (InRowIndex == 2) { Flip(n"Gym.Goap.WS.Empire.HasGold"); }
+        else if (InRowIndex == 3) { Flip(n"Gym.Goap.WS.Empire.HasWood"); }
+        else if (InRowIndex == 4) { Flip(n"Gym.Goap.WS.Empire.BarracksBuilt"); }
+        else if (InRowIndex == 5) { Flip(n"Gym.Goap.WS.Empire.FeudalResearched"); }
+        else if (InRowIndex == 6) { DoReset(); }
     }
 }

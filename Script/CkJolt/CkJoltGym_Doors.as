@@ -8,8 +8,8 @@
 //   lane 0 - FREE:         +/-110 deg limits, light friction - push it open
 //   lane 1 - SELF-CLOSING: +/-110 deg limits, Position motor driving to 0
 //   lane 2 - TURNSTILE:    no limits, Velocity motor spinning at 90 deg/s
-// Shoot balls at them (Ck_GymJoltDoors_Shoot) and watch each react. Enable
-// ck.Jolt.DebugDraw.Enabled 1 to see the hinge axes and limits.
+// Shoot balls at them ([B]) and watch each react; toggle [J] to see the hinge
+// axes and limits.
 //============================================================================
 
 class ACk_JoltGym_Doors_GameMode : ACkTests_Gym_Base_GameMode
@@ -28,6 +28,13 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
     private float _DoorHalfWidth = 60.0;
     private float _DoorHalfHeight = 95.0;
 
+    private float _SpinDegPerSec = 90.0;
+
+    // Mirror of ck.Jolt.DebugDraw.Enabled - mirrored in a member because the module exposes no
+    // AS readback for it; EndPlay writes it back to its default (off) only if this gym touched it.
+    private bool _JoltDrawEnabled = false;
+    private bool _JoltDrawTouched = false;
+
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
@@ -37,7 +44,7 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
         Station.Title = FText::FromString("JOLT DOORS");
         auto Description = TArray<FText>();
         Description.Add(FText::FromString("3 hinged doors:\nFREE / SELF-CLOSING (position motor) / TURNSTILE (velocity motor)."));
-        Description.Add(FText::FromString("Ck_GymJoltDoors_Shoot\nCk_GymJoltDoors_Slam\nCk_GymJoltDoors_Spin [degPerSec]\nCk_GymJoltDoors_Reset"));
+        Description.Add(FText::FromString("Every control is on the panel:\n[B] shoot · [N] slam · [T] turnstile spin · [R] reset."));
         Station.Description = Description;
         Station.AutoSize = true;
         Stations.Add(Station);
@@ -51,7 +58,7 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
 
         DoBuildContent();
 
-        ck::Trace("JoltDoorsGym: started - shoot the doors with Ck_GymJoltDoors_Shoot");
+        ck::Trace("JoltDoorsGym: started - shoot the doors with [B]");
     }
 
     private void DoBuildContent()
@@ -67,7 +74,7 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
         utils_jolt_constraint::Request_Hinge_SetMotor(ClosingHinge, ClosingMotor);
 
         // Lane 2: turnstile - constant angular velocity.
-        DoSetSpin(90.0);
+        DoSetSpin(_SpinDegPerSec);
     }
 
     private float DoLaneY(int32 InLaneIndex)
@@ -141,8 +148,53 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
         _SpawnedRoots.Add(Generic);
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt Doors - Shoot Ball")
-    void Ck_GymJoltDoors_Shoot()
+    // ---- Control panel ------------------------------------------------------------------------
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Header("DOORS"));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Shoot a ball"));
+        Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Slam all shut"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::T,  "T", "Turnstile spin", f"{_SpinDegPerSec} deg/s"));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Reset"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::J, "J", "Jolt debug draw", _JoltDrawEnabled));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 1)
+        { DoShootBall(); }
+        else if (InRowIndex == 2)
+        { DoSlamShut(); }
+        else if (InRowIndex == 3)
+        {
+            _SpinDegPerSec = _SpinDegPerSec == 0.0 ? 45.0 : _SpinDegPerSec == 45.0 ? 90.0 : _SpinDegPerSec == 90.0 ? 180.0 : _SpinDegPerSec == 180.0 ? 360.0 : 0.0;
+            DoSetSpin(_SpinDegPerSec);
+            ck::Trace(f"JoltDoorsGym: turnstile spin set to {_SpinDegPerSec} deg/s");
+        }
+        else if (InRowIndex == 4)
+        { DoReset(); }
+        else if (InRowIndex == 5)
+        {
+            _JoltDrawEnabled = !_JoltDrawEnabled;
+            _JoltDrawTouched = true;
+            System::ExecuteConsoleCommand(f"ck.Jolt.DebugDraw.Enabled {(_JoltDrawEnabled ? 1 : 0)}");
+        }
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void EndPlay(EEndPlayReason EndPlayReason)
+    {
+        // No AS readback exists for the cvar, so a faithful capture/restore is impossible - put it
+        // back to its module default only if this gym flipped it, so a value the USER set outside
+        // the gym is never stomped by a gym they never touched the toggle in.
+        if (_JoltDrawTouched)
+        { System::ExecuteConsoleCommand("ck.Jolt.DebugDraw.Enabled 0"); }
+    }
+
+    private void DoShootBall()
     {
         auto ViewPawn = GetControlledPawn();
         if (!IsValid(ViewPawn))
@@ -173,8 +225,7 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
         _SpawnedRoots.Add(Generic);
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt Doors - Slam All Shut")
-    void Ck_GymJoltDoors_Slam()
+    private void DoSlamShut()
     {
         for (int32 i = 0; i < _Hinges.Num(); i++)
         {
@@ -190,13 +241,6 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("JoltDoorsGym: slammed shut");
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt Doors - Set Turnstile Spin")
-    void Ck_GymJoltDoors_Spin(float InDegPerSec = 90.0)
-    {
-        DoSetSpin(InDegPerSec);
-        ck::Trace(f"JoltDoorsGym: turnstile spin set to {InDegPerSec} deg/s");
-    }
-
     private void DoSetSpin(float InDegPerSec)
     {
         if (_Hinges.Num() < 3)
@@ -208,8 +252,7 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
         utils_jolt_constraint::Request_Hinge_SetMotor(Hinge, Motor);
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt Doors - Reset")
-    void Ck_GymJoltDoors_Reset()
+    private void DoReset()
     {
         for (auto Root : _SpawnedRoots)
         {

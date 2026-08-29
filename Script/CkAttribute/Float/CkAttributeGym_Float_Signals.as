@@ -46,15 +46,15 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_GenericEntityScript_UE
 
 		AutoConfig.TotalSteps = 6;
 		AutoConfig.Description = "Tests signal binding/unbinding with multiple delegates.\nShows OnValueChanged payload and OnMinClamped/OnMaxClamped events.";
-		AutoConfig.GlobalAutoCommand = "Ck_GymFloat_Auto [0/1]";
-		AutoConfig.PerStationAutoCommand = "Ck_GymFloat_AutoSignals";
+		AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+		AutoConfig.PerStationAutoCommand = "panel [5] Signals station auto";
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Bind first delegate", 0, 0));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Bind two more delegates", 1, 1));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Trigger multiple value changes", 2, 2));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Unbind delegate 2", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test min/max clamp signals", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Unbind all delegates", 5, 5));
-		AutoConfig.ManualCommands.Add("Ck_GymFloat_SetSignalValue [val]");
+		AutoConfig.ManualCommands.Add("panel [P] Signal value preset · 150 / 0 / 300 / -50");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

@@ -60,11 +60,10 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_GenericEntityScript_UE
 		// Auto config
 		AutoConfig.TotalSteps = 1;
 		AutoConfig.Description = "Cycles attribute values beyond min/max to demonstrate clamping behavior.\nShield demonstrates initial-value clamping (created with value > max).";
-		AutoConfig.GlobalAutoCommand = "Ck_GymByte_Auto [0/1]";
-		AutoConfig.PerStationAutoCommand = "Ck_GymByte_AutoClamping";
+		AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+		AutoConfig.PerStationAutoCommand = "panel [1] Clamping station auto";
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Cycling Armor/Stamina/Health values", 0, 0));
-		AutoConfig.ManualCommands.Add("Ck_GymByte_TestBoundaries");
-		AutoConfig.ManualCommands.Add("Ck_GymByte_ResetAll");
+		AutoConfig.ManualCommands.Add("panel [B] Test boundaries · [R] Reset all stations");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

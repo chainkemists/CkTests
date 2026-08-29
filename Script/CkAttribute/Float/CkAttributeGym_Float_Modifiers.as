@@ -35,8 +35,8 @@ class UCk_EntityScript_AttributeGym_FloatModifiers : UCk_GenericEntityScript_UE
 
         AutoConfig.TotalSteps = 8;
         AutoConfig.Description = "Tests modifier system with add/multiply operations.\nShows Base + Bonus = Final with stacking modifiers.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymFloat_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymFloat_AutoModifiers";
+        AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+        AutoConfig.PerStationAutoCommand = "panel [3] Modifiers station auto";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add weapon modifier (+25.5)", 0, 0));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add armor modifier (+15.75)", 1, 1));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add buff modifier (+20.25)", 2, 2));
@@ -45,9 +45,7 @@ class UCk_EntityScript_AttributeGym_FloatModifiers : UCk_GenericEntityScript_UE
         AutoConfig.Steps.Add(FCkGym_AutoStep("Modify existing buff (20.25 -> 35.75)", 5, 5));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Clear all modifiers", 6, 6));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add non-revocable modifier (+12.5)", 7, 7));
-        AutoConfig.ManualCommands.Add("Ck_GymFloat_AddWeapon");
-        AutoConfig.ManualCommands.Add("Ck_GymFloat_RemoveWeapon");
-        AutoConfig.ManualCommands.Add("Ck_GymFloat_ClearMods");
+        AutoConfig.ManualCommands.Add("panel [K] Modifiers ring · add weapon / revoke weapon / clear all");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

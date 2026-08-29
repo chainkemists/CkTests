@@ -6,8 +6,8 @@
 // Three Dynamic plates hang from a gantry on Distance constraints with SOFT
 // (spring) limits at different frequencies - floppy (1 Hz), medium (3 Hz),
 // stiff (8 Hz) - plus a bungee ball on a long low-frequency spring. Poke them
-// and compare the oscillation. Enable ck.Jolt.DebugDraw.Enabled 1 to see the
-// bodies and constraint anchors (ck.Jolt.DebugDraw.Constraints).
+// and compare the oscillation. Toggle [J] to see the bodies; the constraint
+// anchors need ck.Jolt.DebugDraw.Constraints on top of it.
 //
 // Content is built in world -X from the station anchor (house rule: stations
 // face -X).
@@ -29,6 +29,11 @@ class ACk_JoltGym_Springs_PlayerController : ACk_Gym_Base_PlayerController
     private float _GantryZ = 420.0;
     private float _HangLength = 220.0;
 
+    // Mirror of ck.Jolt.DebugDraw.Enabled - mirrored in a member because the module exposes no
+    // AS readback for it; EndPlay writes it back to its default (off) only if this gym touched it.
+    private bool _JoltDrawEnabled = false;
+    private bool _JoltDrawTouched = false;
+
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
@@ -38,7 +43,7 @@ class ACk_JoltGym_Springs_PlayerController : ACk_Gym_Base_PlayerController
         Station.Title = FText::FromString("JOLT SPRINGS");
         auto Description = TArray<FText>();
         Description.Add(FText::FromString("3 plates on soft distance springs:\n1 Hz floppy / 3 Hz medium / 8 Hz stiff\n+ a bungee ball."));
-        Description.Add(FText::FromString("Ck_GymJoltSprings_Poke [0/1/2/3=bungee/-1]\nCk_GymJoltSprings_Reset\nck.Jolt.DebugDraw.Enabled 1"));
+        Description.Add(FText::FromString("Every control is on the panel:\n[B] poke all · [1/2/3] one plate · [4] the bungee · [R] reset · [J] Jolt debug draw."));
         Station.Description = Description;
         Station.AutoSize = true;
         Stations.Add(Station);
@@ -52,7 +57,7 @@ class ACk_JoltGym_Springs_PlayerController : ACk_Gym_Base_PlayerController
 
         DoBuildContent();
 
-        ck::Trace("JoltSpringsGym: started - poke the plates with Ck_GymJoltSprings_Poke");
+        ck::Trace("JoltSpringsGym: started - poke the plates with [B]");
     }
 
     private void DoBuildContent()
@@ -159,9 +164,50 @@ class ACk_JoltGym_Springs_PlayerController : ACk_Gym_Base_PlayerController
         _SpawnedRoots.Add(Generic);
     }
 
-    // InLaneIndex 0/1/2 pokes one plate; anything else pokes everything (bungee ball included).
-    UFUNCTION(Exec, DisplayName="Jolt Springs - Poke")
-    void Ck_GymJoltSprings_Poke(int32 InLaneIndex = -1)
+    // ---- Control panel ------------------------------------------------------------------------
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Header("SPRINGS"));
+        Rows.Add(CkGym_Control::Action(EKeys::B,     "B", "Poke everything"));
+        Rows.Add(CkGym_Control::Action(EKeys::One,   "1", "Poke the 1 Hz floppy plate"));
+        Rows.Add(CkGym_Control::Action(EKeys::Two,   "2", "Poke the 3 Hz medium plate"));
+        Rows.Add(CkGym_Control::Action(EKeys::Three, "3", "Poke the 8 Hz stiff plate"));
+        Rows.Add(CkGym_Control::Action(EKeys::Four,  "4", "Poke the bungee ball"));
+        Rows.Add(CkGym_Control::Action(EKeys::R,     "R", "Reset - rebuild the rig"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::J,     "J", "Jolt debug draw", _JoltDrawEnabled));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 1)
+        { DoPoke(-1); }
+        else if (InRowIndex >= 2 && InRowIndex <= 5)
+        { DoPoke(InRowIndex - 2); }
+        else if (InRowIndex == 6)
+        { DoReset(); }
+        else if (InRowIndex == 7)
+        {
+            _JoltDrawEnabled = !_JoltDrawEnabled;
+            _JoltDrawTouched = true;
+            System::ExecuteConsoleCommand(f"ck.Jolt.DebugDraw.Enabled {(_JoltDrawEnabled ? 1 : 0)}");
+        }
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void EndPlay(EEndPlayReason EndPlayReason)
+    {
+        // No AS readback exists for the cvar, so a faithful capture/restore is impossible - put it
+        // back to its module default only if this gym flipped it, so a value the USER set outside
+        // the gym is never stomped by a gym they never touched the toggle in.
+        if (_JoltDrawTouched)
+        { System::ExecuteConsoleCommand("ck.Jolt.DebugDraw.Enabled 0"); }
+    }
+
+    // InLaneIndex 0/1/2 pokes one plate, 3 the bungee ball; anything else pokes everything.
+    private void DoPoke(int32 InLaneIndex)
     {
         for (int32 i = 0; i < _Plates.Num(); i++)
         {
@@ -176,8 +222,7 @@ class ACk_JoltGym_Springs_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("JoltSpringsGym: poked");
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt Springs - Reset")
-    void Ck_GymJoltSprings_Reset()
+    private void DoReset()
     {
         for (auto Root : _SpawnedRoots)
         {

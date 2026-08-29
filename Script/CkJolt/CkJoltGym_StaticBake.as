@@ -84,9 +84,14 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
 
     // Continuous player view-ray vs the full Jolt query layer - instant visual confirmation of
     // which geometry Jolt actually has (a rendered mesh with NO hit = a bake gap, e.g. the
-    // runtime spline-mesh lane). Toggled by Ck_GymJoltStaticBake_ToggleRay.
+    // runtime spline-mesh lane). Toggled by the [T] control-panel row.
     private bool _ViewRayEnabled = true;
     private float _ViewRayRange = 8000.0;
+
+    // Mirror of ck.Jolt.DebugDraw.Enabled - mirrored in a member because the module exposes no
+    // AS readback for it; EndPlay writes it back to its default (off) only if this gym touched it.
+    private bool _JoltDrawEnabled = false;
+    private bool _JoltDrawTouched = false;
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
@@ -105,7 +110,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         Description.Add(FText::FromString("Runtime geometry baked into the Jolt static world, each lane self-verified by Jolt-vs-Chaos witness rays (watch the log for PASS/FAIL/MISS)."));
         Description.Add(FText::FromString("Lanes: StaticMesh | HISM sparse (5) | HISM dense (40) | SplineMesh (runtime gap + authored) | Volume/Brush scan | Landscape scan."));
         Description.Add(FText::FromString("Your view fires a continuous Jolt ray: GREEN beam + entity label = Jolt has that geometry; RED beam through a rendered mesh = bake gap."));
-        Description.Add(FText::FromString("Ck_GymJoltStaticBake_RunWitnesses\nCk_GymJoltStaticBake_Rebake\nCk_GymJoltStaticBake_ToggleRay"));
+        Description.Add(FText::FromString("Every control is on the panel:\n[B] run witnesses · [N] rebake · [T] view ray · [J] Jolt debug draw."));
         Station.Description = Description;
         Station.AutoSize = true;
         Stations.Add(Station);
@@ -142,7 +147,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         DoScanLane_Volumes();
         DoScanLane_Landscapes();
 
-        ck::Trace("JoltStaticBakeGym: lanes built + baked - set ck.Jolt.DebugDraw.Enabled 1 to see baked wireframes");
+        ck::Trace("JoltStaticBakeGym: lanes built + baked - toggle [J] to see baked wireframes");
 
         // Continuous view-ray: every frame, cast from the player's view through the Jolt world
         // and draw the result (see OnViewRayTick).
@@ -619,27 +624,57 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // ------------------------------------------------------------------------------------------
-    // Console commands
+    // Control panel
     // ------------------------------------------------------------------------------------------
-    UFUNCTION(Exec, DisplayName="Jolt StaticBake - Run Witnesses")
-    void Ck_GymJoltStaticBake_RunWitnesses()
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
     {
-        DoRunAllWitnesses();
-        DoLogWitnessSummary("manual re-run");
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Header("STATIC BAKE"));
+        Rows.Add(CkGym_Control::Status("Last witness run",
+            f"{_LastPass}/{_LastTotal} pass · {_LastFail} fail · {_LastExpectedMiss} expected-miss", _LastFail > 0));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Run the witnesses now"));
+        Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Rebake - remove, witness, re-bake"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::T, "T", "View ray", _ViewRayEnabled));
+        Rows.Add(CkGym_Control::Toggle(EKeys::J, "J", "Jolt debug draw", _JoltDrawEnabled));
+        return Rows;
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt StaticBake - Toggle View Ray")
-    void Ck_GymJoltStaticBake_ToggleRay()
+    void Request_ControlActivated(int32 InRowIndex) override
     {
-        _ViewRayEnabled = !_ViewRayEnabled;
-        if (_ViewRayEnabled)
-        { ck::Trace("StaticBakeGym: view-ray ON"); }
-        else
-        { ck::Trace("StaticBakeGym: view-ray OFF"); }
+        if (InRowIndex == 2)
+        {
+            DoRunAllWitnesses();
+            DoLogWitnessSummary("manual re-run");
+        }
+        else if (InRowIndex == 3)
+        { DoRebake(); }
+        else if (InRowIndex == 4)
+        {
+            _ViewRayEnabled = !_ViewRayEnabled;
+            if (_ViewRayEnabled)
+            { ck::Trace("StaticBakeGym: view-ray ON"); }
+            else
+            { ck::Trace("StaticBakeGym: view-ray OFF"); }
+        }
+        else if (InRowIndex == 5)
+        {
+            _JoltDrawEnabled = !_JoltDrawEnabled;
+            _JoltDrawTouched = true;
+            System::ExecuteConsoleCommand(f"ck.Jolt.DebugDraw.Enabled {(_JoltDrawEnabled ? 1 : 0)}");
+        }
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt StaticBake - Rebake")
-    void Ck_GymJoltStaticBake_Rebake()
+    UFUNCTION(BlueprintOverride)
+    void EndPlay(EEndPlayReason EndPlayReason)
+    {
+        // No AS readback exists for the cvar, so a faithful capture/restore is impossible - put it
+        // back to its module default only if this gym flipped it, so a value the USER set outside
+        // the gym is never stomped by a gym they never touched the toggle in.
+        if (_JoltDrawTouched)
+        { System::ExecuteConsoleCommand("ck.Jolt.DebugDraw.Enabled 0"); }
+    }
+
+    private void DoRebake()
     {
         ck::Trace("StaticBakeGym: Rebake - removing all runtime-baked lane bodies");
         for (auto Actor : _LaneActors)

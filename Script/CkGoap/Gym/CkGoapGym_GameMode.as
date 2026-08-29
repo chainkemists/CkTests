@@ -15,9 +15,9 @@
 //                          _AllowPlanFailed=true; counterpart to MakeTea
 //
 // Each station is its own ECS entity tagged with a station identity gameplay
-// tag. The exec console commands resolve a station entity by tag, then locate
-// its named WorldState (created in DoConstruct with a gym-specific name tag)
-// via utils_goap_world_state::Find_ByName and mutate it directly. The Goap
+// tag. The control-panel rows resolve a station entity by tag, then locate its
+// named WorldState (created in DoConstruct with a gym-specific name tag) via
+// utils_goap_world_state::Find_ByName and read or mutate it directly. The Goap
 // runtime reacts via OnWorldStateDirty replan policies on each root.
 //============================================================================
 
@@ -182,47 +182,43 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
             utils_gameplay_tag::ResolveGameplayTag(InKey), InValue);
     }
 
-    // ---- Open Door ----
-    UFUNCTION(Exec, DisplayName="Goap.Door.Toggle")
-    void Goap_Door_Toggle()
+    private bool Get(FCk_Handle_Goap_WorldState InWS, FName InKey)
     {
-        auto WS = Find_StationWS("Gym.Goap.Station.OpenDoor", n"Gym.Goap.WS.Door");
-        Flip(WS, n"Gym.Goap.WS.Door.IsOpen");
+        if (ck::Is_NOT_Valid(InWS)) { return false; }
+        return utils_goap_world_state::Get_Value(InWS,
+            utils_gameplay_tag::ResolveGameplayTag(InKey));
     }
 
-    // ---- Make Tea ----
-    UFUNCTION(Exec, DisplayName="Goap.Tea.ToggleKettle")
-    void Goap_Tea_ToggleKettle()
-    {
-        Flip(Find_StationWS("Gym.Goap.Station.MakeTea", n"Gym.Goap.WS.Tea"),
-             n"Gym.Goap.WS.Tea.HasKettle");
-    }
+    //--------------------------------------------------------------------------
+    // Per-station WS lookups - one call site each, so the row builder and the
+    // dispatch cannot drift on which WS a station owns.
+    //--------------------------------------------------------------------------
 
-    UFUNCTION(Exec, DisplayName="Goap.Tea.ToggleWater")
-    void Goap_Tea_ToggleWater()
-    {
-        Flip(Find_StationWS("Gym.Goap.Station.MakeTea", n"Gym.Goap.WS.Tea"),
-             n"Gym.Goap.WS.Tea.HasWater");
-    }
+    private FCk_Handle_Goap_WorldState Find_DoorWS()
+    { return Find_StationWS("Gym.Goap.Station.OpenDoor", n"Gym.Goap.WS.Door"); }
 
-    UFUNCTION(Exec, DisplayName="Goap.Tea.ToggleLeaves")
-    void Goap_Tea_ToggleLeaves()
-    {
-        Flip(Find_StationWS("Gym.Goap.Station.MakeTea", n"Gym.Goap.WS.Tea"),
-             n"Gym.Goap.WS.Tea.HasTeaLeaves");
-    }
+    private FCk_Handle_Goap_WorldState Find_TeaWS()
+    { return Find_StationWS("Gym.Goap.Station.MakeTea", n"Gym.Goap.WS.Tea"); }
 
-    UFUNCTION(Exec, DisplayName="Goap.Tea.ToggleCup")
-    void Goap_Tea_ToggleCup()
-    {
-        Flip(Find_StationWS("Gym.Goap.Station.MakeTea", n"Gym.Goap.WS.Tea"),
-             n"Gym.Goap.WS.Tea.HasCup");
-    }
+    private FCk_Handle_Goap_WorldState Find_RiverWS()
+    { return Find_StationWS("Gym.Goap.Station.CrossRiver", n"Gym.Goap.WS.CrossRiver"); }
 
-    UFUNCTION(Exec, DisplayName="Goap.Tea.Reset")
-    void Goap_Tea_Reset()
+    private FCk_Handle_Goap_WorldState Find_PatrolWS()
+    { return Find_StationWS("Gym.Goap.Station.Patrol", n"Gym.Goap.WS.Patrol"); }
+
+    private FCk_Handle_Goap_WorldState Find_SurvivalWS()
+    { return Find_StationWS("Gym.Goap.Station.Survival", n"Gym.Goap.WS.Survival"); }
+
+    private FCk_Handle_Goap_WorldState Find_CombatBrainWS()
+    { return Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain"); }
+
+    //--------------------------------------------------------------------------
+    // Station resets and scripted scenarios
+    //--------------------------------------------------------------------------
+
+    private void DoResetTea()
     {
-        auto WS = Find_StationWS("Gym.Goap.Station.MakeTea", n"Gym.Goap.WS.Tea");
+        auto WS = Find_TeaWS();
         Set(WS, n"Gym.Goap.WS.Tea.HasKettle", true);
         Set(WS, n"Gym.Goap.WS.Tea.HasWater", true);
         Set(WS, n"Gym.Goap.WS.Tea.HasTeaLeaves", true);
@@ -233,94 +229,25 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
         Set(WS, n"Gym.Goap.WS.Tea.TeaServed", false);
     }
 
-    // ---- Cross River ----
-    UFUNCTION(Exec, DisplayName="Goap.River.ToggleBridge")
-    void Goap_River_ToggleBridge()
+    private void DoResetRiver()
     {
-        Flip(Find_StationWS("Gym.Goap.Station.CrossRiver", n"Gym.Goap.WS.CrossRiver"),
-             n"Gym.Goap.WS.CrossRiver.BridgeIsOpen");
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.River.SpendCoin")
-    void Goap_River_SpendCoin()
-    {
-        Set(Find_StationWS("Gym.Goap.Station.CrossRiver", n"Gym.Goap.WS.CrossRiver"),
-            n"Gym.Goap.WS.CrossRiver.HasCoin", false);
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.River.Reset")
-    void Goap_River_Reset()
-    {
-        auto WS = Find_StationWS("Gym.Goap.Station.CrossRiver", n"Gym.Goap.WS.CrossRiver");
+        auto WS = Find_RiverWS();
         Set(WS, n"Gym.Goap.WS.CrossRiver.BridgeIsOpen", true);
         Set(WS, n"Gym.Goap.WS.CrossRiver.HasCoin", true);
         Set(WS, n"Gym.Goap.WS.CrossRiver.Crossed", false);
     }
 
-    // ---- Patrol (U11.6 multi-tier WS keys) ----
-    UFUNCTION(Exec, DisplayName="Goap.Patrol.SetAtWaypoint")
-    void Goap_Patrol_SetAtWaypoint()
+    private void DoResetPatrol()
     {
-        Set(Find_StationWS("Gym.Goap.Station.Patrol", n"Gym.Goap.WS.Patrol"),
-            n"Gym.Goap.WS.Patrol.AtWaypoint", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.Patrol.SetAreaScanned")
-    void Goap_Patrol_SetAreaScanned()
-    {
-        Set(Find_StationWS("Gym.Goap.Station.Patrol", n"Gym.Goap.WS.Patrol"),
-            n"Gym.Goap.WS.Patrol.AreaScanned", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.Patrol.Complete")
-    void Goap_Patrol_Complete()
-    {
-        Set(Find_StationWS("Gym.Goap.Station.Patrol", n"Gym.Goap.WS.Patrol"),
-            n"Gym.Goap.WS.Patrol.AreaPatrolled", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.Patrol.Reset")
-    void Goap_Patrol_Reset()
-    {
-        auto WS = Find_StationWS("Gym.Goap.Station.Patrol", n"Gym.Goap.WS.Patrol");
+        auto WS = Find_PatrolWS();
         Set(WS, n"Gym.Goap.WS.Patrol.AtWaypoint", false);
         Set(WS, n"Gym.Goap.WS.Patrol.AreaScanned", false);
         Set(WS, n"Gym.Goap.WS.Patrol.AreaPatrolled", false);
     }
 
-    // ---- Survival ----
-    UFUNCTION(Exec, DisplayName="Goap.Survival.ToggleHungry")
-    void Goap_Survival_ToggleHungry()
+    private void DoResetSurvival()
     {
-        Flip(Find_StationWS("Gym.Goap.Station.Survival", n"Gym.Goap.WS.Survival"),
-             n"Gym.Goap.WS.Survival.Hungry");
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.Survival.ToggleHasFood")
-    void Goap_Survival_ToggleHasFood()
-    {
-        Flip(Find_StationWS("Gym.Goap.Station.Survival", n"Gym.Goap.WS.Survival"),
-             n"Gym.Goap.WS.Survival.HasFood");
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.Survival.ToggleThreat")
-    void Goap_Survival_ToggleThreat()
-    {
-        Flip(Find_StationWS("Gym.Goap.Station.Survival", n"Gym.Goap.WS.Survival"),
-             n"Gym.Goap.WS.Survival.ThreatActive");
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.Survival.ToggleHasWeapon")
-    void Goap_Survival_ToggleHasWeapon()
-    {
-        Flip(Find_StationWS("Gym.Goap.Station.Survival", n"Gym.Goap.WS.Survival"),
-             n"Gym.Goap.WS.Survival.HasWeapon");
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.Survival.Reset")
-    void Goap_Survival_Reset()
-    {
-        auto WS = Find_StationWS("Gym.Goap.Station.Survival", n"Gym.Goap.WS.Survival");
+        auto WS = Find_SurvivalWS();
         Set(WS, n"Gym.Goap.WS.Survival.Hungry", true);
         Set(WS, n"Gym.Goap.WS.Survival.HasFood", false);
         Set(WS, n"Gym.Goap.WS.Survival.ThreatActive", true);
@@ -328,53 +255,9 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
         Set(WS, n"Gym.Goap.WS.Survival.SafeFromThreat", false);
     }
 
-    // ---- Combat Brain (4-tier canonical demo) ----
-    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.SetEnemyVisible")
-    void Goap_CombatBrain_SetEnemyVisible()
+    private void DoResetCombatBrain()
     {
-        Set(Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain"),
-            n"Gym.Goap.WS.CombatBrain.EnemyVisible", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.ClearEnemyVisible")
-    void Goap_CombatBrain_ClearEnemyVisible()
-    {
-        Set(Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain"),
-            n"Gym.Goap.WS.CombatBrain.EnemyVisible", false);
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.SetWeaponEquipped")
-    void Goap_CombatBrain_SetWeaponEquipped()
-    {
-        Set(Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain"),
-            n"Gym.Goap.WS.CombatBrain.WeaponEquipped", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.ClearWeaponEquipped")
-    void Goap_CombatBrain_ClearWeaponEquipped()
-    {
-        Set(Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain"),
-            n"Gym.Goap.WS.CombatBrain.WeaponEquipped", false);
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.SetStaminaHigh")
-    void Goap_CombatBrain_SetStaminaHigh()
-    {
-        Set(Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain"),
-            n"Gym.Goap.WS.CombatBrain.StaminaHigh", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.ClearStaminaHigh")
-    void Goap_CombatBrain_ClearStaminaHigh()
-    {
-        Set(Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain"),
-            n"Gym.Goap.WS.CombatBrain.StaminaHigh", false);
-    }
-
-    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.Reset")
-    void Goap_CombatBrain_Reset()
-    {
-        auto WS = Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain");
+        auto WS = Find_CombatBrainWS();
         Set(WS, n"Gym.Goap.WS.CombatBrain.EnemyVisible", false);
         Set(WS, n"Gym.Goap.WS.CombatBrain.WeaponEquipped", false);
         Set(WS, n"Gym.Goap.WS.CombatBrain.StaminaHigh", false);
@@ -385,15 +268,118 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 
     // Drive the entire chain to terminal state - useful for showing the
     // plan running to completion without manually flipping every key.
-    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.Complete")
-    void Goap_CombatBrain_Complete()
+    private void DoCompleteCombatBrain()
     {
-        auto WS = Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain");
+        auto WS = Find_CombatBrainWS();
         Set(WS, n"Gym.Goap.WS.CombatBrain.EnemyVisible", true);
         Set(WS, n"Gym.Goap.WS.CombatBrain.WeaponEquipped", true);
         Set(WS, n"Gym.Goap.WS.CombatBrain.StaminaHigh", true);
         Set(WS, n"Gym.Goap.WS.CombatBrain.EnemyHit", true);
         Set(WS, n"Gym.Goap.WS.CombatBrain.EnemyAttacked", true);
         Set(WS, n"Gym.Goap.WS.CombatBrain.EnemyDead", true);
+    }
+
+    //--------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Seven stations replan off these keys, so the panel is grouped by station and every toggle
+    // reads its key back from the world state - the panel is the WS view as much as it is the input.
+    //
+    // The one-way setters (the coin, the three Patrol keys) stay Actions rather than becoming
+    // toggles, because the plan being demonstrated depends on them being irreversible except through
+    // the station's Reset. Their live value shows as the row greying out once it is spent.
+    //
+    // Station 7 (Opt-Out Demo) has no controls: its goal is structurally unreachable by design.
+    //--------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "GOAP: STATIONS 1-7";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        auto DoorWS = Find_DoorWS();
+        Rows.Add(CkGym_Control::Header("1 / OPEN DOOR"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::J, "J", "Door.IsOpen", Get(DoorWS, n"Gym.Goap.WS.Door.IsOpen")));
+
+        auto TeaWS = Find_TeaWS();
+        Rows.Add(CkGym_Control::Header("2 / MAKE TEA"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::K, "K", "HasKettle",    Get(TeaWS, n"Gym.Goap.WS.Tea.HasKettle")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::L, "L", "HasWater",     Get(TeaWS, n"Gym.Goap.WS.Tea.HasWater")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::M, "M", "HasTeaLeaves", Get(TeaWS, n"Gym.Goap.WS.Tea.HasTeaLeaves")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::N, "N", "HasCup",       Get(TeaWS, n"Gym.Goap.WS.Tea.HasCup")));
+        Rows.Add(CkGym_Control::Action(EKeys::One, "1", "Reset the tea WS"));
+
+        auto RiverWS = Find_RiverWS();
+        auto HasCoin = Get(RiverWS, n"Gym.Goap.WS.CrossRiver.HasCoin");
+        Rows.Add(CkGym_Control::Header("3 / CROSS RIVER"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::B, "B", "BridgeIsOpen", Get(RiverWS, n"Gym.Goap.WS.CrossRiver.BridgeIsOpen")));
+        Rows.Add(CkGym_Control::Action(EKeys::F, "F", "Spend the coin (one-way)", HasCoin));
+        Rows.Add(CkGym_Control::Action(EKeys::Two, "2", "Reset the river WS"));
+
+        auto PatrolWS = Find_PatrolWS();
+        Rows.Add(CkGym_Control::Header("4 / PATROL ROUTE"));
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Set AtWaypoint",
+            Get(PatrolWS, n"Gym.Goap.WS.Patrol.AtWaypoint") == false));
+        Rows.Add(CkGym_Control::Action(EKeys::I, "I", "Set AreaScanned",
+            Get(PatrolWS, n"Gym.Goap.WS.Patrol.AreaScanned") == false));
+        Rows.Add(CkGym_Control::Action(EKeys::O, "O", "Set AreaPatrolled",
+            Get(PatrolWS, n"Gym.Goap.WS.Patrol.AreaPatrolled") == false));
+        Rows.Add(CkGym_Control::Action(EKeys::Three, "3", "Reset the patrol WS"));
+
+        auto SurvivalWS = Find_SurvivalWS();
+        Rows.Add(CkGym_Control::Header("5 / SURVIVAL DECISION"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::P, "P", "Hungry",       Get(SurvivalWS, n"Gym.Goap.WS.Survival.Hungry")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::T, "T", "HasFood",      Get(SurvivalWS, n"Gym.Goap.WS.Survival.HasFood")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::U, "U", "ThreatActive", Get(SurvivalWS, n"Gym.Goap.WS.Survival.ThreatActive")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::V, "V", "HasWeapon",    Get(SurvivalWS, n"Gym.Goap.WS.Survival.HasWeapon")));
+        Rows.Add(CkGym_Control::Action(EKeys::Four, "4", "Reset the survival WS"));
+
+        auto CombatWS = Find_CombatBrainWS();
+        Rows.Add(CkGym_Control::Header("6 / COMBAT BRAIN"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::X, "X", "EnemyVisible",   Get(CombatWS, n"Gym.Goap.WS.CombatBrain.EnemyVisible")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::Y, "Y", "WeaponEquipped", Get(CombatWS, n"Gym.Goap.WS.CombatBrain.WeaponEquipped")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::Z, "Z", "StaminaHigh",    Get(CombatWS, n"Gym.Goap.WS.CombatBrain.StaminaHigh")));
+        Rows.Add(CkGym_Control::Action(EKeys::Five, "5", "Drive the chain to EnemyDead"));
+        Rows.Add(CkGym_Control::Action(EKeys::Six,  "6", "Reset the combat WS"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        // Rows 0, 2, 8, 12, 17 and 23 are headers - no key, never dispatched, but they DO occupy an
+        // index. Keep this branch list in the same order as Get_ControlRows above.
+        if (InRowIndex == 1) { Flip(Find_DoorWS(), n"Gym.Goap.WS.Door.IsOpen"); }
+
+        else if (InRowIndex == 3) { Flip(Find_TeaWS(), n"Gym.Goap.WS.Tea.HasKettle"); }
+        else if (InRowIndex == 4) { Flip(Find_TeaWS(), n"Gym.Goap.WS.Tea.HasWater"); }
+        else if (InRowIndex == 5) { Flip(Find_TeaWS(), n"Gym.Goap.WS.Tea.HasTeaLeaves"); }
+        else if (InRowIndex == 6) { Flip(Find_TeaWS(), n"Gym.Goap.WS.Tea.HasCup"); }
+        else if (InRowIndex == 7) { DoResetTea(); }
+
+        else if (InRowIndex == 9)  { Flip(Find_RiverWS(), n"Gym.Goap.WS.CrossRiver.BridgeIsOpen"); }
+        else if (InRowIndex == 10) { Set(Find_RiverWS(), n"Gym.Goap.WS.CrossRiver.HasCoin", false); }
+        else if (InRowIndex == 11) { DoResetRiver(); }
+
+        else if (InRowIndex == 13) { Set(Find_PatrolWS(), n"Gym.Goap.WS.Patrol.AtWaypoint", true); }
+        else if (InRowIndex == 14) { Set(Find_PatrolWS(), n"Gym.Goap.WS.Patrol.AreaScanned", true); }
+        else if (InRowIndex == 15) { Set(Find_PatrolWS(), n"Gym.Goap.WS.Patrol.AreaPatrolled", true); }
+        else if (InRowIndex == 16) { DoResetPatrol(); }
+
+        else if (InRowIndex == 18) { Flip(Find_SurvivalWS(), n"Gym.Goap.WS.Survival.Hungry"); }
+        else if (InRowIndex == 19) { Flip(Find_SurvivalWS(), n"Gym.Goap.WS.Survival.HasFood"); }
+        else if (InRowIndex == 20) { Flip(Find_SurvivalWS(), n"Gym.Goap.WS.Survival.ThreatActive"); }
+        else if (InRowIndex == 21) { Flip(Find_SurvivalWS(), n"Gym.Goap.WS.Survival.HasWeapon"); }
+        else if (InRowIndex == 22) { DoResetSurvival(); }
+
+        else if (InRowIndex == 24) { Flip(Find_CombatBrainWS(), n"Gym.Goap.WS.CombatBrain.EnemyVisible"); }
+        else if (InRowIndex == 25) { Flip(Find_CombatBrainWS(), n"Gym.Goap.WS.CombatBrain.WeaponEquipped"); }
+        else if (InRowIndex == 26) { Flip(Find_CombatBrainWS(), n"Gym.Goap.WS.CombatBrain.StaminaHigh"); }
+        else if (InRowIndex == 27) { DoCompleteCombatBrain(); }
+        else if (InRowIndex == 28) { DoResetCombatBrain(); }
     }
 }

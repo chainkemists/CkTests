@@ -105,7 +105,7 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
             + "\n\nPlanner\n" + StatusLine
             + "\n" + PlanLine
             + "\n" + ChainLine
-            + "\n\nConsole\n  Goap.Door.Toggle  Flip Door.IsOpen";
+            + "\n\nControl panel\n  panel [J]  Flip Door.IsOpen";
 
         CkGym_Common::Update_StationDisplay(ck::ToEntity(this),
             "STATION 1 / OPEN DOOR", Body,

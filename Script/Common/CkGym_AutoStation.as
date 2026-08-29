@@ -181,7 +181,7 @@ namespace gym_auto
             Text = f"{Text}{Cmd}\n";
         }
 
-        auto GlobalCmd = InConfig.GlobalAutoCommand != "" ? InConfig.GlobalAutoCommand : "Ck_Gym*_Auto [0/1]";
+        auto GlobalCmd = InConfig.GlobalAutoCommand != "" ? InConfig.GlobalAutoCommand : "the gym's panel auto row";
         Text = f"{Text}\n{GlobalCmd}\n";
         if (InConfig.PerStationAutoCommand != "")
         {

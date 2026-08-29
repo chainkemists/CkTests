@@ -25,7 +25,7 @@ class ACk_GoapAutoReplanGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
 
         Stations.Add(MakeStationPayload(n"Gym.Goap.AutoReplan.Explicit", "STATION A / EXPLICIT",
-            "Manual replan only.\nUse Goap.AutoReplan.Explicit.Replan."));
+            "Manual replan only.\nUse the control panel's [R] row."));
 
         Stations.Add(MakeStationPayload(n"Gym.Goap.AutoReplan.OnWSDirty", "STATION B / OnWSDirty",
             "Throttled to one replan per 0.5s window."));
@@ -68,12 +68,35 @@ class ACk_GoapAutoReplanGym_PlayerController : ACk_Gym_Base_PlayerController
             FInstancedStruct::Make(Params));
     }
 
-    UFUNCTION(Exec, DisplayName="Goap.AutoReplan.Explicit.Replan")
-    void Goap_AutoReplan_Explicit_Replan()
+    private void DoReplanExplicit()
     {
         auto Entity = Get_StationHandle("Gym.Goap.AutoReplan.Explicit");
         if (ck::Is_NOT_Valid(Entity)) { return; }
         auto Marker = FCk_Fragment_GoapGym_ForceReplanPending();
         Entity.Add_Fragment(Marker);
+    }
+
+    //--------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Station A's whole point is that nothing replans it unless a human asks - so the ask has to be
+    // visible. B and C need no controls: they replan themselves, which is what is being compared.
+    //--------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "GOAP: REPLAN POLICIES";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Station A: replan now"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { DoReplanExplicit(); }
     }
 }

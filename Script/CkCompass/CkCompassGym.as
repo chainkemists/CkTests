@@ -12,14 +12,13 @@
 // Stations (content built toward -X from each anchor - house rule):
 //   - Main:   POI ring (Quest/Shop/Danger/Info, varied priorities, one
 //             ClampToEdge waypoint that pins to the arc edge when behind you)
-//   - Stress: 500 standalone POIs on demand (Ck_GymCompass_Stress500)
+//   - Stress: 500 standalone POIs on demand (panel [M])
 //
-// Exec commands:
-//   Ck_GymCompass_Ping            - TTL ping POI 1500uu ahead of the pawn
-//   Ck_GymCompass_ToggleQuestFilter - Quest-only category filter on/off
-//   Ck_GymCompass_Stress500       - spawn the stress field
-//   Ck_GymCompass_ClearStress     - destroy the stress field
-//   Ck_GymCompass_Readout         - dump all entries to the log
+// Control panel rows:
+//   [J]        - TTL ping POI 1500uu ahead of the pawn
+//   [T]        - Quest-only category filter on/off
+//   [M] / [U]  - spawn / destroy the stress field
+//   [P]        - dump all entries to the log
 //============================================================================
 
 class ACk_CompassGym_GameMode : ACkTests_Gym_Base_GameMode
@@ -61,6 +60,9 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
     private FVector _MainOrigin = FVector::ZeroVector;
     private FVector _StressOrigin = FVector::ZeroVector;
     private TArray<FCk_Handle> _StressPois;
+
+    // The compass holds the category filter as an FGameplayTagQuery with no getter, so the panel
+    // mirrors whether this controller last set the Quest-only query or cleared it.
     private bool _QuestFilterActive = false;
     private float _ReadoutAccum = 0.0;
 
@@ -73,7 +75,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         Main.Title = FText::FromString("COMPASS");
         auto MainDescription = TArray<FText>();
         MainDescription.Add(FText::FromString("POI ring around the station.\nTurn the mouse to sweep the compass heading."));
-        MainDescription.Add(FText::FromString("Ck_GymCompass_Ping\nCk_GymCompass_ToggleQuestFilter\nCk_GymCompass_Readout"));
+        MainDescription.Add(FText::FromString("Panel: [J] ping ahead\n[T] Quest-only filter\n[P] readout to the log"));
         Main.Description = MainDescription;
         Main.AutoSize = true;
         Stations.Add(Main);
@@ -83,7 +85,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         Stress.Title = FText::FromString("COMPASS STRESS");
         auto StressDescription = TArray<FText>();
         StressDescription.Add(FText::FromString("500 POIs on demand — watch the projector's cost."));
-        StressDescription.Add(FText::FromString("Ck_GymCompass_Stress500\nCk_GymCompass_ClearStress"));
+        StressDescription.Add(FText::FromString("Panel: [M] spawn 500\n[U] clear"));
         Stress.Description = StressDescription;
         Stress.AutoSize = true;
         Stations.Add(Stress);
@@ -228,8 +230,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
             FLinearColor(0.6, 0.6, 0.6, 0.5), 0.05, 2.0);
     }
 
-    UFUNCTION(Exec, DisplayName="Compass Gym - Ping Ahead")
-    void Ck_GymCompass_Ping()
+    private void DoPingAhead()
     {
         if (ControlledPawn == nullptr)
         { return; }
@@ -255,8 +256,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("CompassGym: ping placed 1500uu ahead (TTL 5s)");
     }
 
-    UFUNCTION(Exec, DisplayName="Compass Gym - Toggle Quest Filter")
-    void Ck_GymCompass_ToggleQuestFilter()
+    private void DoToggleQuestFilter()
     {
         auto Compass = DoGet_Compass();
         if (ck::Is_NOT_Valid(Compass))
@@ -278,8 +278,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("CompassGym: category filter = Quest only");
     }
 
-    UFUNCTION(Exec, DisplayName="Compass Gym - Stress 500")
-    void Ck_GymCompass_Stress500()
+    private void DoSpawnStressField()
     {
         if (_StressPois.Num() > 0)
         {
@@ -309,8 +308,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("CompassGym: 500 stress POIs spawned");
     }
 
-    UFUNCTION(Exec, DisplayName="Compass Gym - Clear Stress")
-    void Ck_GymCompass_ClearStress()
+    private void DoClearStressField()
     {
         for (auto Poi : _StressPois)
         {
@@ -321,8 +319,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("CompassGym: stress field cleared");
     }
 
-    UFUNCTION(Exec, DisplayName="Compass Gym - Readout")
-    void Ck_GymCompass_Readout()
+    private void DoReadout()
     {
         auto Compass = DoGet_Compass();
         if (ck::Is_NOT_Valid(Compass))
@@ -336,5 +333,50 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             ck::Trace(f"  bearing {Entry.Get_BearingDegrees()} | offset {Entry.Get_NormalizedOffset()} | dist {Entry.Get_Distance()} | prio {Entry.Get_Priority()}");
         }
+    }
+
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // The heading only means something while you are turning, so the ping and the filter have to be
+    // reachable mid-turn - which a console command is not.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "COMPASS";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        auto Compass = DoGet_Compass();
+        auto Heading = ck::IsValid(Compass) ? utils_compass::Get_Heading(Compass) : 0.0f;
+        auto Entries = ck::IsValid(Compass) ? utils_compass::Get_Entries(Compass).Num() : 0;
+
+        Rows.Add(CkGym_Control::Header("COMPASS"));
+        Rows.Add(CkGym_Control::Status("Heading", f"{Heading} · {Entries} entries"));
+        Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Ping 1500uu ahead (5s TTL)"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::T, "T", "Quest-only category filter", _QuestFilterActive));
+        Rows.Add(CkGym_Control::Action(EKeys::P, "P", "Readout to the log"));
+
+        Rows.Add(CkGym_Control::Header("STRESS"));
+        Rows.Add(CkGym_Control::Status("Stress POIs", f"{_StressPois.Num()}"));
+        Rows.Add(CkGym_Control::Action(EKeys::M, "M", "Spawn 500 POIs", _StressPois.Num() == 0));
+        Rows.Add(CkGym_Control::Action(EKeys::U, "U", "Clear the stress field", _StressPois.Num() > 0));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        // Rows 0, 1, 5 and 6 are headers or status readouts - no key, never dispatched, but they DO
+        // occupy an index.
+        if (InRowIndex == 2) { DoPingAhead(); }
+        else if (InRowIndex == 3) { DoToggleQuestFilter(); }
+        else if (InRowIndex == 4) { DoReadout(); }
+        else if (InRowIndex == 7) { DoSpawnStressField(); }
+        else if (InRowIndex == 8) { DoClearStressField(); }
     }
 }

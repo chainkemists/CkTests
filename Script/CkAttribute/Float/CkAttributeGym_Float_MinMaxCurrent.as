@@ -36,17 +36,15 @@ class UCk_EntityScript_AttributeGym_FloatMinMaxCurrent : UCk_GenericEntityScript
 
 		AutoConfig.TotalSteps = 6;
 		AutoConfig.Description = "Tests individual Min/Max/Current component manipulation.\nShows component presence detection and separate change counters.";
-		AutoConfig.GlobalAutoCommand = "Ck_GymFloat_Auto [0/1]";
-		AutoConfig.PerStationAutoCommand = "Ck_GymFloat_AutoMinMaxCurrent";
+		AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+		AutoConfig.PerStationAutoCommand = "panel [4] Min/Max/Current station auto";
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Modify Min component (10 -> 25.5)", 0, 0));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Modify Max component (200 -> 175.75)", 1, 1));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Modify Current component (100 -> 142.3)", 2, 2));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test component detection", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test value retrieval", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Reset to defaults", 5, 5));
-		AutoConfig.ManualCommands.Add("Ck_GymFloat_SetMin [val]");
-		AutoConfig.ManualCommands.Add("Ck_GymFloat_SetMax [val]");
-		AutoConfig.ManualCommands.Add("Ck_GymFloat_SetCurrent [val]");
+		AutoConfig.ManualCommands.Add("panel [U] Min preset · [I] Max preset · [O] Current preset");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

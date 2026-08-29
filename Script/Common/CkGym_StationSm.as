@@ -187,7 +187,7 @@ namespace gym_sm
     }
 
     //------------------------------------------------------------------------
-    // Auto on/off - the Ck_Gym*_Auto console toggle. Pausing the SM freezes it
+    // Auto on/off - the gym's panel auto row. Pausing the SM freezes it
     // in the current step (dwell conditions stop advancing) rather than
     // tearing the graph down, so resuming continues the demo where it stopped.
     //------------------------------------------------------------------------
@@ -213,7 +213,7 @@ namespace gym_sm
 
     // HandleAutoSet - call from the station's OnAutoSet UFUNCTION. Mirrors
     // gym_auto::HandleAutoSet (CkGym_AutoStation.as:131): same
-    // FCk_Message_Gym_AutoSet transport, so the Ck_Gym*_Auto console toggle
+    // FCk_Message_Gym_AutoSet transport, so the gym's panel auto row
     // drives migrated and unmigrated stations identically.
     void HandleAutoSet(FInstancedStruct InPayload, FCk_Handle_StateMachine InSm)
     {
@@ -283,7 +283,7 @@ namespace gym_sm
             Text = f"{Text}{Cmd}\n";
         }
 
-        auto GlobalCmd = InConfig.GlobalAutoCommand != "" ? InConfig.GlobalAutoCommand : "Ck_Gym*_Auto [0/1]";
+        auto GlobalCmd = InConfig.GlobalAutoCommand != "" ? InConfig.GlobalAutoCommand : "the gym's panel auto row";
         Text = f"{Text}\n{GlobalCmd}\n";
         if (InConfig.PerStationAutoCommand != "")
         {

@@ -59,11 +59,11 @@ class UCk_EntityScript_AttributeGym_FloatClamping : UCk_GenericEntityScript_UE
 		// Auto config
 		AutoConfig.TotalSteps = 1;
 		AutoConfig.Description = "Cycles fractional values beyond min/max to demonstrate clamping.\nShield demonstrates initial-value clamping (created with value > max).";
-		AutoConfig.GlobalAutoCommand = "Ck_GymFloat_Auto [0/1]";
-		AutoConfig.PerStationAutoCommand = "Ck_GymFloat_AutoClamping";
+		AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+		AutoConfig.PerStationAutoCommand = "panel [2] Clamping station auto";
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Cycling Armor/Stamina/Health values", 0, 0));
-		AutoConfig.ManualCommands.Add("Ck_GymFloat_TestBoundaries");
-		AutoConfig.ManualCommands.Add("Ck_GymFloat_ResetClamping");
+		AutoConfig.ManualCommands.Add("panel [B] Test boundaries");
+		AutoConfig.ManualCommands.Add("panel [R] Reset ring · clamping station / all stations");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

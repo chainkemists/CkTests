@@ -73,15 +73,15 @@ class UCk_EntityScript_ProbeGym_DebugStation : UCk_GenericEntityScript_UE
 
         AutoConfig.TotalSteps = 4;
         AutoConfig.Description = "Tests raw Probe: Request_Begin/EndOverlap + dedup.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymProbe_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymProbe_AutoDebug";
+        AutoConfig.GlobalAutoCommand = "panel [G] auto on / [B] auto off";
+        AutoConfig.PerStationAutoCommand = "panel [U] Debug station only";
         AutoConfig.Steps.Add(FCkGym_AutoStep("BeginOverlap self (0->1, OnBegin fires)", 0, 0));
         AutoConfig.Steps.Add(FCkGym_AutoStep("BeginOverlap self again (dedup, no signal)", 1, 1));
         AutoConfig.Steps.Add(FCkGym_AutoStep("EndOverlap self (1->0, OnEnd fires)", 2, 2));
         AutoConfig.Steps.Add(FCkGym_AutoStep("EndOverlap self again (no-op, no signal)", 3, 3));
-        AutoConfig.ManualCommands.Add("Ck_GymProbe_ForceEnter");
-        AutoConfig.ManualCommands.Add("Ck_GymProbe_ForceExit");
-        AutoConfig.ManualCommands.Add("Ck_GymProbe_Reset");
+        AutoConfig.ManualCommands.Add("panel [J] Force enter");
+        AutoConfig.ManualCommands.Add("panel [K] Force exit");
+        AutoConfig.ManualCommands.Add("panel [R] Reset the overlap state");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

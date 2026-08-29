@@ -35,22 +35,22 @@
 //
 // Player exploration:
 //   - With all gates false, no plan exists (preconditions block Engage).
-//   - SetEnemyVisible + SetWeaponEquipped -> Alive plan = [Engage, Win],
+//   - EnemyVisible + WeaponEquipped on -> Alive plan = [Engage, Win],
 //                                            Engage promoted plan = [LightAttacks],
 //                                            LightAttacks promoted plan = [Light3]
 //                                            (cost 0.5 < Light1 cost 1.0 < Light2).
-//   - SetEnemyVisible + SetStaminaHigh (no weapon) -> Engage promoted picks
+//   - EnemyVisible + StaminaHigh on (no weapon) -> Engage promoted picks
 //                                            HeavyAttacks (the only one whose
 //                                            precondition is met), then Heavy1
 //                                            (cost 3 < Heavy2 cost 5).
 //   - Both gates on -> light branch wins on cost.
 //
-// Buttons (Goap.CombatBrain.*):
-//   SetEnemyVisible / ClearEnemyVisible
-//   SetWeaponEquipped / ClearWeaponEquipped
-//   SetStaminaHigh / ClearStaminaHigh
-//   Reset    - all keys back to false
-//   Complete - set every key true (drives the chain to terminal state)
+// Buttons (control panel):
+//   panel [X] - flip EnemyVisible
+//   panel [Y] - flip WeaponEquipped
+//   panel [Z] - flip StaminaHigh
+//   panel [6] - all keys back to false
+//   panel [5] - set every key true (drives the chain to terminal state)
 //============================================================================
 
 // ---- Tier 1: direct children under Alive Planner ----

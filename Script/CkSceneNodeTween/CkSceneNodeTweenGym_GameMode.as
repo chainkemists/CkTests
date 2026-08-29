@@ -117,19 +117,48 @@ class ACk_SceneNodeTweenGym_PlayerController : ACk_Gym_Base_PlayerController
             FInstancedStruct::Make(SpawnParams));
     }
 
-    UFUNCTION(Exec, DisplayName="SceneNodeTween Gym - Auto")
-    void Ck_GymSceneNodeTween_Auto(int32 InEnabled = 1)
+    private void DoSetAuto(bool InEnabled)
     {
-        auto Enabled = InEnabled != 0;
+        _AutoRunning = InEnabled;
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_SceneNodeTweenGym_Station"))
-        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(Enabled)); }
+        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(InEnabled)); }
     }
 
-    UFUNCTION(Exec, DisplayName="SceneNodeTween Gym - Reset")
-    void Ck_GymSceneNodeTween_Reset()
+    private void DoReset()
     {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_SceneNodeTweenGym_Station"))
         { utils_messaging::Broadcast(E, FCk_Message_SceneNodeTweenGym_Reset()); }
+    }
+
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Pausing the tweens is what makes a desync readable - a frozen chain can be compared node by node,
+    // a moving one cannot. That is the control worth having on screen.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    // The stations own the flag (gym_auto), start with it running, and expose no readback - so the
+    // panel mirrors what this controller last broadcast. Nothing else writes it: the stations only
+    // flip their own Auto through gym_auto::StopAuto, which none of these three stations calls.
+    private bool _AutoRunning = true;
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "SCENE NODE + TWEEN";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Toggle(EKeys::J, "J", "Auto (all stations)", _AutoRunning));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Reset all stations"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { DoSetAuto(!_AutoRunning); }
+        else if (InRowIndex == 1) { DoReset(); }
     }
 }
 

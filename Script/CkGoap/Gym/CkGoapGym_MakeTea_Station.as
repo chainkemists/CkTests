@@ -7,13 +7,13 @@
 //   [BoilWater, SteepLeaves, PourCup, Serve]
 //
 // Initial WS has all ingredients (HasKettle/HasWater/HasTeaLeaves/HasCup).
-// Drop any ingredient via the per-key toggle exec to see the plan collapse
+// Drop any ingredient via its control-panel toggle to see the plan collapse
 // to PlanFailed.
 //
-// Player commands:
-//   Goap.Tea.ToggleKettle / ToggleWater / ToggleLeaves / ToggleCup
-//     - flip each ingredient WS bit.
-//   Goap.Tea.Reset
+// Player controls:
+//   panel [K] / [L] / [M] / [N]
+//     - flip HasKettle / HasWater / HasTeaLeaves / HasCup.
+//   panel [1]
 //     - restore all ingredients (true) and clear partial-progress bits.
 //============================================================================
 
@@ -140,9 +140,9 @@ class UCk_EntityScript_GoapGym_MakeTea_Station : UCk_GenericEntityScript_UE
             + "Planner\n"
             + f"  Status         {CkGoapGym_Common::Format_PlanStatus(Status)}\n"
             + f"  Plan           {CkGoapGym_Common::Format_Plan(Plan, _KnownClasses, _KnownLabels)}\n\n"
-            + "Console\n"
-            + "  Goap.Tea.ToggleKettle / Water / Leaves / Cup\n"
-            + "  Goap.Tea.Reset";
+            + "Control panel\n"
+            + "  panel [K] / [L] / [M] / [N]  Kettle / Water / Leaves / Cup\n"
+            + "  panel [1]                    Reset the tea WS";
 
         CkGym_Common::Update_StationDisplay(ck::ToEntity(this),
             "STATION 2 / MAKE TEA", Body,

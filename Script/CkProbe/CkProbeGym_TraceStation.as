@@ -6,9 +6,8 @@
 //
 //   start ---- [ baked BlockAll cube ] ---- [ target probe ]
 //
-// A shape trace re-runs every frame across both. Cycle the policy with
-//   Ck_GymProbeTrace_Ignore / _Blocking / _Reported
-// and watch the marker move:
+// A shape trace re-runs every frame across both. Cycle the policy with the
+// control panel's [T] row and watch the marker move:
 //
 //   Ignore   - the cube is invisible; the trace reports only the probe BEHIND
 //              it (today's wallhack default, shown deliberately).
@@ -100,12 +99,10 @@ class UCk_EntityScript_ProbeGym_TraceStation : UCk_GenericEntityScript_UE
             "  Ignore   = cube invisible (wallhack)\n" +
             "  Blocking = cube truncates the probe\n" +
             "  Reported = both, near-to-far";
-        AutoConfig.GlobalAutoCommand = "Ck_GymProbe_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymProbe_AutoTrace";
+        AutoConfig.GlobalAutoCommand = "panel [G] auto on / [B] auto off";
+        AutoConfig.PerStationAutoCommand = "panel [P] Trace station only";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Auto=ON re-casts every frame", 0, 0));
-        AutoConfig.ManualCommands.Add("Ck_GymProbeTrace_Ignore");
-        AutoConfig.ManualCommands.Add("Ck_GymProbeTrace_Blocking");
-        AutoConfig.ManualCommands.Add("Ck_GymProbeTrace_Reported");
+        AutoConfig.ManualCommands.Add("panel [T] World-hit policy (Ignore / Blocking / Reported)");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

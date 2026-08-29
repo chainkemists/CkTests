@@ -56,7 +56,7 @@ class ACk_JoltGym_ProjectileCcd_PlayerController : ACk_Gym_Base_PlayerController
         Station.Title = FText::FromString("JOLT PROJECTILE CCD");
         auto Description = TArray<FText>();
         Description.Add(FText::FromString("Lane A (CCD ON) stops at the thin wall.\nLane B (CCD OFF) may tunnel through."));
-        Description.Add(FText::FromString("Auto-fires every ~3.5s.\nCk_GymJoltProjectileCcd_Fire to fire now."));
+        Description.Add(FText::FromString("Auto-fires every ~3.5s.\n[B] restarts the cycle and fires now."));
         Station.Description = Description;
         Station.AutoSize = true;
         Stations.Add(Station);
@@ -162,8 +162,24 @@ class ACk_JoltGym_ProjectileCcd_PlayerController : ACk_Gym_Base_PlayerController
         utils_jolt_body::Request_Teleport(InBody, Request);
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt ProjectileCcd - Fire Now")
-    void Ck_GymJoltProjectileCcd_Fire()
+    // ---- Control panel ------------------------------------------------------------------------
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Header("PROJECTILE CCD"));
+        Rows.Add(CkGym_Control::Status("Auto-fire", f"every {_CyclePeriod}s"));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Fire now - restart the cycle"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 2)
+        { DoFireNow(); }
+    }
+
+    private void DoFireNow()
     {
         _CycleElapsed = 0.0;
         _DidReset = false;
