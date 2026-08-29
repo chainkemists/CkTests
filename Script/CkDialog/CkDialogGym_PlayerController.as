@@ -130,10 +130,6 @@ class ACk_DialogGym_PlayerController : ACk_Gym_Base_PlayerController
 			FInstancedStruct::Make(SpawnParams));
 	}
 
-	//------------------------------------------------------------------------
-	// CONSOLE COMMANDS
-	//------------------------------------------------------------------------
-
 	//--------------------------------------------------------------------------------------------------------------------------
 	// CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
 	//
@@ -164,59 +160,41 @@ class ACk_DialogGym_PlayerController : ACk_Gym_Base_PlayerController
 	void Request_ControlActivated(int32 InRowIndex) override
 	{
 		// Row 0 is the header, which holds no key and never arrives here.
-		if (InRowIndex == 1) { Ck_GymDialog_RestartBasics(); }
-		else if (InRowIndex == 2) { Ck_GymDialog_RestartFilters(); }
-		else if (InRowIndex == 3) { Ck_GymDialog_RestartCooldowns(); }
-		else if (InRowIndex == 4) { Ck_GymDialog_RestartChains(); }
-		else if (InRowIndex == 5) { Ck_GymDialog_RestartGraph(); }
-		else if (InRowIndex == 6) { Ck_GymDialog_ResetAll(); }
-	}
+		if (InRowIndex == 1)
+		{
+			Request_DestroyStationEntities(n"TAG_DialogGym_Basics");
+			Request_StartBasics();
+		}
+		else if (InRowIndex == 2)
+		{
+			Request_DestroyStationEntities(n"TAG_DialogGym_Filters");
+			Request_StartFilters();
+		}
+		else if (InRowIndex == 3)
+		{
+			Request_DestroyStationEntities(n"TAG_DialogGym_Cooldowns");
+			Request_StartCooldowns();
+		}
+		else if (InRowIndex == 4)
+		{
+			Request_DestroyStationEntities(n"TAG_DialogGym_Chains");
+			Request_StartChains();
+		}
+		else if (InRowIndex == 5)
+		{
+			Request_DestroyStationEntities(n"TAG_DialogGym_Graph");
+			Request_StartGraph();
+		}
+		else if (InRowIndex == 6)
+		{
+			Request_DestroyStationEntities(n"TAG_DialogGym_Basics");
+			Request_DestroyStationEntities(n"TAG_DialogGym_Filters");
+			Request_DestroyStationEntities(n"TAG_DialogGym_Cooldowns");
+			Request_DestroyStationEntities(n"TAG_DialogGym_Chains");
+			Request_DestroyStationEntities(n"TAG_DialogGym_Graph");
 
-	UFUNCTION(Exec, DisplayName="Dialog Gym - Restart Basics")
-	void Ck_GymDialog_RestartBasics()
-	{
-		Request_DestroyStationEntities(n"TAG_DialogGym_Basics");
-		Request_StartBasics();
-	}
-
-	UFUNCTION(Exec, DisplayName="Dialog Gym - Restart Filters")
-	void Ck_GymDialog_RestartFilters()
-	{
-		Request_DestroyStationEntities(n"TAG_DialogGym_Filters");
-		Request_StartFilters();
-	}
-
-	UFUNCTION(Exec, DisplayName="Dialog Gym - Restart Cooldowns")
-	void Ck_GymDialog_RestartCooldowns()
-	{
-		Request_DestroyStationEntities(n"TAG_DialogGym_Cooldowns");
-		Request_StartCooldowns();
-	}
-
-	UFUNCTION(Exec, DisplayName="Dialog Gym - Restart Chains")
-	void Ck_GymDialog_RestartChains()
-	{
-		Request_DestroyStationEntities(n"TAG_DialogGym_Chains");
-		Request_StartChains();
-	}
-
-	UFUNCTION(Exec, DisplayName="Dialog Gym - Restart Graph")
-	void Ck_GymDialog_RestartGraph()
-	{
-		Request_DestroyStationEntities(n"TAG_DialogGym_Graph");
-		Request_StartGraph();
-	}
-
-	UFUNCTION(Exec, DisplayName="Dialog Gym - Reset All")
-	void Ck_GymDialog_ResetAll()
-	{
-		Request_DestroyStationEntities(n"TAG_DialogGym_Basics");
-		Request_DestroyStationEntities(n"TAG_DialogGym_Filters");
-		Request_DestroyStationEntities(n"TAG_DialogGym_Cooldowns");
-		Request_DestroyStationEntities(n"TAG_DialogGym_Chains");
-		Request_DestroyStationEntities(n"TAG_DialogGym_Graph");
-
-		Request_StartGym();
+			Request_StartGym();
+		}
 	}
 
 	//------------------------------------------------------------------------

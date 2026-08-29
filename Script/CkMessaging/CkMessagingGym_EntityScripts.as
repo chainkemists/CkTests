@@ -70,8 +70,8 @@ class UCk_EntityScript_MessagingGym_Basic : UCk_GenericEntityScript_UE
         DisplayText = f"{DisplayText}Last Sequence: {LastSequence}\n";
 
         auto Instructions = "";
-        Instructions = f"{Instructions}Ck_GymMessaging_SendPing\n";
-        Instructions = f"{Instructions}Ck_GymMessaging_ResetAll";
+        Instructions = f"{Instructions}panel [1] Ping\n";
+        Instructions = f"{Instructions}panel [R] Reset every station";
 
         CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, Instructions);
     }
@@ -150,8 +150,8 @@ class UCk_EntityScript_MessagingGym_MultiListener : UCk_GenericEntityScript_UE
         DisplayText = f"{DisplayText}Total: {Total}\n";
 
         auto Instructions = "";
-        Instructions = f"{Instructions}Ck_GymMessaging_FanOutPing\n";
-        Instructions = f"{Instructions}Ck_GymMessaging_ResetAll";
+        Instructions = f"{Instructions}panel [2] Fan-out ping\n";
+        Instructions = f"{Instructions}panel [R] Reset every station";
 
         CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, Instructions);
     }
@@ -247,8 +247,8 @@ class UCk_EntityScript_MessagingGym_OneShot : UCk_GenericEntityScript_UE
         DisplayText = f"{DisplayText}Pings Received: {PingCount}\n";
 
         auto Instructions = "";
-        Instructions = f"{Instructions}Ck_GymMessaging_FireOneShot\n";
-        Instructions = f"{Instructions}Ck_GymMessaging_ResetAll";
+        Instructions = f"{Instructions}panel [3] One-shot\n";
+        Instructions = f"{Instructions}panel [R] Reset every station";
 
         CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, Instructions);
     }
@@ -327,9 +327,9 @@ class UCk_EntityScript_MessagingGym_DynamicBind : UCk_GenericEntityScript_UE
         DisplayText = f"{DisplayText}Unbind Count: {UnbindCount}\n";
 
         auto Instructions = "";
-        Instructions = f"{Instructions}Ck_GymMessaging_ToggleBind\n";
-        Instructions = f"{Instructions}Ck_GymMessaging_SendPingToDynamic\n";
-        Instructions = f"{Instructions}Ck_GymMessaging_ResetAll";
+        Instructions = f"{Instructions}panel [B] Flip the dynamic bind\n";
+        Instructions = f"{Instructions}panel [4] Ping to dynamic\n";
+        Instructions = f"{Instructions}panel [R] Reset every station";
 
         CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, Instructions);
     }
@@ -439,10 +439,10 @@ class UCk_EntityScript_MessagingGym_MultiType : UCk_GenericEntityScript_UE
         DisplayText = f"{DisplayText}Count: {AlertCount}  Last: {LastAlertText} (P{LastAlertPriority})\n";
 
         auto Instructions = "";
-        Instructions = f"{Instructions}Ck_GymMessaging_SendAllTypes\n";
-        Instructions = f"{Instructions}Ck_GymMessaging_SendPong\n";
+        Instructions = f"{Instructions}panel [7] All types at once\n";
+        Instructions = f"{Instructions}panel [5] Pong\n";
         Instructions = f"{Instructions}panel [6] Alert (1 / 5 / 9)\n";
-        Instructions = f"{Instructions}Ck_GymMessaging_ResetAll";
+        Instructions = f"{Instructions}panel [R] Reset every station";
 
         CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, Instructions);
     }

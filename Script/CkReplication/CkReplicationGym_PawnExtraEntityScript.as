@@ -82,7 +82,7 @@ class UCk_ReplicationGym_PawnExtra_EntityScript : UCk_EntityScript_WithActor_UE
         Body = Body + "       + Attribute present YES on both server and client.\n\n";
         Body = Body + "Manual:\n";
         Body = Body + "  panel [2] Pawn value preset ring\n";
-        Body = Body + "  Ck_GymReplication_DumpRep\n";
+        Body = Body + "  panel [J] dump replication state\n";
 
         auto StationActor = utils_actor::Get_FirstActorWithNameContaining(
             "Gym.Replication.PawnTransient", ECk_ActorSearchMethod::SearchByTag);

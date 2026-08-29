@@ -806,10 +806,6 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnedShapes.Empty();
     }
 
-    //------------------------------------------------------------------------
-    // CONSOLE COMMANDS
-    //------------------------------------------------------------------------
-
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
@@ -838,8 +834,8 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymPmg_RegenerateAll(); }
-        else if (InRowIndex == 1) { Ck_GymPmg_ClearAll(); }
+        if (InRowIndex == 0) { Request_RegenerateEveryShape(); }
+        else if (InRowIndex == 1) { Request_ClearEveryShape(); }
         else if (InRowIndex == 2) { Request_StepGridSpacing(); }
         else if (InRowIndex == 3) { Request_StepShapeSize(); }
     }
@@ -861,15 +857,13 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace(f"* Shape size set to {ShapeSize} and shapes regenerated");
     }
 
-    UFUNCTION(Exec, DisplayName="PMG Gym - Regenerate All Shapes")
-    void Ck_GymPmg_RegenerateAll()
+    private void Request_RegenerateEveryShape()
     {
         Request_SpawnAllShapes();
         ck::Trace("[OK] All PMG shapes regenerated");
     }
 
-    UFUNCTION(Exec, DisplayName="PMG Gym - Clear All Shapes")
-    void Ck_GymPmg_ClearAll()
+    private void Request_ClearEveryShape()
     {
         Request_ClearAllShapes();
         ck::Trace("* All PMG shapes cleared");

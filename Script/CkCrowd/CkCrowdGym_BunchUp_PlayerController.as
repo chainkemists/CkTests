@@ -54,7 +54,7 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("20 agents auto-spawn on two rings, ALL commanded to the same centre point."));
             Description.Add(FText::FromString("Expected: one agent reaches it, the rest settle into a packed ring and stop."));
             Description.Add(FText::FromString("Defect: agents fidget against the pile forever, never learning the goal is taken."));
-            Description.Add(FText::FromString("Console: Ck_GymCrowd_BunchUp_Spawn / _Reset / _Digest"));
+            Description.Add(FText::FromString("Panel: G spawn 15 / Z reset / J digest / N elevate one"));
             Description.Add(FText::FromString("Visuals: ck.Crowd.Debug 1  |  Data panel: ck.CrowdDebugger 1"));
             Station.Description = Description;
             Stations.Add(Station);
@@ -109,7 +109,7 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
             ECk_Signal_PostFireBehavior::DoNothing);
         utils_nav::Request_FindPath(_NavProbeEntity, FCk_Request_Nav_FindPath(Centre));
 
-        ck::crowd::Log(f"BunchUp gym started - auto-spawning {AutoSpawnCount} agents once the navmesh probe resolves. Ck_GymCrowd_BunchUp_Spawn re-runs manually.");
+        ck::crowd::Log(f"BunchUp gym started - auto-spawning {AutoSpawnCount} agents once the navmesh probe resolves. Panel [G] re-runs it manually.");
     }
 
     UFUNCTION()
@@ -125,7 +125,7 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION()
     private void OnNavProbeFailed(FCk_Handle InHandle)
     {
-        ck::crowd::Log("BunchUp gym: navmesh probe failed - auto-spawn skipped; run Ck_GymCrowd_BunchUp_Spawn manually once the navmesh is visible.");
+        ck::crowd::Log("BunchUp gym: navmesh probe failed - auto-spawn skipped; press G on the control panel once the navmesh is visible.");
     }
 
     private void SpawnFloor()
@@ -163,8 +163,6 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
         return StationLocal_To_World("Gym.Crowd.BunchUp", FVector(StationFwdOffset, 0.0, SpawnZ));
     }
 
-    // ---- Console commands --------------------------------------------------------------------------
-
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
@@ -184,16 +182,16 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Action(EKeys::Z, "Z", "Reset - destroy agents"));
         Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Emit per-agent digest"));
         Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Elevate a settled agent 120cm"));
-        Rows.Add(CkGym_Control::Status("Another agent count: console only"));
+        Rows.Add(CkGym_Control::Status("Another agent count", "Ck_GymCrowd_BunchUp_Spawn <count>"));
         return Rows;
     }
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
         if (InRowIndex == 0) { Ck_GymCrowd_BunchUp_Spawn(15); }
-        else if (InRowIndex == 1) { Ck_GymCrowd_BunchUp_Reset(); }
-        else if (InRowIndex == 2) { Ck_GymCrowd_BunchUp_Digest(); }
-        else if (InRowIndex == 3) { Ck_GymCrowd_BunchUp_Elevate(); }
+        else if (InRowIndex == 1) { Request_ResetAgents(); }
+        else if (InRowIndex == 2) { Request_EmitDigest(); }
+        else if (InRowIndex == 3) { Request_ElevateSettledAgent(); }
     }
 
     UFUNCTION(Exec, DisplayName="Crowd BunchUp - Spawn Agents On Shared Goal")
@@ -223,8 +221,7 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log(f"BunchUp gym: dispatched {Count} agents to the shared centre {Centre}");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd BunchUp - Reset (Destroy Agents)")
-    void Ck_GymCrowd_BunchUp_Reset()
+    private void Request_ResetAgents()
     {
         if (HasAuthority() == false)
         { return; }
@@ -238,8 +235,7 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log(f"BunchUp gym: destroyed {Count} agents");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd BunchUp - Emit Per-Agent Digest")
-    void Ck_GymCrowd_BunchUp_Digest()
+    private void Request_EmitDigest()
     {
         if (HasAuthority() == false)
         { return; }
@@ -256,8 +252,7 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
     // verify in ConstrainToNavmesh - so shoving one upward and watching it drop back within
     // _GroundingVerifyIntervalSeconds is the only way to SEE the lease working. With the lease
     // disabled the agent simply hangs there, which is what the floating-NPC regression looked like.
-    UFUNCTION(Exec, DisplayName="Crowd BunchUp - Elevate A Settled Agent")
-    void Ck_GymCrowd_BunchUp_Elevate()
+    private void Request_ElevateSettledAgent()
     {
         if (HasAuthority() == false)
         { return; }
@@ -327,7 +322,7 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
 
         utils_crowd_agent::Request_MoveTo(Agent, FCk_Request_CrowdAgent_MoveTo(InTargetLoc));
 
-        // Opt into the diagnostic recorder so Ck_GymCrowd_BunchUp_Digest has data and the
+        // Opt into the diagnostic recorder so the J digest row has data and the
         // breadcrumb-draw processor renders the trail in PIE.
         utils_crowd_agent_diag::Track(Agent, InSpawnLoc, InTargetLoc);
 

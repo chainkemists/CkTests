@@ -174,10 +174,6 @@ class ACk_EntityLifecycleGym_PlayerController : ACk_Gym_Base_PlayerController
 			FInstancedStruct::Make(SpawnParams));
 	}
 
-	//------------------------------------------------------------------------
-	// CONSOLE COMMANDS
-	//------------------------------------------------------------------------
-
 	//--------------------------------------------------------------------------------------------------------------------------
 	// CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
 	//
@@ -211,77 +207,53 @@ class ACk_EntityLifecycleGym_PlayerController : ACk_Gym_Base_PlayerController
 	void Request_ControlActivated(int32 InRowIndex) override
 	{
 		// Row 0 is the header, which holds no key and never arrives here.
-		if (InRowIndex == 1) { Ck_GymEntityLifecycle_RestartHandleAndEntity(); }
-		else if (InRowIndex == 2) { Ck_GymEntityLifecycle_RestartOwnershipTree(); }
-		else if (InRowIndex == 3) { Ck_GymEntityLifecycle_RestartDestroyCallbacks(); }
-		else if (InRowIndex == 4) { Ck_GymEntityLifecycle_RestartActorBridge(); }
-		else if (InRowIndex == 5) { Ck_GymEntityLifecycle_RestartTagSystem(); }
-		else if (InRowIndex == 6) { Ck_GymEntityLifecycle_RestartDeferredSetup(); }
-		else if (InRowIndex == 7) { Ck_GymEntityLifecycle_RestartScriptSpawnCast(); }
-		else if (InRowIndex == 8) { Ck_GymEntityLifecycle_ResetAll(); }
-	}
+		if (InRowIndex == 1)
+		{
+			Request_DestroyStationEntities(n"TAG_LifecycleGym_HandleAndEntity");
+			Request_StartHandleAndEntity();
+		}
+		else if (InRowIndex == 2)
+		{
+			Request_DestroyStationEntities(n"TAG_LifecycleGym_OwnershipTree");
+			Request_StartOwnershipTree();
+		}
+		else if (InRowIndex == 3)
+		{
+			Request_DestroyStationEntities(n"TAG_LifecycleGym_DestroyCallbacks");
+			Request_StartDestroyCallbacks();
+		}
+		else if (InRowIndex == 4)
+		{
+			Request_DestroyStationEntities(n"TAG_LifecycleGym_ActorBridge");
+			Request_StartActorBridge();
+		}
+		else if (InRowIndex == 5)
+		{
+			Request_DestroyStationEntities(n"TAG_LifecycleGym_TagSystem");
+			Request_StartTagSystem();
+		}
+		else if (InRowIndex == 6)
+		{
+			Request_DestroyStationEntities(n"TAG_LifecycleGym_DeferredSetup");
+			Request_StartDeferredSetup();
+		}
+		else if (InRowIndex == 7)
+		{
+			Request_DestroyStationEntities(n"TAG_LifecycleGym_ScriptSpawnCast");
+			Request_StartScriptSpawnCast();
+		}
+		else if (InRowIndex == 8)
+		{
+			Request_DestroyStationEntities(n"TAG_LifecycleGym_HandleAndEntity");
+			Request_DestroyStationEntities(n"TAG_LifecycleGym_OwnershipTree");
+			Request_DestroyStationEntities(n"TAG_LifecycleGym_DestroyCallbacks");
+			Request_DestroyStationEntities(n"TAG_LifecycleGym_ActorBridge");
+			Request_DestroyStationEntities(n"TAG_LifecycleGym_TagSystem");
+			Request_DestroyStationEntities(n"TAG_LifecycleGym_DeferredSetup");
+			Request_DestroyStationEntities(n"TAG_LifecycleGym_ScriptSpawnCast");
 
-	UFUNCTION(Exec, DisplayName="EntityLifecycle Gym - Restart Handle & Entity")
-	void Ck_GymEntityLifecycle_RestartHandleAndEntity()
-	{
-		Request_DestroyStationEntities(n"TAG_LifecycleGym_HandleAndEntity");
-		Request_StartHandleAndEntity();
-	}
-
-	UFUNCTION(Exec, DisplayName="EntityLifecycle Gym - Restart Ownership Tree")
-	void Ck_GymEntityLifecycle_RestartOwnershipTree()
-	{
-		Request_DestroyStationEntities(n"TAG_LifecycleGym_OwnershipTree");
-		Request_StartOwnershipTree();
-	}
-
-	UFUNCTION(Exec, DisplayName="EntityLifecycle Gym - Restart Destroy Callbacks")
-	void Ck_GymEntityLifecycle_RestartDestroyCallbacks()
-	{
-		Request_DestroyStationEntities(n"TAG_LifecycleGym_DestroyCallbacks");
-		Request_StartDestroyCallbacks();
-	}
-
-	UFUNCTION(Exec, DisplayName="EntityLifecycle Gym - Restart Actor Bridge")
-	void Ck_GymEntityLifecycle_RestartActorBridge()
-	{
-		Request_DestroyStationEntities(n"TAG_LifecycleGym_ActorBridge");
-		Request_StartActorBridge();
-	}
-
-	UFUNCTION(Exec, DisplayName="EntityLifecycle Gym - Restart Tag System")
-	void Ck_GymEntityLifecycle_RestartTagSystem()
-	{
-		Request_DestroyStationEntities(n"TAG_LifecycleGym_TagSystem");
-		Request_StartTagSystem();
-	}
-
-	UFUNCTION(Exec, DisplayName="EntityLifecycle Gym - Restart Deferred Setup")
-	void Ck_GymEntityLifecycle_RestartDeferredSetup()
-	{
-		Request_DestroyStationEntities(n"TAG_LifecycleGym_DeferredSetup");
-		Request_StartDeferredSetup();
-	}
-
-	UFUNCTION(Exec, DisplayName="EntityLifecycle Gym - Restart Script Spawn Cast")
-	void Ck_GymEntityLifecycle_RestartScriptSpawnCast()
-	{
-		Request_DestroyStationEntities(n"TAG_LifecycleGym_ScriptSpawnCast");
-		Request_StartScriptSpawnCast();
-	}
-
-	UFUNCTION(Exec, DisplayName="EntityLifecycle Gym - Reset All")
-	void Ck_GymEntityLifecycle_ResetAll()
-	{
-		Request_DestroyStationEntities(n"TAG_LifecycleGym_HandleAndEntity");
-		Request_DestroyStationEntities(n"TAG_LifecycleGym_OwnershipTree");
-		Request_DestroyStationEntities(n"TAG_LifecycleGym_DestroyCallbacks");
-		Request_DestroyStationEntities(n"TAG_LifecycleGym_ActorBridge");
-		Request_DestroyStationEntities(n"TAG_LifecycleGym_TagSystem");
-		Request_DestroyStationEntities(n"TAG_LifecycleGym_DeferredSetup");
-		Request_DestroyStationEntities(n"TAG_LifecycleGym_ScriptSpawnCast");
-
-		Request_StartGym();
+			Request_StartGym();
+		}
 	}
 
 	//------------------------------------------------------------------------

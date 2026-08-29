@@ -55,10 +55,10 @@ class UCk_EntityScript_InteractionGym_Instant : UCk_GenericEntityScript_UE
 
         AutoConfig.TotalSteps = 1;
         AutoConfig.Description = "Source + target on same entity, Instant completion.\nTests OnNewInteraction and OnInteractionFinished signals.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymInteraction_Auto [0/1]";
+        AutoConfig.GlobalAutoCommand = "panel [P] auto on / [X] auto off";
         AutoConfig.PerStationAutoCommand = "panel [F] Re-arm auto (Instant)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Trigger instant interaction", 0, 0));
-        AutoConfig.ManualCommands.Add("Ck_GymInteraction_TriggerInstant");
+        AutoConfig.ManualCommands.Add("panel [1] Instant");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

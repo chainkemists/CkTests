@@ -68,12 +68,6 @@ class ACk_VisualLodGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymVisualLod_Restart(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="VisualLod Gym - Restart")
-    void Ck_GymVisualLod_Restart()
-    {
-        Request_StartGym();
+        if (InRowIndex == 0) { Request_StartGym(); }
     }
 }

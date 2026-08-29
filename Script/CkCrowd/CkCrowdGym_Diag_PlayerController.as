@@ -72,7 +72,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("2 agents 1500cm apart on a head-on collision course."));
             Description.Add(FText::FromString("Cycles every 10s; digest log at +9s; overlap wave at +4.5s."));
-            Description.Add(FText::FromString("Console: Ck_GymCrowd_Diag_Pause / Resume / DumpNow / SpawnOverlapNow"));
+            Description.Add(FText::FromString("Panel: P pause/resume, J dump digest, O spawn an overlap wave"));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -117,7 +117,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
 
         BeginCycle();
 
-        ck::crowd::Log("Diag gym started. Auto-cycling on; pause via Ck_GymCrowd_Diag_Pause.");
+        ck::crowd::Log("Diag gym started. Auto-cycling on; pause with the panel P row.");
     }
 
     private void SpawnFloor()
@@ -359,8 +359,6 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
-    // ---- Console commands ----------------------------------------------------------------------
-
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
@@ -386,36 +384,32 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (InRowIndex == 0)
         {
-            if (_AutoCycleEnabled) { Ck_GymCrowd_Diag_Pause(); }
-            else                   { Ck_GymCrowd_Diag_Resume(); }
+            if (_AutoCycleEnabled) { Request_PauseAutoCycling(); }
+            else                   { Request_ResumeAutoCycling(); }
         }
-        else if (InRowIndex == 1) { Ck_GymCrowd_Diag_DumpNow(); }
-        else if (InRowIndex == 2) { Ck_GymCrowd_Diag_SpawnOverlapNow(); }
+        else if (InRowIndex == 1) { Request_DumpCycleDigest(); }
+        else if (InRowIndex == 2) { Request_SpawnOverlapWaveNow(); }
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Diag - Pause Auto-Cycling")
-    void Ck_GymCrowd_Diag_Pause()
+    private void Request_PauseAutoCycling()
     {
         _AutoCycleEnabled = false;
         ck::crowd::Log("Diag gym: auto-cycling PAUSED (current cycle continues until cleanup)");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Diag - Resume Auto-Cycling")
-    void Ck_GymCrowd_Diag_Resume()
+    private void Request_ResumeAutoCycling()
     {
         _AutoCycleEnabled = true;
         ck::crowd::Log("Diag gym: auto-cycling RESUMED");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Diag - Dump Cycle Digest Now")
-    void Ck_GymCrowd_Diag_DumpNow()
+    private void Request_DumpCycleDigest()
     {
         EmitDigest();
         ck::crowd::Log("Diag gym: forced digest dump - cycle continues");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Diag - Spawn Overlap Wave Now")
-    void Ck_GymCrowd_Diag_SpawnOverlapNow()
+    private void Request_SpawnOverlapWaveNow()
     {
         if (HasAuthority() == false) { return; }
         if (_CycleActive == false)

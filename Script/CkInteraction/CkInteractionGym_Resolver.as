@@ -67,16 +67,16 @@ class UCk_EntityScript_InteractionGym_ResolverSource : UCk_GenericEntityScript_U
 
         AutoConfig.TotalSteps = 4;
         AutoConfig.Description = "Resolver with distance sorting, 3 targets.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymInteraction_Auto [0/1]";
+        AutoConfig.GlobalAutoCommand = "panel [P] auto on / [X] auto off";
         AutoConfig.PerStationAutoCommand = "panel [L] Re-arm auto (Resolver)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add 3 targets", 0, 0));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Start intent", 1, 1));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Stop intent", 2, 2));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Remove targets", 3, 3));
-        AutoConfig.ManualCommands.Add("Ck_GymInteraction_StartIntent");
-        AutoConfig.ManualCommands.Add("Ck_GymInteraction_StopIntent");
-        AutoConfig.ManualCommands.Add("Ck_GymInteraction_AddTarget");
-        AutoConfig.ManualCommands.Add("Ck_GymInteraction_RemoveTarget");
+        AutoConfig.ManualCommands.Add("panel [I] Start intent");
+        AutoConfig.ManualCommands.Add("panel [O] Stop intent");
+        AutoConfig.ManualCommands.Add("panel [T] Add a target");
+        AutoConfig.ManualCommands.Add("panel [Y] Remove a target");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

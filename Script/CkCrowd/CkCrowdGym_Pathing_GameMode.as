@@ -5,12 +5,10 @@
 // arrival logic: goals flush against obstacles, mid-flight re-targets, tight approaches. Built to
 // reproduce (and then prove the fix for) the "agent orbits its target instead of stopping" bug.
 //
-// Console (Tab -> menu, or `~`):
-//   Ck_GymPathing_Open        baseline open-floor goal (should arrive cleanly)
-//   Ck_GymPathing_FlushBox    goal flush against a box face (reproduces the orbit)
-//   Ck_GymPathing_Lateral     spawn + move far; then Ck_GymPathing_Kick re-targets to force a turn
-//   Ck_GymPathing_Kick        re-target the live agent perpendicular to its velocity
-//   Ck_GymPathing_Clear       destroy the agent + obstacles
+// Control panel:
+//   R   rebuild every scenario from scratch
+//   Z   destroy the agents + obstacles
+//   K   flip the close-goal strafe parameter and rebuild
 //
 // Visuals: green ring = arrival radius (30), red ring = predicted orbit radius (MaxSpeed/MaxTurnRate=60).
 //          Live agent + path: ck.Crowd.Debug 1

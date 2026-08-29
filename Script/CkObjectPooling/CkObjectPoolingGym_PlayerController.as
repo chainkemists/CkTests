@@ -18,7 +18,7 @@
 //   Every kSmRespawnPeriod seconds a slice of the herd is destroyed and
 //   respawned, recycling the SM state/condition scripts under load.
 //
-// Console: Ck_GymObjectPooling_Restart, Ck_GymObjectPooling_Burst
+// Panel: [B] burst 100 acquires, [R] restart the gym
 //============================================================================
 
 // Gym-only looping SM: Ping <-> Pong forever, both hops gated on the same
@@ -268,10 +268,6 @@ class ACk_ObjectPoolingGym_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
-    //------------------------------------------------------------------------
-    // CONSOLE COMMANDS
-    //------------------------------------------------------------------------
-
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
@@ -294,12 +290,11 @@ class ACk_ObjectPoolingGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymObjectPooling_Burst(); }
-        else if (InRowIndex == 1) { Ck_GymObjectPooling_Restart(); }
+        if (InRowIndex == 0) { DoBurst(); }
+        else if (InRowIndex == 1) { DoRestart(); }
     }
 
-    UFUNCTION(Exec, DisplayName="ObjectPooling Gym - Restart")
-    void Ck_GymObjectPooling_Restart()
+    private void DoRestart()
     {
         for (auto Entity : _InFlight)
         {
@@ -327,8 +322,7 @@ class ACk_ObjectPoolingGym_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
-    UFUNCTION(Exec, DisplayName="ObjectPooling Gym - Burst 100")
-    void Ck_GymObjectPooling_Burst()
+    private void DoBurst()
     {
         // spike: 100 extra scripts land in the newest wave and churn out with it
         // watch high-water jump, then free ramp as the burst recycles back

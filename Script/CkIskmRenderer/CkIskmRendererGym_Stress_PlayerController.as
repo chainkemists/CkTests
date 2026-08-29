@@ -77,13 +77,7 @@ class ACk_IskmRendererGym_StressStatic_PlayerController : ACk_Gym_Base_PlayerCon
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymIskmRendererStressStatic_Restart(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="IskmRenderer Stress (Static 500) - Restart")
-    void Ck_GymIskmRendererStressStatic_Restart()
-    {
-        Request_StartGym();
+        if (InRowIndex == 0) { Request_StartGym(); }
     }
 }
 
@@ -153,12 +147,6 @@ class ACk_IskmRendererGym_StressMoving_PlayerController : ACk_Gym_Base_PlayerCon
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymIskmRendererStressMoving_Restart(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="IskmRenderer Stress (Moving 500) - Restart")
-    void Ck_GymIskmRendererStressMoving_Restart()
-    {
-        Request_StartGym();
+        if (InRowIndex == 0) { Request_StartGym(); }
     }
 }

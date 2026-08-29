@@ -59,10 +59,10 @@ class UCk_EntityScript_InteractionGym_DataBundle : UCk_GenericEntityScript_UE
 
         AutoConfig.TotalSteps = 1;
         AutoConfig.Description = "ResolverSource + ResolverTarget with 2 phases.\nCalculate (base+bonus), Apply (multiplier).";
-        AutoConfig.GlobalAutoCommand = "Ck_GymInteraction_Auto [0/1]";
+        AutoConfig.GlobalAutoCommand = "panel [P] auto on / [X] auto off";
         AutoConfig.PerStationAutoCommand = "panel [M] Re-arm auto (DataBundle)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Initiate resolution", 0, 0));
-        AutoConfig.ManualCommands.Add("Ck_GymInteraction_InitiateResolution");
+        AutoConfig.ManualCommands.Add("panel [U] Initiate resolution");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

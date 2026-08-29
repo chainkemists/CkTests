@@ -4,7 +4,7 @@
 //   - INTERACTABLE (Normal)        : silhouette hidden where the wall covers the sphere.
 //   - SEE-THROUGH                  : silhouette + faint fill visible through the wall.
 //   - MASKED SEE-THROUGH           : see-through with a stippled fill (objective-marker style).
-// Tab opens the gym cycler menu; search "Solid Outline". Console: "Ck_GymOutline_RestartAll".
+// Tab opens the gym cycler menu; search "Solid Outline". Control panel: R respawns every outline.
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_UsfOutlineGym_PlayerController : ACk_Gym_Base_PlayerController
@@ -145,11 +145,5 @@ class ACk_UsfOutlineGym_PlayerController : ACk_Gym_Base_PlayerController
     void Request_ControlActivated(int32 InRowIndex) override
     {
         if (InRowIndex == 0) { Request_SpawnAllOutlines(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="Solid Outline Gym - Restart")
-    void Ck_GymOutline_RestartAll()
-    {
-        Request_SpawnAllOutlines();
     }
 }

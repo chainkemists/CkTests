@@ -63,7 +63,7 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
 
         auto StationTransform = Get_StationAnchorTransform("Gym.Replication.ReplicatedActor", ECk_GymStation_Anchor::PanelCenter);
 
-        // Destroy any previous one (used by the respawn exec command).
+        // Destroy any previous one (used by the G respawn row).
         if (ck::IsValid(_SpawnedReplicatedActor))
         {
             _SpawnedReplicatedActor.DestroyActor();
@@ -75,10 +75,6 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
             StationTransform.GetLocation(),
             StationTransform.Rotator()));
     }
-
-    //------------------------------------------------------------------------
-    // Console commands
-    //------------------------------------------------------------------------
 
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
@@ -124,8 +120,8 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
             _PawnPresetIndex = (_PawnPresetIndex + 1) % Values.Num();
             Request_BroadcastToPawn(Values[_PawnPresetIndex]);
         }
-        else if (InRowIndex == 2) { Ck_GymReplication_RespawnActor(); }
-        else if (InRowIndex == 3) { Ck_GymReplication_DumpRep(); }
+        else if (InRowIndex == 2) { Request_StartReplicatedActorStation(); }
+        else if (InRowIndex == 3) { Request_DumpReplicationState(); }
     }
 
     // The negative entry is the point of the ring: it has to arrive clamped to the Min of 0.
@@ -185,14 +181,7 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
-    UFUNCTION(Exec, DisplayName="Replication Gym - Respawn Replicated Actor")
-    void Ck_GymReplication_RespawnActor()
-    {
-        Request_StartReplicatedActorStation();
-    }
-
-    UFUNCTION(Exec, DisplayName="Replication Gym - Dump Replication State")
-    void Ck_GymReplication_DumpRep()
+    private void Request_DumpReplicationState()
     {
         auto Self = ck::ToEntity(this);
 

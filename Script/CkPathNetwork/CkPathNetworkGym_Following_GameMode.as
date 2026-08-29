@@ -15,13 +15,13 @@
 //   L CORNER + GAP     the sidewalk ends short of the goal; the agent rounds the L and
 //                      ramps off the end (emergent exit selection)
 //   T JUNCTION         two agents share the stem, then split to opposite branch ends
-//   LIVE REBUILD       Ck_GymPathNet_Rebuild swaps the lane's ribbon for a dog-leg
-//                      mid-walk; the agent's corridor invalidates and it detours
+//   LIVE REBUILD       the B row swaps the lane's ribbon for a dog-leg mid-walk; the
+//                      agent's corridor invalidates and it detours
 //
-// Console (Tab -> menu, or `~`):
-//   Ck_GymPathNet_RestartAll   rebuild every scenario from scratch
-//   Ck_GymPathNet_Rebuild      swap the LIVE REBUILD lane's ribbon mid-walk
-//   Ck_GymPathNet_Clear        destroy all agents + networks
+// Control panel:
+//   R   rebuild every scenario from scratch
+//   B   swap the LIVE REBUILD lane's ribbon mid-walk
+//   Z   destroy all agents + networks
 //
 // Visuals: ck.PathNetwork.DebugDraw 1 (networks + corridors; forced on at start),
 //          ck.Crowd.Debug 1 (agents), planned paths + breadcrumbs.

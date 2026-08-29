@@ -125,18 +125,16 @@ class ACk_VatGym_PlayerController : ACk_Gym_Base_PlayerController
         for (auto Entity : Entities) { utils_messaging::Broadcast(Entity, Msg); }
     }
 
-    UFUNCTION(Exec, DisplayName="Vat Gym - Stop (freeze)")
-    void Ck_GymVat_Stop()
+    private void Request_StopClipCycle()
     {
         auto Msg = FCk_Message_VatGym_Stop();
         auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_VatGym_ClipCycle");
         for (auto Entity : Entities) { utils_messaging::Broadcast(Entity, Msg); }
     }
 
-    UFUNCTION(Exec, DisplayName="Vat Gym - Auto All [0/1]")
-    void Ck_GymVat_Auto(int32 InEnabled = 1)
+    private void Request_AutoAllStations(bool InEnabled)
     {
-        auto Msg = FCk_Message_Gym_AutoSet(InEnabled != 0);
+        auto Msg = FCk_Message_Gym_AutoSet(InEnabled);
         for (auto Tag : Get_AllStationTags())
         {
             auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), Tag);
@@ -163,8 +161,9 @@ class ACk_VatGym_PlayerController : ACk_Gym_Base_PlayerController
     //
     // The numeric knobs are preset rings: a crowd count and a turn rate have three or four interesting
     // values each, and typing one was never the point. What genuinely needs typing is a NAME - an
-    // asset path or a baked clip - so those three commands stay on the console and get a Status row
-    // that spells out the arguments, rather than leaving a reader to conclude the gym cannot do it.
+    // asset path or a baked clip - or a rate the ring does not stop at, so those commands stay on the
+    // console and get a Status row that spells out the arguments, rather than leaving a reader to
+    // conclude the gym cannot do it.
     //--------------------------------------------------------------------------------------------------------------------------
 
     private void Request_StepRate()
@@ -227,6 +226,7 @@ class ACk_VatGym_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Status("Swap the VAT collection", "Ck_GymVat_SetCollection <path|AUTO>"));
         Rows.Add(CkGym_Control::Status("Loop a named clip", "Ck_GymVat_PlayClip <name> [rate] [fade]"));
         Rows.Add(CkGym_Control::Status("Play a named clip once", "Ck_GymVat_PlayOnce <name> [rate]"));
+        Rows.Add(CkGym_Control::Status("Set an exact play rate", "Ck_GymVat_SetRate <rate>"));
 
         return Rows;
     }
@@ -234,23 +234,17 @@ class ACk_VatGym_PlayerController : ACk_Gym_Base_PlayerController
     void Request_ControlActivated(int32 InRowIndex) override
     {
         // Rows 0, 4, 8 and 11 are headers, which hold no key and never arrive here.
-        if (InRowIndex == 1) { Ck_GymVat_Stop(); }
+        if (InRowIndex == 1) { Request_StopClipCycle(); }
         else if (InRowIndex == 2) { Request_StepRate(); }
         else if (InRowIndex == 3) { Request_AutoClipCycle(); }
         else if (InRowIndex == 5) { Request_AutoCrowdField(); }
         else if (InRowIndex == 6)
         {
             _LastAutoSent = !_LastAutoSent;
-            Ck_GymVat_Auto(_LastAutoSent ? 1 : 0);
+            Request_AutoAllStations(_LastAutoSent);
         }
-        else if (InRowIndex == 7) { Ck_GymVat_RestartAll(); }
+        else if (InRowIndex == 7) { Request_StartGym(); }
         else if (InRowIndex == 9) { Request_StepFieldCount(); }
         else if (InRowIndex == 10) { Request_StepTurnRate(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="Vat Gym - Restart All")
-    void Ck_GymVat_RestartAll()
-    {
-        Request_StartGym();
     }
 }

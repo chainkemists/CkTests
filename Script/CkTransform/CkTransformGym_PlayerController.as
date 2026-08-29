@@ -133,12 +133,6 @@ class ACk_TransformGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_ControlActivated(int32 InRowIndex) override
 	{
-		if (InRowIndex == 0) { Ck_GymTransform_RestartAll(); }
-	}
-
-	UFUNCTION(Exec, DisplayName="Transform Gym - Restart All")
-	void Ck_GymTransform_RestartAll()
-	{
-		Request_StartGym();
+		if (InRowIndex == 0) { Request_StartGym(); }
 	}
 }

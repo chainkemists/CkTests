@@ -67,7 +67,7 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
         Description.Add(FText::FromString("Two agents spawn 1000cm up on the same baked voxel volume and differ only in _AgentMode. The FLYING one (cyan, Y=-400) climbs over the 1200cm wall in its lane with a visible nose-up/nose-down pitch and holds its altitude to the goal."));
         Description.Add(FText::FromString("The GROUNDED one (orange, Y=+400) drops to the level's navmesh within a second and walks the floor flat for the rest of the run, then parks BENEATH its elevated goal — that is the navmesh constraint winning, not a pathing failure."));
         Description.Add(FText::FromString("Fail signatures: flyer frozen at spawn = its displacement drain is missing; flyer sinking to the floor = it is still inside ConstrainToNavmesh's view; flyer rolling or banking = its rotation is being composed as a delta instead of written absolutely."));
-        Description.Add(FText::FromString("Ck_GymVoxelNav_Restart\nCk_GymVoxelNav_ReturnTrip"));
+        Description.Add(FText::FromString("Panel [R] restart both agents\nPanel [T] send them back (return trip)"));
         Station.Description = Description;
 
         Stations.Add(Station);
@@ -353,8 +353,6 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
         ck::Trace("VoxelNav gym: an unrecognised agent reached its goal");
     }
 
-    // ---- Console ---------------------------------------------------------------------------------
-
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
@@ -377,12 +375,11 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymVoxelNav_Restart(); }
-        else if (InRowIndex == 1) { Ck_GymVoxelNav_ReturnTrip(); }
+        if (InRowIndex == 0) { DoRestartAgents(); }
+        else if (InRowIndex == 1) { DoReturnTrip(); }
     }
 
-    UFUNCTION(Exec, DisplayName="VoxelNav Flying vs Grounded - Restart Agents")
-    void Ck_GymVoxelNav_Restart()
+    private void DoRestartAgents()
     {
         if (HasAuthority() == false)
         { return; }
@@ -392,8 +389,7 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
         ck::voxelnav::Log("VoxelNav gym: agents restarted against the existing volume");
     }
 
-    UFUNCTION(Exec, DisplayName="VoxelNav Flying vs Grounded - Return Trip")
-    void Ck_GymVoxelNav_ReturnTrip()
+    private void DoReturnTrip()
     {
         if (HasAuthority() == false)
         { return; }

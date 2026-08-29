@@ -197,12 +197,6 @@ class ACk_EqsGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymEqs_RestartAll(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="Eqs Gym - Restart All")
-    void Ck_GymEqs_RestartAll()
-    {
-        Request_StartGym();
+        if (InRowIndex == 0) { Request_StartGym(); }
     }
 };

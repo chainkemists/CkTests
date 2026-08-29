@@ -15,12 +15,14 @@
 //                    clean OnGoalFailed with NoCrowdFreeRouteExisted=true; perpetual pressing is
 //                    the no-progress-ladder defect this layout exists to reproduce.
 //
-// Console:
-//   Ck_GymCrowd_NarrowGap_Spawn <count>          walkers only (default 20)
-//   Ck_GymCrowd_NarrowGap_SpawnBlocked <count>   1 parked blocker in the gap + walkers (default 20 total)
-//   Ck_GymCrowd_NarrowGap_Flank <0|1>            open/close the detour around the wall ends
-//   Ck_GymCrowd_NarrowGap_Reset                  destroy every spawned agent
-//   Ck_GymCrowd_NarrowGap_Digest                 emit the per-agent [CrowdDiag] digest
+// Controls:
+//   G                                            20 walkers only
+//   B                                            1 parked blocker in the gap + 19 walkers
+//   F                                            open/close the detour around the wall ends
+//   Z                                            destroy every spawned agent
+//   J                                            emit the per-agent [CrowdDiag] digest
+//   Ck_GymCrowd_NarrowGap_Spawn <count>          the same walkers-only spawn at any other count
+//   Ck_GymCrowd_NarrowGap_SpawnBlocked <count>   the same blocker spawn at any other count
 //
 // Visuals: ck.Crowd.Debug 1 | ck.Crowd.Debug.AgentBody 1 | ck.CrowdDebugger 1
 // --------------------------------------------------------------------------------------------------------------------

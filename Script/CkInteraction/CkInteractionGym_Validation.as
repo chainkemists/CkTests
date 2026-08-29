@@ -59,7 +59,7 @@ class UCk_EntityScript_InteractionGym_Validation : UCk_GenericEntityScript_UE
 
         AutoConfig.TotalSteps = 6;
         AutoConfig.Description = "Custom CanInteractWith validation + enable/disable.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymInteraction_Auto [0/1]";
+        AutoConfig.GlobalAutoCommand = "panel [P] auto on / [X] auto off";
         AutoConfig.PerStationAutoCommand = "panel [K] Re-arm auto (Validation)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Attempt interaction (expect OK)", 0, 0));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Disable target", 1, 1));
@@ -67,9 +67,9 @@ class UCk_EntityScript_InteractionGym_Validation : UCk_GenericEntityScript_UE
         AutoConfig.Steps.Add(FCkGym_AutoStep("Re-enable target", 3, 3));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Block validation + attempt", 4, 4));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Unblock validation", 5, 5));
-        AutoConfig.ManualCommands.Add("Ck_GymInteraction_AttemptValidation");
-        AutoConfig.ManualCommands.Add("Ck_GymInteraction_ToggleEnabled");
-        AutoConfig.ManualCommands.Add("Ck_GymInteraction_ToggleCustomValidation");
+        AutoConfig.ManualCommands.Add("panel [7] Validation attempt");
+        AutoConfig.ManualCommands.Add("panel [N] Flip enabled");
+        AutoConfig.ManualCommands.Add("panel [V] Flip custom validation");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

@@ -11,10 +11,10 @@
 //   t=9.0s  emit cycle digest (per-agent x/y/speed/dir + RDP-simplified path)
 //   t=10.0s destroy agents, increment cycle counter, repeat
 //
-// Console:
-//   Ck_GymCrowd_Diag_Pause    pause auto-cycling without destroying current agents
-//   Ck_GymCrowd_Diag_Resume   resume auto-cycling
-//   Ck_GymCrowd_Diag_DumpNow  emit current cycle's digest immediately (for in-progress state)
+// Control panel:
+//   P   pause / resume auto-cycling without destroying current agents
+//   J   emit current cycle's digest immediately (for in-progress state)
+//   O   spawn an overlap wave into the running cycle
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_CrowdGym_Diag_GameMode : ACkTests_Gym_Base_GameMode

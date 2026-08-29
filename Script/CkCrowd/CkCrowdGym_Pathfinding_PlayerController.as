@@ -16,7 +16,7 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
             Station.Tags.Add(n"Gym.Crowd.Pathfinding");
             Station.Title = FText::FromString("PATHFINDING");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Console: Ck_GymCrowd_Path_IssueGood / IssueBad / Status"));
+            Description.Add(FText::FromString("Panel: 1 good path / 2 bad path / P status / J diagnostics"));
             Description.Add(FText::FromString("Open the debugger:  ck.CrowdDebugger 1  (Navmesh Status panel populated)"));
             Description.Add(FText::FromString("Last path status: (issue a request)"));
             Station.Description = Description;
@@ -41,7 +41,7 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
         }
 
         AttachBindings();
-        ck::Trace("Pathfinding gym started. Run Ck_GymCrowd_Path_IssueGood from the console.");
+        ck::Trace("Pathfinding gym started. Press 1 on the control panel to issue a good path.");
     }
 
     private void SpawnFloor()
@@ -148,7 +148,7 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
         const auto QueryMs = _LastResult.Get_Diagnostics().Get_LastQueryDurationMs();
 
         const auto Description =
-            FString("Console: Ck_GymCrowd_Path_IssueGood / IssueBad / Status\n") +
+            FString("Panel: 1 good path / 2 bad path / P status / J diagnostics\n") +
             FString("Open the debugger:  ck.CrowdDebugger 1\n") +
             f"Status: {Status}   Waypoints: {WaypointCount}\n" +
             f"Fail reason: {FailReason}\n" +
@@ -181,14 +181,13 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymCrowd_Path_IssueGood(); }
-        else if (InRowIndex == 1) { Ck_GymCrowd_Path_IssueBad(); }
-        else if (InRowIndex == 2) { Ck_GymCrowd_Path_Status(); }
-        else if (InRowIndex == 3) { Ck_GymCrowd_Path_Diag(); }
+        if (InRowIndex == 0) { Request_IssueGoodPath(); }
+        else if (InRowIndex == 1) { Request_IssueBadPath(); }
+        else if (InRowIndex == 2) { Request_PrintStatus(); }
+        else if (InRowIndex == 3) { Request_PrintDiagnostics(); }
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Pathfinding - Issue Good Path")
-    void Ck_GymCrowd_Path_IssueGood()
+    private void Request_IssueGoodPath()
     {
         if (HasAuthority() == false) { return; }
         AttachBindings();
@@ -212,8 +211,7 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace(f"Pathfinding gym: enqueued FindPath -> {Target}");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Pathfinding - Issue Bad Path")
-    void Ck_GymCrowd_Path_IssueBad()
+    private void Request_IssueBadPath()
     {
         if (HasAuthority() == false) { return; }
         AttachBindings();
@@ -232,8 +230,7 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace(f"Pathfinding gym: enqueued failing FindPath -> {Target}");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Pathfinding - Print Status")
-    void Ck_GymCrowd_Path_Status()
+    private void Request_PrintStatus()
     {
         if (ck::Is_NOT_Valid(_StationHandle))
         {
@@ -244,8 +241,7 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace(f"Pathfinding gym status: {Result.Get_Status()}  waypoints={Result.Get_Waypoints().Num()}  fail={Result.Get_Diagnostics().Get_LastFailReason()}  duration={Result.Get_Diagnostics().Get_LastQueryDurationMs()}ms");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Pathfinding - Diagnostics")
-    void Ck_GymCrowd_Path_Diag()
+    private void Request_PrintDiagnostics()
     {
         ck::Trace("============ Pathfinding Gym Diagnostics ============");
         ck::Trace(f"  HasAuthority         : {HasAuthority()}");

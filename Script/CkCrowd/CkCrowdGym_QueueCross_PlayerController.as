@@ -1,7 +1,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Crowd Queue-Cross Gym - PlayerController
 //
-// See CkCrowdGym_QueueCross_GameMode.as for the console surface and what to watch.
+// See CkCrowdGym_QueueCross_GameMode.as for the control surface and what to watch.
 //
 // Layout (station-local; +X is toward the player camera after the cycler's rotation):
 //   - 14 line members parked in a row along Y at local X = LineOffset, 95cm spacing - close enough
@@ -49,7 +49,7 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("14 parked agents form a line; 6 crossers auto-dispatch to goals just 200cm past it."));
             Description.Add(FText::FromString("Expected: every crosser routes AROUND an end of the line; the queue never moves."));
             Description.Add(FText::FromString("Defect: crossers plan straight through, press into bodies, jitter, never arrive."));
-            Description.Add(FText::FromString("Console: Ck_GymCrowd_QueueCross_Spawn / _Reset / _Digest"));
+            Description.Add(FText::FromString("Panel: G spawn line + crossers / Z reset / J digest"));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -106,13 +106,13 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
         { return; }
 
         _AutoSpawned = true;
-        Ck_GymCrowd_QueueCross_Spawn();
+        Request_SpawnLineAndCrossers();
     }
 
     UFUNCTION()
     private void OnNavProbeFailed(FCk_Handle InHandle)
     {
-        ck::crowd::Log("QueueCross gym: navmesh probe failed - auto-spawn skipped; run Ck_GymCrowd_QueueCross_Spawn manually once the navmesh is visible.");
+        ck::crowd::Log("QueueCross gym: navmesh probe failed - auto-spawn skipped; press G on the control panel once the navmesh is visible.");
     }
 
     // ---- Geometry ----------------------------------------------------------------------------------
@@ -135,8 +135,6 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
         Floor.SetActorScale3D(FVector(75.0, 75.0, 0.5));
         FinishSpawningActor(Floor);
     }
-
-    // ---- Console commands ----------------------------------------------------------------------------
 
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
@@ -161,13 +159,12 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymCrowd_QueueCross_Spawn(); }
-        else if (InRowIndex == 1) { Ck_GymCrowd_QueueCross_Reset(); }
-        else if (InRowIndex == 2) { Ck_GymCrowd_QueueCross_Digest(); }
+        if (InRowIndex == 0) { Request_SpawnLineAndCrossers(); }
+        else if (InRowIndex == 1) { Request_ResetAgents(); }
+        else if (InRowIndex == 2) { Request_EmitDigest(); }
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd QueueCross - Spawn Line + Crossers")
-    void Ck_GymCrowd_QueueCross_Spawn()
+    private void Request_SpawnLineAndCrossers()
     {
         if (HasAuthority() == false || ck::Is_NOT_Valid(_StationHandle))
         { return; }
@@ -243,8 +240,7 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log(f"QueueCross gym: dispatched {CrosserCount} crossers to goals {CrosserOvershoot}cm past the line");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd QueueCross - Reset (Destroy Agents)")
-    void Ck_GymCrowd_QueueCross_Reset()
+    private void Request_ResetAgents()
     {
         if (HasAuthority() == false)
         { return; }
@@ -264,8 +260,7 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log(f"QueueCross gym: destroyed {Count} agents");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd QueueCross - Emit Per-Agent Digest")
-    void Ck_GymCrowd_QueueCross_Digest()
+    private void Request_EmitDigest()
     {
         if (HasAuthority() == false)
         { return; }

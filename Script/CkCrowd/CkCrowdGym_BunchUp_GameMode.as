@@ -6,10 +6,12 @@
 // goal is taken and hold. Watch for the failure this gym exists to show: agents that never learn
 // it, and fidget against the pile indefinitely.
 //
-// Console:
-//   Ck_GymCrowd_BunchUp_Spawn <count>   spawn <count> agents (default 15) and send them all to the centre
-//   Ck_GymCrowd_BunchUp_Reset           destroy every spawned agent
-//   Ck_GymCrowd_BunchUp_Digest          emit the per-agent [CrowdDiag] digest for the live agents
+// Control panel:
+//   G                                   spawn 15 agents and send them all to the centre
+//   Z                                   destroy every spawned agent
+//   J                                   emit the per-agent [CrowdDiag] digest for the live agents
+//   N                                   elevate one settled agent, to watch the grounding lease
+//   Ck_GymCrowd_BunchUp_Spawn <count>   the same spawn at any other agent count
 //
 // Visuals: ck.Crowd.Debug 1 (world overlays) / ck.Crowd.Debug.AgentBody 1 (capsule + cone) /
 //          ck.CrowdDebugger 1 (data panel).

@@ -57,19 +57,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymAudioSimple_RestartBackgroundMusic(); }
-        else if (InRowIndex == 1) { Ck_GymAudioSimple_TriggerSpatialAudio(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="Simple AudioGym - Restart Background Music")
-    void Ck_GymAudioSimple_RestartBackgroundMusic()
-    {
-        Request_StartBackgroundMusic();
-    }
-
-    UFUNCTION(Exec, DisplayName="Simple AudioGym - Trigger Spatial Audio")
-    void Ck_GymAudioSimple_TriggerSpatialAudio()
-    {
-        Request_StartSpatialAudio();
+        if (InRowIndex == 0) { Request_StartBackgroundMusic(); }
+        else if (InRowIndex == 1) { Request_StartSpatialAudio(); }
     }
 }

@@ -67,12 +67,6 @@ class ACk_TweenTest_GymPlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymTween_RestartAll(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="Tween Gym - Restart All")
-    void Ck_GymTween_RestartAll()
-    {
-        Request_StartGym();
+        if (InRowIndex == 0) { Request_StartGym(); }
     }
 };

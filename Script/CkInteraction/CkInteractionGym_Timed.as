@@ -79,10 +79,10 @@ class UCk_EntityScript_InteractionGym_TimedTarget : UCk_GenericEntityScript_UE
 
         AutoConfig.TotalSteps = 1;
         AutoConfig.Description = "Source + target on separate entities, Timed (3s).\nDisplays elapsed time and completion tracking.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymInteraction_Auto [0/1]";
+        AutoConfig.GlobalAutoCommand = "panel [P] auto on / [X] auto off";
         AutoConfig.PerStationAutoCommand = "panel [G] Re-arm auto (Timed)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Start timed interaction (every 4s)", 0, 0));
-        AutoConfig.ManualCommands.Add("Ck_GymInteraction_StartTimed");
+        AutoConfig.ManualCommands.Add("panel [2] Timed");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

@@ -9,9 +9,9 @@
 //   Y = +400  GROUNDED  - the lane is clear; the agent drops to the navmesh within a second and
 //                         walks the floor flat, parking beneath its elevated goal.
 //
-// Console (Tab -> menu, or `~`):
-//   Ck_GymVoxelNav_Restart      destroy both agents and re-run the spawn + MoveTo (volume persists)
-//   Ck_GymVoxelNav_ReturnTrip   re-issue MoveTo to the opposite end; repeated calls ping-pong
+// Control panel:
+//   R   destroy both agents and re-run the spawn + MoveTo (volume persists)
+//   T   re-issue MoveTo to the opposite end; repeated presses ping-pong
 //
 // Visuals: dim wireframe box = volume bounds, spheres = the live goals, per-agent label = mode,
 //          pitch and movement state. Planned polylines come from ck.Crowd.DrawPlannedPaths.

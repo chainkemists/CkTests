@@ -193,10 +193,4 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (InRowIndex == 0) { Request_SpawnAllLooks(); }
     }
-
-    UFUNCTION(Exec, DisplayName="USF Materials Gym - Restart All Looks")
-    void Ck_GymUsf_RestartAll()
-    {
-        Request_SpawnAllLooks();
-    }
 }

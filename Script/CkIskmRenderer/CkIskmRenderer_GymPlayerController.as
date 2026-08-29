@@ -99,12 +99,6 @@ class ACk_IskmRendererGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymIskmRenderer_RestartAll(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="IskmRenderer Gym - Restart All")
-    void Ck_GymIskmRenderer_RestartAll()
-    {
-        Request_StartGym();
+        if (InRowIndex == 0) { Request_StartGym(); }
     }
 }
