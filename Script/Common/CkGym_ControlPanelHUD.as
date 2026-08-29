@@ -39,8 +39,7 @@ class ACkGym_ControlPanelHUD : ACkGym_MenuHUD
 
         // Mirrors the base's startup suppression. Without it the panel flashes over the launcher level
         // during an auto-travel to the startup gym.
-        auto CyclerSubsystem = UCkGym_CyclerSubsystem::Get();
-        if (ck::IsValid(CyclerSubsystem) && CyclerSubsystem.SuppressHUDDuringStartup)
+        if (UCk_Utils_GymRegistry_UE::Get_SuppressHUDDuringStartup())
         { return; }
 
         Super::DrawHUD(SizeX, SizeY);

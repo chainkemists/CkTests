@@ -16,11 +16,6 @@ class ACk_Gym_Base_GameMode : ACk_GameMode_UE
     void BeginPlay()
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto Subsystem = UCkGym_CyclerSubsystem::Get();
-        if (ck::Is_NOT_Valid(Subsystem))
-        {
-            return;
-        }
 
         // Resolve synchronously so we can decide *before* the HUD's first
         // paint whether to suppress it. The actual ServerTravel still has
@@ -31,24 +26,24 @@ class ACk_Gym_Base_GameMode : ACk_GameMode_UE
         if (StartupIndex < 0)
         {
             // No saved target - cycler menu handles entry as usual.
-            Subsystem.SuppressHUDDuringStartup = false;
+            UCk_Utils_GymRegistry_UE::Request_Set_SuppressHUDDuringStartup(false);
             return;
         }
 
         // Guard against a re-travel loop on the destination level. The
         // subsystem's CurrentGymIndex survives ServerTravel, so once we
         // land on the chosen gym, BeginPlay sees the match and bails.
-        if (Subsystem.CurrentGymIndex == StartupIndex)
+        if (UCk_Utils_GymRegistry_UE::Get_CurrentGymIndex() == StartupIndex)
         {
             // We've arrived at the chosen gym - restore the HUD.
-            Subsystem.SuppressHUDDuringStartup = false;
+            UCk_Utils_GymRegistry_UE::Request_Set_SuppressHUDDuringStartup(false);
             return;
         }
 
         // We're about to auto-travel: suppress the HUD so the user doesn't
         // see the cycler menu / tab-hint flash on the launcher level during
         // the brief transition.
-        Subsystem.SuppressHUDDuringStartup = true;
+        UCk_Utils_GymRegistry_UE::Request_Set_SuppressHUDDuringStartup(true);
 
         // Defer the actual ServerTravel by one tick.
         System::SetTimer(this, n"DoStartupTravel", 0.01, false);
@@ -63,13 +58,7 @@ class ACk_Gym_Base_GameMode : ACk_GameMode_UE
             return;
         }
 
-        auto Subsystem = UCkGym_CyclerSubsystem::Get();
-        if (ck::Is_NOT_Valid(Subsystem))
-        {
-            return;
-        }
-
-        if (Subsystem.CurrentGymIndex == StartupIndex)
+        if (UCk_Utils_GymRegistry_UE::Get_CurrentGymIndex() == StartupIndex)
         {
             return;
         }

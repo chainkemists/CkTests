@@ -65,10 +65,10 @@ class ACkGym_MenuHUD : AHUD
         ScrollOffset = 0;
         FilteredIndices.Empty();
 
-        auto Subsystem = UCkGym_CyclerSubsystem::Get();
-        if (Subsystem.CurrentGymIndex >= 0 && Subsystem.CurrentGymIndex < CachedRegistry.Num())
+        auto CurrentGymIndex = UCk_Utils_GymRegistry_UE::Get_CurrentGymIndex();
+        if (CurrentGymIndex >= 0 && CurrentGymIndex < CachedRegistry.Num())
         {
-            SelectedIndex = Subsystem.CurrentGymIndex;
+            SelectedIndex = CurrentGymIndex;
         }
         else
         {
@@ -102,8 +102,7 @@ class ACkGym_MenuHUD : AHUD
         // auto-travel is in flight. This prevents the cycler menu / tab-hint
         // from flashing on the launcher level during the brief transition
         // to the user's chosen Default / Last gym.
-        auto CyclerSubsystem = UCkGym_CyclerSubsystem::Get();
-        if (ck::IsValid(CyclerSubsystem) && CyclerSubsystem.SuppressHUDDuringStartup)
+        if (UCk_Utils_GymRegistry_UE::Get_SuppressHUDDuringStartup())
         {
             return;
         }
@@ -378,7 +377,7 @@ class ACkGym_MenuHUD : AHUD
             return;
         }
 
-        auto CurrentGymIndex = UCkGym_CyclerSubsystem::Get().CurrentGymIndex;
+        auto CurrentGymIndex = UCk_Utils_GymRegistry_UE::Get_CurrentGymIndex();
 
         for (int32 row = 0; row < VisibleCount; row++)
         {

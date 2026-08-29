@@ -58,4 +58,16 @@ public:
     static void
     Request_Set_LastGymName(
         const FString& InName);
+
+    UFUNCTION(BlueprintPure, Category = "Ck|Utils|GymStartup",
+              DisplayName = "[Ck][GymStartup] Get RecentGymNames")
+    static TArray<FString>
+    Get_RecentGymNames();
+
+    // Records a visit: InName moves to (or enters at) the front, deduped, capped at RecentGymsCap.
+    UFUNCTION(BlueprintCallable, Category = "Ck|Utils|GymStartup",
+              DisplayName = "[Ck][GymStartup] Push RecentGym")
+    static void
+    Request_PushRecentGym(
+        const FString& InName);
 };
