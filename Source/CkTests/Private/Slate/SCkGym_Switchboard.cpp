@@ -344,9 +344,11 @@ auto
         const FCkGym_Switchboard_Model& InModel)
     -> TSharedRef<SWidget>
 {
+    // Esc is deliberately unadvertised: in PIE the editor owns it (stop session) at a level the
+    // input layers cannot mask, so Tab is the one close key that works everywhere.
     const auto Hints = InModel.Get_IsFiltered()
-        ? TEXT("↑↓ select   ·   Enter travel   ·   Backspace edit   ·   Esc clear   ·   Tab close")
-        : TEXT("←→ groups   ·   ↑↓ select   ·   Enter travel   ·   type to filter   ·   Esc/Tab close");
+        ? TEXT("↑↓ select   ·   Enter travel   ·   Backspace edit   ·   Tab close")
+        : TEXT("←→ groups   ·   ↑↓ select   ·   Enter travel   ·   type to filter   ·   Tab close");
 
     return SNew(STextBlock)
         .Text(FText::FromString(Hints))

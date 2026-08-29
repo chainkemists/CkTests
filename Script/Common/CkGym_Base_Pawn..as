@@ -30,6 +30,11 @@ class ACk_Gym_Base_Pawn : ADefaultPawn
     private bool _HeldUp = false;
     private bool _HeldDown = false;
 
+    // The legacy input path scaled mouse deltas by BaseInput.ini's MouseX/MouseY axis
+    // Sensitivity (0.07) before they reached AddControllerYaw/PitchInput; the raw layer delivers
+    // unconditioned deltas, so the same scale is restored here for feel parity with ADefaultPawn.
+    private float32 _MouseLookScale = 0.07f;
+
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
@@ -151,12 +156,12 @@ class ACk_Gym_Base_Pawn : ADefaultPawn
 
         if (InEvent.Get_EventType() == ECk_InputSource_EventType::AnalogAxis)
         {
-            // Raw cursor deltas; the engine's InputYaw/PitchScale applies inside the controller,
-            // and pitch is inverted to match the stock LookUp mapping's -1 scale.
+            // Pitch is inverted to match the stock LookUp mapping's -1 scale; the controller's
+            // InputYaw/PitchScale still applies downstream of these calls.
             if (Key == EKeys::MouseX)
-            { AddControllerYawInput(InEvent.Get_AnalogValue()); }
+            { AddControllerYawInput(InEvent.Get_AnalogValue() * _MouseLookScale); }
             else if (Key == EKeys::MouseY)
-            { AddControllerPitchInput(-InEvent.Get_AnalogValue()); }
+            { AddControllerPitchInput(-InEvent.Get_AnalogValue() * _MouseLookScale); }
             return;
         }
 

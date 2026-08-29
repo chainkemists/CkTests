@@ -34,7 +34,9 @@ namespace ck_gym_switchboard_subsystem
 
     auto Get_IsRepeatable(const FKey& InKey) -> bool
     {
-        return InKey == EKeys::Up || InKey == EKeys::Down || InKey == EKeys::BackSpace;
+        return InKey == EKeys::Up || InKey == EKeys::Down ||
+               InKey == EKeys::Left || InKey == EKeys::Right ||
+               InKey == EKeys::BackSpace;
     }
 
     // The filter corpus accepts single-character keys (letters/digits) plus space; everything else
@@ -144,7 +146,7 @@ auto
     // destroy explicitly here, and the handle must not be poked mid-teardown.
     _MenuLayer = {};
     _IsOpen = false;
-    _TabArmed = false;
+    _ArmedSource = {};
 
     Super::Deinitialize();
 }
@@ -156,9 +158,6 @@ auto
     Request_ArmTabOpen()
     -> void
 {
-    if (_TabArmed)
-    { return; }
-
     auto* LocalPlayer = GetLocalPlayer();
     if (ck::Is_NOT_Valid(LocalPlayer))
     { return; }
@@ -170,6 +169,20 @@ auto
     auto Source = SourceSubsystem->Get_InputSource();
     if (ck::Is_NOT_Valid(Source))
     { return; }
+
+    // The source entity is per-WORLD while this subsystem is per-LOCAL-PLAYER and survives
+    // ServerTravel — so the arm has to follow the source, not happen once. A stale armed-source
+    // handle (dead world) compares unequal to the fresh one and re-arms.
+    if (_ArmedSource == Source)
+    { return; }
+
+    // Traveling while the menu was open leaves _IsOpen pointing at a dead layer; reset so the
+    // fresh world starts closed and the next Tab opens cleanly.
+    if (_IsOpen && ck::Is_NOT_Valid(_MenuLayer))
+    {
+        DoRemoveViewportWidget();
+        _IsOpen = false;
+    }
 
     UCk_Utils_InputLayer_UE::Request_AddGlobalAction(Source,
         FCk_Request_InputLayer_AddGlobalAction{EKeys::Tab}, {});
@@ -187,7 +200,7 @@ auto
         ECk_Signal_BindingPolicy::IgnorePayloadInFlight,
         ECk_Signal_PostFireBehavior::DoNothing);
 
-    _TabArmed = true;
+    _ArmedSource = Source;
     ck::tests::Log(TEXT("[GymSwitchboard] Tab open armed (global action)"));
 }
 

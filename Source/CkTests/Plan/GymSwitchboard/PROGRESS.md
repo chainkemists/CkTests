@@ -35,6 +35,24 @@ visibility.
 
 ## Dated entries (append-only, newest first)
 
+### 2026-08-29 — USER PIE VERDICTS (round 1) + fixes
+User-observed in PIE (4 findings, all diagnosed and fixed same session):
+1. **Tab dead inside gyms, alive on the launcher level.** Root cause: the input-source entity is
+   per-WORLD; the subsystem is per-LOCAL-PLAYER and survives ServerTravel, and `_TabArmed` was a
+   once-only bool — armed on the launcher's source, never on the gym world's fresh one. Fix:
+   `_ArmedSource` handle replaces the bool; ArmTabOpen re-arms whenever the current source differs
+   (stale dead-world handle compares unequal), plus a stale-open reset (traveling with the menu
+   open left `_IsOpen` true against a dead layer).
+2. **Left/Right no key-repeat** (Up/Down had it). Fix: added to the repeatable set.
+3. **Esc stops PIE** — the editor owns Esc above the layer stack; it cannot be masked. Fix: Esc
+   de-advertised from footer hints (handler kept — harmless outside PIE); Tab is the close key.
+4. **Mouse look ~14x too fast in gyms.** Root cause: legacy input applied BaseInput.ini's
+   MouseX/MouseY axis Sensitivity (0.07) before AddControllerYaw/PitchInput; the raw layer
+   delivers unconditioned deltas. Fix: `_MouseLookScale = 0.07` restored in the pawn's axis
+   handler for ADefaultPawn feel parity.
+User also asked what the control-panel parity item meant — clarified (H hides drawing, keys stay
+live — pre-existing designed behavior, not new).
+
 ### 2026-08-29 — P2/P2.5 implementation notes (audit of all 7 pawn subclasses)
 - Axis-through-layer PROVEN: new `CkAutoTest_InputLayer_AxisEventsReachCapture` green (7/7
   InputLayer battery) — value fidelity both signs, no press-owner recording, no latching.

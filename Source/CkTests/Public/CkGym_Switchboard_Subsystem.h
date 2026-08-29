@@ -194,7 +194,10 @@ private:
     FCkGym_Switchboard_Model _Model;
 
     bool _IsOpen = false;
-    bool _TabArmed = false;
+
+    // The world-scoped source the Tab global action is currently registered on; a travel makes
+    // this stale (dead entity) and Request_ArmTabOpen re-arms on the new world's source.
+    FCk_Handle_InputSource _ArmedSource;
 
     FTSTicker::FDelegateHandle _RepeatTickerHandle;
     FKey _RepeatKey;
