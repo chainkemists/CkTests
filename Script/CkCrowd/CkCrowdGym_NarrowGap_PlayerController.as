@@ -60,9 +60,9 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("20 walkers auto-spawn and funnel through a 170cm gap (~100cm of navmesh) between nav walls."));
             Description.Add(FText::FromString("Expected: clean single-file traversal — no oscillation inside the pinch."));
-            Description.Add(FText::FromString("SpawnBlocked parks one agent IN the gap: walkers must detour around the wall ends."));
-            Description.Add(FText::FromString("Flank 1 closes the detour: expect a calm hold / clean goal-failed, never a perpetual press."));
-            Description.Add(FText::FromString("Console: Ck_GymCrowd_NarrowGap_Spawn / _SpawnBlocked / _Flank / _Reset / _Digest"));
+            Description.Add(FText::FromString("B parks one agent IN the gap: walkers must detour around the wall ends."));
+            Description.Add(FText::FromString("F CLOSED removes the detour: expect a calm hold / clean goal-failed, never a perpetual press."));
+            Description.Add(FText::FromString("Panel: G walkers / B blocker+walkers / F flank caps / Z reset / J digest"));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -145,7 +145,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION()
     private void OnNavProbeFailed(FCk_Handle InHandle)
     {
-        ck::crowd::Log("NarrowGap gym: navmesh probe failed - auto-spawn skipped; run Ck_GymCrowd_NarrowGap_Spawn manually once the navmesh is visible.");
+        ck::crowd::Log("NarrowGap gym: navmesh probe failed - auto-spawn skipped; press G on the control panel once the navmesh is visible.");
     }
 
     // ---- Geometry ----------------------------------------------------------------------------------
@@ -196,8 +196,6 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
         SpawnWallBox(FVector(WallLineOffset, -WallCentreY, WallHeight * 0.5), Scale);
     }
 
-    // ---- Console commands ----------------------------------------------------------------------------
-
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
@@ -220,7 +218,8 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::ToggleNamed(EKeys::F, "F", "Flank caps", _FlankWalls.Num() > 0, "CLOSED", "OPEN"));
         Rows.Add(CkGym_Control::Action(EKeys::Z, "Z", "Reset - destroy agents"));
         Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Emit per-agent digest"));
-        Rows.Add(CkGym_Control::Status("Another agent count: console only"));
+        Rows.Add(CkGym_Control::Status("Another walker count", "Ck_GymCrowd_NarrowGap_Spawn <count>"));
+        Rows.Add(CkGym_Control::Status("...with a blocker parked in the gap", "Ck_GymCrowd_NarrowGap_SpawnBlocked <count>"));
 
         return Rows;
     }
@@ -229,9 +228,9 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (InRowIndex == 0) { Ck_GymCrowd_NarrowGap_Spawn(20); }
         else if (InRowIndex == 1) { Ck_GymCrowd_NarrowGap_SpawnBlocked(20); }
-        else if (InRowIndex == 2) { Ck_GymCrowd_NarrowGap_Flank(_FlankWalls.Num() > 0 ? 0 : 1); }
-        else if (InRowIndex == 3) { Ck_GymCrowd_NarrowGap_Reset(); }
-        else if (InRowIndex == 4) { Ck_GymCrowd_NarrowGap_Digest(); }
+        else if (InRowIndex == 2) { Request_SetFlankCaps(_FlankWalls.Num() == 0); }
+        else if (InRowIndex == 3) { Request_ResetAgents(); }
+        else if (InRowIndex == 4) { Request_EmitDigest(); }
     }
 
     UFUNCTION(Exec, DisplayName="Crowd NarrowGap - Spawn Walkers Through The Gap")
@@ -262,8 +261,8 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log(f"NarrowGap gym: parked 1 blocker in the gap and dispatched {Count - 1} walkers");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd NarrowGap - Toggle Flank Caps (1 = no detour exists)")
-    void Ck_GymCrowd_NarrowGap_Flank(int32 InClosed = 1)
+    // Closed means no detour exists around the wall ends, so the gap is the only route.
+    private void Request_SetFlankCaps(bool InClosed)
     {
         if (HasAuthority() == false || ck::Is_NOT_Valid(_StationHandle))
         { return; }
@@ -274,7 +273,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
         }
         _FlankWalls.Empty();
 
-        if (InClosed != 0)
+        if (InClosed)
         {
             // Extend the wall line past the floor's edge (floor half-size 3750) on both sides.
             const auto InnerY  = (GapWidth * 0.5) + WallSpanY;
@@ -287,12 +286,11 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
         }
 
         utils_nav::Request_NavigationRebuild_ForTesting(_PcEntity);
-        const auto FlankState = InClosed != 0 ? FString("CLOSED (no detour)") : FString("OPEN");
+        const auto FlankState = InClosed ? FString("CLOSED (no detour)") : FString("OPEN");
         ck::crowd::Log(f"NarrowGap gym: flank caps {FlankState} - navmesh rebuilding");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd NarrowGap - Reset (Destroy Agents)")
-    void Ck_GymCrowd_NarrowGap_Reset()
+    private void Request_ResetAgents()
     {
         if (HasAuthority() == false)
         { return; }
@@ -306,8 +304,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log(f"NarrowGap gym: destroyed {Count} agents");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd NarrowGap - Emit Per-Agent Digest")
-    void Ck_GymCrowd_NarrowGap_Digest()
+    private void Request_EmitDigest()
     {
         if (HasAuthority() == false)
         { return; }

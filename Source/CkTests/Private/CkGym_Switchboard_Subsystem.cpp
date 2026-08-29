@@ -43,8 +43,10 @@ namespace ck_gym_switchboard_subsystem
                InKey == EKeys::BackSpace;
     }
 
-    // The filter corpus accepts single-character keys (letters/digits) plus space; everything else
-    // is navigation or ignored. Unset = not a filter key.
+    // The filter corpus accepts LETTERS and space only. Digits are deliberately NOT filter input:
+    // the number row is the menu's command keys ([1] startup mode, [2] pin default; F-keys were
+    // rejected — Unreal ties them to rendering debug modes). Gym names containing digits stay
+    // findable by their word parts ("static", "stress").
     auto TryGet_FilterChar(const FKey& InKey) -> TOptional<TCHAR>
     {
         if (InKey == EKeys::SpaceBar)
@@ -52,29 +54,8 @@ namespace ck_gym_switchboard_subsystem
 
         const auto KeyName = InKey.GetFName().ToString();
 
-        if (KeyName.Len() == 1)
-        {
-            const auto Char = KeyName[0];
-
-            if (FChar::IsAlpha(Char))
-            { return FChar::ToLower(Char); }
-
-            if (FChar::IsDigit(Char))
-            { return Char; }
-        }
-
-        static const TMap<FKey, TCHAR> DigitKeys = {
-            {EKeys::Zero, TEXT('0')}, {EKeys::One, TEXT('1')}, {EKeys::Two, TEXT('2')},
-            {EKeys::Three, TEXT('3')}, {EKeys::Four, TEXT('4')}, {EKeys::Five, TEXT('5')},
-            {EKeys::Six, TEXT('6')}, {EKeys::Seven, TEXT('7')}, {EKeys::Eight, TEXT('8')},
-            {EKeys::Nine, TEXT('9')},
-            {EKeys::NumPadZero, TEXT('0')}, {EKeys::NumPadOne, TEXT('1')}, {EKeys::NumPadTwo, TEXT('2')},
-            {EKeys::NumPadThree, TEXT('3')}, {EKeys::NumPadFour, TEXT('4')}, {EKeys::NumPadFive, TEXT('5')},
-            {EKeys::NumPadSix, TEXT('6')}, {EKeys::NumPadSeven, TEXT('7')}, {EKeys::NumPadEight, TEXT('8')},
-            {EKeys::NumPadNine, TEXT('9')}};
-
-        if (const auto* Found = DigitKeys.Find(InKey))
-        { return *Found; }
+        if (KeyName.Len() == 1 && FChar::IsAlpha(KeyName[0]))
+        { return FChar::ToLower(KeyName[0]); }
 
         return {};
     }
@@ -615,7 +596,7 @@ auto
     if (InKey == EKeys::Left)  { DoMoveGroup(-1); return; }
     if (InKey == EKeys::Right) { DoMoveGroup(+1); return; }
 
-    if (InKey == EKeys::F1)
+    if (InKey == EKeys::One || InKey == EKeys::NumPadOne)
     {
         // Cycler -> Default -> Last -> Cycler.
         const auto NextMode =
@@ -629,10 +610,10 @@ auto
         return;
     }
 
-    if (InKey == EKeys::F2)
+    if (InKey == EKeys::Two || InKey == EKeys::NumPadTwo)
     {
-        // "Start here": pin the SELECTED gym as the startup default. Sets the mode too — a pinned
-        // name under any other mode would be a setting that visibly does nothing.
+        // "[2] Start on selected": pin the SELECTED gym as the startup default. Sets the mode too —
+        // a pinned name under any other mode would be a setting that visibly does nothing.
         const auto& Rows = _Model.Get_ActiveRows();
 
         if (Rows.IsValidIndex(_Model.SelectedRowIndex))

@@ -139,12 +139,6 @@ class ACk_ParticlesGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymParticles_RestartAll(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="Particles Gym - Restart All Behaviors")
-    void Ck_GymParticles_RestartAll()
-    {
-        Request_SpawnAllBehaviors();
+        if (InRowIndex == 0) { Request_SpawnAllBehaviors(); }
     }
 }

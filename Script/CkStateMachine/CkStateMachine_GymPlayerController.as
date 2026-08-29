@@ -238,10 +238,6 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
         FinishSpawningActor(SpawnedActor);
     }
 
-    // ========================================================================
-    // CONSOLE COMMANDS
-    // ========================================================================
-
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
@@ -276,45 +272,15 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
     void Request_ControlActivated(int32 InRowIndex) override
     {
         // Row 0 is the header, which holds no key and never arrives here.
-        if (InRowIndex == 1) { Ck_GymSm_RestartAutoCycle(); }
-        else if (InRowIndex == 2) { Ck_GymSm_RestartPauseResume(); }
-        else if (InRowIndex == 3) { Ck_GymSm_RestartComplex(); }
-        else if (InRowIndex == 4) { Ck_GymSm_RestartHierarchical(); }
-        else if (InRowIndex == 5) { Ck_GymSm_RestartGraphWalkRegression(); }
-        else if (InRowIndex == 6) { Ck_GymSm_RestartDivergenceFirstBranch(); }
-        else if (InRowIndex == 7) { Ck_GymSm_RestartDivergenceTimed(); }
-        else if (InRowIndex == 8) { Ck_GymSm_RestartRacingEventDriven(); }
-        else if (InRowIndex == 9) { Ck_GymSm_RestartEventDrivenMultiCondition(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="SM Gym - Restart Auto Cycle")
-    void Ck_GymSm_RestartAutoCycle()
-    {
-        Request_StartAutoCycle();
-    }
-
-    UFUNCTION(Exec, DisplayName="SM Gym - Restart Pause/Resume")
-    void Ck_GymSm_RestartPauseResume()
-    {
-        Request_StartPauseResume();
-    }
-
-    UFUNCTION(Exec, DisplayName="SM Gym - Restart Complex")
-    void Ck_GymSm_RestartComplex()
-    {
-        Request_StartComplex();
-    }
-
-    UFUNCTION(Exec, DisplayName="SM Gym - Restart Hierarchical")
-    void Ck_GymSm_RestartHierarchical()
-    {
-        Request_StartHierarchical();
-    }
-
-    UFUNCTION(Exec, DisplayName="SM Gym - Restart GraphWalk Regression")
-    void Ck_GymSm_RestartGraphWalkRegression()
-    {
-        Request_StartGraphWalkRegression();
+        if (InRowIndex == 1) { Request_StartAutoCycle(); }
+        else if (InRowIndex == 2) { Request_StartPauseResume(); }
+        else if (InRowIndex == 3) { Request_StartComplex(); }
+        else if (InRowIndex == 4) { Request_StartHierarchical(); }
+        else if (InRowIndex == 5) { Request_StartGraphWalkRegression(); }
+        else if (InRowIndex == 6) { Request_StartDivergenceFirstBranch(); }
+        else if (InRowIndex == 7) { Request_StartDivergenceTimed(); }
+        else if (InRowIndex == 8) { Request_StartRacingEventDriven(); }
+        else if (InRowIndex == 9) { Request_StartEventDrivenMultiCondition(); }
     }
 
     // ========================================================================
@@ -337,12 +303,6 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
         FinishSpawningActor(SpawnedActor);
     }
 
-    UFUNCTION(Exec, DisplayName="SM Gym - Restart Divergence FirstBranch")
-    void Ck_GymSm_RestartDivergenceFirstBranch()
-    {
-        Request_StartDivergenceFirstBranch();
-    }
-
     // ========================================================================
     // DIVERGENCE FIRST-BRANCH (TIMED) STATION
     // ========================================================================
@@ -361,12 +321,6 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
         SpawnedActor.StationHandle = Get_StationHandle("Gym.StateMachine.DivergenceTimed");
 
         FinishSpawningActor(SpawnedActor);
-    }
-
-    UFUNCTION(Exec, DisplayName="SM Gym - Restart Divergence Timed")
-    void Ck_GymSm_RestartDivergenceTimed()
-    {
-        Request_StartDivergenceTimed();
     }
 
     // ========================================================================
@@ -394,12 +348,6 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
         FinishSpawningActor(SpawnedActor);
     }
 
-    UFUNCTION(Exec, DisplayName="SM Gym - Restart Racing Event-Driven")
-    void Ck_GymSm_RestartRacingEventDriven()
-    {
-        Request_StartRacingEventDriven();
-    }
-
     // ========================================================================
     // EVENT-DRIVEN MULTI-CONDITION STATION
     // ========================================================================
@@ -423,12 +371,6 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
         SpawnedActor.StationHandle = Get_StationHandle("Gym.StateMachine.EventDrivenMultiCondition");
 
         FinishSpawningActor(SpawnedActor);
-    }
-
-    UFUNCTION(Exec, DisplayName="SM Gym - Restart Event-Driven Multi-Condition")
-    void Ck_GymSm_RestartEventDrivenMultiCondition()
-    {
-        Request_StartEventDrivenMultiCondition();
     }
 };
 

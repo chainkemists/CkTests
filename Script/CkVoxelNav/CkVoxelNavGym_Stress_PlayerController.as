@@ -46,7 +46,7 @@ class ACk_VoxelNavGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
 
         auto Description = TArray<FText>();
         Description.Add(FText::FromString("400 FLYING CrowdAgents launch from a 20x20 Y/Z\nlattice. All cross one Jolt-backed voxel volume\naround or above its central wall. The display\nreports spawned, reached, and failed totals."));
-        Description.Add(FText::FromString("Ck_GymVoxelNavStress_Restart starts a fresh\n400-agent episode on the existing bake.\nCk_GymVoxelNavStress_Reverse sends the current\npopulation back through the wall."));
+        Description.Add(FText::FromString("Panel [R] starts a fresh 400-agent episode\non the existing bake. Panel [V] sends the\ncurrent population back through the wall."));
         Description.Add(FText::FromString("Profile with stat CkCrowd, stat CkAStar, and\nstat CkJolt. Planned paths and agent-body drawing\nare OFF to avoid measuring debug rendering.\nEnable either only for a small diagnostic repro."));
         Station.Description = Description;
         Stations.Add(Station);
@@ -333,20 +333,18 @@ class ACk_VoxelNavGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymVoxelNavStress_Restart(); }
-        else if (InRowIndex == 1) { Ck_GymVoxelNavStress_Reverse(); }
+        if (InRowIndex == 0) { DoRestartRun(); }
+        else if (InRowIndex == 1) { DoReverseAgents(); }
     }
 
-    UFUNCTION(Exec, DisplayName="VoxelNav Stress - Restart Flying 400")
-    void Ck_GymVoxelNavStress_Restart()
+    private void DoRestartRun()
     {
         if (HasAuthority() == false || ck::Is_NOT_Valid(_Volume) || utils_voxel_nav_volume::Get_IsBuilt(_Volume) == false)
         { return; }
         DoSpawnAgentsAndMove();
     }
 
-    UFUNCTION(Exec, DisplayName="VoxelNav Stress - Reverse Flying 400")
-    void Ck_GymVoxelNavStress_Reverse()
+    private void DoReverseAgents()
     {
         if (HasAuthority() == false || _Agents.Num() != k_AgentCount)
         { return; }

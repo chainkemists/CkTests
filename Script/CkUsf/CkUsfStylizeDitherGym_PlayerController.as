@@ -6,10 +6,10 @@
 // station and its preset is applied to the whole view. Everything is judged against the single shared
 // judge scene (ACk_UsfGym_StylizeDitherJudgeScene), which is what makes two presets comparable at all.
 //
-// Tab opens the gym cycler menu; search "Stylize". Console:
-//   Ck_GymStylizeDither_RestartAll     - respawn the judge scene and re-apply Balanced
-//   Ck_GymStylizeDither_CycleDebug     - next debug view of the CURRENT preset
-//   Ck_GymStylizeDither_ToggleCelStack - stack CelShade underneath, for the cross-effect A/B
+// Tab opens the gym cycler menu; search "Stylize". Control panel:
+//   R - respawn the judge scene and re-apply Balanced
+//   J - next debug view of the CURRENT preset
+//   M - stack CelShade underneath, for the cross-effect A/B
 //
 // Needs the ScreenDither master on disk: on a fresh checkout run "Ck_Usf_GenerateLooks ScreenDither"
 // once in the editor console, or the subsystem warns and the view is untouched.
@@ -53,7 +53,7 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
         Stations.Add(Make_Station(n"Gym.Stylize.DitherOff", "DITHER: OFF",
             "The A/B reference - the subsystem's blendable disabled.",
             "The frame must come back completely clean. Any residue here means disable is not actually disabling.",
-            "STACKING: Ck_GymStylizeDither_ToggleCelStack puts CelShade underneath. The two sit at different chain locations (cel pre-TAA, dither post-tonemap), so cel bands the light and dither quantizes the result - the classic combo, and neither reads the other's parameters."));
+            "STACKING: the M row puts CelShade underneath. The two sit at different chain locations (cel pre-TAA, dither post-tonemap), so cel bands the light and dither quantizes the result - the classic combo, and neither reads the other's parameters."));
 
         // Explicit single row, wider than the 800uu default: the judge scene sits in front of these and
         // the player has to be able to walk the row without leaving it.
@@ -298,21 +298,14 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
         // Offset 0 is the VIEW header, which holds no key and never arrives here.
         auto Control = InRowIndex - Get_FirstControlRow();
 
-        if (Control == 1) { Ck_GymStylizeDither_CycleDebug(); }
-        else if (Control == 2) { Ck_GymStylizeDither_ToggleCelStack(); }
+        if (Control == 1) { Request_CycleDebugView(); }
+        else if (Control == 2) { Request_ToggleCelStack(); }
         else if (Control == 3) { Request_RebuildGym(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="Stylize Dither Gym - Restart")
-    void Ck_GymStylizeDither_RestartAll()
-    {
-        Request_RebuildGym();
     }
 
     // Debug views are a property of the CURRENT preset, so this edits the live settings rather than
     // re-applying a preset - walking to another station resets it, which is the intended behaviour.
-    UFUNCTION(Exec, DisplayName="Stylize Dither Gym - Cycle Debug Mode")
-    void Ck_GymStylizeDither_CycleDebug()
+    private void Request_CycleDebugView()
     {
         auto Subsystem = UCkUsf_ScreenDitherSubsystem::Get_ScreenDitherSubsystem();
         if (Subsystem == nullptr)
@@ -331,8 +324,7 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
     // while dither reduces the PALETTE after it, so the two compose rather than compete. The toggle owns
     // its own flag rather than reading Get_IsEnabled(), because a subsystem nothing has touched yet
     // reports Enabled while rendering nothing - reading it would make the first press a silent no-op.
-    UFUNCTION(Exec, DisplayName="Stylize Dither Gym - Toggle CelShade Stack")
-    void Ck_GymStylizeDither_ToggleCelStack()
+    private void Request_ToggleCelStack()
     {
         auto Cel = UCkUsf_CelShadeSubsystem::Get_CelShadeSubsystem();
         if (Cel == nullptr)

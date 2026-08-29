@@ -113,12 +113,6 @@ class ACk_IskmRendererBatchedGym_PlayerController : ACk_Gym_Base_PlayerControlle
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymIskmRendererBatched_RestartAll(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="IskmRenderer Batched Gym - Restart All")
-    void Ck_GymIskmRendererBatched_RestartAll()
-    {
-        Request_StartGym();
+        if (InRowIndex == 0) { Request_StartGym(); }
     }
 }

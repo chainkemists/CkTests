@@ -164,10 +164,6 @@ class ACk_CueGym_PlayerController : ACk_Gym_Base_PlayerController
 			FInstancedStruct::Make(SpawnParams));
 	}
 
-	//------------------------------------------------------------------------
-	// CONSOLE COMMANDS
-	//------------------------------------------------------------------------
-
 	//--------------------------------------------------------------------------------------------------------------------------
 	// CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
 	//
@@ -199,68 +195,47 @@ class ACk_CueGym_PlayerController : ACk_Gym_Base_PlayerController
 	void Request_ControlActivated(int32 InRowIndex) override
 	{
 		// Row 0 is the header, which holds no key and never arrives here.
-		if (InRowIndex == 1) { Ck_GymCue_RestartLifetime(); }
-		else if (InRowIndex == 2) { Ck_GymCue_RestartConcurrency(); }
-		else if (InRowIndex == 3) { Ck_GymCue_RestartOwnerValidation(); }
-		else if (InRowIndex == 4) { Ck_GymCue_RestartRestart(); }
-		else if (InRowIndex == 5) { Ck_GymCue_RestartTransient(); }
-		else if (InRowIndex == 6) { Ck_GymCue_RestartOwnerDestruction(); }
-		else if (InRowIndex == 7) { Ck_GymCue_ResetAll(); }
-	}
+		if (InRowIndex == 1)
+		{
+			Request_DestroyStationEntities(n"TAG_CueGym_Lifetime");
+			Request_StartLifetime();
+		}
+		else if (InRowIndex == 2)
+		{
+			Request_DestroyStationEntities(n"TAG_CueGym_Concurrency");
+			Request_StartConcurrency();
+		}
+		else if (InRowIndex == 3)
+		{
+			Request_DestroyStationEntities(n"TAG_CueGym_OwnerValidation");
+			Request_StartOwnerValidation();
+		}
+		else if (InRowIndex == 4)
+		{
+			Request_DestroyStationEntities(n"TAG_CueGym_Restart");
+			Request_StartRestart();
+		}
+		else if (InRowIndex == 5)
+		{
+			Request_DestroyStationEntities(n"TAG_CueGym_Transient");
+			Request_StartTransient();
+		}
+		else if (InRowIndex == 6)
+		{
+			Request_DestroyStationEntities(n"TAG_CueGym_OwnerDestruction");
+			Request_StartOwnerDestruction();
+		}
+		else if (InRowIndex == 7)
+		{
+			Request_DestroyStationEntities(n"TAG_CueGym_Lifetime");
+			Request_DestroyStationEntities(n"TAG_CueGym_Concurrency");
+			Request_DestroyStationEntities(n"TAG_CueGym_OwnerValidation");
+			Request_DestroyStationEntities(n"TAG_CueGym_Restart");
+			Request_DestroyStationEntities(n"TAG_CueGym_Transient");
+			Request_DestroyStationEntities(n"TAG_CueGym_OwnerDestruction");
 
-	UFUNCTION(Exec, DisplayName="Cue Gym - Restart Lifetime")
-	void Ck_GymCue_RestartLifetime()
-	{
-		Request_DestroyStationEntities(n"TAG_CueGym_Lifetime");
-		Request_StartLifetime();
-	}
-
-	UFUNCTION(Exec, DisplayName="Cue Gym - Restart Concurrency")
-	void Ck_GymCue_RestartConcurrency()
-	{
-		Request_DestroyStationEntities(n"TAG_CueGym_Concurrency");
-		Request_StartConcurrency();
-	}
-
-	UFUNCTION(Exec, DisplayName="Cue Gym - Restart OwnerValidation")
-	void Ck_GymCue_RestartOwnerValidation()
-	{
-		Request_DestroyStationEntities(n"TAG_CueGym_OwnerValidation");
-		Request_StartOwnerValidation();
-	}
-
-	UFUNCTION(Exec, DisplayName="Cue Gym - Restart Restart")
-	void Ck_GymCue_RestartRestart()
-	{
-		Request_DestroyStationEntities(n"TAG_CueGym_Restart");
-		Request_StartRestart();
-	}
-
-	UFUNCTION(Exec, DisplayName="Cue Gym - Restart Transient")
-	void Ck_GymCue_RestartTransient()
-	{
-		Request_DestroyStationEntities(n"TAG_CueGym_Transient");
-		Request_StartTransient();
-	}
-
-	UFUNCTION(Exec, DisplayName="Cue Gym - Restart OwnerDestruction")
-	void Ck_GymCue_RestartOwnerDestruction()
-	{
-		Request_DestroyStationEntities(n"TAG_CueGym_OwnerDestruction");
-		Request_StartOwnerDestruction();
-	}
-
-	UFUNCTION(Exec, DisplayName="Cue Gym - Reset All")
-	void Ck_GymCue_ResetAll()
-	{
-		Request_DestroyStationEntities(n"TAG_CueGym_Lifetime");
-		Request_DestroyStationEntities(n"TAG_CueGym_Concurrency");
-		Request_DestroyStationEntities(n"TAG_CueGym_OwnerValidation");
-		Request_DestroyStationEntities(n"TAG_CueGym_Restart");
-		Request_DestroyStationEntities(n"TAG_CueGym_Transient");
-		Request_DestroyStationEntities(n"TAG_CueGym_OwnerDestruction");
-
-		Request_StartGym();
+			Request_StartGym();
+		}
 	}
 
 	//------------------------------------------------------------------------

@@ -9,10 +9,11 @@
 //
 // Open the debugger to see Navmesh Status: ck.CrowdDebugger 1
 //
-// Console commands (Tab -> menu HUD -> or run direct from `~`):
-//   Ck_GymCrowd_Path_IssueGood   issue a path to a reachable point
-//   Ck_GymCrowd_Path_IssueBad    issue a path to (99999, 99999, 99999) - fails
-//   Ck_GymCrowd_Path_Status      print last status + waypoint count + fail reason
+// Control panel (Tab opens the gym menu HUD):
+//   1   issue a path to a reachable point
+//   2   issue a path to (99999, 99999, 99999) - fails
+//   P   print last status + waypoint count + fail reason
+//   J   print the full diagnostics block
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_CrowdGym_Pathfinding_GameMode : ACkTests_Gym_Base_GameMode

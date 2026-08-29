@@ -125,31 +125,31 @@ class ACk_CrowdGym_AvoidanceVolume_PlayerController : ACk_Gym_Base_PlayerControl
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 1) { Ck_GymCrowd_AvoidanceVolume_Baseline(); }
-        else if (InRowIndex == 2) { Ck_GymCrowd_AvoidanceVolume_AvoidIfPossible(); }
-        else if (InRowIndex == 3) { Ck_GymCrowd_AvoidanceVolume_CostOnly(); }
-        else if (InRowIndex == 4) { Ck_GymCrowd_AvoidanceVolume_HardExclude(); }
-        else if (InRowIndex == 5) { Ck_GymCrowd_AvoidanceVolume_Inside(); }
-        else if (InRowIndex == 6) { Ck_GymCrowd_AvoidanceVolume_Replacement(); }
-        else if (InRowIndex == 7) { Ck_GymCrowd_AvoidanceVolume_SealedAvoidIfPossible(); }
-        else if (InRowIndex == 8) { Ck_GymCrowd_AvoidanceVolume_SealedHardExclude(); }
-        else if (InRowIndex == 9) { Ck_GymCrowd_AvoidanceVolume_Stress(); }
+        if (InRowIndex == 1) { Run_Baseline(); }
+        else if (InRowIndex == 2) { Run_AvoidIfPossible(); }
+        else if (InRowIndex == 3) { Run_CostOnly(); }
+        else if (InRowIndex == 4) { Run_HardExclude(); }
+        else if (InRowIndex == 5) { Run_Inside(); }
+        else if (InRowIndex == 6) { Run_Replacement(); }
+        else if (InRowIndex == 7) { Run_SealedAvoidIfPossible(); }
+        else if (InRowIndex == 8) { Run_SealedHardExclude(); }
+        else if (InRowIndex == 9) { Run_Stress(); }
         else if (InRowIndex == 10) { TogglePathPlanningClearance(); }
-        else if (InRowIndex == 11) { Ck_GymCrowd_AvoidanceVolume_ToggleDebug(); }
-        else if (InRowIndex == 12) { Ck_GymCrowd_AvoidanceVolume_Clear(); }
+        else if (InRowIndex == 11) { ToggleVolumeWireframe(); }
+        else if (InRowIndex == 12) { ClearTrackedEntities(); }
     }
 
-    UFUNCTION(Exec) void Ck_GymCrowd_AvoidanceVolume_Baseline()
+    private void Run_Baseline()
     { BeginOpenScenario(Scenario_Baseline, ECk_CrowdAvoidanceVolume_TraversalPolicy::CostOnly, false, false, "baseline"); }
-    UFUNCTION(Exec) void Ck_GymCrowd_AvoidanceVolume_AvoidIfPossible()
+    private void Run_AvoidIfPossible()
     { BeginOpenScenario(Scenario_AvoidIfPossible, ECk_CrowdAvoidanceVolume_TraversalPolicy::AvoidIfPossible, true, false, "Avoid If Possible detour"); }
-    UFUNCTION(Exec) void Ck_GymCrowd_AvoidanceVolume_CostOnly()
+    private void Run_CostOnly()
     { BeginOpenScenario(Scenario_CostOnly, ECk_CrowdAvoidanceVolume_TraversalPolicy::CostOnly, true, false, "Cost Only weighted route"); }
-    UFUNCTION(Exec) void Ck_GymCrowd_AvoidanceVolume_HardExclude()
+    private void Run_HardExclude()
     { BeginOpenScenario(Scenario_HardExclude, ECk_CrowdAvoidanceVolume_TraversalPolicy::HardExclude, true, false, "Hard Exclude detour"); }
-    UFUNCTION(Exec) void Ck_GymCrowd_AvoidanceVolume_Inside()
+    private void Run_Inside()
     { BeginOpenScenario(Scenario_Inside, ECk_CrowdAvoidanceVolume_TraversalPolicy::AvoidIfPossible, true, true, "start-inside escape"); }
-    UFUNCTION(Exec) void Ck_GymCrowd_AvoidanceVolume_Replacement()
+    private void Run_Replacement()
     { BeginOpenScenario(Scenario_Replacement, ECk_CrowdAvoidanceVolume_TraversalPolicy::AvoidIfPossible, true, false, "waiting for confirmed removal"); }
 
     private void BeginOpenScenario(int32 InScenario, ECk_CrowdAvoidanceVolume_TraversalPolicy InPolicy, bool InSpawnVolume, bool InStartInside, FString InLabel)
@@ -170,9 +170,9 @@ class ACk_CrowdGym_AvoidanceVolume_PlayerController : ACk_Gym_Base_PlayerControl
         { ClearEntities(); _ActiveScenario = Scenario_None; _LastResult = "AGENT FAILED"; return; }
     }
 
-    UFUNCTION(Exec) void Ck_GymCrowd_AvoidanceVolume_SealedAvoidIfPossible()
+    private void Run_SealedAvoidIfPossible()
     { BeginSealedScenario(Scenario_SealedAvoidIfPossible, ECk_CrowdAvoidanceVolume_TraversalPolicy::AvoidIfPossible); }
-    UFUNCTION(Exec) void Ck_GymCrowd_AvoidanceVolume_SealedHardExclude()
+    private void Run_SealedHardExclude()
     { BeginSealedScenario(Scenario_SealedHardExclude, ECk_CrowdAvoidanceVolume_TraversalPolicy::HardExclude); }
 
     private void BeginSealedScenario(int32 InScenario, ECk_CrowdAvoidanceVolume_TraversalPolicy InPolicy)
@@ -193,8 +193,7 @@ class ACk_CrowdGym_AvoidanceVolume_PlayerController : ACk_Gym_Base_PlayerControl
         _SealedRoutePending = true;
     }
 
-    UFUNCTION(Exec)
-    void Ck_GymCrowd_AvoidanceVolume_Stress()
+    private void Run_Stress()
     {
         if (CanRunScenario() == false) { return; }
         ClearEntities();
@@ -234,8 +233,8 @@ class ACk_CrowdGym_AvoidanceVolume_PlayerController : ACk_Gym_Base_PlayerControl
         ck::crowd::Log("Avoidance-volume gym: stress dispatched exactly 100 volumes (34 Avoid If Possible, 33 Cost Only, 33 Hard Exclude) and 100 moving agents toward 81 interior gap goals plus 19 cross-field goals");
     }
 
-    UFUNCTION(Exec) void Ck_GymCrowd_AvoidanceVolume_ToggleDebug() { _DrawVolume = !_DrawVolume; }
-    UFUNCTION(Exec) void Ck_GymCrowd_AvoidanceVolume_Clear()
+    private void ToggleVolumeWireframe() { _DrawVolume = !_DrawVolume; }
+    private void ClearTrackedEntities()
     {
         if (HasAuthority() == false) { return; }
         ClearEntities(); _ActiveScenario = Scenario_None; _LastResult = "Cleared";

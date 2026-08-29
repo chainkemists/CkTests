@@ -235,8 +235,6 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
-    // ---- Console ---------------------------------------------------------------------------------
-
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
@@ -260,13 +258,12 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymPathing_RestartAll(); }
-        else if (InRowIndex == 1) { Ck_GymPathing_Clear(); }
-        else if (InRowIndex == 2) { Ck_GymPathing_ToggleCloseGoalStrafe(); }
+        if (InRowIndex == 0) { Request_RestartAllScenarios(); }
+        else if (InRowIndex == 1) { Request_ClearScenarios(); }
+        else if (InRowIndex == 2) { Request_ToggleCloseGoalStrafe(); }
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Pathing - Restart All")
-    void Ck_GymPathing_RestartAll()
+    private void Request_RestartAllScenarios()
     {
         if (HasAuthority() == false)
         { return; }
@@ -276,8 +273,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log("Pathing gym: restarted all scenarios");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Pathing - Clear")
-    void Ck_GymPathing_Clear()
+    private void Request_ClearScenarios()
     {
         if (HasAuthority() == false)
         { return; }
@@ -286,14 +282,13 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log("Pathing gym: cleared");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Pathing - Toggle Close Goal Strafe")
-    void Ck_GymPathing_ToggleCloseGoalStrafe()
+    private void Request_ToggleCloseGoalStrafe()
     {
         if (HasAuthority() == false)
         { return; }
 
         _CloseGoalStrafeEnabled = !_CloseGoalStrafeEnabled;
-        Ck_GymPathing_RestartAll();
+        Request_RestartAllScenarios();
         ck::crowd::Log(f"Pathing gym: close-goal strafe {GetCloseGoalStrafeModeLabel()}; oracle is the close behind/lateral retarget lane");
     }
 

@@ -134,12 +134,6 @@ class ACk_SceneNodeGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_ControlActivated(int32 InRowIndex) override
 	{
-		if (InRowIndex == 0) { Ck_GymSceneNode_RestartAll(); }
-	}
-
-	UFUNCTION(Exec, DisplayName="Scene Node Gym - Restart All")
-	void Ck_GymSceneNode_RestartAll()
-	{
-		Request_StartGym();
+		if (InRowIndex == 0) { Request_StartGym(); }
 	}
 }

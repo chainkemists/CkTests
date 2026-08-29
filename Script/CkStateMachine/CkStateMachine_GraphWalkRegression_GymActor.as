@@ -414,7 +414,7 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
             auto& Fragment = StationHandle.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
             Fragment.Title = FText::FromString(Title);
             Fragment.Description = FText::FromString(Description);
-            Fragment.Instructions = FText::FromString("Ck_GymSm_RestartGraphWalkRegression");
+            Fragment.Instructions = FText::FromString("panel [5] GraphWalk regression");
         }
     }
 

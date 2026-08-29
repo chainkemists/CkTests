@@ -2,7 +2,7 @@
 
 // The human visual surface for the CkGameSettings widget accelerant: registers a demo collection
 // (one setting per built-in row type, split across two category tabs) and pushes the CodeBuilt
-// settings screen. The keybinding page opens via the exec below.
+// settings screen. The keybinding page opens from the control panel's [K] row.
 class ACk_GameSettingsGym_PlayerController : ACk_Gym_Base_PlayerController
 {
     private UCk_GameSettingsUI_ScreenWidget _SettingsScreen;
@@ -13,7 +13,7 @@ class ACk_GameSettingsGym_PlayerController : ACk_Gym_Base_PlayerController
         DoRegisterDemoCollection();
         DoOpenSettingsScreen();
 
-        ck::Trace("GameSettingsGym: screen pushed (native base = plumbing only, renders unstyled; the game's WBP supplies the look) - Ck_GymGameSettings_OpenKeyBindingPage toggles the keybinding page");
+        ck::Trace("GameSettingsGym: screen pushed (native base = plumbing only, renders unstyled; the game's WBP supplies the look) - panel [K] toggles the keybinding page");
     }
 
     private void DoRegisterDemoCollection()
@@ -114,12 +114,11 @@ class ACk_GameSettingsGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymGameSettings_ReopenScreen(); }
-        else if (InRowIndex == 1) { Ck_GymGameSettings_OpenKeyBindingPage(); }
+        if (InRowIndex == 0) { DoReopenSettingsScreen(); }
+        else if (InRowIndex == 1) { DoToggleKeyBindingPage(); }
     }
 
-    UFUNCTION(Exec, DisplayName = "GameSettings Gym - Reopen Settings Screen")
-    void Ck_GymGameSettings_ReopenScreen()
+    private void DoReopenSettingsScreen()
     {
         if (_SettingsScreen != nullptr && _SettingsScreen.IsInViewport())
         { _SettingsScreen.RemoveFromParent(); }
@@ -127,8 +126,7 @@ class ACk_GameSettingsGym_PlayerController : ACk_Gym_Base_PlayerController
         DoOpenSettingsScreen();
     }
 
-    UFUNCTION(Exec, DisplayName = "GameSettings Gym - Open KeyBinding Page")
-    void Ck_GymGameSettings_OpenKeyBindingPage()
+    private void DoToggleKeyBindingPage()
     {
         if (_KeyBindingPage != nullptr && _KeyBindingPage.IsInViewport())
         {

@@ -21,15 +21,14 @@
 // Without that suspension the number keys would be useless - the next proximity tick would snap straight
 // back to whichever station you happen to be standing next to.
 //
-// Tab opens the gym cycler menu; search "Pixel". Console:
-//   Ck_GymPixelArt_RestartAll     - respawn the judge scene and re-apply the first station
-//   Ck_GymPixelArt_TogglePan      - start/stop the 0.2 texel/frame diagonal drift
-//   Ck_GymPixelArt_ToggleLook     - the look on its own, independent of the renderer
-//   Ck_GymPixelArt_ToggleOKLab    - flip the active station into OKLab banding + the warm ramp
-//
-// Every one of those is also a KEY on the shared gym control panel (Script/Common/CkGym_ControlPanel.as),
-// which is where the live state is read off: 1-9/0 select a station, P flips orthographic <-> perspective,
-// O flips the OKLab treatment, L forces the look, M runs the creep pan, R rebuilds the judge scene.
+// Tab opens the gym cycler menu; search "Pixel". Everything is a KEY on the shared gym control panel
+// (Script/Common/CkGym_ControlPanel.as), which is where the live state is read off:
+//   1-9/0 - select a station
+//   P     - flip orthographic <-> perspective
+//   O     - flip the active station into OKLab banding + the warm ramp
+//   L     - force the look on its own, independent of the renderer
+//   M     - start/stop the 0.2 texel/frame diagonal drift
+//   R     - respawn the judge scene and re-apply the first station
 // H hides the panel without disabling it; Tab opens the cycler menu.
 //
 // Needs the PixelArt master on disk for the LOOK stations: on a fresh checkout run
@@ -82,7 +81,7 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
             "Half again as many texels as the reference station.",
             "Finer grid, same framing. A framing that CHANGES with the height means the margin fold is wrong."));
         Stations.Add(Make_Station(n"Gym.PixelArt.Creep", "A/B 1 - CREEP (SNAP OFF)",
-            "Snapping disabled. Start the pan: Ck_GymPixelArt_TogglePan.",
+            "Snapping disabled. Start the pan with the panel's M row.",
             "Pixels must visibly CRAWL along edges. If they do not, the pan is not running and the next two verdicts are worthless."));
         Stations.Add(Make_Station(n"Gym.PixelArt.Stutter", "A/B 2 - STUTTER (NO COMPENSATION)",
             "Snap on, sub-texel compensation off.",
@@ -140,7 +139,7 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         { Pawn.SetActorLocation(_StationLocations[0] + FVector(0.0f, 0.0f, k_PixelArtGym_SpawnHeight)); }
 
         ck::Trace("* Pixel Art Gym - walk to a station to apply its configuration");
-        ck::Trace("   Ck_GymPixelArt_TogglePan starts the 0.2 texel/frame drift the creep verdicts need");
+        ck::Trace("   panel [M] starts the 0.2 texel/frame drift the creep verdicts need");
 
         DoWarn_IfPiePreview();
     }
@@ -528,10 +527,9 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         else if (Control == 5) { Request_RebuildGym(); }
     }
 
-    UFUNCTION(Exec, DisplayName="Pixel Art Gym - Restart")
-    void Ck_GymPixelArt_RestartAll()
+    bool Get_PanRunning() const
     {
-        Request_RebuildGym();
+        return _PanRunning;
     }
 
     // Delegates to the renderer's own pan rather than moving the camera here: the drift has to be measured
@@ -540,17 +538,6 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
     // The underlying command treats an argument-bearing call as RESTART and only a bare one as stop, so a
     // toggle has to track which it means. Passing the speed every time made this "start the pan" with no way
     // to stop it, which is a trap in the middle of a creep capture.
-    UFUNCTION(Exec, DisplayName="Pixel Art Gym - Toggle Camera Pan")
-    void Ck_GymPixelArt_TogglePan()
-    {
-        Request_TogglePan();
-    }
-
-    bool Get_PanRunning() const
-    {
-        return _PanRunning;
-    }
-
     void Request_TogglePan()
     {
         if (_PanRunning)
@@ -566,15 +553,4 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("* Pixel Art Gym: pan running at 0.2 texels/frame");
     }
 
-    UFUNCTION(Exec, DisplayName="Pixel Art Gym - Toggle Look")
-    void Ck_GymPixelArt_ToggleLook()
-    {
-        Request_ToggleLook();
-    }
-
-    UFUNCTION(Exec, DisplayName="Pixel Art Gym - Toggle OKLab")
-    void Ck_GymPixelArt_ToggleOKLab()
-    {
-        Request_ToggleOKLab();
-    }
 }

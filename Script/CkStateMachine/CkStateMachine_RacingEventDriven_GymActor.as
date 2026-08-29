@@ -188,7 +188,7 @@ class ACk_SmTest_RacingEventDriven_GymActor : AActor
             auto& Fragment = StationHandle.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
             Fragment.Title = FText::FromString(Title);
             Fragment.Description = FText::FromString(Description);
-            Fragment.Instructions = FText::FromString("Ck_GymSm_RestartRacingEventDriven");
+            Fragment.Instructions = FText::FromString("panel [8] Racing: event-driven");
         }
     }
 };

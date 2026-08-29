@@ -31,7 +31,7 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         Add_Station(Stations, n"Gym.PathNetwork.Junction", 1250.0, "T JUNCTION",
             "Two agents share the stem, then split to opposite branch ends.");
         Add_Station(Stations, n"Gym.PathNetwork.Rebuild", -1250.0, "LIVE REBUILD",
-            "Ck_GymPathNet_Rebuild swaps the ribbon mid-walk. The corridor replans.");
+            "Panel [B] swaps the ribbon mid-walk. The corridor replans.");
 
         return Stations;
     }
@@ -99,7 +99,7 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         }
 
         // One shared network for the static lanes; a separate one for the rebuild lane so
-        // Ck_GymPathNet_Rebuild replans ONLY that lane's corridors.
+        // the B row replans ONLY that lane's corridors.
         BuildMainNetwork();
         BuildRebuildNetwork(false);
 
@@ -264,8 +264,6 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         ck::pathnetwork::Log(f"PathNetwork gym: follower agent spawned (mult={InOffPathMultiplier}) spawn={InSpawn} goal={InGoal}");
     }
 
-    // ---- Console ---------------------------------------------------------------------------------
-
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
@@ -289,13 +287,12 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymPathNet_RestartAll(); }
-        else if (InRowIndex == 1) { Ck_GymPathNet_Rebuild(); }
-        else if (InRowIndex == 2) { Ck_GymPathNet_Clear(); }
+        if (InRowIndex == 0) { RestartAllScenarios(); }
+        else if (InRowIndex == 1) { RebuildLaneSwap(); }
+        else if (InRowIndex == 2) { ClearAllScenarios(); }
     }
 
-    UFUNCTION(Exec, DisplayName="Path Network - Restart All")
-    void Ck_GymPathNet_RestartAll()
+    private void RestartAllScenarios()
     {
         if (HasAuthority() == false)
         { return; }
@@ -305,8 +302,7 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         ck::pathnetwork::Log("PathNetwork gym: restarted all scenarios");
     }
 
-    UFUNCTION(Exec, DisplayName="Path Network - Rebuild Lane Swap")
-    void Ck_GymPathNet_Rebuild()
+    private void RebuildLaneSwap()
     {
         if (HasAuthority() == false)
         { return; }
@@ -323,8 +319,7 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         ck::pathnetwork::Log(f"PathNetwork gym: rebuild lane swapped (dog-leg={_RebuildLaneIsDogLeg})");
     }
 
-    UFUNCTION(Exec, DisplayName="Path Network - Clear")
-    void Ck_GymPathNet_Clear()
+    private void ClearAllScenarios()
     {
         if (HasAuthority() == false)
         { return; }

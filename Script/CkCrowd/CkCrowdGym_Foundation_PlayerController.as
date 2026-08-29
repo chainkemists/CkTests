@@ -1,11 +1,11 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Crowd Foundation Gym - PlayerController
 //
-// Gate 0 commands (run from the console - Tab to open the gym menu HUD if it's not already up):
-//   Ck_GymCrowd_Spawn         spawn one agent
-//   Ck_GymCrowd_Spawn10       spawn 10 agents
-//   Ck_GymCrowd_RemoveLast    remove the most recently spawned agent
-//   Ck_GymCrowd_Clear         destroy all spawned agents
+// Gate 0 controls (the on-screen control panel; Tab opens the gym menu HUD):
+//   G   spawn one agent
+//   T   spawn 10 agents
+//   X   remove the most recently spawned agent
+//   Z   destroy all spawned agents
 //
 // Verify with the CkCrowdDebugger window:
 //   ck.CrowdDebugger 1
@@ -30,7 +30,7 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
             Station.Tags.Add(n"Gym.Crowd.Foundation");
             Station.Title = FText::FromString("CROWD FOUNDATION");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Console: Ck_GymCrowd_Spawn / Ck_GymCrowd_Spawn10 / Ck_GymCrowd_RemoveLast / Ck_GymCrowd_Clear"));
+            Description.Add(FText::FromString("Panel: G spawn one / T spawn ten / X remove last / Z clear"));
             Description.Add(FText::FromString("Open the debugger:  ck.CrowdDebugger 1"));
             Description.Add(FText::FromString("Spawned agents appear in the Agent List panel."));
             Station.Description = Description;
@@ -45,7 +45,7 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
         if (HasAuthority() == false)
         { return; }
 
-        ck::crowd::Log("Crowd Foundation Gym - Started. Use Ck_GymCrowd_Spawn from the console.");
+        ck::crowd::Log("Crowd Foundation Gym - Started. Press G on the control panel to spawn an agent.");
     }
 
     //--------------------------------------------------------------------------------------------------------------------------
@@ -72,14 +72,13 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymCrowd_Spawn(); }
-        else if (InRowIndex == 1) { Ck_GymCrowd_Spawn10(); }
-        else if (InRowIndex == 2) { Ck_GymCrowd_RemoveLast(); }
-        else if (InRowIndex == 3) { Ck_GymCrowd_Clear(); }
+        if (InRowIndex == 0) { Request_SpawnAgent(); }
+        else if (InRowIndex == 1) { Request_SpawnTenAgents(); }
+        else if (InRowIndex == 2) { Request_RemoveLastAgent(); }
+        else if (InRowIndex == 3) { Request_ClearAgents(); }
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Foundation - Spawn Agent")
-    void Ck_GymCrowd_Spawn()
+    private void Request_SpawnAgent()
     {
         if (HasAuthority() == false)
         { return; }
@@ -123,15 +122,13 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log(f"CrowdGym: spawned agent at {SpawnXform.GetLocation()} - total now {_Agents.Num()}");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Foundation - Spawn 10 Agents")
-    void Ck_GymCrowd_Spawn10()
+    private void Request_SpawnTenAgents()
     {
         for (int32 i = 0; i < 10; ++i)
-        { Ck_GymCrowd_Spawn(); }
+        { Request_SpawnAgent(); }
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Foundation - Remove Last Agent")
-    void Ck_GymCrowd_RemoveLast()
+    private void Request_RemoveLastAgent()
     {
         if (HasAuthority() == false)
         { return; }
@@ -151,8 +148,7 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log(f"CrowdGym: removed last agent - {_Agents.Num()} remaining");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Foundation - Clear All Agents")
-    void Ck_GymCrowd_Clear()
+    private void Request_ClearAgents()
     {
         if (HasAuthority() == false)
         { return; }

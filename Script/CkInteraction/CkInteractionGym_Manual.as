@@ -56,16 +56,16 @@ class UCk_EntityScript_InteractionGym_Manual : UCk_GenericEntityScript_UE
         StationSm = gym_sm::Setup(InHandle, UCk_InteractionManualGym_Step_StartForSuccess);
 
         SmConfig.Description = "ManuallyCompleted policy - explicit end/cancel required.";
-        SmConfig.GlobalAutoCommand = "Ck_GymInteraction_Auto [0/1]";
+        SmConfig.GlobalAutoCommand = "panel [P] auto on / [X] auto off";
         SmConfig.PerStationAutoCommand = "panel [J] Re-arm auto (Manual)";
         SmConfig.Steps.Add(FCkGym_SmStep(UCk_InteractionManualGym_Step_StartForSuccess, "Start manual interaction"));
         SmConfig.Steps.Add(FCkGym_SmStep(UCk_InteractionManualGym_Step_EndSuccess,      "End with success"));
         SmConfig.Steps.Add(FCkGym_SmStep(UCk_InteractionManualGym_Step_StartForFail,    "Start manual interaction"));
         SmConfig.Steps.Add(FCkGym_SmStep(UCk_InteractionManualGym_Step_EndFail,         "End with failure"));
-        SmConfig.ManualCommands.Add("Ck_GymInteraction_StartManual");
-        SmConfig.ManualCommands.Add("Ck_GymInteraction_EndManualSuccess");
-        SmConfig.ManualCommands.Add("Ck_GymInteraction_EndManualFail");
-        SmConfig.ManualCommands.Add("Ck_GymInteraction_CancelManual");
+        SmConfig.ManualCommands.Add("panel [3] Manual: start");
+        SmConfig.ManualCommands.Add("panel [4] Manual: end SUCCESS");
+        SmConfig.ManualCommands.Add("panel [5] Manual: end FAIL");
+        SmConfig.ManualCommands.Add("panel [6] Manual: cancel");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

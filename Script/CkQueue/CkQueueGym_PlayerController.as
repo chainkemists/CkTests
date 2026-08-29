@@ -167,19 +167,19 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     void Request_ControlActivated(int32 InRowIndex) override
     {
         if (HasAuthority() == false) { return; }
-        if (InRowIndex == 0) { Ck_GymQueue_Start(); return; }
+        if (InRowIndex == 0) { Request_StartLiveDemo(); return; }
         if (InRowIndex == 1) { CyclePopulation(); return; }
         if (InRowIndex == 2) { CycleLayout(); return; }
         if (InRowIndex == 3) { CycleQueueBank(); return; }
         if (InRowIndex == 4) { CycleEnvironment(); return; }
-        if (InRowIndex == 5) { Ck_GymQueue_Advance(); return; }
+        if (InRowIndex == 5) { Request_AdvanceReadyQueues(); return; }
         if (InRowIndex == 6) { DestroyFirstQueuedAgent(); return; }
-        if (InRowIndex == 7) { Ck_GymQueue_DestroyOwner(); return; }
+        if (InRowIndex == 7) { Request_DestroySelectedQueueOwner(); return; }
         if (InRowIndex == 8) { CycleSlotClaiming(); return; }
         if (InRowIndex == 9) { CycleHardLimit(); return; }
         if (InRowIndex == 10) { CycleReserveAssignmentPolicy(); return; }
-        if (InRowIndex == 11) { Ck_GymQueue_ContestedRace(); return; }
-        if (InRowIndex == 12) { Ck_GymQueue_ReservationScatter(); return; }
+        if (InRowIndex == 11) { Request_RunContestedSlotRace(); return; }
+        if (InRowIndex == 12) { Request_RunReservationScatter(); return; }
         if (InRowIndex == 13) { CycleReserveAssignmentPhaseSpread(); return; }
         if (InRowIndex == 14) { CycleReserveAssignmentRefreshSeconds(); return; }
         if (InRowIndex == 15) { CycleCoordinatorPolicy(); return; }
@@ -203,7 +203,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         if (InCount <= 0) { return; }
         ClearContestedSlotRacePreset();
         _Population = Math::Min(32, _Population + InCount);
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     private void MovePrimaryQueue()
@@ -211,7 +211,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         ClearContestedSlotRacePreset();
         _QueueCount = 1;
         _PrimaryOwnerMoved = !_PrimaryOwnerMoved;
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     private FCkGym_ControlRow MakeNumberedControl(
@@ -340,7 +340,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (InHandle != _NavProbeEntity || _AutoStarted) { return; }
         _AutoStarted = true;
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     UFUNCTION()
@@ -379,9 +379,8 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         RefreshDisplays();
     }
 
-    // Compatibility entry point. The menu is primary; this rebuilds exactly the selected configuration.
-    UFUNCTION(Exec, DisplayName="Queue - Start / Reset Live Demo")
-    void Ck_GymQueue_Start()
+    // Rebuilds exactly the selected configuration; every option row funnels through here.
+    private void Request_StartLiveDemo()
     {
         if (HasAuthority() == false || ck::Is_NOT_Valid(_LiveStation)) { return; }
         if (_SelectedQueueIndex < 0 || _SelectedQueueIndex >= _QueueCount)
@@ -421,16 +420,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         RefreshDisplays();
     }
 
-    UFUNCTION(Exec, DisplayName="Queue - Use Two Independent Queues")
-    void Ck_GymQueue_TwoQueues()
-    {
-        ClearContestedSlotRacePreset();
-        _QueueCount = 2;
-        Ck_GymQueue_Start();
-    }
-
-    UFUNCTION(Exec, DisplayName="Queue - Advance All Ready Queues")
-    void Ck_GymQueue_Advance()
+    private void Request_AdvanceReadyQueues()
     {
         if (HasAuthority() == false || Get_CanAdvanceQueueBank() == false)
         {
@@ -460,22 +450,9 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         RefreshDisplays();
     }
 
-    UFUNCTION(Exec, DisplayName="Queue - Toggle Orthogonal Snake / Linear")
-    void Ck_GymQueue_ToggleLayout() { CycleLayout(); }
-
-    UFUNCTION(Exec, DisplayName="Queue - Make Target Unreachable")
-    void Ck_GymQueue_Impossible() { ClearContestedSlotRacePreset(); _EnvironmentMode = 1; _QueueCount = 1; Ck_GymQueue_Start(); }
-
-    UFUNCTION(Exec, DisplayName="Queue - Restore Target Navigation")
-    void Ck_GymQueue_RestoreNav() { ClearContestedSlotRacePreset(); _EnvironmentMode = 0; Ck_GymQueue_Start(); }
-
-    UFUNCTION(Exec, DisplayName="Queue - Overfill Hard Limit")
-    void Ck_GymQueue_Overfill() { ClearContestedSlotRacePreset(); _Population = 32; Ck_GymQueue_Start(); }
-
     // The later tickets deliberately start closer. ClaimFirstAvailableOnReach therefore proves that
     // physical arrival, not ticket order, owns each provisional slot.
-    UFUNCTION(Exec, DisplayName="Queue - Run Contested Slot Race")
-    void Ck_GymQueue_ContestedRace()
+    private void Request_RunContestedSlotRace()
     {
         if (HasAuthority() == false || ck::Is_NOT_Valid(_LiveStation)) { return; }
         _ContestedSlotRacePreset = true;
@@ -486,7 +463,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         _EnvironmentMode = 0;
         _Linear = true;
         _ClaimSlotsOnReach = true;
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     private void CreateAndRegisterQueue(int32 InQueueIndex)
@@ -544,8 +521,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         RefreshDisplays();
     }
 
-    UFUNCTION(Exec, DisplayName="Queue - Run Reservation Scatter")
-    void Ck_GymQueue_ReservationScatter()
+    private void Request_RunReservationScatter()
     {
         if (HasAuthority() == false || ck::Is_NOT_Valid(_LiveStation)) { return; }
         _ContestedSlotRacePreset = false;
@@ -555,7 +531,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         _Linear = true;
         _ClaimSlotsOnReach = false;
         _ReserveByTicketOrder = false;
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     UFUNCTION(Exec, DisplayName="Queue - Destroy Agent By Index")
@@ -570,8 +546,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         RefreshDisplays();
     }
 
-    UFUNCTION(Exec, DisplayName="Queue - Destroy Selected Queue Owner")
-    void Ck_GymQueue_DestroyOwner()
+    private void Request_DestroySelectedQueueOwner()
     {
         if (HasAuthority() == false || _QueueOwners.IsValidIndex(_SelectedQueueIndex) == false
             || ck::Is_NOT_Valid(_QueueOwners[_SelectedQueueIndex]))
@@ -838,7 +813,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         else if (_Population == 24) { _Population = 30; }
         else if (_Population == 30) { _Population = 32; }
         else { _Population = 6; }
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     private void CycleLayout()
@@ -846,7 +821,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         ClearContestedSlotRacePreset();
         _Linear = !_Linear;
         AddTrace(f"OPTION: layout changed to {GetLayoutLabel()}; rebuilding the Queue bank.");
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     private void CycleSlotClaiming()
@@ -854,7 +829,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         ClearContestedSlotRacePreset();
         _ClaimSlotsOnReach = !_ClaimSlotsOnReach;
         AddTrace(f"OPTION: slot claiming changed to {GetSlotClaimingLabel()}; rebuilding selected scenario.");
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     private void CycleHardLimit()
@@ -865,7 +840,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         else if (_HardLimit == 6) { _HardLimit = 30; }
         else { _HardLimit = 2; }
         AddTrace(f"OPTION: queue limit changed to {_HardLimit}; rebuilding through public Queue params.");
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     private void TickScatterNearAdmission(float InDeltaSeconds)
@@ -904,7 +879,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         ClearContestedSlotRacePreset();
         _ReserveByTicketOrder = !_ReserveByTicketOrder;
         AddTrace(f"OPTION: reserve assignment changed to {GetReserveAssignmentPolicyLabel()}; rebuilding selected scenario.");
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     private void CycleReserveAssignmentPhaseSpread()
@@ -912,7 +887,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         ClearContestedSlotRacePreset();
         _ReserveAssignmentPhaseSpread = !_ReserveAssignmentPhaseSpread;
         AddTrace(f"OPTION: reserve refresh phase spread changed to {GetReserveAssignmentPhaseSpreadLabel()}; rebuilding selected scenario.");
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     private void CycleReserveAssignmentRefreshSeconds()
@@ -923,7 +898,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         else if (_ReserveAssignmentRefreshSeconds <= 0.25f) { _ReserveAssignmentRefreshSeconds = 0.5f; }
         else { _ReserveAssignmentRefreshSeconds = 0.0f; }
         AddTrace(f"OPTION: reserve refresh interval changed to {GetReserveAssignmentRefreshSecondsLabel()}; rebuilding selected scenario.");
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     private bool Get_HasReadyFront(FCk_Handle_Queue InQueue) const
@@ -1188,14 +1163,14 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         else { _QueueCount = 1; }
         _SelectedQueueIndex = 0;
         AddTrace(f"OPTION: Queue bank changed to {_QueueCount} independent Queues; rebuilding.");
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     private void CycleCoordinatorPolicy()
     {
         _CoordinatorNearestFirst = !_CoordinatorNearestFirst;
         AddTrace(f"OPTION: coordinator policy changed to {GetCoordinatorPolicyLabel()}; rebuilding.");
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     private void CycleSelectedQueue()
@@ -1211,7 +1186,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         ClearContestedSlotRacePreset();
         _EnvironmentMode = (_EnvironmentMode + 1) % 5;
         if (_EnvironmentMode != 0) { _QueueCount = 1; }
-        Ck_GymQueue_Start();
+        Request_StartLiveDemo();
     }
 
     private bool ClearContestedSlotRacePreset()

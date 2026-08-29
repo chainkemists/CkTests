@@ -11,10 +11,11 @@
 // produces _DistanceOffset each tick. The new apply-offset processor consumes that offset and advances the
 // agent's transform. After one second the agent's X should have advanced by ~100 cm.
 //
-// Console commands (run from the `~` console):
-//   Ck_GymCrowd_Loco_Spawn         spawn a single agent at the station with starting velocity (100, 0, 0)
-//   Ck_GymCrowd_Loco_PrintPos      print the agent's current world location
-//   Ck_GymCrowd_Loco_Stop          destroy the agent
+// Control panel:
+//   G   spawn a single agent at the station with starting velocity (100, 0, 0)
+//   M   move it to -X 800cm; Z cancels the active move
+//   P   print the agent's current world location; V desired velocity; Y yaw
+//   X   destroy the agent
 //
 // Verify the debugger:  ck.CrowdDebugger 1
 // --------------------------------------------------------------------------------------------------------------------

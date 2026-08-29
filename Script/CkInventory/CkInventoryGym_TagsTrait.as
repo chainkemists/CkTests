@@ -50,7 +50,7 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_GenericEntityScript_UE
 
         AutoConfig.TotalSteps = 6;
         AutoConfig.Description = "Runtime tag add/remove via Request_AddTag\n/ Request_RemoveTag. Binds OnTagsChanged.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymInventory_Auto [0/1]";
+        AutoConfig.GlobalAutoCommand = "panel [U] auto on / [Y] auto off";
         AutoConfig.PerStationAutoCommand = "panel [M] Re-arm auto (Tags trait)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add sword item", 0, 0));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Tag all items Rare", 1, 1));
@@ -59,10 +59,10 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_GenericEntityScript_UE
         AutoConfig.Steps.Add(FCkGym_AutoStep("Remove Legendary tag from all", 4, 4));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Remove first item", 5, 5));
         AutoConfig.ManualCommands.Add("Ck_GymInventory_AddPotion [n]");
-        AutoConfig.ManualCommands.Add("Ck_GymInventory_AddRareTag");
-        AutoConfig.ManualCommands.Add("Ck_GymInventory_RemoveRareTag");
-        AutoConfig.ManualCommands.Add("Ck_GymInventory_RemoveFirst");
-        AutoConfig.ManualCommands.Add("Ck_GymInventory_RestartAll");
+        AutoConfig.ManualCommands.Add("panel [T] Add the RARE tag");
+        AutoConfig.ManualCommands.Add("panel [Y] Remove the RARE tag");
+        AutoConfig.ManualCommands.Add("panel [5] Remove the first item");
+        AutoConfig.ManualCommands.Add("panel [R] Restart everything");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

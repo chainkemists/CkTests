@@ -68,7 +68,9 @@ struct FCkGym_Switchboard_Model
     int32 CurrentGymRegistryIndex = INDEX_NONE;
 
     // Snapshot of the per-user startup settings, so the menu surfaces (and edits) them without
-    // reaching into the CDO from widget code. F1 cycles the mode, F2 pins the selected gym.
+    // reaching into the CDO from widget code. [1] cycles the mode, [2] pins the selected gym
+    // (digits, not F-keys — Unreal owns those for rendering debug modes; digits left the filter
+    // corpus to become the menu's command keys).
     ECkGym_StartupMode StartupMode = ECkGym_StartupMode::Cycler;
     FString DefaultGymName;
     FString LastGymName;

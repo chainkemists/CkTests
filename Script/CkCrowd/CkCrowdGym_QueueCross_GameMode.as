@@ -14,10 +14,10 @@
 //   Post-fix - strict planning treats the painted line as a WALL: every crosser routes around an
 //              end of the line; the queue is undisturbed; everyone arrives.
 //
-// Console:
-//   Ck_GymCrowd_QueueCross_Spawn     respawn the full scenario (14 line members + 6 crossers)
-//   Ck_GymCrowd_QueueCross_Reset     destroy every spawned agent
-//   Ck_GymCrowd_QueueCross_Digest    emit the per-agent [CrowdDiag] digest
+// Control panel:
+//   G   respawn the full scenario (14 line members + 6 crossers)
+//   Z   destroy every spawned agent
+//   J   emit the per-agent [CrowdDiag] digest
 //
 // Visuals: ck.Crowd.Debug 1 | ck.Crowd.Debug.AgentBody 1 | ck.CrowdDebugger 1
 // --------------------------------------------------------------------------------------------------------------------

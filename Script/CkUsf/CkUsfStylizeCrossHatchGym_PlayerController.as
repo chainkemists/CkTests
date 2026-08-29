@@ -14,19 +14,17 @@
 //   back row  (3) - Sketch with one debug view forced on, because a mask is the only way to tell "the
 //                   detector found nothing" from "the detector found everything at low opacity".
 //
-// Tab opens the gym cycler menu; search "Stylize". Console:
-//   Ck_GymStylizeCrossHatch_RestartAll        - respawn the judge scene and re-apply Sketch
-//   Ck_GymStylizeCrossHatch_CycleDebug        - next debug view of the CURRENT settings
-//   Ck_GymStylizeCrossHatch_ToggleNormalSpace - flip view-space <-> world-space normals, changing NOTHING
-//                                               else. THE headline A/B: orbit the sphere row and only the
-//                                               view-space mode may keep its strokes wrapping the form.
-//   Ck_GymStylizeCrossHatch_ToggleAlignment   - flip NormalAlignment 1 <-> 0. At 0 the hatch is a fixed
-//                                               screen angle, which is the control that proves the
-//                                               alignment does anything at all.
-//   Ck_GymStylizeCrossHatch_ToggleEntityMask  - add/remove the entity subjects from the mask, so the
-//                                               REMOVE path is exercised and not just the apply.
-//   Ck_GymStylizeCrossHatch_ToggleHandDrawnStack / _ToggleDitherStack - the stacking claim on the Off
-//                                               station's panel, made testable rather than asserted.
+// Tab opens the gym cycler menu; search "Stylize". Control panel:
+//   R - respawn the judge scene and re-apply Sketch
+//   J - next debug view of the CURRENT settings
+//   N - flip view-space <-> world-space normals, changing NOTHING else. THE headline A/B: orbit the
+//       sphere row and only the view-space mode may keep its strokes wrapping the form.
+//   Y - flip NormalAlignment 1 <-> 0. At 0 the hatch is a fixed screen angle, which is the control
+//       that proves the alignment does anything at all.
+//   B - add/remove the entity subjects from the mask, so the REMOVE path is exercised and not just
+//       the apply.
+//   X / M - stack Hand-Drawn or ScreenDither over, making the stacking claim on the Off station's
+//       panel testable rather than asserted.
 //
 // Needs the CrossHatch master on disk: on a fresh checkout run "Ck_Usf_GenerateLooks CrossHatch" once in
 // the editor console, or the subsystem warns and the view is untouched. The mask row additionally needs
@@ -464,27 +462,20 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
         // Offsets 0 and 3 are the two headers, which hold no key and never arrive here.
         auto Control = InRowIndex - Get_FirstControlRow();
 
-        if (Control == 1) { Ck_GymStylizeCrossHatch_ToggleNormalSpace(); }
-        else if (Control == 2) { Ck_GymStylizeCrossHatch_ToggleAlignment(); }
-        else if (Control == 4) { Ck_GymStylizeCrossHatch_CycleDebug(); }
-        else if (Control == 5) { Ck_GymStylizeCrossHatch_ToggleEntityMask(); }
-        else if (Control == 6) { Ck_GymStylizeCrossHatch_ToggleHandDrawnStack(); }
-        else if (Control == 7) { Ck_GymStylizeCrossHatch_ToggleDitherStack(); }
+        if (Control == 1) { Request_ToggleNormalSpace(); }
+        else if (Control == 2) { Request_ToggleAlignment(); }
+        else if (Control == 4) { Request_CycleDebugView(); }
+        else if (Control == 5) { Request_ToggleEntityMask(); }
+        else if (Control == 6) { Request_ToggleHandDrawnStack(); }
+        else if (Control == 7) { Request_ToggleDitherStack(); }
         else if (Control == 8) { Request_RebuildGym(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="Stylize Cross-Hatch Gym - Restart")
-    void Ck_GymStylizeCrossHatch_RestartAll()
-    {
-        Request_RebuildGym();
     }
 
     // The stacking claim the Off station's panel makes, made testable. Cross-hatch and hand-drawn both
     // restyle the whole frame at the same chain location, so whichever blendable renders second wins.
     // Screen dither sits post-tonemap and genuinely composes - that contrast is what makes the first
     // result mean something rather than looking like a bug.
-    UFUNCTION(Exec, DisplayName="Stylize Cross-Hatch Gym - Toggle Hand-Drawn Stack")
-    void Ck_GymStylizeCrossHatch_ToggleHandDrawnStack()
+    private void Request_ToggleHandDrawnStack()
     {
         auto Subsystem = UCkUsf_HandDrawnSubsystem::Get_HandDrawnSubsystem();
         if (Subsystem == nullptr)
@@ -500,8 +491,7 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
             2.0, FLinearColor::Green);
     }
 
-    UFUNCTION(Exec, DisplayName="Stylize Cross-Hatch Gym - Toggle Screen Dither Stack")
-    void Ck_GymStylizeCrossHatch_ToggleDitherStack()
+    private void Request_ToggleDitherStack()
     {
         auto Subsystem = UCkUsf_ScreenDitherSubsystem::Get_ScreenDitherSubsystem();
         if (Subsystem == nullptr)
@@ -519,8 +509,7 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
 
     // Debug views are a property of the CURRENT settings, so this edits them in place rather than
     // re-applying a preset - walking to another station resets it, which is the intended behaviour.
-    UFUNCTION(Exec, DisplayName="Stylize Cross-Hatch Gym - Cycle Debug Mode")
-    void Ck_GymStylizeCrossHatch_CycleDebug()
+    private void Request_CycleDebugView()
     {
         auto Subsystem = UCkUsf_CrossHatchSubsystem::Get_CrossHatchSubsystem();
         if (Subsystem == nullptr)
@@ -538,8 +527,7 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
     // THE headline A/B. Everything else is held, so any difference in how the strokes behave under
     // camera orbit is the normal SPACE and nothing else: view-space keeps them wrapping each form,
     // world-space re-orients them as the camera moves around a static object.
-    UFUNCTION(Exec, DisplayName="Stylize Cross-Hatch Gym - Toggle Normal Space")
-    void Ck_GymStylizeCrossHatch_ToggleNormalSpace()
+    private void Request_ToggleNormalSpace()
     {
         auto Subsystem = UCkUsf_CrossHatchSubsystem::Get_CrossHatchSubsystem();
         if (Subsystem == nullptr)
@@ -557,8 +545,7 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
 
     // The control for the above: at 0 the hatch is a fixed screen angle. If the picture does not change
     // when this is toggled, the projected normal is not reaching the direction at all.
-    UFUNCTION(Exec, DisplayName="Stylize Cross-Hatch Gym - Toggle Normal Alignment")
-    void Ck_GymStylizeCrossHatch_ToggleAlignment()
+    private void Request_ToggleAlignment()
     {
         auto Subsystem = UCkUsf_CrossHatchSubsystem::Get_CrossHatchSubsystem();
         if (Subsystem == nullptr)
@@ -576,8 +563,7 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
 
     // Exercises the REMOVE half of the entity API. An apply that is never undone proves only that
     // something was written once, not that the removal processor gives the mesh back.
-    UFUNCTION(Exec, DisplayName="Stylize Cross-Hatch Gym - Toggle Entity Mask")
-    void Ck_GymStylizeCrossHatch_ToggleEntityMask()
+    private void Request_ToggleEntityMask()
     {
         for (auto Subject : _MaskSubjects)
         {

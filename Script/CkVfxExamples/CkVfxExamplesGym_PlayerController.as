@@ -2,7 +2,7 @@
 // CkVfxExamples gym PlayerController ("VfxExamples"): an objective A/B fidelity harness. Every ported
 // Vefects effect gets a PAIR of adjacent stations - the CkParticles recreation (text-authored HLSL, spawned
 // through the normal CkParticles path) beside the ORIGINAL Niagara system, resolved at runtime from candidate
-// path strings. Ck_GymVfxExamples_RestartAll re-fires both sides in sync so the t=0 flashes can be compared.
+// path strings. The panel R row re-fires both sides in sync so the t=0 flashes can be compared.
 //
 // ONE pair exists at a time - stations included. All 31 pairs simulating at once (~370 emitter instances
 // with the originals installed) collapsed editor frame times to minutes, and 62 pedestals made the live
@@ -13,8 +13,9 @@
 // Pairs live in CkVfxExamplesGym_Shared.as. Adding a port is a data edit there, not a change here.
 //
 // Ck_GymVfxExamples_Tune retunes the live recreation without a respawn - an OVERLAY on top of the
-// behavior's per-behavior tuning DataAsset, which the spawn path applies. Ck_GymVfxExamples_TuneReset
-// drops the overlay and restarts the pair, because only a respawn brings the asset's values back.
+// behavior's per-behavior tuning DataAsset, which the spawn path applies. It stays on the console because
+// four free-range floats are what a panel row cannot express; the panel T row drops the overlay and
+// restarts the pair, because only a respawn brings the asset's values back.
 // The chosen pair is remembered across PIE sessions (CkVfxExamplesGym_SaveGame.as).
 //
 // The FIRST activation of a pair in a session can block the game thread for minutes with nothing logged
@@ -131,9 +132,8 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         return Stations;
     }
 
-    // The restart command is printed on every station: this gym's stations are the only place
-    // that names it, and reaching for the neighbouring gym's Ck_GymParticles_RestartAll (which
-    // this PlayerController does not implement) silently does nothing.
+    // The restart control is printed on every station: this gym's stations are the only place
+    // that names it.
     private FCkGym_Station_SpawnParams_Payload Make_Station(FName InTag, FString InTitle, FString InLine1, FString InLine2)
     {
         auto Station = FCkGym_Station_SpawnParams_Payload();
@@ -142,7 +142,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Description = TArray<FText>();
         Description.Add(FText::FromString(InLine1));
         Description.Add(FText::FromString(InLine2));
-        Description.Add(FText::FromString("V selector | PgUp/PgDn cycle | Ck_GymVfxExamples_RestartAll"));
+        Description.Add(FText::FromString("V selector | PgUp/PgDn cycle | R restarts"));
         Station.Description = Description;
         Station.AutoSize = true;
         return Station;
@@ -544,7 +544,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
             _CkSideComponent = Component;
 
             // The one place the recreation becomes live, so every path that respawns it
-            // gym boot, pair switch, R / Ck_GymVfxExamples_RestartAll - re-applies the stored
+            // gym boot, pair switch, the panel R row - re-applies the stored
             // tuning here rather than each calling site remembering to.
             Request_ApplyTuningToCkSide();
         }
@@ -619,13 +619,10 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         Display.Title = FText::FromString(InPair.DisplayName + " - ORIGINAL");
         Display.Description = FText::FromString(
             InPair.Credit + "\nadd the Vefects content plugin to view the original vfx"
-            + "\nCk_GymVfxExamples_RestartAll");
+            + "\npanel [R] restarts both sides in sync");
         Set_StationTitleAndDescription(InPair.OriginalStationTag.ToString(), Display);
     }
 
-    // Name kept from the all-pairs era: every cookbook recipe's Sec.12 walk cites it, and its
-    // job - re-fire both sides of what you are looking at in sync - is unchanged; only the
-    // set of live pairs shrank to one.
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
@@ -647,6 +644,12 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Action(EKeys::PageUp, "PgUp", "Previous pair"));
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Restart both sides in sync"));
         Rows.Add(CkGym_Control::Status("V opens the searchable pair list"));
+        Rows.Add(CkGym_Control::Action(EKeys::T, "T", "Drop the tuning overlay"));
+
+        Rows.Add(CkGym_Control::Header("CONSOLE (free-range input the panel cannot express)"));
+        Rows.Add(CkGym_Control::Status("Tune the live recreation", "Ck_GymVfxExamples_Tune <size> <color> <alpha> <speed>"));
+        Rows.Add(CkGym_Control::Status("Jump to a pair by index", "Ck_GymVfxExamples_GoTo <index>"));
+        Rows.Add(CkGym_Control::Status("List every pair to the log", "Ck_GymVfxExamples_List"));
 
         return Rows;
     }
@@ -655,25 +658,8 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (InRowIndex == 0) { Request_ActivatePair(Get_ActivePairIndex() + 1); }
         else if (InRowIndex == 1) { Request_ActivatePair(Get_ActivePairIndex() - 1); }
-        else if (InRowIndex == 2) { Ck_GymVfxExamples_RestartAll(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="VfxExamples Gym - Restart Active Pair")
-    void Ck_GymVfxExamples_RestartAll()
-    {
-        Request_SpawnActivePair();
-    }
-
-    UFUNCTION(Exec, DisplayName="VfxExamples Gym - Next Pair")
-    void Ck_GymVfxExamples_Next()
-    {
-        Request_ActivatePair(_ActivePairIndex + 1);
-    }
-
-    UFUNCTION(Exec, DisplayName="VfxExamples Gym - Previous Pair")
-    void Ck_GymVfxExamples_Prev()
-    {
-        Request_ActivatePair(_ActivePairIndex - 1);
+        else if (InRowIndex == 2) { Request_SpawnActivePair(); }
+        else if (InRowIndex == 4) { Request_ResetTuning(); }
     }
 
     UFUNCTION(Exec, DisplayName="VfxExamples Gym - Go To Pair")
@@ -697,8 +683,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
 
     // Dropping the overlay RESPAWNS the pair rather than writing identity: the asset's values only
     // reach the component through the spawn path, so a live identity write cannot restore them.
-    UFUNCTION(Exec, DisplayName="VfxExamples Gym - Reset Tuning")
-    void Ck_GymVfxExamples_TuneReset()
+    private void Request_ResetTuning()
     {
         _bTuneOverlayActive = false;
 

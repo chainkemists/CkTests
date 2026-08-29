@@ -63,12 +63,12 @@ class UCk_EntityScript_VatGym_ClipCycle : UCk_GenericEntityScript_UE
         AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(2.5f));
 
         AutoConfig.Description = "Single VAT instance. Cycles every baked\nclip with a 0.4s crossfade, then rate 2.0,\nrate 0.5, freeze, resume.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymVat_Auto [0/1]";
+        AutoConfig.GlobalAutoCommand = "panel [I] Auto-drive everything";
         AutoConfig.PerStationAutoCommand = "panel [U] Auto-drive clip cycle";
         AutoConfig.ManualCommands.Add("Ck_GymVat_PlayClip [name] [rate]");
         AutoConfig.ManualCommands.Add("Ck_GymVat_PlayOnce [name] [rate]");
         AutoConfig.ManualCommands.Add("Ck_GymVat_SetRate [rate]");
-        AutoConfig.ManualCommands.Add("Ck_GymVat_Stop");
+        AutoConfig.ManualCommands.Add("panel [Z] Stop (freeze on frame)");
         AutoConfig.ManualCommands.Add("Ck_GymVat_SetCollection [path]");
 
         RebuildStation();
@@ -430,7 +430,7 @@ class UCk_EntityScript_VatGym_CrowdField : UCk_GenericEntityScript_UE
 
         AutoConfig.TotalSteps = 1;
         AutoConfig.Description = "Instanced crowd, RandomPerInstance phase\noffset - same clip, desynced playback.\nCustom data writes on clip change ONLY.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymVat_Auto [0/1]";
+        AutoConfig.GlobalAutoCommand = "panel [I] Auto-drive everything";
         AutoConfig.PerStationAutoCommand = "panel [F] Auto-drive crowd field";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Switch whole field to next clip", 0, 0));
         AutoConfig.ManualCommands.Add("panel [N] Crowd field count");

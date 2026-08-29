@@ -23,7 +23,7 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
         {
             SpawnStationDescriptionLines.Add(FText::FromString("Verifies that ExposeOnSpawn properties are correctly injected"));
             SpawnStationDescriptionLines.Add(FText::FromString("during entity script spawning."));
-            SpawnStationDescriptionLines.Add(FText::FromString("Console: Ck_GymEntityScript_RestartSpawnTest"));
+            SpawnStationDescriptionLines.Add(FText::FromString("panel [1] Re-run spawn test"));
         }
         return SpawnStationDescriptionLines;
     }
@@ -37,7 +37,7 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
         {
             ReplicatedStationDescriptionLines.Add(FText::FromString("Verifies that ExposeOnSpawn properties survive replication."));
             ReplicatedStationDescriptionLines.Add(FText::FromString("Entity script uses ECk_Replication::Replicates."));
-            ReplicatedStationDescriptionLines.Add(FText::FromString("Console: Ck_GymEntityScript_RestartReplicatedSpawnTest"));
+            ReplicatedStationDescriptionLines.Add(FText::FromString("panel [2] Re-run replicated spawn test"));
         }
         return ReplicatedStationDescriptionLines;
     }
@@ -202,10 +202,6 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
         Set_StationTitleAndDescription(InStationTag, StationDisplay);
     }
 
-    //------------------------------------------------------------------------
-    // CONSOLE COMMANDS
-    //------------------------------------------------------------------------
-
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
@@ -227,31 +223,24 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 0) { Ck_GymEntityScript_RestartSpawnTest(); }
-        else if (InRowIndex == 1) { Ck_GymEntityScript_RestartReplicatedSpawnTest(); }
+        if (InRowIndex == 0)
+        {
+            Request_DestroyTaggedEntities(n"TAG_EntityScriptGym_Spawn");
+            Request_StartSpawnTest();
+        }
+        else if (InRowIndex == 1)
+        {
+            Request_DestroyTaggedEntities(n"TAG_EntityScriptGym_SpawnReplicated");
+            Request_StartReplicatedSpawnTest();
+        }
     }
 
-    UFUNCTION(Exec, DisplayName="EntityScript Gym - Restart Spawn Test")
-    void Ck_GymEntityScript_RestartSpawnTest()
+    private void Request_DestroyTaggedEntities(FName InTag)
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_EntityScriptGym_Spawn");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), InTag);
         for (auto Entity : Entities)
         {
             utils_entity_lifetime::Request_DestroyEntity(Entity);
         }
-
-        Request_StartSpawnTest();
-    }
-
-    UFUNCTION(Exec, DisplayName="EntityScript Gym - Restart Replicated Spawn Test")
-    void Ck_GymEntityScript_RestartReplicatedSpawnTest()
-    {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_EntityScriptGym_SpawnReplicated");
-        for (auto Entity : Entities)
-        {
-            utils_entity_lifetime::Request_DestroyEntity(Entity);
-        }
-
-        Request_StartReplicatedSpawnTest();
     }
 }

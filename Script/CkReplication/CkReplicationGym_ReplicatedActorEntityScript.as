@@ -88,8 +88,8 @@ class UCk_ReplicationGym_ReplicatedActor_EntityScript : UCk_EntityScript_WithAct
         Body = Body + "       + Attribute present YES on both server and client.\n\n";
         Body = Body + "Manual:\n";
         Body = Body + "  panel [1] Actor value preset ring\n";
-        Body = Body + "  Ck_GymReplication_RespawnActor\n";
-        Body = Body + "  Ck_GymReplication_DumpRep\n";
+        Body = Body + "  panel [G] respawn replicated actor\n";
+        Body = Body + "  panel [J] dump replication state\n";
 
         // The station demo display actor is spawned separately by the PC.
         // Look it up by the station tag and write the display fragment onto

@@ -51,7 +51,7 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_GenericEntityScript_UE
 
         AutoConfig.TotalSteps = 7;
         AutoConfig.Description = "Unlimited-capacity data-only inventory.\nTests add/remove/sort and OnItemsChanged.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymInventory_Auto [0/1]";
+        AutoConfig.GlobalAutoCommand = "panel [U] auto on / [Y] auto off";
         AutoConfig.PerStationAutoCommand = "panel [F] Re-arm auto (Data-only unbounded)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add 3 potions", 0, 0));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add 5 arrows", 1, 1));
@@ -60,9 +60,9 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_GenericEntityScript_UE
         AutoConfig.Steps.Add(FCkGym_AutoStep("Remove first (x3)", 4, 6));
         AutoConfig.ManualCommands.Add("Ck_GymInventory_AddPotion [n]");
         AutoConfig.ManualCommands.Add("Ck_GymInventory_AddArrow [n]");
-        AutoConfig.ManualCommands.Add("Ck_GymInventory_RemoveFirst");
-        AutoConfig.ManualCommands.Add("Ck_GymInventory_SortAll");
-        AutoConfig.ManualCommands.Add("Ck_GymInventory_RestartAll");
+        AutoConfig.ManualCommands.Add("panel [5] Remove the first item");
+        AutoConfig.ManualCommands.Add("panel [8] Sort everything");
+        AutoConfig.ManualCommands.Add("panel [R] Restart everything");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

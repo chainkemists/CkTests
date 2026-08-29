@@ -12,14 +12,12 @@
 //                   "the detector found nothing" from "the detector found everything and the opacity is
 //                   low". Walking back to the front row restores the ordinary image.
 //
-// Tab opens the gym cycler menu; search "Stylize". Console:
-//   Ck_GymStylizeHandDrawn_RestartAll        - respawn the judge scene and re-apply StorybookInk
-//   Ck_GymStylizeHandDrawn_CycleDebug        - next debug view of the CURRENT settings
-//   Ck_GymStylizeHandDrawn_ToggleDitherStack - stack ScreenDither on top, for the cross-effect A/B
-//   Ck_GymStylizeHandDrawn_ToggleStrokeSpace - flip ScreenStable <-> WorldAttached, changing NOTHING
-//                                              else. This is the A/B for the world-attached
-//                                              verdict: orbit the architecture and only one of the two
-//                                              may stay glued to it.
+// Tab opens the gym cycler menu; search "Stylize". Control panel:
+//   R - respawn the judge scene and re-apply StorybookInk
+//   J - next debug view of the CURRENT settings
+//   M - stack ScreenDither on top, for the cross-effect A/B
+//   Y - flip ScreenStable <-> WorldAttached, changing NOTHING else. This is the A/B for the
+//       world-attached verdict: orbit the architecture and only one of the two may stay glued to it.
 //
 // Needs the HandDrawn master on disk: on a fresh checkout run "Ck_Usf_GenerateLooks HandDrawn" once in
 // the editor console, or the subsystem warns and the view is untouched.
@@ -63,7 +61,7 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
         Stations.Add(Make_Station(n"Gym.Stylize.HandDrawnOff", "HAND-DRAWN: OFF",
             "The A/B reference - the subsystem's blendable disabled.",
             "The frame must come back completely clean. Any residue here means disable is not actually disabling.",
-            "STACKING: Ck_GymStylizeHandDrawn_ToggleDitherStack puts ScreenDither on top - legal, and the paper grain must survive quantization. Hand-drawn + cel is unsupported but harmless: both restyle the whole frame at the same chain location, so the ink ends up drawn over already-banded light."));
+            "STACKING: the M row puts ScreenDither on top - legal, and the paper grain must survive quantization. Hand-drawn + cel is unsupported but harmless: both restyle the whole frame at the same chain location, so the ink ends up drawn over already-banded light."));
 
         Stations.Add(Make_Station(n"Gym.Stylize.HandDrawnDebugInk", "DEBUG: INK MASK",
             "StorybookInk with the ink mask forced on (white = inked).",
@@ -372,22 +370,15 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
         // Offset 0 is the VIEW header, which holds no key and never arrives here.
         auto Control = InRowIndex - Get_FirstControlRow();
 
-        if (Control == 1) { Ck_GymStylizeHandDrawn_ToggleStrokeSpace(); }
-        else if (Control == 2) { Ck_GymStylizeHandDrawn_CycleDebug(); }
-        else if (Control == 3) { Ck_GymStylizeHandDrawn_ToggleDitherStack(); }
+        if (Control == 1) { Request_ToggleStrokeSpace(); }
+        else if (Control == 2) { Request_CycleDebugView(); }
+        else if (Control == 3) { Request_ToggleDitherStack(); }
         else if (Control == 4) { Request_RebuildGym(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="Stylize Hand-Drawn Gym - Restart")
-    void Ck_GymStylizeHandDrawn_RestartAll()
-    {
-        Request_RebuildGym();
     }
 
     // Debug views are a property of the CURRENT settings, so this edits them in place rather than
     // re-applying a preset - walking to another station resets it, which is the intended behaviour.
-    UFUNCTION(Exec, DisplayName="Stylize Hand-Drawn Gym - Cycle Debug Mode")
-    void Ck_GymStylizeHandDrawn_CycleDebug()
+    private void Request_CycleDebugView()
     {
         auto Subsystem = UCkUsf_HandDrawnSubsystem::Get_HandDrawnSubsystem();
         if (Subsystem == nullptr)
@@ -404,8 +395,7 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
 
     // The world-attached verdict in one keypress: everything else is held, so any difference in
     // how the strokes behave under camera orbit is the stroke SPACE and nothing else.
-    UFUNCTION(Exec, DisplayName="Stylize Hand-Drawn Gym - Toggle Stroke Space")
-    void Ck_GymStylizeHandDrawn_ToggleStrokeSpace()
+    private void Request_ToggleStrokeSpace()
     {
         auto Subsystem = UCkUsf_HandDrawnSubsystem::Get_HandDrawnSubsystem();
         if (Subsystem == nullptr)
@@ -428,8 +418,7 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
     // rather than being replaced by it. The toggle owns its own flag rather than reading Get_IsEnabled(),
     // because a subsystem nothing has touched yet reports Enabled while rendering nothing - reading it
     // would make the first press a silent no-op.
-    UFUNCTION(Exec, DisplayName="Stylize Hand-Drawn Gym - Toggle ScreenDither Stack")
-    void Ck_GymStylizeHandDrawn_ToggleDitherStack()
+    private void Request_ToggleDitherStack()
     {
         auto Dither = UCkUsf_ScreenDitherSubsystem::Get_ScreenDitherSubsystem();
         if (Dither == nullptr)

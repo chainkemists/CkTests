@@ -130,10 +130,6 @@ class ACk_TimerGym_PlayerController : ACk_Gym_Base_PlayerController
 			FInstancedStruct::Make(SpawnParams));
 	}
 
-	//------------------------------------------------------------------------
-	// CONSOLE COMMANDS
-	//------------------------------------------------------------------------
-
 	//--------------------------------------------------------------------------------------------------------------------------
 	// CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
 	//
@@ -165,59 +161,41 @@ class ACk_TimerGym_PlayerController : ACk_Gym_Base_PlayerController
 	void Request_ControlActivated(int32 InRowIndex) override
 	{
 		// Row 0 is the header, which holds no key and never arrives here.
-		if (InRowIndex == 1) { Ck_GymTimer_RestartBasics(); }
-		else if (InRowIndex == 2) { Ck_GymTimer_RestartBehaviors(); }
-		else if (InRowIndex == 3) { Ck_GymTimer_RestartSignals(); }
-		else if (InRowIndex == 4) { Ck_GymTimer_RestartControl(); }
-		else if (InRowIndex == 5) { Ck_GymTimer_RestartCountdown(); }
-		else if (InRowIndex == 6) { Ck_GymTimer_ResetAll(); }
-	}
+		if (InRowIndex == 1)
+		{
+			Request_DestroyStationEntities(n"TAG_TimerGym_Basics");
+			Request_StartBasics();
+		}
+		else if (InRowIndex == 2)
+		{
+			Request_DestroyStationEntities(n"TAG_TimerGym_Behaviors");
+			Request_StartBehaviors();
+		}
+		else if (InRowIndex == 3)
+		{
+			Request_DestroyStationEntities(n"TAG_TimerGym_Signals");
+			Request_StartSignals();
+		}
+		else if (InRowIndex == 4)
+		{
+			Request_DestroyStationEntities(n"TAG_TimerGym_Control");
+			Request_StartControl();
+		}
+		else if (InRowIndex == 5)
+		{
+			Request_DestroyStationEntities(n"TAG_TimerGym_Countdown");
+			Request_StartCountdown();
+		}
+		else if (InRowIndex == 6)
+		{
+			Request_DestroyStationEntities(n"TAG_TimerGym_Basics");
+			Request_DestroyStationEntities(n"TAG_TimerGym_Behaviors");
+			Request_DestroyStationEntities(n"TAG_TimerGym_Signals");
+			Request_DestroyStationEntities(n"TAG_TimerGym_Control");
+			Request_DestroyStationEntities(n"TAG_TimerGym_Countdown");
 
-	UFUNCTION(Exec, DisplayName="Timer Gym - Restart Basics")
-	void Ck_GymTimer_RestartBasics()
-	{
-		Request_DestroyStationEntities(n"TAG_TimerGym_Basics");
-		Request_StartBasics();
-	}
-
-	UFUNCTION(Exec, DisplayName="Timer Gym - Restart Behaviors")
-	void Ck_GymTimer_RestartBehaviors()
-	{
-		Request_DestroyStationEntities(n"TAG_TimerGym_Behaviors");
-		Request_StartBehaviors();
-	}
-
-	UFUNCTION(Exec, DisplayName="Timer Gym - Restart Signals")
-	void Ck_GymTimer_RestartSignals()
-	{
-		Request_DestroyStationEntities(n"TAG_TimerGym_Signals");
-		Request_StartSignals();
-	}
-
-	UFUNCTION(Exec, DisplayName="Timer Gym - Restart Control")
-	void Ck_GymTimer_RestartControl()
-	{
-		Request_DestroyStationEntities(n"TAG_TimerGym_Control");
-		Request_StartControl();
-	}
-
-	UFUNCTION(Exec, DisplayName="Timer Gym - Restart Countdown")
-	void Ck_GymTimer_RestartCountdown()
-	{
-		Request_DestroyStationEntities(n"TAG_TimerGym_Countdown");
-		Request_StartCountdown();
-	}
-
-	UFUNCTION(Exec, DisplayName="Timer Gym - Reset All")
-	void Ck_GymTimer_ResetAll()
-	{
-		Request_DestroyStationEntities(n"TAG_TimerGym_Basics");
-		Request_DestroyStationEntities(n"TAG_TimerGym_Behaviors");
-		Request_DestroyStationEntities(n"TAG_TimerGym_Signals");
-		Request_DestroyStationEntities(n"TAG_TimerGym_Control");
-		Request_DestroyStationEntities(n"TAG_TimerGym_Countdown");
-
-		Request_StartGym();
+			Request_StartGym();
+		}
 	}
 
 	//------------------------------------------------------------------------

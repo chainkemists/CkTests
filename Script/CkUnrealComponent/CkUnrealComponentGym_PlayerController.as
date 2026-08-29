@@ -111,12 +111,6 @@ class ACk_UnrealComponentGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_ControlActivated(int32 InRowIndex) override
 	{
-		if (InRowIndex == 0) { Ck_GymUnrealComponent_RestartAll(); }
-	}
-
-	UFUNCTION(Exec, DisplayName="UnrealComponent Gym - Restart All")
-	void Ck_GymUnrealComponent_RestartAll()
-	{
-		Request_StartGym();
+		if (InRowIndex == 0) { Request_StartGym(); }
 	}
 }

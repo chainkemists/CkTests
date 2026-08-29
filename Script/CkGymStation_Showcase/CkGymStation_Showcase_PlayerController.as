@@ -61,18 +61,12 @@ class ACk_StationShowcaseGym_PlayerController : ACk_Gym_Base_PlayerController
 		return Rows;
 	}
 
+	// Note: the [R] row currently spawns ADDITIONAL stations on top of any already
+	// in the world (no destroy-before-respawn tracking yet). Use PIE restart for a
+	// clean reset; the row is for additive iteration.
 	void Request_ControlActivated(int32 InRowIndex) override
 	{
-		if (InRowIndex == 0) { Ck_GymStationShowcase_RestartAll(); }
-	}
-
-	UFUNCTION(Exec, DisplayName = "Station Showcase Gym - Restart All")
-	void Ck_GymStationShowcase_RestartAll()
-	{
-		// Note: this currently spawns ADDITIONAL stations on top of any already
-		// in the world (no destroy-before-respawn tracking yet). Use PIE restart
-		// for a clean reset; this exec is for additive iteration.
-		Request_StartGym();
+		if (InRowIndex == 0) { Request_StartGym(); }
 	}
 
 	//------------------------------------------------------------------------

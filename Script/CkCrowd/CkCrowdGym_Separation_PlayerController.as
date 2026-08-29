@@ -29,7 +29,7 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
             Station.Tags.Add(n"Gym.Crowd.Separation");
             Station.Title = FText::FromString("CROWD SEPARATION (Gate 3)");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Console: Ck_GymCrowd_Sep_HeadOnNS / HeadOnEW / All4 / Cluster5 / Clear"));
+            Description.Add(FText::FromString("Panel: 1 head-on N/S, 2 head-on E/W, 3 all four, 4 cluster of 5, Z clear"));
             Description.Add(FText::FromString("In-world visuals:  ck.Crowd.Debug 1"));
             Description.Add(FText::FromString("Data panel:        ck.CrowdDebugger 1"));
             Description.Add(FText::FromString("Head-on pairs should pass without clipping; converging cluster should not pile."));
@@ -54,7 +54,7 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
             return;
         }
 
-        ck::crowd::Log("Separation gym started. Try Ck_GymCrowd_Sep_HeadOnNS or Ck_GymCrowd_Sep_Cluster5.");
+        ck::crowd::Log("Separation gym started. Press 1 for the head-on pair or 4 for the cluster.");
     }
 
     private void SpawnFloor()
@@ -90,8 +90,6 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
     private FVector Get_East()  { return Get_StationOrigin() + FVector( SpawnDistance, 0.0, 0.0); }
     private FVector Get_West()  { return Get_StationOrigin() + FVector(-SpawnDistance, 0.0, 0.0); }
 
-    // ---- Console commands ----------------------------------------------------------------------
-
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
@@ -121,15 +119,14 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
     void Request_ControlActivated(int32 InRowIndex) override
     {
         // Row 0 is the header, which holds no key and never arrives here.
-        if (InRowIndex == 1) { Ck_GymCrowd_Sep_HeadOnNS(); }
-        else if (InRowIndex == 2) { Ck_GymCrowd_Sep_HeadOnEW(); }
-        else if (InRowIndex == 3) { Ck_GymCrowd_Sep_All4(); }
-        else if (InRowIndex == 4) { Ck_GymCrowd_Sep_Cluster5(); }
-        else if (InRowIndex == 5) { Ck_GymCrowd_Sep_Clear(); }
+        if (InRowIndex == 1) { Request_HeadOnNorthSouth(); }
+        else if (InRowIndex == 2) { Request_HeadOnEastWest(); }
+        else if (InRowIndex == 3) { Request_AllFourCardinals(); }
+        else if (InRowIndex == 4) { Request_ClusterOfFive(); }
+        else if (InRowIndex == 5) { Request_ClearAgents(); }
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Separation - Head-On N↔S")
-    void Ck_GymCrowd_Sep_HeadOnNS()
+    private void Request_HeadOnNorthSouth()
     {
         if (HasAuthority() == false || ck::Is_NOT_Valid(_StationHandle))
         { return; }
@@ -139,8 +136,7 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log("Separation gym: dispatched 2 agents on head-on N<->S course");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Separation - Head-On E↔W")
-    void Ck_GymCrowd_Sep_HeadOnEW()
+    private void Request_HeadOnEastWest()
     {
         if (HasAuthority() == false || ck::Is_NOT_Valid(_StationHandle))
         { return; }
@@ -150,8 +146,7 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log("Separation gym: dispatched 2 agents on head-on E<->W course");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Separation - All 4 Cardinals")
-    void Ck_GymCrowd_Sep_All4()
+    private void Request_AllFourCardinals()
     {
         if (HasAuthority() == false || ck::Is_NOT_Valid(_StationHandle))
         { return; }
@@ -163,14 +158,13 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log("Separation gym: dispatched 4 agents (all four cardinals heading to opposite)");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Separation - Cluster of 5 to Centre")
-    void Ck_GymCrowd_Sep_Cluster5()
+    private void Request_ClusterOfFive()
     {
         if (HasAuthority() == false || ck::Is_NOT_Valid(_StationHandle))
         { return; }
 
         // 5 agents evenly spaced on a circle, all targeting the centre. Cluster radius is the same
-        // as the spawn distance for the cardinal commands so behaviour is comparable.
+        // as the spawn distance for the cardinal rows so behaviour is comparable.
         const auto Centre = Get_StationOrigin();
         const auto Count = 5;
         const auto AngleStep = (2.0 * Math::PI) / float(Count);
@@ -187,8 +181,7 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log("Separation gym: dispatched 5 agents converging on the centre point");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Separation - Clear All Agents")
-    void Ck_GymCrowd_Sep_Clear()
+    private void Request_ClearAgents()
     {
         if (HasAuthority() == false)
         { return; }

@@ -58,7 +58,7 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
             Station.Tags.Add(n"Gym.Messaging.DynamicBind");
             Station.Title = FText::FromString("DYNAMIC BIND / UNBIND");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Runtime bind and unbind of message listeners via console commands."));
+            Description.Add(FText::FromString("Runtime bind and unbind of message listeners via the [B] panel row."));
             Description.Add(FText::FromString("Tests UnbindFrom_OnBroadcast and re-binding at runtime."));
             Station.Description = Description;
             Stations.Add(Station);
@@ -198,10 +198,6 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
-    //------------------------------------------------------------------------
-    // STATION 1: BASIC BROADCAST COMMANDS
-    //------------------------------------------------------------------------
-
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
@@ -269,89 +265,28 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
     void Request_ControlActivated(int32 InRowIndex) override
     {
         // Rows 0 and 8 are headers, which hold no key and never arrive here.
-        if (InRowIndex == 1) { Ck_GymMessaging_SendPing(); }
-        else if (InRowIndex == 2) { Ck_GymMessaging_FanOutPing(); }
-        else if (InRowIndex == 3) { Ck_GymMessaging_FireOneShot(); }
-        else if (InRowIndex == 4) { Ck_GymMessaging_SendPingToDynamic(); }
-        else if (InRowIndex == 5) { Ck_GymMessaging_SendPong(); }
+        if (InRowIndex == 1) { DoBroadcastPing(n"TAG_MessagingGym_Basic", "Console"); }
+        else if (InRowIndex == 2) { DoBroadcastPing(n"TAG_MessagingGym_MultiListener", "FanOut"); }
+        else if (InRowIndex == 3) { DoBroadcastPing(n"TAG_MessagingGym_OneShot", "OneShot"); }
+        else if (InRowIndex == 4) { DoBroadcastPing(n"TAG_MessagingGym_DynamicBind", "Dynamic"); }
+        else if (InRowIndex == 5) { DoBroadcastPong(); }
         else if (InRowIndex == 6) { DoCycleAlertPriority(); }
-        else if (InRowIndex == 7) { Ck_GymMessaging_SendAllTypes(); }
-        else if (InRowIndex == 9) { Ck_GymMessaging_ToggleBind(); }
-        else if (InRowIndex == 10) { Ck_GymMessaging_ResetAll(); }
+        else if (InRowIndex == 7) { DoBroadcastAllTypes(); }
+        else if (InRowIndex == 9) { DoToggleBind(); }
+        else if (InRowIndex == 10) { DoResetAll(); }
     }
 
-    UFUNCTION(Exec, DisplayName="Messaging Gym - Send Ping")
-    void Ck_GymMessaging_SendPing()
+    private void DoBroadcastPing(FName InTag, FString InSender)
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_MessagingGym_Basic");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), InTag);
         for (auto Entity : Entities)
         {
-            utils_messaging::Broadcast(Entity, FCk_Message_MessagingGym_Ping("Console", SequenceCounter));
+            utils_messaging::Broadcast(Entity, FCk_Message_MessagingGym_Ping(InSender, SequenceCounter));
         }
         SequenceCounter++;
     }
 
-    //------------------------------------------------------------------------
-    // STATION 2: MULTI-LISTENER COMMANDS
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Messaging Gym - Fan-Out Ping")
-    void Ck_GymMessaging_FanOutPing()
-    {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_MessagingGym_MultiListener");
-        for (auto Entity : Entities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_MessagingGym_Ping("FanOut", SequenceCounter));
-        }
-        SequenceCounter++;
-    }
-
-    //------------------------------------------------------------------------
-    // STATION 3: ONE-SHOT COMMANDS
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Messaging Gym - Fire One-Shot")
-    void Ck_GymMessaging_FireOneShot()
-    {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_MessagingGym_OneShot");
-        for (auto Entity : Entities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_MessagingGym_Ping("OneShot", SequenceCounter));
-        }
-        SequenceCounter++;
-    }
-
-    //------------------------------------------------------------------------
-    // STATION 4: DYNAMIC BIND COMMANDS
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Messaging Gym - Toggle Bind")
-    void Ck_GymMessaging_ToggleBind()
-    {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_MessagingGym_DynamicBind");
-        for (auto Entity : Entities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_MessagingGym_ToggleBind());
-        }
-    }
-
-    UFUNCTION(Exec, DisplayName="Messaging Gym - Send Ping to Dynamic")
-    void Ck_GymMessaging_SendPingToDynamic()
-    {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_MessagingGym_DynamicBind");
-        for (auto Entity : Entities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_MessagingGym_Ping("Dynamic", SequenceCounter));
-        }
-        SequenceCounter++;
-    }
-
-    //------------------------------------------------------------------------
-    // STATION 5: MULTI-TYPE COMMANDS
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Messaging Gym - Send Pong")
-    void Ck_GymMessaging_SendPong()
+    private void DoBroadcastPong()
     {
         auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_MessagingGym_MultiType");
         for (auto Entity : Entities)
@@ -361,8 +296,7 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
         SequenceCounter++;
     }
 
-    UFUNCTION(Exec, DisplayName="Messaging Gym - Send All Types")
-    void Ck_GymMessaging_SendAllTypes()
+    private void DoBroadcastAllTypes()
     {
         auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_MessagingGym_MultiType");
         for (auto Entity : Entities)
@@ -374,12 +308,16 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
         SequenceCounter++;
     }
 
-    //------------------------------------------------------------------------
-    // GLOBAL COMMANDS
-    //------------------------------------------------------------------------
+    private void DoToggleBind()
+    {
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_MessagingGym_DynamicBind");
+        for (auto Entity : Entities)
+        {
+            utils_messaging::Broadcast(Entity, FCk_Message_MessagingGym_ToggleBind());
+        }
+    }
 
-    UFUNCTION(Exec, DisplayName="Messaging Gym - Reset All Stations")
-    void Ck_GymMessaging_ResetAll()
+    private void DoResetAll()
     {
         auto AllTags = TArray<FName>();
         AllTags.Add(n"TAG_MessagingGym_Basic");

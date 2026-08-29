@@ -181,17 +181,14 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         else { ck::Error("[FAIL] Failed to spawn Shelf Desync entity"); }
     }
 
-    //------------------------------------------------------------------------
-    // DATA-ONLY UNBOUNDED COMMANDS
-    //------------------------------------------------------------------------
-
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
     // Every keyed row fires at its command's own default count or coordinate - the values the gym's
     // placards talk about. The bound is a preset ring instead, since its three interesting values are
-    // exactly the ones the bounded station demonstrates. Three commands genuinely need a number or a
-    // pair the panel cannot express; they stay on the console and get a Status row that names them.
+    // exactly the ones the bounded station demonstrates. Four commands genuinely need a number, a pair
+    // or a direction the panel cannot express; they stay on the console and get a Status row that
+    // names them.
     //
     // The six per-station auto-drive rows are Actions, not Toggles: every station calls
     // gym_auto::StopAuto the moment any manual row fires, so a mirrored bool would read ON while the
@@ -244,6 +241,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Stackable trait"));
         Rows.Add(CkGym_Control::Action(EKeys::M, "M", "Tags trait"));
         Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Shelf loot/stock"));
+        Rows.Add(CkGym_Control::Action(EKeys::Y, "Y", "Stop auto-drive everywhere"));
 
         Rows.Add(CkGym_Control::Header("CONSOLE (free-range input the panel cannot express)"));
         Rows.Add(CkGym_Control::Status("Shield at a coordinate", "Ck_GymInventory_AddShieldAt X Y"));
@@ -258,22 +256,22 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         // Rows 0, 10, 13, 19, 22, 24 and 31 are headers, which hold no key and never arrive here.
         if (InRowIndex == 1) { Ck_GymInventory_AddPotion(1); }
         else if (InRowIndex == 2) { Ck_GymInventory_AddArrow(1); }
-        else if (InRowIndex == 3) { Ck_GymInventory_AddSword(); }
+        else if (InRowIndex == 3) { DoAddSword(); }
         else if (InRowIndex == 4) { Ck_GymInventory_AddShieldAt(0, 0); }
-        else if (InRowIndex == 5) { Ck_GymInventory_RemoveFirst(); }
-        else if (InRowIndex == 6) { Ck_GymInventory_StackPotions(); }
+        else if (InRowIndex == 5) { DoRemoveFirst(); }
+        else if (InRowIndex == 6) { DoStackPotions(); }
         else if (InRowIndex == 7) { Ck_GymInventory_SplitStack(1); }
-        else if (InRowIndex == 8) { Ck_GymInventory_SortAll(); }
-        else if (InRowIndex == 9) { Ck_GymInventory_FillBounded(); }
-        else if (InRowIndex == 11) { Ck_GymInventory_AddRareTag(); }
-        else if (InRowIndex == 12) { Ck_GymInventory_RemoveRareTag(); }
-        else if (InRowIndex == 14) { Ck_GymInventory_ShelfStock(); }
-        else if (InRowIndex == 15) { Ck_GymInventory_ShelfLoot(); }
-        else if (InRowIndex == 16) { Ck_GymInventory_ShelfStart(); }
-        else if (InRowIndex == 17) { Ck_GymInventory_ShelfStop(); }
-        else if (InRowIndex == 18) { Ck_GymInventory_ShelfReset(); }
-        else if (InRowIndex == 20) { Ck_GymInventory_Auto(1); }
-        else if (InRowIndex == 21) { Ck_GymInventory_RestartAll(); }
+        else if (InRowIndex == 8) { DoSortAll(); }
+        else if (InRowIndex == 9) { DoFillBounded(); }
+        else if (InRowIndex == 11) { DoSetRareTag(true); }
+        else if (InRowIndex == 12) { DoSetRareTag(false); }
+        else if (InRowIndex == 14) { DoBroadcastToShelf(FInstancedStruct::Make(FCk_Message_InvGym_ShelfStock())); }
+        else if (InRowIndex == 15) { DoBroadcastToShelf(FInstancedStruct::Make(FCk_Message_InvGym_ShelfLoot())); }
+        else if (InRowIndex == 16) { DoBroadcastToShelf(FInstancedStruct::Make(FCk_Message_InvGym_ShelfLoop(1))); }
+        else if (InRowIndex == 17) { DoBroadcastToShelf(FInstancedStruct::Make(FCk_Message_InvGym_ShelfLoop(0))); }
+        else if (InRowIndex == 18) { DoBroadcastToShelf(FInstancedStruct::Make(FCk_Message_InvGym_ShelfReset())); }
+        else if (InRowIndex == 20) { BroadcastAutoToAll(true); }
+        else if (InRowIndex == 21) { DoRestartAll(); }
         else if (InRowIndex == 23) { DoCycleBoundsPreset(); }
         else if (InRowIndex == 25) { BroadcastAutoToTag(n"TAG_InvGym_DataOnlyUnbounded", true); }
         else if (InRowIndex == 26) { BroadcastAutoToTag(n"TAG_InvGym_DataOnlyBounded", true); }
@@ -281,6 +279,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         else if (InRowIndex == 28) { BroadcastAutoToTag(n"TAG_InvGym_StackableTrait", true); }
         else if (InRowIndex == 29) { BroadcastAutoToTag(n"TAG_InvGym_TagsTrait", true); }
         else if (InRowIndex == 30) { BroadcastAutoToTag(n"TAG_InvGym_ShelfDesync", true); }
+        else if (InRowIndex == 31) { BroadcastAutoToAll(false); }
     }
 
     // 5 is the bound the station is authored with, 10 is what its auto sequence overrides to, and 20
@@ -322,8 +321,34 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
     }
 
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Remove First Item")
-    void Ck_GymInventory_RemoveFirst()
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Add Shield At")
+    void Ck_GymInventory_AddShieldAt(int32 InX = 0, int32 InY = 0)
+    {
+        auto Msg = FCk_Message_InvGym_AddItemAt("Shield", FIntPoint(InX, InY));
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_Spatial");
+        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
+    }
+
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Split Stack")
+    void Ck_GymInventory_SplitStack(int32 InCount = 1)
+    {
+        auto Msg = FCk_Message_InvGym_SplitFirst(InCount);
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_StackableTrait");
+        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
+    }
+
+    //------------------------------------------------------------------------
+    // PANEL ACTIONS
+    //------------------------------------------------------------------------
+
+    private void DoAddSword()
+    {
+        auto Msg = FCk_Message_InvGym_AddItemByDef("Sword", 1);
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_Spatial");
+        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
+    }
+
+    private void DoRemoveFirst()
     {
         auto Msg = FCk_Message_InvGym_RemoveFirst();
         auto StationTags = TArray<FName>();
@@ -337,20 +362,21 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Sort All")
-    void Ck_GymInventory_SortAll()
+    private void DoStackPotions()
+    {
+        auto Msg = FCk_Message_InvGym_StackFirstTwo();
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_StackableTrait");
+        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
+    }
+
+    private void DoSortAll()
     {
         auto Msg = FCk_Message_InvGym_SortInventory();
         auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_DataOnlyUnbounded");
         for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
     }
 
-    //------------------------------------------------------------------------
-    // DATA-ONLY BOUNDED COMMANDS
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Fill Bounded")
-    void Ck_GymInventory_FillBounded()
+    private void DoFillBounded()
     {
         auto Msg = FCk_Message_InvGym_AddItemByDef("Potion", 1);
         auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_DataOnlyBounded");
@@ -360,110 +386,48 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
-    //------------------------------------------------------------------------
-    // SPATIAL COMMANDS
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Add Sword (auto-place)")
-    void Ck_GymInventory_AddSword()
-    {
-        auto Msg = FCk_Message_InvGym_AddItemByDef("Sword", 1);
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_Spatial");
-        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
-    }
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Add Shield At")
-    void Ck_GymInventory_AddShieldAt(int32 InX = 0, int32 InY = 0)
-    {
-        auto Msg = FCk_Message_InvGym_AddItemAt("Shield", FIntPoint(InX, InY));
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_Spatial");
-        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
-    }
-
-    //------------------------------------------------------------------------
-    // STACKABLE TRAIT COMMANDS
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Stack First Two")
-    void Ck_GymInventory_StackPotions()
-    {
-        auto Msg = FCk_Message_InvGym_StackFirstTwo();
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_StackableTrait");
-        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
-    }
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Split Stack")
-    void Ck_GymInventory_SplitStack(int32 InCount = 1)
-    {
-        auto Msg = FCk_Message_InvGym_SplitFirst(InCount);
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_StackableTrait");
-        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
-    }
-
-    //------------------------------------------------------------------------
-    // TAGS TRAIT COMMANDS
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Add Rare Tag")
-    void Ck_GymInventory_AddRareTag()
+    private void DoSetRareTag(bool InAdd)
     {
         auto Tag = utils_gameplay_tag::ResolveGameplayTag(n"Item.Rarity.Rare");
-        auto Msg = FCk_Message_InvGym_AddTag(Tag);
         auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_TagsTrait");
-        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
+
+        if (InAdd)
+        {
+            auto AddMsg = FCk_Message_InvGym_AddTag(Tag);
+            for (auto E : Entities) { utils_messaging::Broadcast(E, AddMsg); }
+            return;
+        }
+
+        auto RemoveMsg = FCk_Message_InvGym_RemoveTag(Tag);
+        for (auto E : Entities) { utils_messaging::Broadcast(E, RemoveMsg); }
     }
 
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Remove Rare Tag")
-    void Ck_GymInventory_RemoveRareTag()
+    private void DoBroadcastToShelf(FInstancedStruct InMessage)
     {
-        auto Tag = utils_gameplay_tag::ResolveGameplayTag(n"Item.Rarity.Rare");
-        auto Msg = FCk_Message_InvGym_RemoveTag(Tag);
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_TagsTrait");
-        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
-    }
-
-    //------------------------------------------------------------------------
-    // SHELF LOOT/STOCK DESYNC COMMANDS
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Shelf Stock (single)")
-    void Ck_GymInventory_ShelfStock()
-    {
-        auto Msg = FCk_Message_InvGym_ShelfStock();
         auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_ShelfDesync");
-        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
+        for (auto E : Entities) { utils_messaging::Broadcast(E, InMessage); }
     }
 
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Shelf Loot (single)")
-    void Ck_GymInventory_ShelfLoot()
+    private void DoRestartAll()
     {
-        auto Msg = FCk_Message_InvGym_ShelfLoot();
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_ShelfDesync");
-        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
-    }
+        auto AllTags = TArray<FName>();
+        AllTags.Add(n"TAG_InvGym_DataOnlyUnbounded");
+        AllTags.Add(n"TAG_InvGym_DataOnlyBounded");
+        AllTags.Add(n"TAG_InvGym_Spatial");
+        AllTags.Add(n"TAG_InvGym_StackableTrait");
+        AllTags.Add(n"TAG_InvGym_TagsTrait");
+        AllTags.Add(n"TAG_InvGym_ShelfDesync");
 
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Shelf Start Pump")
-    void Ck_GymInventory_ShelfStart()
-    {
-        auto Msg = FCk_Message_InvGym_ShelfLoop(1);
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_ShelfDesync");
-        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
-    }
+        for (auto Tag : AllTags)
+        {
+            auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), Tag);
+            for (auto Entity : Entities)
+            {
+                utils_entity_lifetime::Request_DestroyEntity(Entity);
+            }
+        }
 
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Shelf Stop Pump")
-    void Ck_GymInventory_ShelfStop()
-    {
-        auto Msg = FCk_Message_InvGym_ShelfLoop(0);
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_ShelfDesync");
-        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
-    }
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Shelf Reset")
-    void Ck_GymInventory_ShelfReset()
-    {
-        auto Msg = FCk_Message_InvGym_ShelfReset();
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_ShelfDesync");
-        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
+        Request_StartGym();
     }
 
     //------------------------------------------------------------------------
@@ -495,36 +459,4 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
     }
 
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Auto All")
-    void Ck_GymInventory_Auto(int32 InEnabled = 1)
-    {
-        BroadcastAutoToAll(InEnabled != 0);
-    }
-
-    //------------------------------------------------------------------------
-    // RESTART COMMANDS
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Restart All")
-    void Ck_GymInventory_RestartAll()
-    {
-        auto AllTags = TArray<FName>();
-        AllTags.Add(n"TAG_InvGym_DataOnlyUnbounded");
-        AllTags.Add(n"TAG_InvGym_DataOnlyBounded");
-        AllTags.Add(n"TAG_InvGym_Spatial");
-        AllTags.Add(n"TAG_InvGym_StackableTrait");
-        AllTags.Add(n"TAG_InvGym_TagsTrait");
-        AllTags.Add(n"TAG_InvGym_ShelfDesync");
-
-        for (auto Tag : AllTags)
-        {
-            auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), Tag);
-            for (auto Entity : Entities)
-            {
-                utils_entity_lifetime::Request_DestroyEntity(Entity);
-            }
-        }
-
-        Request_StartGym();
-    }
 }

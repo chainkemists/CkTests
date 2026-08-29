@@ -174,10 +174,22 @@ auto
 
     auto Rail = SNew(SVerticalBox);
 
+    // The pinned startup gym is marked in BOTH places the eye might be: its row and its group.
+    // Bright while the Default mode is live; dimmed when the pin exists but another mode is
+    // selected, so a stale pin reads as "set but inert" rather than vanishing.
+    const auto DefaultMarkerColor = InModel.StartupMode == ECkGym_StartupMode::Default
+        ? CkStyle::Accent() : CkStyle::TextMute();
+
     for (auto GroupIndex = 0; GroupIndex < InModel.Groups.Num(); ++GroupIndex)
     {
         const auto& Group = InModel.Groups[GroupIndex];
         const auto IsSelected = GroupIndex == InModel.SelectedGroupIndex;
+
+        const auto HoldsDefault = NOT InModel.DefaultGymName.IsEmpty() &&
+            Group.Rows.ContainsByPredicate([&](const FCkGym_Switchboard_Row& InRow)
+            {
+                return InRow.DisplayName == InModel.DefaultGymName;
+            });
 
         auto RowContent = SNew(SHorizontalBox);
 
@@ -188,6 +200,19 @@ auto
             [
                 Make_CategoryPill(Group.Category, Group.Hue, IsSelected ? 1.0f : 0.75f)
             ];
+
+        if (HoldsDefault)
+        {
+            RowContent->AddSlot()
+                .AutoWidth()
+                .VAlign(VAlign_Center)
+                [
+                    SNew(STextBlock)
+                    .Text(FText::FromString(TEXT("★")))
+                    .Font(CkStyle::BoldFont(CkStyle::FontSizeMicro()))
+                    .ColorAndOpacity(DefaultMarkerColor)
+                ];
+        }
 
         RowContent->AddSlot()
             .FillWidth(1.0f)
@@ -300,6 +325,21 @@ auto
                 .ColorAndOpacity(IsSelected ? CkStyle::TextStrong() : CkStyle::Text())
             ];
 
+        if (Row.DisplayName == InModel.DefaultGymName && NOT InModel.DefaultGymName.IsEmpty())
+        {
+            RowContent->AddSlot()
+                .AutoWidth()
+                .VAlign(VAlign_Center)
+                .Padding(FMargin{0.0f, 0.0f, IsCurrent ? CkStyle::SpaceS : 0.0f, 0.0f})
+                [
+                    SNew(STextBlock)
+                    .Text(FText::FromString(TEXT("★ default")))
+                    .Font(CkStyle::BoldFont(CkStyle::FontSizeMicro()))
+                    .ColorAndOpacity(InModel.StartupMode == ECkGym_StartupMode::Default
+                        ? CkStyle::Accent() : CkStyle::TextMute())
+                ];
+        }
+
         if (IsCurrent)
         {
             RowContent->AddSlot()
@@ -351,7 +391,7 @@ auto
     -> TSharedRef<SWidget>
 {
     // The per-user startup preference (Editor Preferences -> Ck Tests -> Gym Cycler), editable
-    // without leaving the menu: F1 cycles the mode, F2 pins the selected gym as the default.
+    // without leaving the menu: [1] cycles the mode, [2] pins the selected gym as the default.
     auto ModeText = FString{};
     switch (InModel.StartupMode)
     {
@@ -375,7 +415,7 @@ auto
         .VAlign(VAlign_Center)
         [
             SNew(STextBlock)
-            .Text(FText::FromString(FString::Printf(TEXT("[F1] startup: %s"), *ModeText)))
+            .Text(FText::FromString(FString::Printf(TEXT("[1] startup: %s"), *ModeText)))
             .Font(CkStyle::MonoFont(CkStyle::FontSizeMicro()))
             .ColorAndOpacity(InModel.StartupMode == ECkGym_StartupMode::Cycler
                 ? CkStyle::TextMute() : CkStyle::AccentDim())
@@ -386,7 +426,7 @@ auto
         .Padding(FMargin{CkStyle::SpaceL, 0.0f, 0.0f, 0.0f})
         [
             SNew(STextBlock)
-            .Text(FText::FromString(TEXT("[F2] start on selected")))
+            .Text(FText::FromString(TEXT("[2] start on selected")))
             .Font(CkStyle::MonoFont(CkStyle::FontSizeMicro()))
             .ColorAndOpacity(CkStyle::TextMute())
         ];

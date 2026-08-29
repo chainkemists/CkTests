@@ -17,7 +17,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
             Station.Tags.Add(n"Gym.Crowd.Locomotion");
             Station.Title = FText::FromString("LOCOMOTION (2A+2B+2C+2D+2E)");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Console: Spawn / RequestPath / RequestStop / Print* / Stop"));
+            Description.Add(FText::FromString("Panel: G spawn / M move / Z cancel / X destroy / P V Y print"));
             Description.Add(FText::FromString("Spawn -> cyan capsule (agent body) + orange cone (current facing)"));
             Description.Add(FText::FromString("RequestPath -> goes through utils_crowd_agent::Request_MoveTo"));
             Description.Add(FText::FromString("RequestStop -> cancels active move via Request_Stop API"));
@@ -43,7 +43,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
             return;
         }
 
-        ck::crowd::Log("Locomotion gym started. Run Ck_GymCrowd_Loco_Spawn from the console.");
+        ck::crowd::Log("Locomotion gym started. Press G on the control panel to spawn the agent.");
     }
 
     private void SpawnFloor()
@@ -101,17 +101,16 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
     void Request_ControlActivated(int32 InRowIndex) override
     {
         // Rows 0 and 5 are headers, which hold no key and never arrive here.
-        if (InRowIndex == 1) { Ck_GymCrowd_Loco_Spawn(); }
-        else if (InRowIndex == 2) { Ck_GymCrowd_Loco_RequestPath(); }
-        else if (InRowIndex == 3) { Ck_GymCrowd_Loco_RequestStop(); }
-        else if (InRowIndex == 4) { Ck_GymCrowd_Loco_Stop(); }
-        else if (InRowIndex == 6) { Ck_GymCrowd_Loco_PrintPos(); }
-        else if (InRowIndex == 7) { Ck_GymCrowd_Loco_PrintDesired(); }
-        else if (InRowIndex == 8) { Ck_GymCrowd_Loco_PrintYaw(); }
+        if (InRowIndex == 1) { Request_SpawnAgent(); }
+        else if (InRowIndex == 2) { Request_MoveAgent(); }
+        else if (InRowIndex == 3) { Request_CancelMove(); }
+        else if (InRowIndex == 4) { Request_DestroyAgent(); }
+        else if (InRowIndex == 6) { Request_PrintPosition(); }
+        else if (InRowIndex == 7) { Request_PrintDesiredVelocity(); }
+        else if (InRowIndex == 8) { Request_PrintYaw(); }
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Spawn Agent")
-    void Ck_GymCrowd_Loco_Spawn()
+    private void Request_SpawnAgent()
     {
         if (HasAuthority() == false) { return; }
 
@@ -128,12 +127,12 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
 
         if (_AgentValid)
         {
-            ck::crowd::Warning("Locomotion gym: an agent already exists. Run Ck_GymCrowd_Loco_Stop first.");
+            ck::crowd::Warning("Locomotion gym: an agent already exists. Press X to destroy it first.");
             return;
         }
 
         // The agent is a standalone top-level entity (lifetime-owned by the registry transient),
-        // not a sub-entity of the station - Ck_GymCrowd_Loco_Stop destroys it explicitly.
+        // not a sub-entity of the station - the X row destroys it explicitly.
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto AgentParams = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
 
@@ -146,7 +145,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         // Lifetime-OWNED BY the transient, not composed ONTO it. Only one agent here, so the
         // one-agent-per-entity collapse the other crowd gyms hit is not visible - but composing
         // onto the world transient still puts a Transform + CrowdAgent + Velocity + Acceleration
-        // on it, and Ck_GymCrowd_Loco_Stop's explicit destroy would target the transient itself.
+        // on it, and the X row's explicit destroy would target the transient itself.
         auto GenericAgent = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         GenericAgent.Set_DebugName(n"LocomotionAgent");
         auto AgentTransform = utils_transform::Add(GenericAgent, InitialXform, ECk_Replication::DoesNotReplicate);
@@ -240,12 +239,11 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log(f"Locomotion gym: OnPathReady - waypoints={Waypoints.Num()}, drew overlay (decays in {Duration}s)");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Print Position")
-    void Ck_GymCrowd_Loco_PrintPos()
+    private void Request_PrintPosition()
     {
         if (_AgentValid == false || ck::Is_NOT_Valid(_Agent))
         {
-            ck::crowd::Log("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
+            ck::crowd::Log("Locomotion gym: no agent. Press G on the control panel first.");
             return;
         }
 
@@ -280,13 +278,12 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
             30.0f);          // 30s decay
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Request Move To -X 800cm")
-    void Ck_GymCrowd_Loco_RequestPath()
+    private void Request_MoveAgent()
     {
         if (HasAuthority() == false) { return; }
         if (_AgentValid == false || ck::Is_NOT_Valid(_Agent))
         {
-            ck::crowd::Log("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
+            ck::crowd::Log("Locomotion gym: no agent. Press G on the control panel first.");
             return;
         }
 
@@ -305,12 +302,11 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log(f"Locomotion gym: enqueued MoveTo -> {Target}");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Print Desired Velocity")
-    void Ck_GymCrowd_Loco_PrintDesired()
+    private void Request_PrintDesiredVelocity()
     {
         if (_AgentValid == false || ck::Is_NOT_Valid(_Agent))
         {
-            ck::crowd::Log("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
+            ck::crowd::Log("Locomotion gym: no agent. Press G on the control panel first.");
             return;
         }
 
@@ -318,13 +314,12 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log(f"Locomotion gym: desired_velocity={Desired}  speed={Desired.Size()} cm/s");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Request Stop (cancel active move)")
-    void Ck_GymCrowd_Loco_RequestStop()
+    private void Request_CancelMove()
     {
         if (HasAuthority() == false) { return; }
         if (_AgentValid == false || ck::Is_NOT_Valid(_Agent))
         {
-            ck::crowd::Log("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
+            ck::crowd::Log("Locomotion gym: no agent. Press G on the control panel first.");
             return;
         }
 
@@ -332,12 +327,11 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log("Locomotion gym: enqueued Stop");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Print Yaw (current vs target)")
-    void Ck_GymCrowd_Loco_PrintYaw()
+    private void Request_PrintYaw()
     {
         if (_AgentValid == false || ck::Is_NOT_Valid(_Agent))
         {
-            ck::crowd::Log("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
+            ck::crowd::Log("Locomotion gym: no agent. Press G on the control panel first.");
             return;
         }
 
@@ -354,8 +348,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log(f"Locomotion gym: current_yaw={CurrentRot.Yaw} deg  target_yaw={TargetYaw} deg  (lerping at MaxTurnRate=4 rad/s)");
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Stop / Destroy Agent")
-    void Ck_GymCrowd_Loco_Stop()
+    private void Request_DestroyAgent()
     {
         if (HasAuthority() == false) { return; }
 

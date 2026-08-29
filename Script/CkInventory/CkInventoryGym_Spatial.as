@@ -51,17 +51,17 @@ class UCk_EntityScript_InvGym_Spatial : UCk_GenericEntityScript_UE
 
         AutoConfig.TotalSteps = 10;
         AutoConfig.Description = "8x6 grid with auto-placement, explicit\ncoordinates, and multi-cell items (3x1).";
-        AutoConfig.GlobalAutoCommand = "Ck_GymInventory_Auto [0/1]";
+        AutoConfig.GlobalAutoCommand = "panel [U] auto on / [Y] auto off";
         AutoConfig.PerStationAutoCommand = "panel [J] Re-arm auto (Spatial)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Auto-place 3x1 swords (x2)", 0, 1));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add shield (auto-place)", 2, 2));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Place sword at random coord", 3, 3));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add shield (expect blocked)", 4, 4));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Remove first (x5)", 5, 9));
-        AutoConfig.ManualCommands.Add("Ck_GymInventory_AddSword");
+        AutoConfig.ManualCommands.Add("panel [3] Add a sword");
         AutoConfig.ManualCommands.Add("Ck_GymInventory_AddShieldAt [x] [y]");
-        AutoConfig.ManualCommands.Add("Ck_GymInventory_RemoveFirst");
-        AutoConfig.ManualCommands.Add("Ck_GymInventory_RestartAll");
+        AutoConfig.ManualCommands.Add("panel [5] Remove the first item");
+        AutoConfig.ManualCommands.Add("panel [R] Restart everything");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

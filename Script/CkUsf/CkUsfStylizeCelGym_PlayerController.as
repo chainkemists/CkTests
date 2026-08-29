@@ -10,11 +10,11 @@
 // scene's hand-tagged STENCIL cubes and the ENTITY subjects spawned here must look identical, because
 // they reach the same Custom-Stencil contract through different front doors.
 //
-// Tab opens the gym cycler menu; search "Stylize". Console:
-//   Ck_GymStylizeCel_RestartAll      - respawn the judge scene and re-apply Balanced
-//   Ck_GymStylizeCel_CycleDebug      - next debug view of the CURRENT preset
-//   Ck_GymStylizeCel_ToggleEntity    - clear/re-apply the ENTITY row's patterns
-//   Ck_GymStylizeCel_ToggleDitherStack - stack ScreenDither on top, for the cross-effect A/B
+// Tab opens the gym cycler menu; search "Stylize". Control panel:
+//   R - respawn the judge scene and re-apply Balanced
+//   J - next debug view of the CURRENT preset
+//   N - clear/re-apply the ENTITY row's patterns
+//   M - stack ScreenDither on top, for the cross-effect A/B
 //
 // Needs the CelShade master on disk: on a fresh checkout run "Ck_Usf_GenerateLooks CelShade" once in
 // the editor console, or the subsystem warns and the view is untouched.
@@ -56,7 +56,7 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
         Stations.Add(Make_Station(n"Gym.Stylize.CelOff", "CEL: OFF",
             "The A/B reference - the subsystem's blendable disabled.",
             "The frame must come back completely clean. Any residue here means disable is not actually disabling.",
-            "STACKING: Ck_GymStylizeCel_ToggleDitherStack puts ScreenDither on top - the classic combo; cel bands must survive the palette reduction. Cel + hand-drawn is NOT a supported pair: both restyle the whole frame at the same chain location, so the second one paints over the first's output rather than composing with it."));
+            "STACKING: the M row puts ScreenDither on top - the classic combo; cel bands must survive the palette reduction. Cel + hand-drawn is NOT a supported pair: both restyle the whole frame at the same chain location, so the second one paints over the first's output rather than composing with it."));
 
         // Explicit single row, wider than the 800uu default: the judge scene sits in front of these and
         // the player has to be able to walk the row without leaving it.
@@ -355,22 +355,15 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
         // Offset 0 is the VIEW header, which holds no key and never arrives here.
         auto Control = InRowIndex - Get_FirstControlRow();
 
-        if (Control == 1) { Ck_GymStylizeCel_CycleDebug(); }
-        else if (Control == 2) { Ck_GymStylizeCel_ToggleEntity(); }
-        else if (Control == 3) { Ck_GymStylizeCel_ToggleDitherStack(); }
+        if (Control == 1) { Request_CycleDebugView(); }
+        else if (Control == 2) { Request_ToggleEntityPatterns(); }
+        else if (Control == 3) { Request_ToggleDitherStack(); }
         else if (Control == 4) { Request_RebuildGym(); }
-    }
-
-    UFUNCTION(Exec, DisplayName="Stylize Cel Gym - Restart")
-    void Ck_GymStylizeCel_RestartAll()
-    {
-        Request_RebuildGym();
     }
 
     // Debug views are a property of the CURRENT preset, so this edits the live settings rather than
     // re-applying a preset - walking to another station resets it, which is the intended behaviour.
-    UFUNCTION(Exec, DisplayName="Stylize Cel Gym - Cycle Debug Mode")
-    void Ck_GymStylizeCel_CycleDebug()
+    private void Request_CycleDebugView()
     {
         auto Subsystem = UCkUsf_CelShadeSubsystem::Get_CelShadeSubsystem();
         if (Subsystem == nullptr)
@@ -387,8 +380,7 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
 
     // The remove half of the entity API. A pattern that only ever goes ON proves nothing about the
     // remove processor restoring the mesh.
-    UFUNCTION(Exec, DisplayName="Stylize Cel Gym - Toggle Entity Patterns")
-    void Ck_GymStylizeCel_ToggleEntity()
+    private void Request_ToggleEntityPatterns()
     {
         for (auto Subject : _EntitySubjects)
         {
@@ -404,8 +396,7 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
     // toggle owns its own flag rather than reading Get_IsEnabled(), because a subsystem nothing has
     // touched yet reports Enabled while rendering nothing - reading it would make the first press a
     // silent no-op.
-    UFUNCTION(Exec, DisplayName="Stylize Cel Gym - Toggle ScreenDither Stack")
-    void Ck_GymStylizeCel_ToggleDitherStack()
+    private void Request_ToggleDitherStack()
     {
         auto Dither = UCkUsf_ScreenDitherSubsystem::Get_ScreenDitherSubsystem();
         if (Dither == nullptr)

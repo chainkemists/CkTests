@@ -226,16 +226,13 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
         BroadcastToTag(InTag, FInstancedStruct::Make(Msg));
     }
 
-    //------------------------------------------------------------------------
-    // STATION 1: INSTANT
-    //------------------------------------------------------------------------
-
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
     // Every command this gym has is keyed, including the six per-station auto-drive re-arms, and a
     // manual interaction that has to be ENDED while it is still running - which is not something you
-    // can type.
+    // can type. The one exception is stopping auto-drive everywhere: the keyed row only arms it, so
+    // the off direction stays on the console and gets a Status row that names it.
     //
     // The two flips and the seven auto-drive rows are Actions rather than Toggles: they broadcast a
     // message with no readback, so there is no state to report and a two-state row would be inventing
@@ -286,147 +283,36 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Validation"));
         Rows.Add(CkGym_Control::Action(EKeys::L, "L", "Resolver"));
         Rows.Add(CkGym_Control::Action(EKeys::M, "M", "DataBundle"));
+        Rows.Add(CkGym_Control::Action(EKeys::X, "X", "Stop auto-drive everywhere"));
 
         return Rows;
     }
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        // Rows 0, 8, 11, 17 and 19 are headers, which hold no key and never arrive here.
-        if (InRowIndex == 1) { Ck_GymInteraction_TriggerInstant(); }
-        else if (InRowIndex == 2) { Ck_GymInteraction_StartTimed(); }
-        else if (InRowIndex == 3) { Ck_GymInteraction_StartManual(); }
-        else if (InRowIndex == 4) { Ck_GymInteraction_EndManualSuccess(); }
-        else if (InRowIndex == 5) { Ck_GymInteraction_EndManualFail(); }
-        else if (InRowIndex == 6) { Ck_GymInteraction_CancelManual(); }
-        else if (InRowIndex == 7) { Ck_GymInteraction_AttemptValidation(); }
-        else if (InRowIndex == 9) { Ck_GymInteraction_ToggleEnabled(); }
-        else if (InRowIndex == 10) { Ck_GymInteraction_ToggleCustomValidation(); }
-        else if (InRowIndex == 12) { Ck_GymInteraction_StartIntent(); }
-        else if (InRowIndex == 13) { Ck_GymInteraction_StopIntent(); }
-        else if (InRowIndex == 14) { Ck_GymInteraction_AddTarget(); }
-        else if (InRowIndex == 15) { Ck_GymInteraction_RemoveTarget(); }
-        else if (InRowIndex == 16) { Ck_GymInteraction_InitiateResolution(); }
-        else if (InRowIndex == 18) { Ck_GymInteraction_Auto(1); }
+        // Rows 0, 8, 11, 17, 19 and 26 are headers, which hold no key and never arrive here.
+        if (InRowIndex == 1) { BroadcastToTag(n"TAG_InteractionGym_Instant", FInstancedStruct::Make(FCk_Message_InteractionGym_TriggerInstant())); }
+        else if (InRowIndex == 2) { BroadcastToTag(n"TAG_InteractionGym_TimedTarget", FInstancedStruct::Make(FCk_Message_InteractionGym_StartTimed())); }
+        else if (InRowIndex == 3) { BroadcastToTag(n"TAG_InteractionGym_Manual", FInstancedStruct::Make(FCk_Message_InteractionGym_StartManual())); }
+        else if (InRowIndex == 4) { BroadcastToTag(n"TAG_InteractionGym_Manual", FInstancedStruct::Make(FCk_Message_InteractionGym_EndManualSuccess())); }
+        else if (InRowIndex == 5) { BroadcastToTag(n"TAG_InteractionGym_Manual", FInstancedStruct::Make(FCk_Message_InteractionGym_EndManualFail())); }
+        else if (InRowIndex == 6) { BroadcastToTag(n"TAG_InteractionGym_Manual", FInstancedStruct::Make(FCk_Message_InteractionGym_CancelManual())); }
+        else if (InRowIndex == 7) { BroadcastToTag(n"TAG_InteractionGym_Validation", FInstancedStruct::Make(FCk_Message_InteractionGym_AttemptValidation())); }
+        else if (InRowIndex == 9) { BroadcastToTag(n"TAG_InteractionGym_Validation", FInstancedStruct::Make(FCk_Message_InteractionGym_ToggleEnabled())); }
+        else if (InRowIndex == 10) { BroadcastToTag(n"TAG_InteractionGym_Validation", FInstancedStruct::Make(FCk_Message_InteractionGym_ToggleCustomValidation())); }
+        else if (InRowIndex == 12) { BroadcastToTag(n"TAG_InteractionGym_ResolverSource", FInstancedStruct::Make(FCk_Message_InteractionGym_StartIntent())); }
+        else if (InRowIndex == 13) { BroadcastToTag(n"TAG_InteractionGym_ResolverSource", FInstancedStruct::Make(FCk_Message_InteractionGym_StopIntent())); }
+        else if (InRowIndex == 14) { BroadcastToTag(n"TAG_InteractionGym_ResolverSource", FInstancedStruct::Make(FCk_Message_InteractionGym_AddTargets())); }
+        else if (InRowIndex == 15) { BroadcastToTag(n"TAG_InteractionGym_ResolverSource", FInstancedStruct::Make(FCk_Message_InteractionGym_RemoveTargets())); }
+        else if (InRowIndex == 16) { BroadcastToTag(n"TAG_InteractionGym_DataBundle", FInstancedStruct::Make(FCk_Message_InteractionGym_InitiateResolution())); }
+        else if (InRowIndex == 18) { BroadcastAutoToAll(true); }
         else if (InRowIndex == 20) { BroadcastAutoToTag(n"TAG_InteractionGym_Instant", true); }
         else if (InRowIndex == 21) { BroadcastAutoToTag(n"TAG_InteractionGym_TimedTarget", true); }
         else if (InRowIndex == 22) { BroadcastAutoToTag(n"TAG_InteractionGym_Manual", true); }
         else if (InRowIndex == 23) { BroadcastAutoToTag(n"TAG_InteractionGym_Validation", true); }
         else if (InRowIndex == 24) { BroadcastAutoToTag(n"TAG_InteractionGym_ResolverSource", true); }
         else if (InRowIndex == 25) { BroadcastAutoToTag(n"TAG_InteractionGym_DataBundle", true); }
+        else if (InRowIndex == 26) { BroadcastAutoToAll(false); }
     }
 
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Trigger Instant")
-    void Ck_GymInteraction_TriggerInstant()
-    {
-        BroadcastToTag(n"TAG_InteractionGym_Instant", FInstancedStruct::Make(FCk_Message_InteractionGym_TriggerInstant()));
-    }
-
-    //------------------------------------------------------------------------
-    // STATION 2: TIMED
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Start Timed")
-    void Ck_GymInteraction_StartTimed()
-    {
-        BroadcastToTag(n"TAG_InteractionGym_TimedTarget", FInstancedStruct::Make(FCk_Message_InteractionGym_StartTimed()));
-    }
-
-    //------------------------------------------------------------------------
-    // STATION 3: MANUAL
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Start Manual")
-    void Ck_GymInteraction_StartManual()
-    {
-        BroadcastToTag(n"TAG_InteractionGym_Manual", FInstancedStruct::Make(FCk_Message_InteractionGym_StartManual()));
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - End Manual Success")
-    void Ck_GymInteraction_EndManualSuccess()
-    {
-        BroadcastToTag(n"TAG_InteractionGym_Manual", FInstancedStruct::Make(FCk_Message_InteractionGym_EndManualSuccess()));
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - End Manual Fail")
-    void Ck_GymInteraction_EndManualFail()
-    {
-        BroadcastToTag(n"TAG_InteractionGym_Manual", FInstancedStruct::Make(FCk_Message_InteractionGym_EndManualFail()));
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Cancel Manual")
-    void Ck_GymInteraction_CancelManual()
-    {
-        BroadcastToTag(n"TAG_InteractionGym_Manual", FInstancedStruct::Make(FCk_Message_InteractionGym_CancelManual()));
-    }
-
-    //------------------------------------------------------------------------
-    // STATION 4: VALIDATION
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Attempt Validation")
-    void Ck_GymInteraction_AttemptValidation()
-    {
-        BroadcastToTag(n"TAG_InteractionGym_Validation", FInstancedStruct::Make(FCk_Message_InteractionGym_AttemptValidation()));
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Toggle Enabled")
-    void Ck_GymInteraction_ToggleEnabled()
-    {
-        BroadcastToTag(n"TAG_InteractionGym_Validation", FInstancedStruct::Make(FCk_Message_InteractionGym_ToggleEnabled()));
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Toggle Custom Validation")
-    void Ck_GymInteraction_ToggleCustomValidation()
-    {
-        BroadcastToTag(n"TAG_InteractionGym_Validation", FInstancedStruct::Make(FCk_Message_InteractionGym_ToggleCustomValidation()));
-    }
-
-    //------------------------------------------------------------------------
-    // STATION 5: RESOLVER
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Start Intent")
-    void Ck_GymInteraction_StartIntent()
-    {
-        BroadcastToTag(n"TAG_InteractionGym_ResolverSource", FInstancedStruct::Make(FCk_Message_InteractionGym_StartIntent()));
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Stop Intent")
-    void Ck_GymInteraction_StopIntent()
-    {
-        BroadcastToTag(n"TAG_InteractionGym_ResolverSource", FInstancedStruct::Make(FCk_Message_InteractionGym_StopIntent()));
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Add Resolver Targets")
-    void Ck_GymInteraction_AddTarget()
-    {
-        BroadcastToTag(n"TAG_InteractionGym_ResolverSource", FInstancedStruct::Make(FCk_Message_InteractionGym_AddTargets()));
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Remove Resolver Targets")
-    void Ck_GymInteraction_RemoveTarget()
-    {
-        BroadcastToTag(n"TAG_InteractionGym_ResolverSource", FInstancedStruct::Make(FCk_Message_InteractionGym_RemoveTargets()));
-    }
-
-    //------------------------------------------------------------------------
-    // STATION 6: DATA BUNDLE
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Initiate Resolution")
-    void Ck_GymInteraction_InitiateResolution()
-    {
-        BroadcastToTag(n"TAG_InteractionGym_DataBundle", FInstancedStruct::Make(FCk_Message_InteractionGym_InitiateResolution()));
-    }
-
-    //------------------------------------------------------------------------
-    // AUTO MODE COMMANDS
-    //------------------------------------------------------------------------
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto All")
-    void Ck_GymInteraction_Auto(int32 InEnabled = 1)
-    {
-        BroadcastAutoToAll(InEnabled != 0);
-    }
 }
