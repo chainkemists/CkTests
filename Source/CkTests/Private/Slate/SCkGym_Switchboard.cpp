@@ -112,6 +112,12 @@ auto
                     .AutoHeight()
                     .Padding(FMargin{0.0f, CkStyle::SpaceM, 0.0f, 0.0f})
                     [
+                        DoBuild_SettingsLine(InModel)
+                    ]
+                    + SVerticalBox::Slot()
+                    .AutoHeight()
+                    .Padding(FMargin{0.0f, CkStyle::SpaceS, 0.0f, 0.0f})
+                    [
                         DoBuild_Footer(InModel)
                     ]
                 ]
@@ -336,6 +342,54 @@ auto
     }
 
     return List;
+}
+
+auto
+    SCkGym_Switchboard::
+    DoBuild_SettingsLine(
+        const FCkGym_Switchboard_Model& InModel)
+    -> TSharedRef<SWidget>
+{
+    // The per-user startup preference (Editor Preferences -> Ck Tests -> Gym Cycler), editable
+    // without leaving the menu: F1 cycles the mode, F2 pins the selected gym as the default.
+    auto ModeText = FString{};
+    switch (InModel.StartupMode)
+    {
+        case ECkGym_StartupMode::Default:
+            ModeText = FString::Printf(TEXT("Default → %s"),
+                InModel.DefaultGymName.IsEmpty() ? TEXT("(unset)") : *InModel.DefaultGymName);
+            break;
+        case ECkGym_StartupMode::Last:
+            ModeText = FString::Printf(TEXT("Last (→ %s)"),
+                InModel.LastGymName.IsEmpty() ? TEXT("none yet") : *InModel.LastGymName);
+            break;
+        case ECkGym_StartupMode::Cycler:
+        default:
+            ModeText = TEXT("Cycler (this menu)");
+            break;
+    }
+
+    return SNew(SHorizontalBox)
+        + SHorizontalBox::Slot()
+        .AutoWidth()
+        .VAlign(VAlign_Center)
+        [
+            SNew(STextBlock)
+            .Text(FText::FromString(FString::Printf(TEXT("[F1] startup: %s"), *ModeText)))
+            .Font(CkStyle::MonoFont(CkStyle::FontSizeMicro()))
+            .ColorAndOpacity(InModel.StartupMode == ECkGym_StartupMode::Cycler
+                ? CkStyle::TextMute() : CkStyle::AccentDim())
+        ]
+        + SHorizontalBox::Slot()
+        .AutoWidth()
+        .VAlign(VAlign_Center)
+        .Padding(FMargin{CkStyle::SpaceL, 0.0f, 0.0f, 0.0f})
+        [
+            SNew(STextBlock)
+            .Text(FText::FromString(TEXT("[F2] start on selected")))
+            .Font(CkStyle::MonoFont(CkStyle::FontSizeMicro()))
+            .ColorAndOpacity(CkStyle::TextMute())
+        ];
 }
 
 auto

@@ -35,6 +35,22 @@ visibility.
 
 ## Dated entries (append-only, newest first)
 
+### 2026-08-29 — USER PIE VERDICTS (round 2) + panel restyle
+- Round-1 fixes CONFIRMED by user: "keys inside the gym work" (per-world Tab re-arm holds).
+- New finding: **mouse pitch inverted.** Root cause: the round-1 comment's own premise was wrong —
+  the Slate-space cursor delta (Y down-positive) is ALREADY the negation of the legacy MouseY
+  axis convention (up-positive), so adding the stock LookUp mapping's -1 double-inverted. Fixed:
+  no explicit flip; documented in the pawn.
+- User requested restyling the top-left keyed controls → **control panel ported to Slate**
+  (same CkStyle language as the switchboard): types moved to C++ (`CkGym_ControlPanelTypes.h`,
+  style struct slimmed to X/Y anchor — Canvas geometry fields deleted, only VfxExamples' Y=140
+  override existed), `SCkGym_ControlPanel` renders, HUD is now a drawing-free per-frame driver
+  pushing rows through `Request_SetControlPanel` (subsystem diffs, re-renders on change; panel
+  collapses during startup suppression and while the switchboard is open). Tab/H hints live in
+  the widget now.
+- Commits: 22e40e38 (round-1 fixes), 10481db6 (round-2 + panel port). Build+GymRegistry smoke
+  green after each. Full-suite re-gate due before P4 exit (panel port touched shared HUD flow).
+
 ### 2026-08-29 — USER PIE VERDICTS (round 1) + fixes
 User-observed in PIE (4 findings, all diagnosed and fixed same session):
 1. **Tab dead inside gyms, alive on the launcher level.** Root cause: the input-source entity is
