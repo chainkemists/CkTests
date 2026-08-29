@@ -14,7 +14,16 @@
 // NEW-BINDING RULE: CkVisualLod calls go through UCk_Utils_* classes directly — the
 // generated utils_* alias layer regenerates AFTER script compile, so a fresh
 // feature's aliases don't resolve on the first boot (same rule the BB flip
-// processors followed).
+// processors followed). The signal binds are the one exception and take the HANDLE
+// MEMBER form instead: their first parameter is the feature's own typesafe handle, so
+// they bind as handle members only and the static spelling does not resolve at all.
+//
+// MATERIALS: the module writes the fade alpha to both channels and touches no materials —
+// reading it is content's job, so this station is what wires the two CkUsf looks that do.
+// The crowd's slot overrides get VisualLodCrowdFade (per-instance float 13) at OnCrowdCreated;
+// each promoted proxy gets VisualLodNearFade (custom primitive data 0) at OnPromoted. Both
+// generated masters must exist — run `Ck_Usf_GenerateLooks` in the editor once and commit
+// them, or the station logs the miss and the flip pops exactly as an unwired material should.
 //============================================================================
 
 namespace Ck
@@ -67,6 +76,11 @@ class UCk_EntityScript_VisualLodGym_Arbitration : UCk_GenericEntityScript_UE
         _Arbiter = UCk_Utils_VisualLodArbiter_UE::Add(ArbiterEntity,
             FCk_Fragment_VisualLodArbiter_ParamsData(Config));
 
+        // Fires once per crowd, right after Finalize — the window to paint the batched members
+        // with the far half of the crossfade before any of them draw.
+        _Arbiter.BindTo_OnCrowdCreated(
+            FCk_Delegate_VisualLodArbiter_CrowdCreated(this, n"OnCrowdCreated"));
+
         const auto DomainTag = utils_gameplay_tag::ResolveGameplayTag(n"Gym.VisualLod.Domain");
         auto RendererData = iskm_assets::RendererData_Demo();
 
@@ -95,7 +109,11 @@ class UCk_EntityScript_VisualLodGym_Arbitration : UCk_GenericEntityScript_UE
             FarAnim.Set_FixedSequenceIndex(2);
             MemberParams.Set_InitialFarAnim(FarAnim);
 
-            UCk_Utils_VisualLod_UE::Add(Member, MemberParams);
+            auto VisualLod = UCk_Utils_VisualLod_UE::Add(Member, MemberParams);
+
+            // The proxy only exists from the promote onward, so the near half of the crossfade
+            // is painted per promote rather than once up front.
+            VisualLod.BindTo_OnPromoted(FCk_Delegate_VisualLod_Promoted(this, n"OnMemberPromoted"));
 
             _Members.Add(Member);
             _OrbitCenters.Add(MemberXf.GetTranslation());
@@ -106,6 +124,49 @@ class UCk_EntityScript_VisualLodGym_Arbitration : UCk_GenericEntityScript_UE
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnTick"));
         return ECk_EntityScript_ConstructionFlow::Finished;
+    }
+
+    // FAR half of the crossfade. Both of SKM_Manny_Simple's slots take the look — a body wearing
+    // it on one slot only keeps drawing the other half solid all the way through the fade.
+    UFUNCTION()
+    private void OnCrowdCreated(FCk_Handle_VisualLodArbiter InArbiter, int32 InCrowdIndex)
+    {
+        auto Crowd = InArbiter.Get_Crowd(InCrowdIndex);
+        if (ck::Is_NOT_Valid(Crowd))
+        {
+            Print(f"[VisualLod Gym] Crowd {InCrowdIndex} is null at OnCrowdCreated — no far fade material.", 10.0f);
+            return;
+        }
+
+        auto Master = utils_usf::Get_LookMasterMaterial(CkUsf::VisualLodCrowdFade);
+        if (ck::Is_NOT_Valid(Master))
+        {
+            Print("[VisualLod Gym] VisualLodCrowdFade master missing — run Ck_Usf_GenerateLooks.", 10.0f);
+            return;
+        }
+
+        TArray<UMaterialInterface> SlotMaterials;
+        SlotMaterials.Add(Master);
+        SlotMaterials.Add(Master);
+        utils_iskm_batched::Set_CrowdSlotOverrideMaterials(Crowd, SlotMaterials);
+    }
+
+    // NEAR half. The proxy is live and its material work is expected here — the arbiter drives
+    // the same alpha into custom primitive data 0, which is what this look reads.
+    UFUNCTION()
+    private void OnMemberPromoted(FCk_Handle_VisualLod InMember, FCk_Handle_IskmProxy InProxy)
+    {
+        auto Master = utils_usf::Get_LookMasterMaterial(CkUsf::VisualLodNearFade);
+        if (ck::Is_NOT_Valid(Master))
+        {
+            Print("[VisualLod Gym] VisualLodNearFade master missing — run Ck_Usf_GenerateLooks.", 10.0f);
+            return;
+        }
+
+        utils_iskm_proxy::Request_SetMaterialOverride(InProxy,
+            FCk_Request_IskmProxy_SetMaterialOverride(int32(0), Master));
+        utils_iskm_proxy::Request_SetMaterialOverride(InProxy,
+            FCk_Request_IskmProxy_SetMaterialOverride(int32(1), Master));
     }
 
     UFUNCTION()
