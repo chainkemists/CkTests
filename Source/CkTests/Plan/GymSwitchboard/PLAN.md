@@ -12,8 +12,8 @@ Mission: [PROMPT.md](PROMPT.md). Volatile state: [PROGRESS.md](PROGRESS.md).
 | P2 | Input + widget substrate | Menu input-layer entity (catch-all Consume open/close), Tab global action, empty Slate switchboard shell on the viewport driven by it | ✅ Done (2026-08-29) |
 | P2.5 | Gameplay onto the stack | Pawn movement via low-priority layer; control panel rows via mid-priority layer; masking verified | ✅ Done (2026-08-29) |
 | P3 | Group Rail layout (default) | Full default layout: groups, filter, navigate, travel. **First user-test checkpoint — STOP for PIE verification** | ✅ Code (2026-08-29) — PIE pending |
-| P3.6 | Checkpoint feedback + settings-in-menu | Round 1+2 PIE fixes; control panel ported to Slate; F1/F2 startup settings inside the menu (user requests 2026-08-29) | 🟡 In progress |
-| P3.7 | Panel adoption sweep | Every gym knob is a row; gym CVars deleted — [Gate_04](Gate_04_PanelAdoptionSweep.md) (user directive 2026-08-29) | ⏳ Pending |
+| P3.6 | Checkpoint feedback + settings-in-menu | Round 1+2 PIE fixes; control panel ported to Slate; F1/F2 startup settings inside the menu (user requests 2026-08-29) | ✅ Code (2026-08-29) — PIE pending |
+| P3.7 | Panel adoption sweep | Every gym knob is a row; gym CVars deleted — [Gate_04](Gate_04_PanelAdoptionSweep.md) (user directive 2026-08-29) | ✅ Code (2026-08-29) — PIE pending |
 | P4 | Remaining layouts | Chip Wall, Palette (+recents), Hint Select; `;` hints cross-layout | ⏳ Pending |
 | P5 | Setting + live switching | ECkGym_MenuLayout, `[`/`]` cycle + persist | ⏳ Pending |
 | P6 | Lint + GoTo codes + docs | Registration lint, Ck_Gym_GoTo hint codes, CLAUDE.md updates (stale 43-gym count), full-suite gate | ⏳ Pending |
