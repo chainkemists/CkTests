@@ -1,7 +1,10 @@
 # Gate 4 — Control-panel adoption sweep (every gym knob is a row)
 
-> **Status:** ⏳ Pending (inventory complete 2026-08-29; execution blocked on the settings-in-menu
-> gate landing first)
+> **Status:** ✅ Code done (2026-08-29) — commits a1cb90e3 + dec62576; PIE spot-check pending.
+> Exit evidence: zero `ck.JoltStressGym` refs; zero reserved-key rows (grep-proven); full suite
+> 1293/19-failed = strict members of the pre-campaign baseline set, zero new failures.
+> OPEN POLICY FORK (user decides): ~200 exec+row DUPLICATES remain in the pre-adopted gyms —
+> purge for one-path uniformity, or keep as the scriptable/automation surface?
 > **Depends on:** P3 round-2 fixes ✅; user directive 2026-08-29 ("panel is the core standard;
 > gym CVars removed")
 > **Estimate:** 2-3 sessions (40+ AS files)
