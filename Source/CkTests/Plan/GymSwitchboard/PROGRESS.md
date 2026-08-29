@@ -1,6 +1,13 @@
 # Gym Switchboard — PROGRESS.md (living log)
 
 ## Current state  <!-- supersedes everything below; update at EVERY gate and session end -->
+**ROUND CLOSED 2026-08-29 (commit e708626c):** exec purge done (210 → 16 free-range keeps + 5
+framework, all Status-advertised; testability-preserving per-exec verdicts recorded in the agent
+reports), settings on [1]/[2] digits (F-keys rejected: Unreal rendering debug modes; digits left
+the filter corpus), ★ default-gym markers on row+rail. Gate: build green, full suite 1293/17 —
+strict baseline subset, zero new. AT USER-TEST CHECKPOINT. Follow-up chip spawned: CkFoundation's
+ck-vfx-authoring skill cites deleted execs (cross-submodule, not this campaign).
+
 **As of 2026-08-29 (CkTests branch `feature/gym-switchboard`, base = origin/dev @ d18b1ca0):**
 P0 in progress — three read-only research agents in flight (gym data flow, input-layer AS recipes,
 Slate substrate). Campaign docs authored.
