@@ -17,6 +17,7 @@
 //   Ck.Snapshot.RuntimeArchetype.ProviderRestoresDefinition
 //   Ck.Snapshot.RuntimeArchetype.UnresolvedPathIsNotErased
 //   Ck.Snapshot.RuntimeArchetype.RegistryContract
+//   Ck.Snapshot.RuntimeArchetype.ErasedPathStillFreesTheSlot
 
 #include "Misc/AutomationTest.h"
 
@@ -38,6 +39,8 @@
 #include "CkEcs/OwningActor/CkOwningActor_Utils.h"
 #include "CkEcs/Net/EntityReplicationDriver/CkEntityReplicationDriver_BuildRecipe.h"
 #include "CkEcs/Persistence/CkRuntimeArchetype_Registry.h"
+#include "CkEcs/Net/EntityReplicationDriver/CkEntityReplicationDriver_Utils.h"
+#include "CkEcs/ContextOwner/CkContextOwner_Utils.h"
 
 #include "CkSnapshot/Subsystem/CkSnapshot_Subsystem.h"
 
@@ -145,6 +148,31 @@ namespace ck_runtime_archetype_gate
     auto Mint_UniqueArchetype(const TCHAR* InLeaf) -> UCk_Entity_ConstructionScript_PDA*
     {
         return Mint_Definition(FName{FString::Printf(TEXT("Ck_RuntimeArchetypeSpec_%s"), InLeaf)});
+    }
+
+    // An item built with NO archetype at all - what a save written by a build that had already rebuilt one
+    // husk contains, because that build captured the null archetype back as an empty path. Mirrors
+    // UCk_Utils_Item_UE::Create exactly, minus the Set_ConstructionScriptArchetype line.
+    auto Add_ItemWithNoArchetype(UWorld* InServer) -> bool
+    {
+        auto Inventory = Resolve_Inventory(InServer);
+        if (ck::Is_NOT_Valid(Inventory))
+        { return false; }
+
+        auto Owner = UCk_Utils_ContextOwner_UE::Get_ContextOwner(Inventory);
+        if (ck::Is_NOT_Valid(Owner))
+        { return false; }
+
+        const auto Info = FCk_EntityReplicationDriver_ConstructionInfo{UCk_InventoryItem_Definition::StaticClass()};
+        auto Built = UCk_Utils_EntityReplicationDriver_UE::Request_BuildAndReplicate(Owner, Info);
+        auto Item = UCk_Utils_Item_UE::Cast(Built);
+        if (ck::Is_NOT_Valid(Item))
+        { return false; }
+
+        UCk_Utils_Inventory_UE::Request_AddItem(
+            Inventory, FCk_Request_Inventory_AddItem{Item},
+            FCk_Delegate_Inventory_OnOperationResult_Add{}, {});
+        return true;
     }
 
     auto Make_SubjectReady() -> FCk_NetAutoTest_Assertion
@@ -502,6 +530,79 @@ bool FCkSnapshot_RuntimeArchetype_RegistryContract::RunTest(const FString&)
     TestFalse(TEXT("the spec leaves the registry as it found it"),
         ck::FCk_RuntimeArchetypeRegistry::Get_HasAnyProvider());
 
+    return true;
+}
+
+
+// --------------------------------------------------------------------------------------------------------------------
+// 5. The path was already ERASED, and the slot is STILL freed.
+//
+// The other husk gate stages a path that fails to resolve. This one stages the case that path-preservation cannot
+// help with: a recipe carrying NO archetype at all, which is what a save written by a build that had already
+// rebuilt a husk contains - it kept the null archetype and captured it back as an empty string.
+//
+// CkSnapshot cannot call that a defect. FCk_EntityReplicationDriver_ConstructionInfo is constructible from a
+// script class alone, so an archetype-less build is a legal shape and the framework has no basis to reject one.
+// Only CkInventory knows that an item whose definition is the class default is not an item - which is why the
+// guard lives there, and why it catches the husk by what it IS rather than by how it was made.
+//
+// This is the "the player is left working" case: those tapes are unrecoverable either way, and the difference
+// this gate defends is whether their inventory slots come back usable or dead forever.
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkSnapshot_RuntimeArchetype_ErasedPathStillFreesTheSlot,
+    "Ck.Snapshot.RuntimeArchetype.ErasedPathStillFreesTheSlot",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCkSnapshot_RuntimeArchetype_ErasedPathStillFreesTheSlot::RunTest(const FString& Parameters)
+{
+    bSuppressLogErrors = true;
+    bSuppressLogWarnings = true;
+
+    // No provider is relevant here: there is no path for one to claim.
+    ck::FCk_RuntimeArchetypeRegistry::Unregister(ck_runtime_archetype_gate::ProviderId);
+
+    auto Spec = ck::auto_test::snapshot::FCk_SnapshotRoundTrip_Spec{};
+    Spec.SlotName = FName{TEXT("CkSnapshot_RuntimeArchetype_ErasedSlot")};
+    Spec.SaveEveryCycle = false;
+
+    Spec.Spawn = FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld* InServer) -> void
+    { ck_runtime_archetype_gate::Spawn_Subject(InServer); });
+
+    Spec.SubjectReady = ck_runtime_archetype_gate::Make_SubjectReady();
+
+    // No PostSave needed - unlike the other husk gate there is nothing to break. The recipe is born empty.
+    Spec.Mutate = FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
+    {
+        if (NOT ck_runtime_archetype_gate::Add_ItemWithNoArchetype(InServer))
+        { AddError(TEXT("Setup: could not build an archetype-less item into the inventory")); }
+    });
+
+    Spec.Assert = FCk_NetAutoTest_Assertion::CreateLambda([this]() -> bool
+    {
+        auto* Server = ck::auto_test::snapshot::Get_PostTravelServerWorld();
+        auto Inventory = ck_runtime_archetype_gate::Resolve_Inventory(Server);
+
+        TestTrue(TEXT("post-load: the inventory itself still restored"), ck::IsValid(Inventory));
+        if (ck::Is_NOT_Valid(Inventory))
+        { return true; }
+
+        // The whole point of this gate. CkSnapshot never saw a path to fail on, so without CkInventory's own
+        // guard this husk is never marked, never reaped, and holds its slot for the rest of the save's life.
+        TestEqual(TEXT("post-load: an item with no recoverable identity still released its slot"),
+            UCk_Utils_Inventory_UE::Get_NumItems(Inventory), 0);
+
+        auto* Sub = ck::auto_test::snapshot::Get_SnapshotSubsystem(Server);
+        if (Sub != nullptr)
+        {
+            TestTrue(TEXT("post-load: the reap is still reported, even with no path to name"),
+                Sub->Get_LastLoadReport().Get_UnresolvedArchetypes().Num() > 0);
+        }
+        return true;
+    });
+
+    ck::auto_test::snapshot::EnqueueRoundTrip(this, Spec);
     return true;
 }
 
