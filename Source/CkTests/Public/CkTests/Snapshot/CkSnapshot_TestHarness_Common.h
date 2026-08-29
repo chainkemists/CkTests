@@ -49,6 +49,12 @@ namespace ck::auto_test::snapshot
         FCk_NetAutoTest_ServerAction Spawn;               // REQUIRED: spawn/compose the subject
         FCk_NetAutoTest_Assertion    SubjectReady;        // optional poll gate before Mutate (unset = skip)
         FCk_NetAutoTest_ServerAction Mutate;              // optional: drive to a non-default state
+        // optional: runs on the server AFTER the save is written and BEFORE the load is issued, every cycle.
+        // The window a test needs when the thing under test is what happens to state the save recorded but the
+        // loading world can no longer reach - an asset renamed away, a runtime-minted object that a fresh
+        // process would not have. Mutate cannot express that: it runs pre-save, so the save would record the
+        // broken state rather than a good state that later becomes unreachable.
+        FCk_NetAutoTest_ServerAction PostSave;
         FCk_NetAutoTest_Assertion    ReloadSettled;       // optional extra predicate ANDed onto the default
                                                           // (server world changed + on-map + HasBegunPlay + NOT IsLoadInProgress)
         FCk_NetAutoTest_Assertion    Assert;              // REQUIRED: final assertions
