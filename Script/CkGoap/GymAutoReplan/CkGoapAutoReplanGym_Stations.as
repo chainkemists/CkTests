@@ -28,9 +28,9 @@ struct FCk_GoapGym_AutoReplan_Station_SpawnParams
     int32 Mode = 0;     // 0=Explicit, 1=OnWSDirty (throttled), 2=OnCostDirty
 }
 
-// Marker fragment stamped onto the station entity by the GameMode's
-// `Goap.AutoReplan.Explicit.Replan` exec. The station tick polls for it,
-// issues Request_Plan, then removes the fragment.
+// Marker fragment stamped onto the station entity by the PlayerController's
+// control-panel [R] row. The station tick polls for it, issues Request_Plan,
+// then removes the fragment.
 USTRUCT()
 struct FCk_Fragment_GoapGym_ForceReplanPending
 {
@@ -205,7 +205,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         if (Mode == 0)
         {
             Title = "STATION A / EXPLICIT";
-            ButtonsBlock = "  Goap.AutoReplan.Explicit.Replan\n"
+            ButtonsBlock = "  panel [R]  Station A: replan now\n"
                 + "       Manually issue Request_Plan.\n"
                 + "       Plan count should jump exactly +1.";
         }

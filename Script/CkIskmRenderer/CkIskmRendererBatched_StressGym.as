@@ -62,9 +62,26 @@ class ACk_IskmRendererBatchedGym_Stress_PlayerController : ACk_Gym_Base_PlayerCo
         FinishSpawningActor(Floor);
     }
 
-    UFUNCTION(Exec, DisplayName="IskmRenderer Batched Stress - Restart")
-    void Ck_GymIskmRendererBatchedStress_Restart()
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // One row. The crowd is spawned once at start, so re-spawning it IS the only control the gym has.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
     {
-        Request_StartGym();
+        return "ISKM RENDERER: BATCHED STRESS";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Respawn the 600-instance crowd"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Request_StartGym(); }
     }
 }

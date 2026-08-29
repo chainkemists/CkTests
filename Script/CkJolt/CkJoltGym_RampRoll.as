@@ -35,7 +35,7 @@ class ACk_JoltGym_RampRoll_PlayerController : ACk_Gym_Base_PlayerController
         Station.Title = FText::FromString("JOLT RAMP ROLL");
         auto Description = TArray<FText>();
         Description.Add(FText::FromString("3 Static ramps at 15/30/45 deg.\nDynamic spheres roll down each lane."));
-        Description.Add(FText::FromString("Ck_GymJoltRampRoll_Release [0/1/2/-1]\nCk_GymJoltRampRoll_Reset"));
+        Description.Add(FText::FromString("Every control is on the panel:\n[B] release all · [1/2/3] one lane · [R] reset."));
         Station.Description = Description;
         Station.AutoSize = true;
         Stations.Add(Station);
@@ -52,7 +52,7 @@ class ACk_JoltGym_RampRoll_PlayerController : ACk_Gym_Base_PlayerController
             DoAddRampLane(DoLaneY(i), DoLanePitch(i));
         }
 
-        Ck_GymJoltRampRoll_Release(-1);
+        DoRelease(-1);
 
         ck::Trace("JoltRampRollGym: started - 3 ramps built, spheres released");
     }
@@ -119,9 +119,32 @@ class ACk_JoltGym_RampRoll_PlayerController : ACk_Gym_Base_PlayerController
         _Spheres.Add(Generic);
     }
 
-    // InLaneIndex: 0/1/2 releases just that lane's sphere; anything else (default -1) releases all 3.
-    UFUNCTION(Exec, DisplayName="Jolt RampRoll - Release Sphere(s)")
-    void Ck_GymJoltRampRoll_Release(int32 InLaneIndex = -1)
+    // ---- Control panel ------------------------------------------------------------------------
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Header("RAMP ROLL"));
+        Rows.Add(CkGym_Control::Action(EKeys::B,     "B", "Release a sphere on every lane"));
+        Rows.Add(CkGym_Control::Action(EKeys::One,   "1", "Release lane 1 (15 deg)"));
+        Rows.Add(CkGym_Control::Action(EKeys::Two,   "2", "Release lane 2 (30 deg)"));
+        Rows.Add(CkGym_Control::Action(EKeys::Three, "3", "Release lane 3 (45 deg)"));
+        Rows.Add(CkGym_Control::Action(EKeys::R,     "R", "Reset - clear and re-release"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 1)
+        { DoRelease(-1); }
+        else if (InRowIndex >= 2 && InRowIndex <= 4)
+        { DoRelease(InRowIndex - 2); }
+        else if (InRowIndex == 5)
+        { DoReset(); }
+    }
+
+    // InLaneIndex: 0/1/2 releases just that lane's sphere; anything else releases all 3.
+    private void DoRelease(int32 InLaneIndex)
     {
         if (InLaneIndex >= 0 && InLaneIndex < _LaneCount)
         {
@@ -137,8 +160,7 @@ class ACk_JoltGym_RampRoll_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("JoltRampRollGym: released a sphere on every lane");
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt RampRoll - Reset")
-    void Ck_GymJoltRampRoll_Reset()
+    private void DoReset()
     {
         for (auto Sphere : _Spheres)
         {
@@ -146,7 +168,7 @@ class ACk_JoltGym_RampRoll_PlayerController : ACk_Gym_Base_PlayerController
         }
         _Spheres.Empty();
 
-        Ck_GymJoltRampRoll_Release(-1);
+        DoRelease(-1);
         ck::Trace("JoltRampRollGym: reset - all spheres cleared and re-released");
     }
 }

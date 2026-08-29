@@ -3,21 +3,11 @@
 //============================================================================
 // CK JOLT GYM - STRESS (landscape ball rain)
 //
-// Drops CVar-driven waves of Dynamic Jolt spheres onto the authored landscape
+// Drops waves of Dynamic Jolt spheres onto the authored landscape
 // (Ck.Gym.AuthorJoltStaticBakeContent) and keeps adding more - a load harness
-// for the heightfield + dynamic-body pipeline. Watch with
-// ck.Jolt.DebugDraw.Enabled 1 and measure with `stat CkJolt` / the CK Jolt
-// Physics Debugger tab.
-//
-//   CVars (registered from C++ at module load - settable any time; see
-//   CkJoltStressGym_Utils.cpp):
-//     ck.JoltStressGym.InitialBalls        (50)   balls at gym start
-//     ck.JoltStressGym.BallsPerWave        (10)   read live each wave
-//     ck.JoltStressGym.WaveIntervalSeconds (10)   read at gym start
-//     ck.JoltStressGym.MaxBalls            (2000) hard cap, read live
-//   Exec:
-//     Ck_GymJoltStress_Drop [N]   burst-drop N balls now (default: BallsPerWave)
-//     Ck_GymJoltStress_Reset      destroy all balls + re-drop the initial wave
+// for the heightfield + dynamic-body pipeline. Every knob is a control-panel
+// row (preset rings for the counts, actions for drop/reset, a toggle for the
+// Jolt debug draw); measure with `stat CkJolt` / the CK Jolt Physics Debugger.
 //
 // The drop zone derives from the FOUND landscape's bounds (20% inset). With no
 // landscape in the level a static fallback floor is spawned so the gym still
@@ -43,6 +33,19 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
     // Host entity for the wave/settle timers (mirrors the StaticBake gym's pattern).
     private FCk_Handle _GymEntity;
 
+    // The stress knobs, panel-driven preset rings (the old ck.JoltStressGym.* CVars, deleted).
+    private int32 _InitialBalls = 50;
+    private int32 _BallsPerWave = 10;
+    private float _WaveIntervalSeconds = 10.0;
+    private int32 _MaxBalls = 2000;
+
+    private FCk_Handle_Timer _WaveTimer;
+
+    // Mirror of ck.Jolt.DebugDraw.Enabled - mirrored in a member because the module exposes no
+    // AS readback for it; EndPlay writes it back to its default (off) only if this gym touched it.
+    private bool _JoltDrawEnabled = false;
+    private bool _JoltDrawTouched = false;
+
     private TArray<FCk_Handle> _Balls;
     private int32 _TotalSpawned = 0;
     private bool _CapReported = false;
@@ -64,9 +67,7 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
         Station.Transform = FTransform(FRotator(0.0, 180.0, 0.0), FVector(-1800.0, 20000.0, 0.0), FVector::OneVector);
 
         auto Description = TArray<FText>();
-        Description.Add(FText::FromString("CVar-driven Dynamic spheres rain onto the authored landscape heightfield. Set ck.Jolt.DebugDraw.Enabled 1 to see them; stat CkJolt to measure."));
-        Description.Add(FText::FromString("ck.JoltStressGym.InitialBalls (50) | .BallsPerWave (10) | .WaveIntervalSeconds (10) | .MaxBalls (2000)"));
-        Description.Add(FText::FromString("Ck_GymJoltStress_Drop [N]\nCk_GymJoltStress_Reset"));
+        Description.Add(FText::FromString("Dynamic spheres rain onto the authored landscape heightfield in timed waves. All knobs are on the control panel; toggle [J] to see the bodies, stat CkJolt to measure."));
         Station.Description = Description;
         Station.AutoSize = true;
         Stations.Add(Station);
@@ -86,20 +87,10 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
 
         DoResolveDropZone();
 
-        auto InitialCount = UCk_Utils_JoltStressGym_UE::Get_InitialBalls();
-        auto PerWave = UCk_Utils_JoltStressGym_UE::Get_BallsPerWave();
-        auto Interval = UCk_Utils_JoltStressGym_UE::Get_WaveIntervalSeconds();
-        auto Cap = UCk_Utils_JoltStressGym_UE::Get_MaxBalls();
-        DoDropBalls(InitialCount);
-        ck::Trace(f"JoltStressGym: started - {InitialCount} initial balls, +{PerWave} every {Interval}s, cap {Cap}");
+        DoDropBalls(_InitialBalls);
+        ck::Trace(f"JoltStressGym: started - {_InitialBalls} initial balls, +{_BallsPerWave} every {_WaveIntervalSeconds}s, cap {_MaxBalls}");
 
-        // Repeating wave timer. The interval is read ONCE here - change the CVar, then
-        // Ck_Gym_Restart to apply it.
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(Interval));
-        Params.Set_StartingState(ECk_Timer_State::Running)
-              .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-        auto Timer = utils_timer::Add(_GymEntity, Params);
-        Timer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnWave"));
+        DoArmWaveTimer();
 
         // One-frame settle: retry the teleport in case the pawn wasn't possessed yet.
         auto SettleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
@@ -119,7 +110,24 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
     private void OnWave(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         DoReapFallenBalls();
-        DoDropBalls(UCk_Utils_JoltStressGym_UE::Get_BallsPerWave());
+        DoDropBalls(_BallsPerWave);
+    }
+
+    // (Re)creates the repeating wave timer; cycling the interval row re-arms it immediately, so
+    // the value is no longer restart-applied.
+    private void DoArmWaveTimer()
+    {
+        if (ck::IsValid(_WaveTimer))
+        {
+            FCk_Handle Generic = _WaveTimer;
+            utils_entity_lifetime::Request_DestroyEntity(Generic);
+        }
+
+        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(_WaveIntervalSeconds));
+        Params.Set_StartingState(ECk_Timer_State::Running)
+              .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+        _WaveTimer = utils_timer::Add(_GymEntity, Params);
+        _WaveTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnWave"));
     }
 
     // The station is pinned far from the level's PlayerStart - without this the player spawns
@@ -193,14 +201,13 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
     // ------------------------------------------------------------------------------------------
     private void DoDropBalls(int32 InCount)
     {
-        auto MaxBalls = UCk_Utils_JoltStressGym_UE::Get_MaxBalls();
-        auto Budget = Math::Min(InCount, MaxBalls - _Balls.Num());
+        auto Budget = Math::Min(InCount, _MaxBalls - _Balls.Num());
         if (Budget <= 0)
         {
-            if (!_CapReported && _Balls.Num() >= MaxBalls)
+            if (!_CapReported && _Balls.Num() >= _MaxBalls)
             {
                 _CapReported = true;
-                ck::Trace(f"JoltStressGym: cap reached ({MaxBalls} live balls) - raise ck.JoltStressGym.MaxBalls to go higher");
+                ck::Trace(f"JoltStressGym: cap reached ({_MaxBalls} live balls) - cycle the Max balls row to go higher");
             }
             return;
         }
@@ -281,20 +288,59 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // ------------------------------------------------------------------------------------------
-    // Console commands
+    // Control panel
     // ------------------------------------------------------------------------------------------
-    UFUNCTION(Exec, DisplayName="Jolt Stress - Drop Balls")
-    void Ck_GymJoltStress_Drop(int32 InCount = -1)
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
     {
-        auto Count = InCount;
-        if (Count <= 0)
-        { Count = UCk_Utils_JoltStressGym_UE::Get_BallsPerWave(); }
-
-        DoDropBalls(Count);
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Header("BALL RAIN"));
+        Rows.Add(CkGym_Control::Status("Live balls", f"{_Balls.Num()} · {_TotalSpawned} spawned"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::One,   "1", "Initial balls (on reset)", f"{_InitialBalls}"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::Two,   "2", "Balls per wave",           f"{_BallsPerWave}"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::Three, "3", "Wave interval",            f"{_WaveIntervalSeconds}s"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::Four,  "4", "Max balls",                f"{_MaxBalls}"));
+        Rows.Add(CkGym_Control::Action(EKeys::B,    "B", "Drop a wave now"));
+        Rows.Add(CkGym_Control::Action(EKeys::R,    "R", "Reset - re-drop initial"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::J,    "J", "Jolt debug draw", _JoltDrawEnabled));
+        return Rows;
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt Stress - Reset")
-    void Ck_GymJoltStress_Reset()
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 2)
+        { _InitialBalls = _InitialBalls == 25 ? 50 : _InitialBalls == 50 ? 100 : _InitialBalls == 100 ? 200 : 25; }
+        else if (InRowIndex == 3)
+        { _BallsPerWave = _BallsPerWave == 5 ? 10 : _BallsPerWave == 10 ? 25 : _BallsPerWave == 25 ? 50 : 5; }
+        else if (InRowIndex == 4)
+        {
+            _WaveIntervalSeconds = _WaveIntervalSeconds == 2.0 ? 5.0 : _WaveIntervalSeconds == 5.0 ? 10.0 : _WaveIntervalSeconds == 10.0 ? 20.0 : 2.0;
+            DoArmWaveTimer();
+        }
+        else if (InRowIndex == 5)
+        { _MaxBalls = _MaxBalls == 500 ? 1000 : _MaxBalls == 1000 ? 2000 : 500; }
+        else if (InRowIndex == 6)
+        { DoDropBalls(_BallsPerWave); }
+        else if (InRowIndex == 7)
+        { DoReset(); }
+        else if (InRowIndex == 8)
+        {
+            _JoltDrawEnabled = !_JoltDrawEnabled;
+            _JoltDrawTouched = true;
+            System::ExecuteConsoleCommand(f"ck.Jolt.DebugDraw.Enabled {(_JoltDrawEnabled ? 1 : 0)}");
+        }
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void EndPlay(EEndPlayReason EndPlayReason)
+    {
+        // No AS readback exists for the cvar, so a faithful capture/restore is impossible - put it
+        // back to its module default only if this gym flipped it, so a value the USER set outside
+        // the gym is never stomped by a gym they never touched the toggle in.
+        if (_JoltDrawTouched)
+        { System::ExecuteConsoleCommand("ck.Jolt.DebugDraw.Enabled 0"); }
+    }
+
+    private void DoReset()
     {
         for (auto Ball : _Balls)
         {
@@ -304,7 +350,7 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
         _TotalSpawned = 0;
         _CapReported = false;
 
-        DoDropBalls(UCk_Utils_JoltStressGym_UE::Get_InitialBalls());
+        DoDropBalls(_InitialBalls);
         ck::Trace("JoltStressGym: reset - all balls destroyed, initial wave re-dropped");
     }
 }

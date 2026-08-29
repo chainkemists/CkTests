@@ -48,18 +48,16 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_GenericEntityScript_UE
 		// Auto config
 		AutoConfig.TotalSteps = 6;
 		AutoConfig.Description = "Tests integer attributes: Health (0-100), Armor (0-50), Experience (0+).";
-		AutoConfig.GlobalAutoCommand = "Ck_GymInteger_Auto [0/1]";
-		AutoConfig.PerStationAutoCommand = "Ck_GymInteger_AutoBasic";
+		AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+		AutoConfig.PerStationAutoCommand = "panel [1] Basic station auto";
 		AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth 50, SetArmor 25, SetExperience 500", 0, 0));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth 95, SetArmor 45, SetExperience 2000", 1, 1));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("TestBoundaries (push past max)", 2, 2));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth 10, SetArmor 5, SetExperience 100", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth -10, SetArmor -5 (push past min)", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("ResetToDefaults", 5, 5));
-		AutoConfig.ManualCommands.Add("Ck_GymInteger_SetHealth [value]");
-		AutoConfig.ManualCommands.Add("Ck_GymInteger_SetArmor [value]");
-		AutoConfig.ManualCommands.Add("Ck_GymInteger_SetExperience [value]");
-		AutoConfig.ManualCommands.Add("Ck_GymInteger_ResetAll");
+		AutoConfig.ManualCommands.Add("panel [5] Health preset · [6] Armor preset · [7] Experience preset");
+		AutoConfig.ManualCommands.Add("panel [N] Reset all stations");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

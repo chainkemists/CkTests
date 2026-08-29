@@ -40,17 +40,15 @@ class UCk_EntityScript_AttributeGym_ByteMinMaxCurrent : UCk_GenericEntityScript_
 		// Auto config
 		AutoConfig.TotalSteps = 6;
 		AutoConfig.Description = "Tests individual component manipulation (Min/Max/Current).\nShows component presence detection and separate change counters.";
-		AutoConfig.GlobalAutoCommand = "Ck_GymByte_Auto [0/1]";
-		AutoConfig.PerStationAutoCommand = "Ck_GymByte_AutoMinMaxCurrent";
+		AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+		AutoConfig.PerStationAutoCommand = "panel [4] Min/Max/Current station auto";
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Modify Min component (10 -> 20)", 0, 0));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Modify Max component (200 -> 180)", 1, 1));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Modify Current component (100 -> 150)", 2, 2));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test component detection", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test value retrieval", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Reset to defaults", 5, 5));
-		AutoConfig.ManualCommands.Add("Ck_GymByte_SetMin [val]");
-		AutoConfig.ManualCommands.Add("Ck_GymByte_SetMax [val]");
-		AutoConfig.ManualCommands.Add("Ck_GymByte_SetCurrent [val]");
+		AutoConfig.ManualCommands.Add("panel [7] Min preset · [8] Max preset · [9] Current preset");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

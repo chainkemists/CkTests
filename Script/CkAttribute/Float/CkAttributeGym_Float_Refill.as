@@ -35,17 +35,15 @@ class UCk_EntityScript_AttributeGym_FloatRefill : UCk_GenericEntityScript_UE
 
 		AutoConfig.TotalSteps = 6;
 		AutoConfig.Description = "Tests the float-exclusive refill system with two policies.\nEnergy: Variable | Mana: AlwaysReturnToZero.";
-		AutoConfig.GlobalAutoCommand = "Ck_GymFloat_Auto [0/1]";
-		AutoConfig.PerStationAutoCommand = "Ck_GymFloat_AutoRefill";
+		AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+		AutoConfig.PerStationAutoCommand = "panel [6] Refill station auto";
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Drain energy to 20, mana to 15", 0, 0));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Watch refill", 1, 1));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Pause energy refill", 2, 2));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Drain again (energy 10, mana 5)", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Resume energy refill", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Reset to full", 5, 5));
-		AutoConfig.ManualCommands.Add("Ck_GymFloat_ToggleRefill");
-		AutoConfig.ManualCommands.Add("Ck_GymFloat_DrainEnergy");
-		AutoConfig.ManualCommands.Add("Ck_GymFloat_DrainMana");
+		AutoConfig.ManualCommands.Add("panel [G] Refill ring · toggle refill / drain energy / drain mana");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

@@ -41,16 +41,15 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_GenericEntityScript_UE
 		// Auto config
 		AutoConfig.TotalSteps = 6;
 		AutoConfig.Description = "Creates multiple attributes in batches.\nDemonstrates ForEach iteration, name-based lookups, and batch updates.";
-		AutoConfig.GlobalAutoCommand = "Ck_GymByte_Auto [0/1]";
-		AutoConfig.PerStationAutoCommand = "Ck_GymByte_AutoMultiple";
+		AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+		AutoConfig.PerStationAutoCommand = "panel [5] Multiple station auto";
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Add combat attribute batch", 0, 0));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test ForEach operations", 1, 1));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test name-based lookup", 2, 2));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Batch value update (+15)", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test iteration filtering", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Clear combat batch", 5, 5));
-		AutoConfig.ManualCommands.Add("Ck_GymByte_AddBatch");
-		AutoConfig.ManualCommands.Add("Ck_GymByte_ClearBatch");
+		AutoConfig.ManualCommands.Add("panel [M] Add batch · [U] Clear batch");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

@@ -6,7 +6,7 @@
 // CkAttributeGym_Integer_Modifiers_Steps.as), not an AutoStep counter. The
 // station owns the SM; the step states own what each step DOES.
 //
-// The Ck_GymInteger_AutoModifiers console command still arrives as an
+// The panel's [3] per-station auto row still arrives as an
 // FCk_Message_Gym_AutoSet broadcast - that transport is shared with every
 // not-yet-migrated station - it just routes to an SM pause/resume now.
 //============================================================================
@@ -44,17 +44,15 @@ class UCk_EntityScript_IntegerGym_Modifiers : UCk_GenericEntityScript_UE
 		StepMachine = gym_sm::Setup(InHandle, UCk_IntegerGym_Step_AddDefaults);
 
 		StepConfig.Description = "Tests attribute modifier system with add/remove operations.\nDemonstrates weapon and buff modifier stacking.";
-		StepConfig.GlobalAutoCommand = "Ck_GymInteger_Auto [0/1]";
-		StepConfig.PerStationAutoCommand = "Ck_GymInteger_AutoModifiers";
+		StepConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+		StepConfig.PerStationAutoCommand = "panel [3] Modifiers station auto";
 		StepConfig.Steps.Add(FCkGym_SmStep(UCk_IntegerGym_Step_AddDefaults, "Re-add default modifiers"));
 		StepConfig.Steps.Add(FCkGym_SmStep(UCk_IntegerGym_Step_AddWeapon,   "Add weapon bonus (+25)"));
 		StepConfig.Steps.Add(FCkGym_SmStep(UCk_IntegerGym_Step_AddBuff,     "Add buff bonus (+10)"));
 		StepConfig.Steps.Add(FCkGym_SmStep(UCk_IntegerGym_Step_ClearAll,    "Clear all modifiers"));
-		StepConfig.ManualCommands.Add("Ck_GymInteger_AddWeaponBonus [value]");
-		StepConfig.ManualCommands.Add("Ck_GymInteger_AddBuffBonus [value]");
-		StepConfig.ManualCommands.Add("Ck_GymInteger_RemoveWeaponBonus");
-		StepConfig.ManualCommands.Add("Ck_GymInteger_RemoveBuffBonus");
-		StepConfig.ManualCommands.Add("Ck_GymInteger_ClearAllModifiers");
+		StepConfig.ManualCommands.Add("panel [I] Weapon bonus ring · +25 / +50 / -25 / -200");
+		StepConfig.ManualCommands.Add("panel [O] Buff bonus ring · +10 / +40 / -10 / -150");
+		StepConfig.ManualCommands.Add("panel [J] Remove weapon · [K] Remove buff · [M] Clear all modifiers");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

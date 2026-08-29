@@ -11,9 +11,9 @@
 //                             climbing it, then retreats and tries again.
 //   Lane 3 (Push Policy)   - PushAndBePushed character walks into a light
 //                             Dynamic box and shoves it; both reset and repeat.
-//                             Ck_GymJoltCharacter_CyclePushPolicy respawns this
-//                             lane's character with the next PushPolicy value
-//                             so the difference in box displacement is visible.
+//                             The [T] control-panel row respawns this lane's
+//                             character with the next PushPolicy value so the
+//                             difference in box displacement is visible.
 //
 // Content is built in world -X from the station anchor (house rule: stations
 // face -X) - every lane's "forward" is -X.
@@ -68,7 +68,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
         Station.Title = FText::FromString("JOLT CHARACTER");
         auto Description = TArray<FText>();
         Description.Add(FText::FromString("Lane 1: patrol walk + jump.\nLane 2: 60 deg ramp exceeds the 50 deg slope limit."));
-        Description.Add(FText::FromString("Lane 3: PushAndBePushed shoves a light box.\nCk_GymJoltCharacter_CyclePushPolicy to compare."));
+        Description.Add(FText::FromString("Lane 3: PushAndBePushed shoves a light box.\n[T] cycles the push policy to compare."));
         Station.Description = Description;
         Station.AutoSize = true;
         Stations.Add(Station);
@@ -234,6 +234,14 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
         return ECk_JoltCharacter_PushPolicy::Neither;
     }
 
+    private FString DoPolicyName(int32 InIndex)
+    {
+        if (InIndex == 0) { return "PushAndBePushed"; }
+        if (InIndex == 1) { return "PushOnly"; }
+        if (InIndex == 2) { return "BePushedOnly"; }
+        return "Neither";
+    }
+
     private void DoTickLane3(float InDeltaSeconds)
     {
         _Lane3PhaseElapsed += InDeltaSeconds;
@@ -250,7 +258,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
-    // ---- Tick + commands ----------------------------------------------------------------------
+    // ---- Tick ---------------------------------------------------------------------------------
 
     UFUNCTION()
     private void OnTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
@@ -261,16 +269,36 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
         DoTickLane3(Delta);
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt Character - Force Jump (Lane 1)")
-    void Ck_GymJoltCharacter_Jump()
+    // ---- Control panel ------------------------------------------------------------------------
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Header("CHARACTER LANES"));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Force jump (lane 1)"));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Reset all lanes"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::T,  "T", "Lane 3 push policy", DoPolicyName(_Lane3PolicyIndex)));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 1)
+        { DoForceJump(); }
+        else if (InRowIndex == 2)
+        { DoResetAllLanes(); }
+        else if (InRowIndex == 3)
+        { DoCyclePushPolicy(); }
+    }
+
+    private void DoForceJump()
     {
         utils_jolt_character::Request_Jump(_Lane1Char, FCk_Request_JoltCharacter_Jump(_JumpVelocity));
         _Lane1JumpElapsed = 0.0;
         ck::Trace("JoltCharacterGym: manual jump fired on lane 1");
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt Character - Reset All Lanes")
-    void Ck_GymJoltCharacter_ResetAll()
+    private void DoResetAllLanes()
     {
         utils_jolt_character::Request_Teleport(_Lane1Char, FCk_Request_JoltCharacter_Teleport(_Origin + FVector(-100.0, _Lane1Y, 125.0)));
         utils_jolt_character::Request_Teleport(_Lane2Char, FCk_Request_JoltCharacter_Teleport(_Origin + FVector(-150.0, _Lane2Y, 125.0)));
@@ -287,8 +315,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("JoltCharacterGym: reset all lanes to their start positions");
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt Character - Cycle Lane 3 Push Policy")
-    void Ck_GymJoltCharacter_CyclePushPolicy()
+    private void DoCyclePushPolicy()
     {
         _Lane3PolicyIndex = (_Lane3PolicyIndex + 1) % 4;
         auto NewPolicy = DoPolicyFromIndex(_Lane3PolicyIndex);

@@ -31,6 +31,13 @@ class ACk_VfxExamplesGym_HUD : ACkGym_ControlPanelHUD
         return Style;
     }
 
+    // The V menu's text search polls letters (H included) - without this, typing 'h' into the
+    // filter would also flip the panel's hidden state behind the menu.
+    bool Get_PanelKeysSuspended() override
+    {
+        return bVfxMenuVisible;
+    }
+
     //--------------------------------------------------------------------------------------------------------------------------
     // State
     //--------------------------------------------------------------------------------------------------------------------------

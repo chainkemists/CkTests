@@ -136,11 +136,11 @@ class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_GenericEntityScript_UE
             "mismatch. Brief flicker at boundaries\n" +
             "is expected; persistent yellow ==\n" +
             "stuck Jolt body bug.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymProbe_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymProbe_AutoPhysical";
+        AutoConfig.GlobalAutoCommand = "panel [G] auto on / [B] auto off";
+        AutoConfig.PerStationAutoCommand = "panel [I] Physical station only";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Auto=ON resumes tweens; Auto=OFF pauses", 0, 0));
         AutoConfig.ManualCommands.Add("Walk pawn through box");
-        AutoConfig.ManualCommands.Add("Toggle Auto to pause/resume balls");
+        AutoConfig.ManualCommands.Add("panel [G] / [B] resumes / pauses the balls");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

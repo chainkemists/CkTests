@@ -42,11 +42,11 @@
 //   Default reset -> MarkDone gated by AtWaypoint+AreaScanned; planner still
 //   produces a valid plan because StandWatch (cost 999) is always selectable.
 //
-// Player commands:
-//   Goap.Patrol.SetAtWaypoint    - set AtWaypoint=true
-//   Goap.Patrol.SetAreaScanned   - set AreaScanned=true
-//   Goap.Patrol.Complete         - set AreaPatrolled=true
-//   Goap.Patrol.Reset            - all back to false
+// Player controls:
+//   panel [G] - set AtWaypoint=true
+//   panel [I] - set AreaScanned=true
+//   panel [O] - set AreaPatrolled=true
+//   panel [3] - all back to false
 //============================================================================
 
 USTRUCT()
@@ -266,9 +266,9 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
             + "Tier-1b Observe Planner (goal: AreaScanned=true)\n"
             + f"  Status          {ObserveStatus}\n"
             + f"  Plan            {ObservePlan}\n\n"
-            + "Console\n"
-            + "  Goap.Patrol.SetAtWaypoint  / SetAreaScanned\n"
-            + "  Goap.Patrol.Complete       / Reset";
+            + "Control panel\n"
+            + "  panel [G] / [I]  AtWaypoint / AreaScanned\n"
+            + "  panel [O] / [3]  AreaPatrolled / Reset";
 
         CkGym_Common::Update_StationDisplay(ck::ToEntity(this),
             "STATION 4 / PATROL ROUTE", Body,

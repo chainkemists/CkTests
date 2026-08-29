@@ -12,9 +12,9 @@
 //   Dynamic  - a "bouncer" sphere periodically re-impulsed so it never sleeps,
 //              giving a permanent awake/asleep color contrast.
 //
-// The station sign explains the CVars for the user to toggle from console:
-//   ck.Jolt.DebugDraw.Enabled 1        - draw ALL bodies, colored by motion type.
-//   ck.Jolt.DebugDraw.SleepColoring 1  - awake dynamics = yellow, asleep = red.
+// Two control-panel toggles drive the debug draw:
+//   [J] - draw ALL bodies, colored by motion type.
+//   [K] - sleep coloring: awake dynamics = yellow, asleep = red.
 //
 // Content is built in world -X from the station anchor (house rule: stations
 // face -X).
@@ -43,6 +43,14 @@ class ACk_JoltGym_DebugDrawOverlay_PlayerController : ACk_Gym_Base_PlayerControl
     private float _BouncerElapsed = 0.0;
     private float _BouncerPeriod = 1.5;
 
+    // Mirrors of ck.Jolt.DebugDraw.Enabled / .SleepColoring - mirrored in members because the
+    // module exposes no AS readback for them; EndPlay writes each back to its default (off) only
+    // if this gym touched it.
+    private bool _JoltDrawEnabled = false;
+    private bool _JoltDrawTouched = false;
+    private bool _JoltSleepColoringEnabled = false;
+    private bool _JoltSleepColoringTouched = false;
+
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
@@ -51,8 +59,8 @@ class ACk_JoltGym_DebugDrawOverlay_PlayerController : ACk_Gym_Base_PlayerControl
         Station.Tags.Add(n"Gym.Jolt.DebugDrawOverlay");
         Station.Title = FText::FromString("JOLT DEBUG DRAW OVERLAY");
         auto Description = TArray<FText>();
-        Description.Add(FText::FromString("Console CVars to toggle:\nck.Jolt.DebugDraw.Enabled 1"));
-        Description.Add(FText::FromString("ck.Jolt.DebugDraw.SleepColoring 1\nAwake=yellow, Asleep=red."));
+        Description.Add(FText::FromString("[J] draws every Jolt body, colored by motion type."));
+        Description.Add(FText::FromString("[K] adds sleep coloring:\nAwake=yellow, Asleep=red."));
         Description.Add(FText::FromString("Static floor, Kinematic slider,\nsleeping box, bouncing sphere."));
         Station.Description = Description;
         Station.AutoSize = true;
@@ -72,7 +80,7 @@ class ACk_JoltGym_DebugDrawOverlay_PlayerController : ACk_Gym_Base_PlayerControl
 
         utils_timer::Create_Tick(ck::ToEntity(this), FCk_Delegate_Timer(this, n"OnTick"));
 
-        ck::Trace("JoltDebugDrawOverlayGym: started - enable ck.Jolt.DebugDraw.Enabled to see every motion type");
+        ck::Trace("JoltDebugDrawOverlayGym: started - toggle [J] to see every motion type");
     }
 
     private void DoAddStaticFloor()
@@ -185,8 +193,50 @@ class ACk_JoltGym_DebugDrawOverlay_PlayerController : ACk_Gym_Base_PlayerControl
         }
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt DebugDrawOverlay - Wake Sleeper")
-    void Ck_GymJoltDebugDrawOverlay_WakeSleeper()
+    // ---- Control panel ------------------------------------------------------------------------
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Header("DEBUG DRAW OVERLAY"));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Wake the sleeper box"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::J, "J", "Jolt debug draw", _JoltDrawEnabled));
+        Rows.Add(CkGym_Control::Toggle(EKeys::K, "K", "Sleep coloring", _JoltSleepColoringEnabled));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 1)
+        { DoWakeSleeper(); }
+        else if (InRowIndex == 2)
+        {
+            _JoltDrawEnabled = !_JoltDrawEnabled;
+            _JoltDrawTouched = true;
+            System::ExecuteConsoleCommand(f"ck.Jolt.DebugDraw.Enabled {(_JoltDrawEnabled ? 1 : 0)}");
+        }
+        else if (InRowIndex == 3)
+        {
+            _JoltSleepColoringEnabled = !_JoltSleepColoringEnabled;
+            _JoltSleepColoringTouched = true;
+            System::ExecuteConsoleCommand(f"ck.Jolt.DebugDraw.SleepColoring {(_JoltSleepColoringEnabled ? 1 : 0)}");
+        }
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void EndPlay(EEndPlayReason EndPlayReason)
+    {
+        // No AS readback exists for either cvar, so a faithful capture/restore is impossible - put
+        // each back to its module default only if this gym flipped it, so a value the USER set
+        // outside the gym is never stomped by a gym they never touched the toggle in.
+        if (_JoltDrawTouched)
+        { System::ExecuteConsoleCommand("ck.Jolt.DebugDraw.Enabled 0"); }
+
+        if (_JoltSleepColoringTouched)
+        { System::ExecuteConsoleCommand("ck.Jolt.DebugDraw.SleepColoring 0"); }
+    }
+
+    private void DoWakeSleeper()
     {
         utils_jolt_body::Request_SetSleepState(_SleeperBody, FCk_Request_JoltBody_SetSleepState(ECk_Jolt_SleepState::Awake));
         utils_jolt_body::Request_AddImpulse(_SleeperBody, FCk_Request_JoltBody_AddImpulse(FVector(0.0, 0.0, 3500.0)));

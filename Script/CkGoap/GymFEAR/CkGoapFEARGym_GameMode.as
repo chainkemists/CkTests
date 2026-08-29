@@ -3,20 +3,14 @@
 //============================================================================
 // CkGoapFEAR_Gym - single-station F.E.A.R. combat AI
 //
-// Console commands (Goap.FEAR.*):
-//   SetTargetVisible / ClearTargetVisible  - flips EnemyVisible.
-//   ToggleAtCover                          - flips AtCover.
-//   ToggleBehindEnemy                      - flips BehindEnemy.
-//   ToggleHasAmmo                          - flips HasAmmo.
-//   ToggleHasAmmoReserve                   - flips HasAmmoReserve.
-//   SetHeardSound / ClearHeardSound        - flips HeardSound.
-//   Reset                                  - restore initial WS.
-//   IdealAmbush                            - set up the iconic flank-ambush
-//                                            scenario (Visible+BehindEnemy+
-//                                            HasAmmo+AtCover all true). Plan
-//                                            should resolve to
-//                                            [AttackEnemy -> AttackFromFlank]
-//                                            cost 0.5.
+// Control panel rows (each toggle reads its WS key back live):
+//   [J] EnemyVisible   [K] AtCover         [L] BehindEnemy
+//   [M] HasAmmo        [N] HasAmmoReserve  [O] HeardSound
+//   [R] Reset          - restore initial WS.
+//   [B] Ideal ambush   - set up the iconic flank-ambush scenario
+//                        (Visible+BehindEnemy+HasAmmo+AtCover all true). Plan
+//                        should resolve to [AttackEnemy -> AttackFromFlank]
+//                        cost 0.5.
 //============================================================================
 
 class ACk_GoapFEARGym_GameMode : ACkTests_Gym_Base_GameMode
@@ -32,7 +26,7 @@ class ACk_GoapFEARGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
         Stations.Add(MakeStationPayload(n"Gym.GoapFEAR.Station.Combatant",
             "F.E.A.R. COMBATANT",
-            "Canonical GOAP enemy AI - toggle WS via Goap.FEAR.* commands."));
+            "Canonical GOAP enemy AI - toggle WS from the control panel."));
         return Stations;
     }
 
@@ -86,32 +80,15 @@ class ACk_GoapFEARGym_PlayerController : ACk_Gym_Base_PlayerController
             utils_gameplay_tag::ResolveGameplayTag(InKey), InValue);
     }
 
-    UFUNCTION(Exec, DisplayName="Goap.FEAR.SetTargetVisible")
-    void Goap_FEAR_SetTargetVisible() { Set(n"Gym.GoapFEAR.WS.Combatant.EnemyVisible", true); }
+    private bool Get(FName InKey)
+    {
+        auto WS = Find_FEARWS();
+        if (ck::Is_NOT_Valid(WS)) { return false; }
+        return utils_goap_world_state::Get_Value(WS,
+            utils_gameplay_tag::ResolveGameplayTag(InKey));
+    }
 
-    UFUNCTION(Exec, DisplayName="Goap.FEAR.ClearTargetVisible")
-    void Goap_FEAR_ClearTargetVisible() { Set(n"Gym.GoapFEAR.WS.Combatant.EnemyVisible", false); }
-
-    UFUNCTION(Exec, DisplayName="Goap.FEAR.ToggleAtCover")
-    void Goap_FEAR_ToggleAtCover() { Flip(n"Gym.GoapFEAR.WS.Combatant.AtCover"); }
-
-    UFUNCTION(Exec, DisplayName="Goap.FEAR.ToggleBehindEnemy")
-    void Goap_FEAR_ToggleBehindEnemy() { Flip(n"Gym.GoapFEAR.WS.Combatant.BehindEnemy"); }
-
-    UFUNCTION(Exec, DisplayName="Goap.FEAR.ToggleHasAmmo")
-    void Goap_FEAR_ToggleHasAmmo() { Flip(n"Gym.GoapFEAR.WS.Combatant.HasAmmo"); }
-
-    UFUNCTION(Exec, DisplayName="Goap.FEAR.ToggleHasAmmoReserve")
-    void Goap_FEAR_ToggleHasAmmoReserve() { Flip(n"Gym.GoapFEAR.WS.Combatant.HasAmmoReserve"); }
-
-    UFUNCTION(Exec, DisplayName="Goap.FEAR.SetHeardSound")
-    void Goap_FEAR_SetHeardSound() { Set(n"Gym.GoapFEAR.WS.Combatant.HeardSound", true); }
-
-    UFUNCTION(Exec, DisplayName="Goap.FEAR.ClearHeardSound")
-    void Goap_FEAR_ClearHeardSound() { Set(n"Gym.GoapFEAR.WS.Combatant.HeardSound", false); }
-
-    UFUNCTION(Exec, DisplayName="Goap.FEAR.Reset")
-    void Goap_FEAR_Reset()
+    private void DoReset()
     {
         Set(n"Gym.GoapFEAR.WS.Combatant.HasAmmo",          true);
         Set(n"Gym.GoapFEAR.WS.Combatant.HasAmmoReserve",   true);
@@ -127,12 +104,55 @@ class ACk_GoapFEARGym_PlayerController : ACk_Gym_Base_PlayerController
     //   [AttackEnemy -> AttackFromFlank]   cost 0.5
     // - the cheapest possible plan, where the agent has already maneuvered
     // behind the target before opening fire.
-    UFUNCTION(Exec, DisplayName="Goap.FEAR.IdealAmbush")
-    void Goap_FEAR_IdealAmbush()
+    private void DoIdealAmbush()
     {
         Set(n"Gym.GoapFEAR.WS.Combatant.EnemyVisible",   true);
         Set(n"Gym.GoapFEAR.WS.Combatant.BehindEnemy",    true);
         Set(n"Gym.GoapFEAR.WS.Combatant.HasAmmo",        true);
         Set(n"Gym.GoapFEAR.WS.Combatant.AtCover",        true);
+    }
+
+    //--------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // The plan the station prints is a function of these six keys, so they belong beside it rather
+    // than behind a list of command names. The Set/Clear command pairs collapse into one toggle each -
+    // the key reads back live, so there is nothing a separate Clear could say that the toggle cannot.
+    //--------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "GOAP: F.E.A.R. COMBATANT";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Header("WORLD STATE"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::J, "J", "EnemyVisible",   Get(n"Gym.GoapFEAR.WS.Combatant.EnemyVisible")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::K, "K", "AtCover",        Get(n"Gym.GoapFEAR.WS.Combatant.AtCover")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::L, "L", "BehindEnemy",    Get(n"Gym.GoapFEAR.WS.Combatant.BehindEnemy")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::M, "M", "HasAmmo",        Get(n"Gym.GoapFEAR.WS.Combatant.HasAmmo")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::N, "N", "HasAmmoReserve", Get(n"Gym.GoapFEAR.WS.Combatant.HasAmmoReserve")));
+        Rows.Add(CkGym_Control::Toggle(EKeys::O, "O", "HeardSound",     Get(n"Gym.GoapFEAR.WS.Combatant.HeardSound")));
+
+        Rows.Add(CkGym_Control::Header("SCENARIOS"));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Ideal ambush (flank, cost 0.5)"));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Reset to the initial WS"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        // Rows 0 and 7 are headers, which hold no key and never arrive here.
+        if (InRowIndex == 1) { Flip(n"Gym.GoapFEAR.WS.Combatant.EnemyVisible"); }
+        else if (InRowIndex == 2) { Flip(n"Gym.GoapFEAR.WS.Combatant.AtCover"); }
+        else if (InRowIndex == 3) { Flip(n"Gym.GoapFEAR.WS.Combatant.BehindEnemy"); }
+        else if (InRowIndex == 4) { Flip(n"Gym.GoapFEAR.WS.Combatant.HasAmmo"); }
+        else if (InRowIndex == 5) { Flip(n"Gym.GoapFEAR.WS.Combatant.HasAmmoReserve"); }
+        else if (InRowIndex == 6) { Flip(n"Gym.GoapFEAR.WS.Combatant.HeardSound"); }
+        else if (InRowIndex == 8) { DoIdealAmbush(); }
+        else if (InRowIndex == 9) { DoReset(); }
     }
 }

@@ -11,21 +11,20 @@
 // Stations (content built toward -X from each anchor - house rule):
 //   - PoiField:  a POI cluster (Quest/Shop/Danger/Info, varied priorities,
 //                one far ClampToEdge waypoint pinned to the frame rim)
-//   - WorldMap:  a FixedBounds projection over the station area; readout via
-//                Ck_GymMinimap_Readout
+//   - WorldMap:  a FixedBounds projection over the station area; readout on
+//                the control panel's [P] row
 //   - FogWalk:   a fog grid over the station; the pawn is a revealer - walk
 //                to paint exploration; link/unlink it to the HUD minimap
-//   - Stress:    500 standalone POIs on demand (Ck_GymMinimap_Stress500)
+//   - Stress:    500 standalone POIs on demand (panel [M])
 //
-// Exec commands:
-//   Ck_GymMinimap_ZoomIn / ZoomOut  - halve / double the view extent
-//   Ck_GymMinimap_ToggleRotation    - NorthLocked <-> RotateWithObserver
-//   Ck_GymMinimap_ToggleFog         - link/unlink the FogWalk grid to the HUD minimap
-//   Ck_GymMinimap_RevealAll         - reveal the whole FogWalk grid
-//   Ck_GymMinimap_ResetFog          - reset the FogWalk grid to fully fogged
-//   Ck_GymMinimap_Stress500         - spawn the stress field
-//   Ck_GymMinimap_ClearStress       - destroy the stress field
-//   Ck_GymMinimap_Readout           - dump entries + fog fraction to the log
+// Control panel rows:
+//   [J] / [K]  - halve / double the view extent
+//   [T]        - NorthLocked <-> RotateWithObserver
+//   [G]        - link/unlink the FogWalk grid to the HUD minimap
+//   [B]        - reveal the whole FogWalk grid
+//   [N]        - reset the FogWalk grid to fully fogged
+//   [M] / [U]  - spawn / destroy the stress field
+//   [P]        - dump entries + fog fraction to the log
 //============================================================================
 
 class ACk_MinimapGym_GameMode : ACkTests_Gym_Base_GameMode
@@ -104,7 +103,9 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
     private TArray<FCk_Handle> _StressPois;
     private UCk_MinimapFrame_Widget _HudWidget;
     private int32 _HudWidgetRetries = 0;
-    private bool _RotateWithObserver = false;
+
+    // The minimap carries the fog handle but exposes no getter for it, so the panel mirrors the link
+    // here. This controller is the only writer. (The rotation mode, by contrast, reads back live.)
     private bool _FogLinked = false;
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
@@ -116,7 +117,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         PoiField.Title = FText::FromString("MINIMAP");
         auto PoiFieldDescription = TArray<FText>();
         PoiFieldDescription.Add(FText::FromString("POI cluster around the station.\nWalk + mouse-turn to drive the HUD minimap."));
-        PoiFieldDescription.Add(FText::FromString("Ck_GymMinimap_ZoomIn / ZoomOut\nCk_GymMinimap_ToggleRotation"));
+        PoiFieldDescription.Add(FText::FromString("Panel: [J]/[K] zoom\n[T] rotation mode"));
         PoiField.Description = PoiFieldDescription;
         PoiField.AutoSize = true;
         Stations.Add(PoiField);
@@ -126,7 +127,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         WorldMap.Title = FText::FromString("WORLD MAP");
         auto WorldMapDescription = TArray<FText>();
         WorldMapDescription.Add(FText::FromString("FixedBounds projection over the station area."));
-        WorldMapDescription.Add(FText::FromString("Ck_GymMinimap_Readout"));
+        WorldMapDescription.Add(FText::FromString("Panel: [P] readout to the log"));
         WorldMap.Description = WorldMapDescription;
         WorldMap.AutoSize = true;
         Stations.Add(WorldMap);
@@ -136,7 +137,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         FogWalk.Title = FText::FromString("FOG WALK");
         auto FogWalkDescription = TArray<FText>();
         FogWalkDescription.Add(FText::FromString("The pawn reveals fog as it walks this station."));
-        FogWalkDescription.Add(FText::FromString("Ck_GymMinimap_ToggleFog\nCk_GymMinimap_RevealAll\nCk_GymMinimap_ResetFog"));
+        FogWalkDescription.Add(FText::FromString("Panel: [G] link fog\n[B] reveal all\n[N] reset"));
         FogWalk.Description = FogWalkDescription;
         FogWalk.AutoSize = true;
         Stations.Add(FogWalk);
@@ -146,7 +147,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         Stress.Title = FText::FromString("MINIMAP STRESS");
         auto StressDescription = TArray<FText>();
         StressDescription.Add(FText::FromString("500 POIs on demand — watch the projector's cost."));
-        StressDescription.Add(FText::FromString("Ck_GymMinimap_Stress500\nCk_GymMinimap_ClearStress"));
+        StressDescription.Add(FText::FromString("Panel: [M] spawn 500\n[U] clear"));
         Stress.Description = StressDescription;
         Stress.AutoSize = true;
         Stations.Add(Stress);
@@ -252,7 +253,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
             if (_HudWidgetRetries <= 40)
             { System::SetTimer(this, n"DoCreateHudWidget", 0.25, false); }
             else
-            { ck::Trace("MinimapGym: pawn minimap never appeared - no HUD widget (use Ck_GymMinimap_Readout)"); }
+            { ck::Trace("MinimapGym: pawn minimap never appeared - no HUD widget (use the panel's [P] readout row)"); }
             return;
         }
 
@@ -260,7 +261,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
             WidgetBlueprint::CreateWidget(UCk_MinimapFrame_Widget, this));
         if (_HudWidget == nullptr)
         {
-            ck::Trace("MinimapGym: HUD widget creation failed - use Ck_GymMinimap_Readout instead");
+            ck::Trace("MinimapGym: HUD widget creation failed - use the panel's [P] readout row instead");
             return;
         }
 
@@ -361,8 +362,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         DoDrawFacingNeedle(Minimap);
     }
 
-    UFUNCTION(Exec, DisplayName="Minimap Gym - Zoom In")
-    void Ck_GymMinimap_ZoomIn()
+    private void DoZoomIn()
     {
         auto Minimap = DoGet_Minimap();
         if (ck::Is_NOT_Valid(Minimap))
@@ -373,8 +373,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace(f"MinimapGym: view extent -> {NewExtent}");
     }
 
-    UFUNCTION(Exec, DisplayName="Minimap Gym - Zoom Out")
-    void Ck_GymMinimap_ZoomOut()
+    private void DoZoomOut()
     {
         auto Minimap = DoGet_Minimap();
         if (ck::Is_NOT_Valid(Minimap))
@@ -385,29 +384,35 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace(f"MinimapGym: view extent -> {NewExtent}");
     }
 
-    UFUNCTION(Exec, DisplayName="Minimap Gym - Toggle Rotation")
-    void Ck_GymMinimap_ToggleRotation()
+    private void DoToggleRotation()
     {
         auto Minimap = DoGet_Minimap();
         if (ck::Is_NOT_Valid(Minimap))
         { return; }
 
-        _RotateWithObserver = !_RotateWithObserver;
-        if (_RotateWithObserver)
+        if (DoGet_RotatesWithObserver())
         {
             Minimap.Request_SetRotationMode(
-                FCk_Request_Minimap_SetRotationMode(ECk_Minimap_RotationMode::RotateWithObserver));
-            ck::Trace("MinimapGym: rotation mode = RotateWithObserver");
+                FCk_Request_Minimap_SetRotationMode(ECk_Minimap_RotationMode::NorthLocked));
+            ck::Trace("MinimapGym: rotation mode = NorthLocked");
             return;
         }
 
         Minimap.Request_SetRotationMode(
-            FCk_Request_Minimap_SetRotationMode(ECk_Minimap_RotationMode::NorthLocked));
-        ck::Trace("MinimapGym: rotation mode = NorthLocked");
+            FCk_Request_Minimap_SetRotationMode(ECk_Minimap_RotationMode::RotateWithObserver));
+        ck::Trace("MinimapGym: rotation mode = RotateWithObserver");
     }
 
-    UFUNCTION(Exec, DisplayName="Minimap Gym - Toggle Fog Link")
-    void Ck_GymMinimap_ToggleFog()
+    private bool DoGet_RotatesWithObserver()
+    {
+        auto Minimap = DoGet_Minimap();
+        if (ck::Is_NOT_Valid(Minimap))
+        { return false; }
+
+        return utils_minimap::Get_RotationMode(Minimap) == ECk_Minimap_RotationMode::RotateWithObserver;
+    }
+
+    private void DoToggleFog()
     {
         auto Minimap = DoGet_Minimap();
         if (ck::Is_NOT_Valid(Minimap))
@@ -425,8 +430,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("MinimapGym: fog link cleared (all POIs project)");
     }
 
-    UFUNCTION(Exec, DisplayName="Minimap Gym - Reveal All Fog")
-    void Ck_GymMinimap_RevealAll()
+    private void DoRevealAllFog()
     {
         if (ck::Is_NOT_Valid(_Fog))
         { return; }
@@ -435,8 +439,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("MinimapGym: fog fully revealed");
     }
 
-    UFUNCTION(Exec, DisplayName="Minimap Gym - Reset Fog")
-    void Ck_GymMinimap_ResetFog()
+    private void DoResetFog()
     {
         if (ck::Is_NOT_Valid(_Fog))
         { return; }
@@ -445,8 +448,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("MinimapGym: fog reset to fully fogged");
     }
 
-    UFUNCTION(Exec, DisplayName="Minimap Gym - Stress 500")
-    void Ck_GymMinimap_Stress500()
+    private void DoSpawnStressField()
     {
         if (_StressPois.Num() > 0)
         {
@@ -476,8 +478,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("MinimapGym: 500 stress POIs spawned");
     }
 
-    UFUNCTION(Exec, DisplayName="Minimap Gym - Clear Stress")
-    void Ck_GymMinimap_ClearStress()
+    private void DoClearStressField()
     {
         for (auto Poi : _StressPois)
         {
@@ -488,8 +489,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("MinimapGym: stress field cleared");
     }
 
-    UFUNCTION(Exec, DisplayName="Minimap Gym - Readout")
-    void Ck_GymMinimap_Readout()
+    private void DoReadout()
     {
         auto Minimap = DoGet_Minimap();
         if (ck::IsValid(Minimap))
@@ -516,5 +516,65 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Fraction = utils_fog_of_war::Get_ExploredFraction(_Fog);
             ck::Trace(f"Fog: explored fraction {Fraction}");
         }
+    }
+
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // The minimap is watched WHILE walking, so the extent and the rotation mode belong on screen next
+    // to the frame rather than behind a console command typed before you start moving.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "MINIMAP";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        auto Minimap = DoGet_Minimap();
+        auto Extent = ck::IsValid(Minimap) ? utils_minimap::Get_ViewExtent(Minimap) : 0.0f;
+        auto Entries = ck::IsValid(Minimap) ? utils_minimap::Get_Entries(Minimap).Num() : 0;
+
+        Rows.Add(CkGym_Control::Header("PROJECTION"));
+        Rows.Add(CkGym_Control::Status("View extent", f"{Extent} · {Entries} entries"));
+        Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Zoom in (halve the extent)"));
+        Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Zoom out (double the extent)"));
+        Rows.Add(CkGym_Control::ToggleNamed(EKeys::T, "T", "Rotation", DoGet_RotatesWithObserver(),
+            "RotateWithObserver", "NorthLocked"));
+
+        auto ExploredPercent = ck::IsValid(_Fog) ? int32(utils_fog_of_war::Get_ExploredFraction(_Fog) * 100.0f) : 0;
+
+        Rows.Add(CkGym_Control::Header("FOG WALK"));
+        Rows.Add(CkGym_Control::Status("Explored", f"{ExploredPercent}%"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::G, "G", "Fog linked to the HUD minimap", _FogLinked));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Reveal the whole grid"));
+        Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Reset to fully fogged"));
+
+        Rows.Add(CkGym_Control::Header("STRESS"));
+        Rows.Add(CkGym_Control::Status("Stress POIs", f"{_StressPois.Num()}"));
+        Rows.Add(CkGym_Control::Action(EKeys::M, "M", "Spawn 500 POIs", _StressPois.Num() == 0));
+        Rows.Add(CkGym_Control::Action(EKeys::U, "U", "Clear the stress field", _StressPois.Num() > 0));
+
+        Rows.Add(CkGym_Control::Action(EKeys::P, "P", "Readout to the log"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        // Rows 0, 1, 5, 6, 10 and 11 are headers or status readouts - they hold no key and never
+        // arrive here, but they DO occupy an index.
+        if (InRowIndex == 2) { DoZoomIn(); }
+        else if (InRowIndex == 3) { DoZoomOut(); }
+        else if (InRowIndex == 4) { DoToggleRotation(); }
+        else if (InRowIndex == 7) { DoToggleFog(); }
+        else if (InRowIndex == 8) { DoRevealAllFog(); }
+        else if (InRowIndex == 9) { DoResetFog(); }
+        else if (InRowIndex == 12) { DoSpawnStressField(); }
+        else if (InRowIndex == 13) { DoClearStressField(); }
+        else if (InRowIndex == 14) { DoReadout(); }
     }
 }

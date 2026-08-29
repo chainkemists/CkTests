@@ -38,8 +38,8 @@ class UCk_EntityScript_AttributeGym_ByteModifiers : UCk_GenericEntityScript_UE
         // Auto config
         AutoConfig.TotalSteps = 8;
         AutoConfig.Description = "Cycles through modifier operations: add/remove/modify/clear.\nDemonstrates revocable and non-revocable modifier patterns.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymByte_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymByte_AutoModifiers";
+        AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+        AutoConfig.PerStationAutoCommand = "panel [2] Modifiers station auto";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add weapon modifier", 0, 0));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add armor modifier", 1, 1));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add buff modifier", 2, 2));
@@ -48,8 +48,7 @@ class UCk_EntityScript_AttributeGym_ByteModifiers : UCk_GenericEntityScript_UE
         AutoConfig.Steps.Add(FCkGym_AutoStep("Modify existing buff", 5, 5));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Clear all modifiers", 6, 6));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add non-revocable modifier", 7, 7));
-        AutoConfig.ManualCommands.Add("Ck_GymByte_AddModifierByte");
-        AutoConfig.ManualCommands.Add("Ck_GymByte_ClearModifiersByte");
+        AutoConfig.ManualCommands.Add("panel [G] Add modifier · [N] Clear modifiers");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

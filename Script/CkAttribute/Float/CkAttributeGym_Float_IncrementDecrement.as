@@ -35,8 +35,8 @@ class UCk_EntityScript_AttributeGym_FloatIncrementDecrement : UCk_GenericEntityS
 
 		AutoConfig.TotalSteps = 12;
 		AutoConfig.Description = "Tests the float mixin increment/decrement helpers.\nRevocable vs non-revocable +1/-1 operations.";
-		AutoConfig.GlobalAutoCommand = "Ck_GymFloat_Auto [0/1]";
-		AutoConfig.PerStationAutoCommand = "Ck_GymFloat_AutoIncDec";
+		AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+		AutoConfig.PerStationAutoCommand = "panel [7] Inc/Dec station auto";
 		AutoConfig.Steps.Add(FCkGym_AutoStep("IncrementNotRevocable (x3)", 0, 2));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("IncrementRevocable (x2)", 3, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("DecrementNotRevocable (x2)", 5, 6));
@@ -44,9 +44,7 @@ class UCk_EntityScript_AttributeGym_FloatIncrementDecrement : UCk_GenericEntityS
 		AutoConfig.Steps.Add(FCkGym_AutoStep("DecrementRevocable (x2)", 8, 9));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Revoke all revocable", 10, 10));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Reset to default", 11, 11));
-		AutoConfig.ManualCommands.Add("Ck_GymFloat_Increment");
-		AutoConfig.ManualCommands.Add("Ck_GymFloat_Decrement");
-		AutoConfig.ManualCommands.Add("Ck_GymFloat_RevokeAll");
+		AutoConfig.ManualCommands.Add("panel [N] Inc/Dec ring · increment / decrement / revoke all");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

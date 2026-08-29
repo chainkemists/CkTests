@@ -22,13 +22,13 @@
 // HasFood / HasWeapon / ThreatActive on the same WS triggers replans on the
 // matching Planner's root only - the unique-to-unified-model isolation.
 //
-// Player commands:
-//   Goap.Survival.ToggleHungry         - flip Hungry (Hunger Planner goal).
-//   Goap.Survival.ToggleHasFood        - flip HasFood.
-//   Goap.Survival.ToggleThreat         - flip ThreatActive.
-//   Goap.Survival.ToggleHasWeapon      - flip HasWeapon.
-//   Goap.Survival.Reset                - Hungry=true, HasFood=false,
-//                                        ThreatActive=true, HasWeapon=true.
+// Player controls:
+//   panel [P] - flip Hungry (Hunger Planner goal).
+//   panel [T] - flip HasFood.
+//   panel [U] - flip ThreatActive.
+//   panel [V] - flip HasWeapon.
+//   panel [4] - Hungry=true, HasFood=false,
+//               ThreatActive=true, HasWeapon=true.
 //============================================================================
 
 USTRUCT()
@@ -177,10 +177,10 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             + "Defense Planner (goal SafeFromThreat=true)\n"
             + f"  Status   {CkGoapGym_Common::Format_PlanStatus(DStatus)}\n"
             + f"  Plan     {CkGoapGym_Common::Format_Plan(DPlan, _KnownClasses_Defense, _KnownLabels_Defense)}\n\n"
-            + "Console\n"
-            + "  Goap.Survival.ToggleHungry / HasFood\n"
-            + "  Goap.Survival.ToggleThreat / HasWeapon\n"
-            + "  Goap.Survival.Reset";
+            + "Control panel\n"
+            + "  panel [P] / [T]  Hungry / HasFood\n"
+            + "  panel [U] / [V]  ThreatActive / HasWeapon\n"
+            + "  panel [4]        Reset the survival WS";
 
         CkGym_Common::Update_StationDisplay(ck::ToEntity(this),
             "STATION 5 / SURVIVAL DECISION", Body,

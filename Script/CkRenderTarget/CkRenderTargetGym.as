@@ -11,11 +11,11 @@
 // world's station display converge (applied batch seq, pixel payloads,
 // pixel-state hash).
 //
-//   LMB (hold, aim at board)              - freehand draw where you look
-//   Ck_GymRenderTarget_DrawRandomStroke   - draw a random line
-//   Ck_GymRenderTarget_Clear              - clear the board
-//   Ck_GymRenderTarget_SyncPixels         - server capture -> FullSync/Delta
-//                                           reconcile (Hybrid mode's pixel leg)
+//   LMB (hold, aim at board) - freehand draw where you look
+//   [J] control panel        - draw a random line
+//   [K] control panel        - clear the board
+//   [B] control panel        - server capture -> FullSync/Delta reconcile
+//                              (Hybrid mode's pixel leg)
 //
 // PASS = seq / payload counters and the pixel hash match across all worlds
 // after each operation settles, and strokes drawn on one world appear on all.
@@ -313,10 +313,10 @@ class UCk_RenderTargetGym_Whiteboard_EntityScript : UCk_EntityScript_WithActor_U
         Body = f"{Body}  Pixel state hash:     {PixelHash}\n\n";
         Body = f"{Body}PASS = seq + hash converge on every world after each op.\n\n";
         Body = f"{Body}HOLD LMB while looking at the board to draw.\n\n";
-        Body = f"{Body}Manual:\n";
-        Body = f"{Body}  Ck_GymRenderTarget_DrawRandomStroke\n";
-        Body = f"{Body}  Ck_GymRenderTarget_Clear\n";
-        Body = f"{Body}  Ck_GymRenderTarget_SyncPixels\n";
+        Body = f"{Body}Manual (control panel):\n";
+        Body = f"{Body}  [J] random stroke\n";
+        Body = f"{Body}  [K] clear\n";
+        Body = f"{Body}  [B] sync pixels\n";
 
         auto StationActor = utils_actor::Get_FirstActorWithNameContaining(
             "Gym.RenderTarget.Whiteboard", ECk_ActorSearchMethod::SearchByTag);
@@ -520,25 +520,50 @@ class ACk_RenderTargetGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("[OK] RenderTarget whiteboard spawned at station");
     }
 
-    UFUNCTION(Exec, DisplayName="RenderTarget Gym - Draw Random Stroke")
-    void Ck_GymRenderTarget_DrawRandomStroke()
+    private void DoDrawRandomStroke()
     {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_RenderTargetGym_Whiteboard"))
         { utils_messaging::Broadcast(E, FCk_Message_RenderTargetGym_DrawRandomStroke()); }
     }
 
-    UFUNCTION(Exec, DisplayName="RenderTarget Gym - Clear")
-    void Ck_GymRenderTarget_Clear()
+    private void DoClear()
     {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_RenderTargetGym_Whiteboard"))
         { utils_messaging::Broadcast(E, FCk_Message_RenderTargetGym_Clear()); }
     }
 
-    UFUNCTION(Exec, DisplayName="RenderTarget Gym - Sync Pixels")
-    void Ck_GymRenderTarget_SyncPixels()
+    private void DoSyncPixels()
     {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_RenderTargetGym_Whiteboard"))
         { utils_messaging::Broadcast(E, FCk_Message_RenderTargetGym_SyncPixels()); }
+    }
+
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Every world runs this panel, and each row acts on the board in ITS world - which is the point:
+    // the convergence being validated is what happens after a row is pressed on one window only.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "RENDER TARGET: WHITEBOARD";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Draw a random stroke"));
+        Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Clear the board"));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Sync pixels (Hybrid pixel leg)"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { DoDrawRandomStroke(); }
+        else if (InRowIndex == 1) { DoClear(); }
+        else if (InRowIndex == 2) { DoSyncPixels(); }
     }
 }
 

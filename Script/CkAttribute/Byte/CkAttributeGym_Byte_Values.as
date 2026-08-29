@@ -38,16 +38,15 @@ class UCk_EntityScript_AttributeGym_ByteValues : UCk_GenericEntityScript_UE
 		// Auto config
 		AutoConfig.TotalSteps = 6;
 		AutoConfig.Description = "Tests Base/Bonus/Final retrieval across Min/Max/Current components.\nShows calculation breakdown with live modifiers.";
-		AutoConfig.GlobalAutoCommand = "Ck_GymByte_Auto [0/1]";
-		AutoConfig.PerStationAutoCommand = "Ck_GymByte_AutoValues";
+		AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+		AutoConfig.PerStationAutoCommand = "panel [3] Values station auto";
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Add base modifiers (+20, +15)", 0, 0));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Modify Min/Max/Current components", 1, 1));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test all retrieval methods", 2, 2));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Add more modifiers (+12)", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Clear all modifiers", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Reset components to defaults", 5, 5));
-		AutoConfig.ManualCommands.Add("Ck_GymByte_AddModifier");
-		AutoConfig.ManualCommands.Add("Ck_GymByte_ClearModifiers");
+		AutoConfig.ManualCommands.Add("panel [J] Add modifier · [K] Clear modifiers");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

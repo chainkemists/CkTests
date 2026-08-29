@@ -7,7 +7,7 @@
 // into Jolt by the KinematicPush processor). A ring of short Springy rope
 // strands is anchored to it via Create_Rope's AnchorBody - the strands whip
 // and trail as the head moves: the hair pattern is ropes + a moving anchor,
-// not a separate feature. Enable ck.Jolt.DebugDraw.Enabled 1 to see it.
+// not a separate feature. Toggle [J] to see it.
 //============================================================================
 
 class ACk_JoltGym_Hair_GameMode : ACkTests_Gym_Base_GameMode
@@ -29,6 +29,11 @@ class ACk_JoltGym_Hair_PlayerController : ACk_Gym_Base_PlayerController
     private float _OrbitRadius = 140.0;
     private bool _Moving = true;
 
+    // Mirror of ck.Jolt.DebugDraw.Enabled - mirrored in a member because the module exposes no
+    // AS readback for it; EndPlay writes it back to its default (off) only if this gym touched it.
+    private bool _JoltDrawEnabled = false;
+    private bool _JoltDrawTouched = false;
+
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
@@ -38,7 +43,7 @@ class ACk_JoltGym_Hair_PlayerController : ACk_Gym_Base_PlayerController
         Station.Title = FText::FromString("JOLT HAIR");
         auto Description = TArray<FText>();
         Description.Add(FText::FromString("A kinematic head orbits with a ring of springy strands anchored to it.\nHair = ropes + a moving AnchorBody."));
-        Description.Add(FText::FromString("Ck_GymJoltHair_ToggleMotion\nCk_GymJoltHair_Reset\nck.Jolt.DebugDraw.Enabled 1"));
+        Description.Add(FText::FromString("Every control is on the panel:\n[M] head motion · [R] reset · [J] Jolt debug draw."));
         Station.Description = Description;
         Station.AutoSize = true;
         Stations.Add(Station);
@@ -138,8 +143,43 @@ class ACk_JoltGym_Hair_PlayerController : ACk_Gym_Base_PlayerController
         utils_transform::Request_SetTransform(_HeadTransform, FTransform(_HeadCenter + DoOrbitOffset()));
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt Hair - Toggle Head Motion")
-    void Ck_GymJoltHair_ToggleMotion()
+    // ---- Control panel ------------------------------------------------------------------------
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Header("HAIR"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::M, "M", "Head motion", _Moving));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Reset - rebuild the strands"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::J, "J", "Jolt debug draw", _JoltDrawEnabled));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 1)
+        { DoToggleMotion(); }
+        else if (InRowIndex == 2)
+        { DoReset(); }
+        else if (InRowIndex == 3)
+        {
+            _JoltDrawEnabled = !_JoltDrawEnabled;
+            _JoltDrawTouched = true;
+            System::ExecuteConsoleCommand(f"ck.Jolt.DebugDraw.Enabled {(_JoltDrawEnabled ? 1 : 0)}");
+        }
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void EndPlay(EEndPlayReason EndPlayReason)
+    {
+        // No AS readback exists for the cvar, so a faithful capture/restore is impossible - put it
+        // back to its module default only if this gym flipped it, so a value the USER set outside
+        // the gym is never stomped by a gym they never touched the toggle in.
+        if (_JoltDrawTouched)
+        { System::ExecuteConsoleCommand("ck.Jolt.DebugDraw.Enabled 0"); }
+    }
+
+    private void DoToggleMotion()
     {
         _Moving = !_Moving;
         if (_Moving)
@@ -148,8 +188,7 @@ class ACk_JoltGym_Hair_PlayerController : ACk_Gym_Base_PlayerController
         { ck::Trace("JoltHairGym: head motion OFF"); }
     }
 
-    UFUNCTION(Exec, DisplayName="Jolt Hair - Reset")
-    void Ck_GymJoltHair_Reset()
+    private void DoReset()
     {
         for (auto Root : _SpawnedRoots)
         {

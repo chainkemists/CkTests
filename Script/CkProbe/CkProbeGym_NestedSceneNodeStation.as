@@ -196,10 +196,10 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
             "Root tween drives chained probe through\n" +
             "Z45 -> X30 offset chain.\n" +
             "Detector should fire twice per yoyo.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymProbe_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymProbe_AutoNested";
+        AutoConfig.GlobalAutoCommand = "panel [G] auto on / [B] auto off";
+        AutoConfig.PerStationAutoCommand = "panel [O] Nested station only";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Auto=ON runs tween; Auto=OFF pauses", 0, 0));
-        AutoConfig.ManualCommands.Add("Ck_GymProbe_NestedReset");
+        AutoConfig.ManualCommands.Add("panel [N] Reset the chain");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

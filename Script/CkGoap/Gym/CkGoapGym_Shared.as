@@ -14,10 +14,11 @@
 //   - one or more utils_goap_planner::Add entries
 //   - a Tick timer that re-pushes the status panel text every frame
 //
-// World-state mutations and "buttons" are exposed as UFUNCTION(Exec) console
-// commands on each gym's player controller. Each command resolves the station
-// by its gym station tag, then mutates the WS handle it holds - the GOAP
-// runtime reacts via the OnWorldStateDirty replan policy on the relevant root.
+// World-state mutations and "buttons" are control-panel rows on each gym's
+// player controller (Script/Common/CkGym_ControlPanel.as). Each row resolves
+// the station by its gym station tag, then reads or mutates the WS handle it
+// holds - the GOAP runtime reacts via the OnWorldStateDirty replan policy on
+// the relevant root.
 //============================================================================
 
 namespace Ck

@@ -43,15 +43,15 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_GenericEntityScript_UE
 		// Auto config
 		AutoConfig.TotalSteps = 6;
 		AutoConfig.Description = "Tests signal binding/unbinding with multiple delegates.\nShows dynamic bind/unbind and signal firing verification.";
-		AutoConfig.GlobalAutoCommand = "Ck_GymByte_Auto [0/1]";
-		AutoConfig.PerStationAutoCommand = "Ck_GymByte_AutoSignals";
+		AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
+		AutoConfig.PerStationAutoCommand = "panel [6] Signals station auto";
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Bind first delegate", 0, 0));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Bind multiple delegates", 1, 1));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Trigger value changes", 2, 2));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Unbind selective delegates", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test rebinding", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Unbind all delegates", 5, 5));
-		AutoConfig.ManualCommands.Add("Ck_GymByte_SetSignalValue [val]");
+		AutoConfig.ManualCommands.Add("panel [0] Signal value preset · 150 / 0 / 255 / 200");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

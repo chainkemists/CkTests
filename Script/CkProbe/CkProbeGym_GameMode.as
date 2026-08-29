@@ -25,7 +25,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
             Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests raw Probe API: Request_Begin/EndOverlap + dedup."));
-            Description.Add(FText::FromString("Console: ForceEnter / ForceExit / Reset / Auto"));
+            Description.Add(FText::FromString("Panel: [J] enter, [K] exit, [R] reset."));
             Description.Add(FText::FromString("Auto steps: enter, dedup, exit, no-op."));
             Station.Description = Description;
             Stations.Add(Station);
@@ -52,7 +52,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Multi-ball tween demo. Yellow ball = Jolt body desync vs AABB."));
             Description.Add(FText::FromString("Walk the pawn through too."));
-            Description.Add(FText::FromString("Toggle Auto to pause/resume the balls."));
+            Description.Add(FText::FromString("Panel [G]/[B] resume/pause the balls."));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -77,7 +77,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
             Station.AutoSize = true;
             auto TraceDescription = TArray<FText>();
             TraceDescription.Add(FText::FromString("Shape trace across a baked cube and a target probe."));
-            TraceDescription.Add(FText::FromString("Console: Ck_GymProbeTrace_Ignore / _Blocking / _Reported"));
+            TraceDescription.Add(FText::FromString("Panel [T] cycles the world-hit policy."));
             TraceDescription.Add(FText::FromString("Ignore = wallhack, Blocking = cube truncates, Reported = both."));
             Station.Description = TraceDescription;
             Stations.Add(Station);
@@ -176,109 +176,132 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // Console Commands - Debug station manual drive
+    // Station drive - Debug + Nested manual steps
     //------------------------------------------------------------------------
 
-    UFUNCTION(Exec, DisplayName="Probe Gym - Force Enter")
-    void Ck_GymProbe_ForceEnter()
+    private void DoForceEnter()
     {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_DebugStation"))
         { utils_messaging::Broadcast(E, FCk_Message_ProbeGym_ForceEnter()); }
     }
 
-    UFUNCTION(Exec, DisplayName="Probe Gym - Force Exit")
-    void Ck_GymProbe_ForceExit()
+    private void DoForceExit()
     {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_DebugStation"))
         { utils_messaging::Broadcast(E, FCk_Message_ProbeGym_ForceExit()); }
     }
 
-    UFUNCTION(Exec, DisplayName="Probe Gym - Reset")
-    void Ck_GymProbe_Reset()
+    private void DoResetDebug()
     {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_DebugStation"))
         { utils_messaging::Broadcast(E, FCk_Message_ProbeGym_Reset()); }
     }
 
-    UFUNCTION(Exec, DisplayName="Probe Gym - Nested Reset")
-    void Ck_GymProbe_NestedReset()
+    private void DoResetNested()
     {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_NestedSceneNodeStation"))
         { utils_messaging::Broadcast(E, FCk_Message_ProbeGym_NestedReset()); }
     }
 
     //------------------------------------------------------------------------
-    // Console Commands - Trace station world-hit policy
+    // Trace station world-hit policy
     //------------------------------------------------------------------------
 
-    UFUNCTION(Exec, DisplayName="Probe Gym - Trace World Hits: Ignore")
-    void Ck_GymProbeTrace_Ignore()
-    {
-        Do_SetTraceWorldHitPolicy(ECk_ProbeTrace_WorldHitPolicy::Ignore);
-    }
+    // The policy lives on the trace station entity (its CurrentPolicy is private, with no readback),
+    // so the panel mirrors it here. This controller's broadcast is the only writer.
+    private ECk_ProbeTrace_WorldHitPolicy _TracePolicy = ECk_ProbeTrace_WorldHitPolicy::Ignore;
 
-    UFUNCTION(Exec, DisplayName="Probe Gym - Trace World Hits: Blocking")
-    void Ck_GymProbeTrace_Blocking()
+    private void DoCycleTraceWorldHitPolicy()
     {
-        Do_SetTraceWorldHitPolicy(ECk_ProbeTrace_WorldHitPolicy::Blocking);
-    }
+        if (_TracePolicy == ECk_ProbeTrace_WorldHitPolicy::Ignore)
+        { _TracePolicy = ECk_ProbeTrace_WorldHitPolicy::Blocking; }
+        else if (_TracePolicy == ECk_ProbeTrace_WorldHitPolicy::Blocking)
+        { _TracePolicy = ECk_ProbeTrace_WorldHitPolicy::Reported; }
+        else
+        { _TracePolicy = ECk_ProbeTrace_WorldHitPolicy::Ignore; }
 
-    UFUNCTION(Exec, DisplayName="Probe Gym - Trace World Hits: Reported")
-    void Ck_GymProbeTrace_Reported()
-    {
-        Do_SetTraceWorldHitPolicy(ECk_ProbeTrace_WorldHitPolicy::Reported);
-    }
-
-    private void Do_SetTraceWorldHitPolicy(ECk_ProbeTrace_WorldHitPolicy InPolicy)
-    {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_TraceStation"))
-        { utils_messaging::Broadcast(E, FCk_Message_ProbeGymTrace_SetWorldHitPolicy(InPolicy)); }
+        { utils_messaging::Broadcast(E, FCk_Message_ProbeGymTrace_SetWorldHitPolicy(_TracePolicy)); }
+    }
+
+    private FString Get_TracePolicyLabel()
+    {
+        if (_TracePolicy == ECk_ProbeTrace_WorldHitPolicy::Blocking) { return "Blocking"; }
+        if (_TracePolicy == ECk_ProbeTrace_WorldHitPolicy::Reported) { return "Reported"; }
+        return "Ignore";
     }
 
     //------------------------------------------------------------------------
-    // Console Commands - Auto
+    // Auto stepping
     //------------------------------------------------------------------------
 
-    UFUNCTION(Exec, DisplayName="Probe Gym - Auto")
-    void Ck_GymProbe_Auto(int32 InEnabled = 1)
+    private void DoSetAutoAll(bool InEnabled)
     {
-        auto Enabled = InEnabled != 0;
-        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_DebugStation"))
-        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(Enabled)); }
-        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_PhysicalStation"))
-        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(Enabled)); }
-        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_NestedSceneNodeStation"))
-        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(Enabled)); }
-        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_TraceStation"))
-        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(Enabled)); }
+        DoSetAutoForTag(n"TAG_ProbeGym_DebugStation", InEnabled);
+        DoSetAutoForTag(n"TAG_ProbeGym_PhysicalStation", InEnabled);
+        DoSetAutoForTag(n"TAG_ProbeGym_NestedSceneNodeStation", InEnabled);
+        DoSetAutoForTag(n"TAG_ProbeGym_TraceStation", InEnabled);
     }
 
-    UFUNCTION(Exec, DisplayName="Probe Gym - Auto Trace")
-    void Ck_GymProbe_AutoTrace()
+    private void DoSetAutoForTag(FName InStationTag, bool InEnabled)
     {
-        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_TraceStation"))
-        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(true)); }
+        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), InStationTag))
+        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(InEnabled)); }
     }
 
-    UFUNCTION(Exec, DisplayName="Probe Gym - Auto Debug")
-    void Ck_GymProbe_AutoDebug()
+    //------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Auto is two Actions rather than one Toggle on purpose: the debug station stops its OWN auto
+    // whenever a manual step arrives (gym_auto::StopAuto), so a single mirrored flag here would
+    // report a state no station is necessarily in.
+    //------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
     {
-        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_DebugStation"))
-        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(true)); }
+        return "PROBE";
     }
 
-    UFUNCTION(Exec, DisplayName="Probe Gym - Auto Physical")
-    void Ck_GymProbe_AutoPhysical()
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
     {
-        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_PhysicalStation"))
-        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(true)); }
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Header("DEBUG STATION"));
+        Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Force enter"));
+        Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Force exit"));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Reset the overlap state"));
+
+        Rows.Add(CkGym_Control::Header("TRACE STATION"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::T, "T", "World-hit policy", Get_TracePolicyLabel()));
+
+        Rows.Add(CkGym_Control::Header("NESTED SCENE NODES"));
+        Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Reset the chain"));
+
+        Rows.Add(CkGym_Control::Header("AUTO STEPPING"));
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "All stations: auto on"));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "All stations: auto off"));
+        Rows.Add(CkGym_Control::Action(EKeys::U, "U", "Debug station only"));
+        Rows.Add(CkGym_Control::Action(EKeys::I, "I", "Physical station only"));
+        Rows.Add(CkGym_Control::Action(EKeys::O, "O", "Nested station only"));
+        Rows.Add(CkGym_Control::Action(EKeys::P, "P", "Trace station only"));
+
+        return Rows;
     }
 
-    UFUNCTION(Exec, DisplayName="Probe Gym - Auto Nested")
-    void Ck_GymProbe_AutoNested()
+    void Request_ControlActivated(int32 InRowIndex) override
     {
-        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_NestedSceneNodeStation"))
-        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(true)); }
+        // Rows 0, 4, 6 and 8 are headers, which hold no key and never arrive here.
+        if (InRowIndex == 1) { DoForceEnter(); }
+        else if (InRowIndex == 2) { DoForceExit(); }
+        else if (InRowIndex == 3) { DoResetDebug(); }
+        else if (InRowIndex == 5) { DoCycleTraceWorldHitPolicy(); }
+        else if (InRowIndex == 7) { DoResetNested(); }
+        else if (InRowIndex == 9) { DoSetAutoAll(true); }
+        else if (InRowIndex == 10) { DoSetAutoAll(false); }
+        else if (InRowIndex == 11) { DoSetAutoForTag(n"TAG_ProbeGym_DebugStation", true); }
+        else if (InRowIndex == 12) { DoSetAutoForTag(n"TAG_ProbeGym_PhysicalStation", true); }
+        else if (InRowIndex == 13) { DoSetAutoForTag(n"TAG_ProbeGym_NestedSceneNodeStation", true); }
+        else if (InRowIndex == 14) { DoSetAutoForTag(n"TAG_ProbeGym_TraceStation", true); }
     }
 }
 

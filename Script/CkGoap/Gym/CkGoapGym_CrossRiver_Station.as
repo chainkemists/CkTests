@@ -8,10 +8,10 @@
 // Initial WS: BridgeIsOpen=true, HasCoin=true, Crossed=false.
 // Plan: [UseBridge] (cost 2 - lowest).
 //
-// Player commands:
-//   Goap.River.ToggleBridge - Bridge becomes blocked -> plan flips to UseFerry.
-//   Goap.River.SpendCoin    - coin gone too -> plan flips to SwimAcross.
-//   Goap.River.Reset        - restore both, plan returns to UseBridge.
+// Player controls:
+//   panel [B] - Bridge becomes blocked -> plan flips to UseFerry.
+//   panel [F] - coin gone too -> plan flips to SwimAcross.
+//   panel [2] - restore both, plan returns to UseBridge.
 //============================================================================
 
 USTRUCT()
@@ -113,10 +113,10 @@ class UCk_EntityScript_GoapGym_CrossRiver_Station : UCk_GenericEntityScript_UE
             + f"  Status         {CkGoapGym_Common::Format_PlanStatus(Status)}\n"
             + f"  Plan           {CkGoapGym_Common::Format_Plan(Plan, _KnownClasses, _KnownLabels)}\n"
             + f"  Plan cost      {Cost}\n\n"
-            + "Console\n"
-            + "  Goap.River.ToggleBridge  Block / open the bridge\n"
-            + "  Goap.River.SpendCoin     Lose the coin (one-way)\n"
-            + "  Goap.River.Reset         Restore initial WS";
+            + "Control panel\n"
+            + "  panel [B]  Block / open the bridge\n"
+            + "  panel [F]  Lose the coin (one-way)\n"
+            + "  panel [2]  Restore initial WS";
 
         CkGym_Common::Update_StationDisplay(ck::ToEntity(this),
             "STATION 3 / CROSS RIVER", Body,

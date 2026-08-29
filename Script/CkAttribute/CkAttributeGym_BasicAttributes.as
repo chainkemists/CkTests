@@ -69,19 +69,17 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_GenericEntityScript_UE
         // Auto config
         AutoConfig.TotalSteps = 6;
         AutoConfig.Description = "Tests float, byte, and vector attributes with auto-clamping.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymAttribute_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymAttribute_AutoBasic";
+        AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle phases";
+        AutoConfig.PerStationAutoCommand = "panel [T] Auto-cycle phases";
         AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth 50, SetArmor 150, SetVelocity mid", 0, 0));
         AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth 95, SetArmor 245, SetVelocity high", 1, 1));
         AutoConfig.Steps.Add(FCkGym_AutoStep("TestBoundaries (push past max)", 2, 2));
         AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth 10, SetArmor 20, SetVelocity low", 3, 3));
         AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth -10, SetArmor 0 (push past min)", 4, 4));
         AutoConfig.Steps.Add(FCkGym_AutoStep("ResetBasicValues", 5, 5));
-        AutoConfig.ManualCommands.Add("Ck_GymAttribute_SetHealth [value]");
-        AutoConfig.ManualCommands.Add("Ck_GymAttribute_SetArmor [value]");
-        AutoConfig.ManualCommands.Add("Ck_GymAttribute_SetVelocity [x] [y] [z]");
-        AutoConfig.ManualCommands.Add("Ck_GymAttribute_TestBoundaries");
-        AutoConfig.ManualCommands.Add("Ck_GymAttribute_ResetBasicValues");
+        AutoConfig.ManualCommands.Add("panel [1] Health preset · [2] Armor preset · [3] Velocity preset");
+        AutoConfig.ManualCommands.Add("panel [B] Test boundaries · [R] Reset values");
+        AutoConfig.ManualCommands.Add("console Ck_GymAttribute_SetVelocity [x] [y] [z] (free-range)");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -391,6 +389,16 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_GenericEntityScript_UE
 
 class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 {
+    // Preset-ring positions for the panel rows; each press applies the NEXT value, chosen to
+    // exercise the auto-clamping (over-max, negative) the station demonstrates.
+    private int32 _HealthPresetIndex = -1;
+    private int32 _ArmorPresetIndex = -1;
+    private int32 _VelocityPresetIndex = -1;
+
+    // Mirror of the station's auto-cycle state - it lives in the entity script behind a broadcast
+    // message with no readback, so the panel mirrors it here (starts true: the station auto-runs).
+    private bool _AutoEnabled = true;
+
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
@@ -403,7 +411,7 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests float, byte, and vector attributes with auto-clamping."));
             Description.Add(FText::FromString("Auto-cycles through 6 phases every 2s."));
-            Description.Add(FText::FromString("Console: SetHealth / SetArmor / SetVelocity / TestBoundaries / Auto"));
+            Description.Add(FText::FromString("All knobs are on the control panel; free-range velocity via console Ck_GymAttribute_SetVelocity X Y Z"));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -439,77 +447,134 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // Console Commands
+    // Control panel
     //------------------------------------------------------------------------
 
-    UFUNCTION(Exec, DisplayName="Attribute Gym - Set Health")
-    void Ck_GymAttribute_SetHealth(float32 InValue)
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
-        for (auto Entity : Entities)
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Header("BASIC ATTRIBUTES"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::T, "T", "Auto-cycle phases", _AutoEnabled));
+        Rows.Add(CkGym_Control::Cycle(EKeys::One,   "1", "Health preset",   DoGet_PresetLabel(_HealthPresetIndex,   "100 / 50 / 0 / -25 / 150")));
+        Rows.Add(CkGym_Control::Cycle(EKeys::Two,   "2", "Armor preset",    DoGet_PresetLabel(_ArmorPresetIndex,    "0 / 64 / 128 / 255")));
+        Rows.Add(CkGym_Control::Cycle(EKeys::Three, "3", "Velocity preset", DoGet_PresetLabel(_VelocityPresetIndex, "rings")));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Test boundaries"));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Reset values"));
+        Rows.Add(CkGym_Control::Status("Free-range velocity", "console Ck_GymAttribute_SetVelocity X Y Z"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 1)
         {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_SetHealth(InValue));
+            _AutoEnabled = !_AutoEnabled;
+            DoBroadcastAutoSet(_AutoEnabled);
+        }
+        else if (InRowIndex == 2)
+        {
+            _HealthPresetIndex = (_HealthPresetIndex + 1) % 5;
+            auto Values = TArray<float32>();
+            Values.Add(100.0f); Values.Add(50.0f); Values.Add(0.0f); Values.Add(-25.0f); Values.Add(150.0f);
+            DoBroadcastToStation(FCk_Message_AttributeGym_SetHealth(Values[_HealthPresetIndex]));
+        }
+        else if (InRowIndex == 3)
+        {
+            _ArmorPresetIndex = (_ArmorPresetIndex + 1) % 4;
+            auto Values = TArray<uint8>();
+            Values.Add(uint8(0)); Values.Add(uint8(64)); Values.Add(uint8(128)); Values.Add(uint8(255));
+            DoBroadcastToStation(FCk_Message_AttributeGym_SetArmor(Values[_ArmorPresetIndex]));
+        }
+        else if (InRowIndex == 4)
+        {
+            _VelocityPresetIndex = (_VelocityPresetIndex + 1) % 4;
+            auto Values = TArray<FVector>();
+            Values.Add(FVector::ZeroVector);
+            Values.Add(FVector(100.0, 0.0, 0.0));
+            Values.Add(FVector(0.0, 500.0, 0.0));
+            Values.Add(FVector(9999.0, 9999.0, 9999.0));
+            DoBroadcastToStation(FCk_Message_AttributeGym_SetVelocity(Values[_VelocityPresetIndex]));
+        }
+        else if (InRowIndex == 5)
+        {
+            DoBroadcastToStation(FCk_Message_AttributeGym_TestBoundaries());
+        }
+        else if (InRowIndex == 6)
+        {
+            DoBroadcastToStation(FCk_Message_AttributeGym_ResetAttributes());
+            _HealthPresetIndex = -1;
+            _ArmorPresetIndex = -1;
+            _VelocityPresetIndex = -1;
         }
     }
 
-    UFUNCTION(Exec, DisplayName="Attribute Gym - Set Armor")
-    void Ck_GymAttribute_SetArmor(uint8 InValue)
+    private FString DoGet_PresetLabel(int32 InIndex, FString InRing)
+    {
+        return InIndex < 0 ? f"({InRing})" : f"step {InIndex + 1}";
+    }
+
+    private void DoBroadcastAutoSet(bool InEnabled)
     {
         auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
         for (auto Entity : Entities)
         {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_SetArmor(InValue));
+            utils_messaging::Broadcast(Entity, FCk_Message_Gym_AutoSet(InEnabled));
         }
     }
+
+    private void DoBroadcastToStation(FCk_Message_AttributeGym_SetHealth InMessage)
+    {
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
+        for (auto Entity : Entities)
+        {
+            utils_messaging::Broadcast(Entity, InMessage);
+        }
+    }
+
+    private void DoBroadcastToStation(FCk_Message_AttributeGym_SetArmor InMessage)
+    {
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
+        for (auto Entity : Entities)
+        {
+            utils_messaging::Broadcast(Entity, InMessage);
+        }
+    }
+
+    private void DoBroadcastToStation(FCk_Message_AttributeGym_SetVelocity InMessage)
+    {
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
+        for (auto Entity : Entities)
+        {
+            utils_messaging::Broadcast(Entity, InMessage);
+        }
+    }
+
+    private void DoBroadcastToStation(FCk_Message_AttributeGym_TestBoundaries InMessage)
+    {
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
+        for (auto Entity : Entities)
+        {
+            utils_messaging::Broadcast(Entity, InMessage);
+        }
+    }
+
+    private void DoBroadcastToStation(FCk_Message_AttributeGym_ResetAttributes InMessage)
+    {
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
+        for (auto Entity : Entities)
+        {
+            utils_messaging::Broadcast(Entity, InMessage);
+        }
+    }
+
+    //------------------------------------------------------------------------
+    // Console (free-range input the panel cannot express)
+    //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Attribute Gym - Set Velocity")
     void Ck_GymAttribute_SetVelocity(float32 InX, float32 InY, float32 InZ)
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
-        for (auto Entity : Entities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_SetVelocity(FVector(InX, InY, InZ)));
-        }
-    }
-
-    UFUNCTION(Exec, DisplayName="Attribute Gym - Test Boundaries")
-    void Ck_GymAttribute_TestBoundaries()
-    {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
-        for (auto Entity : Entities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_TestBoundaries());
-        }
-    }
-
-    UFUNCTION(Exec, DisplayName="Attribute Gym - Reset Basic Values")
-    void Ck_GymAttribute_ResetBasicValues()
-    {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
-        for (auto Entity : Entities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
-        }
-    }
-
-    UFUNCTION(Exec, DisplayName="Attribute Gym - Auto")
-    void Ck_GymAttribute_Auto(int32 InEnabled = 1)
-    {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
-        for (auto Entity : Entities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_Gym_AutoSet(InEnabled != 0));
-        }
-    }
-
-    UFUNCTION(Exec, DisplayName="Attribute Gym - Auto Basic")
-    void Ck_GymAttribute_AutoBasic()
-    {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
-        for (auto Entity : Entities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_Gym_AutoSet(true));
-        }
+        DoBroadcastToStation(FCk_Message_AttributeGym_SetVelocity(FVector(InX, InY, InZ)));
     }
 }
 
