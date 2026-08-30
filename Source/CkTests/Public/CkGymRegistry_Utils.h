@@ -72,9 +72,27 @@ public:
         const UObject* InWorldContextObject,
         const FString& InName);
 
+    // True once the startup-gym redirect has run (or been skipped) this game session. The base
+    // GameMode checks this before resolving, and marks it, so the redirect fires at most once per
+    // session — BeginPlay re-fires on every gym travel and must not re-apply the preference.
+    UFUNCTION(BlueprintPure, Category = "Ck|Utils|GymRegistry",
+              DisplayName = "[Ck][GymRegistry] Get HasConsumedStartupResolve",
+              meta = (WorldContext = "InWorldContextObject"))
+    static bool
+    Get_HasConsumedStartupResolve(
+        const UObject* InWorldContextObject);
+
+    UFUNCTION(BlueprintCallable, Category = "Ck|Utils|GymRegistry",
+              DisplayName = "[Ck][GymRegistry] Mark StartupResolve Consumed",
+              meta = (WorldContext = "InWorldContextObject"))
+    static void
+    Request_MarkStartupResolveConsumed(
+        const UObject* InWorldContextObject);
+
     // Returns the registry index the gym GameMode should auto-travel to on BeginPlay, based on the
     // user's startup preference. -1 when the cycler menu should handle entry (mode = Cycler, or the
-    // saved name no longer resolves to a registered gym).
+    // saved name no longer resolves to a registered gym). Pure — the once-per-session gating lives
+    // in the ConsumedStartupResolve pair above, owned by the caller.
     UFUNCTION(BlueprintPure, Category = "Ck|Utils|GymRegistry",
               DisplayName = "[Ck][GymRegistry] Resolve StartupGymIndex",
               meta = (WorldContext = "InWorldContextObject"))

@@ -106,6 +106,32 @@ auto
 
 auto
     UCk_Utils_GymRegistry_UE::
+    Get_HasConsumedStartupResolve(
+        const UObject* InWorldContextObject)
+    -> bool
+{
+    const auto* Subsystem = DoGet_Subsystem(InWorldContextObject);
+    if (NOT IsValid(Subsystem))
+    { return false; }
+
+    return Subsystem->Get_HasConsumedStartupResolve();
+}
+
+auto
+    UCk_Utils_GymRegistry_UE::
+    Request_MarkStartupResolveConsumed(
+        const UObject* InWorldContextObject)
+    -> void
+{
+    auto* Subsystem = DoGet_Subsystem(InWorldContextObject);
+    if (NOT IsValid(Subsystem))
+    { return; }
+
+    Subsystem->MarkStartupResolveConsumed();
+}
+
+auto
+    UCk_Utils_GymRegistry_UE::
     Resolve_StartupGymIndex(
         const UObject* InWorldContextObject)
     -> int32

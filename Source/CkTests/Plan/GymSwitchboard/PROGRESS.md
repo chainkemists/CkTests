@@ -1,6 +1,19 @@
 # Gym Switchboard — PROGRESS.md (living log)
 
 ## Current state  <!-- supersedes everything below; update at EVERY gate and session end -->
+**BUGFIX ROUND 2026-08-29 (user PIE finding #1):** default-gym redirect re-fired on every travel —
+the base GameMode's BeginPlay runs per level load and its only guard was "already on the target",
+so Tab-traveling anywhere else yanked the user back to the pinned gym. Fix: the startup resolve is
+now a once-per-game-session one-shot (`_StartupResolveConsumed` on the per-GameInstance registry
+subsystem; `Get_HasConsumedStartupResolve`/`Request_MarkStartupResolveConsumed` bridged;
+`Resolve_StartupGymIndex` stays Pure — gating is the caller's). BeginPlay: consumed → restore HUD
+and return; else mark, resolve once, stash target in `_StartupTravelIndex`, deferred travel executes
+the stored decision. Gate: build green, full suite 1293/19 — vs the 19-name baseline: NarrowGap +
+IskmRenderer_BatchedVisual flipped green, BunchUp + IskmRenderer_AnimBP flipped red and BOTH passed
+1/1 isolated re-runs (Test-FlakeRecheck-{AnimBP,BunchUp}.log) → known flake clusters, zero new
+failures. STILL AT USER-TEST CHECKPOINT (add: pin default → PIE lands there once → Tab-travel
+elsewhere → confirm you stay).
+
 **ROUND CLOSED 2026-08-29 (commit e708626c):** exec purge done (210 → 16 free-range keeps + 5
 framework, all Status-advertised; testability-preserving per-exec verdicts recorded in the agent
 reports), settings on [1]/[2] digits (F-keys rejected: Unreal rendering debug modes; digits left

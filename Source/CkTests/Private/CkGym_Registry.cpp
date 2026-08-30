@@ -67,6 +67,22 @@ auto
 
 auto
     UCkGym_Registry_Subsystem::
+    Get_HasConsumedStartupResolve() const
+    -> bool
+{
+    return _StartupResolveConsumed;
+}
+
+auto
+    UCkGym_Registry_Subsystem::
+    MarkStartupResolveConsumed()
+    -> void
+{
+    _StartupResolveConsumed = true;
+}
+
+auto
+    UCkGym_Registry_Subsystem::
     Find_GymIndexByName(
         const FString& InName) const
     -> int32
