@@ -77,6 +77,12 @@ public:
         bool InSuppress) -> void;
 
     auto
+    Get_HasConsumedStartupResolve() const -> bool;
+
+    auto
+    MarkStartupResolveConsumed() -> void;
+
+    auto
     Find_GymIndexByName(
         const FString& InName) const -> int32;
 
@@ -116,4 +122,10 @@ private:
     // cleared when the destination loads (and on no-travel paths). HUDs skip drawing while true so
     // the cycler menu doesn't flash on the launcher level during the transition.
     bool _SuppressHUDDuringStartup = false;
+
+    // The startup-gym preference is a boot-time redirect, consumed exactly once per game session.
+    // Without this, the base GameMode's BeginPlay (which fires on EVERY gym travel, not just boot)
+    // would re-resolve the preference and yank the user back to the pinned gym whenever they travel
+    // anywhere else. GameInstance lifetime = survives ServerTravel, resets per PIE run.
+    bool _StartupResolveConsumed = false;
 };
