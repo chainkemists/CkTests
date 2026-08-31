@@ -408,6 +408,10 @@ bool FCkSnapshot_RuntimeArchetype_ProviderRestoresDefinition::RunTest(const FStr
     });
 
     auto Spec = ck::auto_test::snapshot::FCk_SnapshotRoundTrip_Spec{};
+    // Left on the harness defaults (NumCycles=2, SaveEveryCycle=true) deliberately: cycle 2 saves the world cycle 1
+    // rebuilt, so this gate doubles as the RE-CAPTURE guard - the recipe a loaded world writes back must still name
+    // its archetype. PostSave re-breaks the path every cycle, which is what makes cycle 2 discriminating rather
+    // than a repeat. Setting SaveEveryCycle=false here, as the gates around it do, would silently drop that.
     Spec.SlotName = FName{TEXT("CkSnapshot_RuntimeArchetype_RestoredSlot")};
 
     Spec.Spawn = FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld* InServer) -> void
