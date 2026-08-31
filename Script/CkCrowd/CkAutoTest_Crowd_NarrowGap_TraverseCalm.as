@@ -3,7 +3,7 @@
 // CK CROWD - AUTOMATION TEST: NARROW GAP TRAVERSES CLEANLY
 //
 // The corridor stand-down (_CorridorStandDown): a 110cm gap between two
-// UNavArea_Null slabs is walkable for a 42cm agent, but between opposing walls
+// impassable-markup slabs is walkable for a 42cm agent, but between opposing walls
 // the sampler penalises inward candidates from both sides and oscillates under
 // neighbour pressure. With the stand-down, path-follow + the navmesh clamp
 // carry agents through in single file.
@@ -25,14 +25,18 @@ class UCk_AutoTest_Crowd_NarrowGap_TraverseCalm : UCk_AutoTest_Base
     private const int32 WalkerCount = 3;
     private const int32 MaxReversalsPerWalker = 2;
 
-    private UCk_NavAreaMarkup_UE _SlabPosY = nullptr;
-    private UCk_NavAreaMarkup_UE _SlabNegY = nullptr;
+    // Small enough that a projection inside a 100uu-thick slab cannot snap to the mesh just
+    // outside it and report a false "still walkable".
+    private const float32 SlabProbeHalfExtentUu = 20.0f;
+    private const float32 ProbeVerticalExtentUu = 300.0f;
+
+    private FCk_Handle_NavSurfaceMarkup _SlabPosY;
+    private FCk_Handle_NavSurfaceMarkup _SlabNegY;
     private TArray<FCk_Handle_CrowdAgent> _Walkers;
     private float _FloorZ = 0.0;
     private bool _MeshFound = false;
     private bool _WalkersDispatched = false;
     private int32 _ReachedCount = 0;
-    private int32 _SettleBeats = 0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -75,9 +79,10 @@ class UCk_AutoTest_Crowd_NarrowGap_TraverseCalm : UCk_AutoTest_Base
 
         if (_WalkersDispatched == false)
         {
-            // One settle beat so the slab carve lands in the rebuilt tiles before anyone plans.
-            _SettleBeats += 1;
-            if (_SettleBeats < 3)
+            // The carve must be ON the rebuilt tiles before anyone plans. Probe inside each slab
+            // and require the mesh to have gone - the bake is async, so how many poll beats it
+            // takes is not something this fixture can budget for.
+            if (Slabs_AreSealed(SelfHandle) == false)
             { return; }
 
             Spawn_Walkers(SelfHandle);
@@ -110,23 +115,46 @@ class UCk_AutoTest_Crowd_NarrowGap_TraverseCalm : UCk_AutoTest_Base
 
     private void Destroy_Slabs()
     {
-        if (_SlabPosY != nullptr) { utils_nav_area_markup::Request_Destroy(_SlabPosY); _SlabPosY = nullptr; }
-        if (_SlabNegY != nullptr) { utils_nav_area_markup::Request_Destroy(_SlabNegY); _SlabNegY = nullptr; }
+        if (ck::IsValid(_SlabPosY))
+        {
+            utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_SlabPosY));
+            _SlabPosY = FCk_Handle_NavSurfaceMarkup();
+        }
+        if (ck::IsValid(_SlabNegY))
+        {
+            utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_SlabNegY));
+            _SlabNegY = FCk_Handle_NavSurfaceMarkup();
+        }
     }
 
     private void Paint_Slabs()
     {
-        auto SelfHandle = DoGet_ScriptEntity();
-
         const auto CentreY = GapHalfWidthUu + WallHalfY;
-        _SlabPosY = utils_nav_area_markup::Request_Create(SelfHandle,
-            FTransform(FRotator::ZeroRotator, FVector(0.0, CentreY, _FloorZ), FVector::OneVector),
-            FVector(WallHalfX, WallHalfY, WallHalfZ),
-            UNavArea_Null);
-        _SlabNegY = utils_nav_area_markup::Request_Create(SelfHandle,
-            FTransform(FRotator::ZeroRotator, FVector(0.0, -CentreY, _FloorZ), FVector::OneVector),
-            FVector(WallHalfX, WallHalfY, WallHalfZ),
-            UNavArea_Null);
+        _SlabPosY = Paint_Slab(FVector(0.0, CentreY, _FloorZ));
+        _SlabNegY = Paint_Slab(FVector(0.0, -CentreY, _FloorZ));
+    }
+
+    private FCk_Handle_NavSurfaceMarkup Paint_Slab(FVector InCentre)
+    {
+        auto Request = FCk_Request_NavSurface_AreaMarkup(
+            utils_shapes::Make_Box(FCk_ShapeBox_Dimensions(FVector(WallHalfX, WallHalfY, WallHalfZ))),
+            FGameplayTag());
+        Request.Set_WorldTransform(FTransform(FRotator::ZeroRotator, InCentre, FVector::OneVector));
+
+        return utils_nav_surface::Request_ImpassableBox(Request);
+    }
+
+    private bool Slabs_AreSealed(FCk_Handle& InSelf)
+    {
+        const auto CentreY = GapHalfWidthUu + WallHalfY;
+        FVector Unused;
+
+        if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector(0.0, CentreY, _FloorZ),
+                SlabProbeHalfExtentUu, Unused, ProbeVerticalExtentUu))
+        { return false; }
+
+        return utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector(0.0, -CentreY, _FloorZ),
+            SlabProbeHalfExtentUu, Unused, ProbeVerticalExtentUu) == false;
     }
 
     private void Spawn_Walkers(FCk_Handle& InOwner)
