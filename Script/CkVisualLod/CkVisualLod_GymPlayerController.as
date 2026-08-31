@@ -10,12 +10,14 @@
 
 class ACk_VisualLodGym_PlayerController : ACk_Gym_Base_PlayerController
 {
+    private bool _LightingBuilt = false;
+
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
 
         Stations.Add(MakeStationPayload(n"Gym.VisualLod.Arbitration", "Budgeted LOD Arbitration",
-            "40 orbiting members, near budget 5. Walk in: the nearest in-view members CROSSFADE to real\nSKMC proxies. Walk out past the band: they dissolve back. Strafe the edge to see ranked\npreemption (rate-limited, margin-gated). Promote 9m / demote 13m."));
+            "40 orbiting members, near budget 5. Walk in: nearest in-view members CROSSFADE to real\nSKMC proxies. A dedicated shadow-casting sun makes the far-body bands judgeable: full lit/shadowed\nbelow 15m, reduced no-shadow after 15m, terminal no-main/depth after 30m.\nOpen Visual LOD Debugger > Tuners to change budgets and decision distances at runtime."));
 
         return Stations;
     }
@@ -33,6 +35,7 @@ class ACk_VisualLodGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartGym() override
     {
+        Build_Lighting();
         SpawnFloor();
 
         auto Params = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.VisualLod.Arbitration", ECk_GymStation_Anchor::PanelCenter));
@@ -41,6 +44,28 @@ class ACk_VisualLodGym_PlayerController : ACk_Gym_Base_PlayerController
             Get_StationHandle("Gym.VisualLod.Arbitration"),
             UCk_EntityScript_VisualLodGym_Arbitration,
             FInstancedStruct::Make(Params));
+    }
+
+    private void Build_Lighting()
+    {
+        if (_LightingBuilt)
+        { return; }
+
+        _LightingBuilt = true;
+
+        // The shared station spotlight is aimed at its back wall and has a short local radius. This
+        // sun deliberately covers the whole roaming crowd and makes the full -> reduced shadow-band
+        // transition judgeable against the gym floor.
+        auto KeyLight = UDirectionalLightComponent::Create(this);
+        KeyLight.SetRelativeRotation(FRotator(-42.0f, 135.0f, 0.0f));
+        KeyLight.SetIntensity(5.0f);
+        KeyLight.SetLightColor(FLinearColor(1.0f, 0.96f, 0.88f, 1.0f));
+        KeyLight.SetCastShadows(true);
+        KeyLight.SetForwardShadingPriority(100);
+
+        auto FillLight = USkyLightComponent::Create(this);
+        FillLight.SetIntensity(0.75f);
+        FillLight.SetLightColor(FLinearColor(0.50f, 0.58f, 0.72f, 1.0f));
     }
 
     private void SpawnFloor()

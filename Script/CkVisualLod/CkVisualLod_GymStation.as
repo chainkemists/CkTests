@@ -7,9 +7,11 @@
 // One station: a 40-member orbiting crowd managed by a CkVisualLod arbiter with a
 // deliberately small near budget (5). Walk toward the crowd and the nearest in-view
 // members crossfade from batched rendering to real SKMC proxies; walk away and they
-// dissolve back. Strafe along the crowd's edge to watch ranked preemption: a
-// better-placed member takes the slot of the worst incumbent (rate-limited, with a
-// distance margin so near-equals don't churn).
+// dissolve back. The far body has three render bands: full lit/shadowed below 15m,
+// reduced no-shadow/no-velocity from 15m, and a terminal no-main/no-depth-pass profile
+// from 30m. Strafe along the crowd's edge to watch ranked preemption: a better-placed
+// member takes the slot of the worst incumbent (rate-limited, with a distance margin so
+// near-equals don't churn).
 //
 // NEW-BINDING RULE: CkVisualLod calls go through UCk_Utils_* classes directly - the
 // generated utils_* alias layer regenerates AFTER script compile, so a fresh
@@ -24,6 +26,9 @@
 // each promoted proxy gets VisualLodNearFade (custom primitive data 0) at OnPromoted. Both
 // generated masters must exist - run `Ck_Usf_GenerateLooks` in the editor once and commit
 // them, or the station logs the miss and the flip pops exactly as an unwired material should.
+// [EDITOR-VERIFY] The reduced band uses the same validated lit fade material but removes shadow,
+// decals, indirect/distance-field/ray-tracing and velocity work. This checkout has no validated
+// skeletal-compatible cheap/unlit body material to assert a material-cost reduction in script.
 //============================================================================
 
 namespace Ck
