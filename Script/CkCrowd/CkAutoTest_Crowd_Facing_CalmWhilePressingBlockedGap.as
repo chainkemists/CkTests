@@ -28,7 +28,7 @@
 //
 // FIXTURE - a sustained press through a plugged gap, which is the shape the
 // defect was actually observed in.
-//   * Two UNavArea_Null slabs span the navmesh in Y with a 150cm gap at the
+//   * Two impassable-markup slabs span the navmesh in Y with a 150cm gap at the
 //     centre. Their outer ends are derived from a runtime probe for the mesh's
 //     own +Y and -Y edges and then overrun it, so there is provably no route
 //     around: crossing the wall plane is only possible through the gap. The
@@ -149,8 +149,8 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
     private FCk_Handle_CrowdAgent _Walker;
     private FCk_Handle_CrowdAgent _Stranger;
 
-    private UCk_NavAreaMarkup_UE _SlabPosY = nullptr;
-    private UCk_NavAreaMarkup_UE _SlabNegY = nullptr;
+    private FCk_Handle_NavSurfaceMarkup _SlabPosY;
+    private FCk_Handle_NavSurfaceMarkup _SlabNegY;
 
     private float _FloorZ = 0.0;
     private float _EdgeAbsYPos = 0.0;
@@ -254,7 +254,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
 
         if (_SlabsPainted == false)
         {
-            Paint_Slabs(SelfHandle);
+            Paint_Slabs();
             _SlabsPainted = true;
             return;
         }
@@ -340,25 +340,29 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
         _MeshFound = true;
     }
 
-    private void Paint_Slabs(FCk_Handle& InOwner)
+    private void Paint_Slabs()
     {
         const auto OuterPos = _EdgeAbsYPos + WallOverrunUu;
         const auto CentrePos = (GapHalfWidthUu + OuterPos) * 0.5;
         const auto HalfPos = (OuterPos - GapHalfWidthUu) * 0.5;
 
-        _SlabPosY = utils_nav_area_markup::Request_Create(InOwner,
-            FTransform(FRotator::ZeroRotator, FVector(0.0, CentrePos, _FloorZ), FVector::OneVector),
-            FVector(WallHalfX, HalfPos, WallHalfZ),
-            UNavArea_Null);
+        _SlabPosY = Paint_Slab(FVector(0.0, CentrePos, _FloorZ), FVector(WallHalfX, HalfPos, WallHalfZ));
 
         const auto OuterNeg = _EdgeAbsYNeg + WallOverrunUu;
         const auto CentreNeg = (GapHalfWidthUu + OuterNeg) * 0.5;
         const auto HalfNeg = (OuterNeg - GapHalfWidthUu) * 0.5;
 
-        _SlabNegY = utils_nav_area_markup::Request_Create(InOwner,
-            FTransform(FRotator::ZeroRotator, FVector(0.0, -CentreNeg, _FloorZ), FVector::OneVector),
-            FVector(WallHalfX, HalfNeg, WallHalfZ),
-            UNavArea_Null);
+        _SlabNegY = Paint_Slab(FVector(0.0, -CentreNeg, _FloorZ), FVector(WallHalfX, HalfNeg, WallHalfZ));
+    }
+
+    private FCk_Handle_NavSurfaceMarkup Paint_Slab(FVector InCentre, FVector InHalfExtents)
+    {
+        auto Request = FCk_Request_NavSurface_AreaMarkup(
+            utils_shapes::Make_Box(FCk_ShapeBox_Dimensions(InHalfExtents)),
+            FGameplayTag());
+        Request.Set_WorldTransform(FTransform(FRotator::ZeroRotator, InCentre, FVector::OneVector));
+
+        return utils_nav_surface::Request_ImpassableBox(Request);
     }
 
     // The tile rebuild is async, so both halves of the fixture are WAITED ON as
@@ -607,13 +611,13 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
     {
         if (ck::IsValid(_SlabPosY))
         {
-            utils_nav_area_markup::Request_Destroy(_SlabPosY);
-            _SlabPosY = nullptr;
+            utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_SlabPosY));
+            _SlabPosY = FCk_Handle_NavSurfaceMarkup();
         }
         if (ck::IsValid(_SlabNegY))
         {
-            utils_nav_area_markup::Request_Destroy(_SlabNegY);
-            _SlabNegY = nullptr;
+            utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_SlabNegY));
+            _SlabNegY = FCk_Handle_NavSurfaceMarkup();
         }
     }
 

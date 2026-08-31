@@ -98,7 +98,7 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
     private const int32 MaxTeardownPolls = 40;
 
     private FCk_Handle_CrowdAgent _Agent;
-    private UCk_NavAreaMarkup_UE _Wall = nullptr;
+    private FCk_Handle_NavSurfaceMarkup _Wall;
 
     private float _FloorZ = 0.0;
     private bool _MeshFound = false;
@@ -213,7 +213,7 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
             if (utils_nav::Get_PathStatus(_Agent) != ECk_Nav_PathStatus::Ready) { return; }
             if (utils_crowd_agent::Get_MovementState(_Agent) != ECk_CrowdAgent_MovementState::Walking) { return; }
 
-            Paint_Wall(SelfHandle);
+            Paint_Wall();
             _WallPainted = true;
             _WallPaintedAtSec = _ElapsedSec;
             return;
@@ -465,19 +465,22 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
         return Agent;
     }
 
-    private void Paint_Wall(FCk_Handle& InOwner)
+    private void Paint_Wall()
     {
-        _Wall = utils_nav_area_markup::Request_Create(InOwner,
-            FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, _FloorZ), FVector::OneVector),
-            FVector(WallHalfX, WallHalfY, WallHalfZ),
-            UNavArea_Null);
+        auto Request = FCk_Request_NavSurface_AreaMarkup(
+            utils_shapes::Make_Box(FCk_ShapeBox_Dimensions(FVector(WallHalfX, WallHalfY, WallHalfZ))),
+            FGameplayTag());
+        Request.Set_WorldTransform(
+            FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, _FloorZ), FVector::OneVector));
+
+        _Wall = utils_nav_surface::Request_ImpassableBox(Request);
     }
 
     private void Destroy_Wall()
     {
         if (ck::Is_NOT_Valid(_Wall)) { return; }
-        utils_nav_area_markup::Request_Destroy(_Wall);
-        _Wall = nullptr;
+        utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_Wall));
+        _Wall = FCk_Handle_NavSurfaceMarkup();
     }
 
     private void Begin_Teardown(bool InPassed, const FString& InFailMessage)
