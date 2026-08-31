@@ -44,7 +44,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     private TArray<FCk_Handle_CrowdAgent> _RejectedAgents;
     private TArray<FVector> _AgentDiagnosticGoals;
     private TArray<bool> _AgentHasDiagnosticGoal;
-    private TArray<UCk_NavAreaMarkup_UE> _TargetBlockers;
+    private TArray<FCk_Handle_NavSurfaceMarkup> _TargetBlockers;
     private TArray<AActor> _LayoutBlockers;
     private ACk_Gym_Floor _Floor = nullptr;
     private TArray<FString> _Trace;
@@ -79,7 +79,6 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     private bool _PreviousCrowdBreadcrumbs = false;
     private bool _PreviousCrowdPlannedPaths = false;
     private bool _PreviousCrowdPathTrouble = false;
-    private bool _PreviousCrowdNavProjection = false;
     private bool _PreviousCrowdAgentRings = false;
     private bool _PreviousCrowdBlockStatus = false;
     private bool _AutoStarted = false;
@@ -285,13 +284,12 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
             _PreviousCrowdBreadcrumbs = utils_crowd_debug_settings::Get_DrawBreadcrumbs();
             _PreviousCrowdPlannedPaths = utils_crowd_debug_settings::Get_DrawPlannedPaths();
             _PreviousCrowdPathTrouble = utils_crowd_debug_settings::Get_DrawPathTrouble();
-            _PreviousCrowdNavProjection = utils_crowd_debug_settings::Get_DrawNavProjection();
             _PreviousCrowdAgentRings = utils_crowd_debug_settings::Get_DrawAgentRings();
             _PreviousCrowdBlockStatus = utils_crowd_debug_settings::Get_DrawBlockStatus();
             _CapturedCrowdVisualization = true;
         }
 
-        SetCrowdVisualization(true, true, true, true, true, true, true, true);
+        SetCrowdVisualization(true, true, true, true, true, true, true);
     }
 
     private void RestoreCrowdVisualization()
@@ -303,7 +301,6 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
             _PreviousCrowdBreadcrumbs,
             _PreviousCrowdPlannedPaths,
             _PreviousCrowdPathTrouble,
-            _PreviousCrowdNavProjection,
             _PreviousCrowdAgentRings,
             _PreviousCrowdBlockStatus);
         _CapturedCrowdVisualization = false;
@@ -315,7 +312,6 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         bool InBreadcrumbs,
         bool InPlannedPaths,
         bool InPathTrouble,
-        bool InNavProjection,
         bool InAgentRings,
         bool InBlockStatus)
     {
@@ -324,7 +320,6 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         SetCrowdVisualizationCVar("ck.Crowd.DrawBreadcrumbs", InBreadcrumbs);
         SetCrowdVisualizationCVar("ck.Crowd.DrawPlannedPaths", InPlannedPaths);
         SetCrowdVisualizationCVar("ck.Crowd.DrawPathTrouble", InPathTrouble);
-        SetCrowdVisualizationCVar("ck.Crowd.DrawNavProjection", InNavProjection);
         SetCrowdVisualizationCVar("ck.Crowd.DrawAgentRings", InAgentRings);
         SetCrowdVisualizationCVar("ck.Crowd.DrawBlockStatus", InBlockStatus);
     }
@@ -1361,8 +1356,13 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
             const auto Targets = GetConfiguredTargetTransforms();
             for (const auto& Target : Targets)
             {
-                auto Blocker = utils_nav_area_markup::Request_Create(_PcEntity, Target,
-                    FVector(TargetBlockerHalfExtent, TargetBlockerHalfExtent, 300.0f), UNavArea_Null);
+                auto BlockerRequest = FCk_Request_NavSurface_AreaMarkup(
+                    utils_shapes::Make_Box(FCk_ShapeBox_Dimensions(
+                        FVector(TargetBlockerHalfExtent, TargetBlockerHalfExtent, 300.0f))),
+                    FGameplayTag());
+                BlockerRequest.Set_WorldTransform(Target);
+
+                auto Blocker = utils_nav_surface::Request_ImpassableBox(BlockerRequest);
                 if (ck::IsValid(Blocker)) { _TargetBlockers.Add(Blocker); CreatedGeometry = true; }
             }
         }
@@ -1416,7 +1416,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         for (auto Blocker : _TargetBlockers)
         {
             if (ck::Is_NOT_Valid(Blocker)) { continue; }
-            utils_nav_area_markup::Request_Destroy(Blocker);
+            utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(Blocker));
             Removed = true;
         }
         _TargetBlockers.Empty();
@@ -1595,7 +1595,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
             for (const auto& Target : GetConfiguredTargetTransforms())
             {
                 utils_debug_draw::DrawDebugBox(Target.GetLocation(), FVector(TargetBlockerHalfExtent, TargetBlockerHalfExtent, 300.0f), Red, Target.Rotator(), 0.0f, 3.0f);
-                utils_debug_draw::DrawDebugString(Target.GetLocation() + FVector(0.0f, 0.0f, 320.0f), "TARGET BLOCKED: NAVAREA_NULL", Red, 0.0f);
+                utils_debug_draw::DrawDebugString(Target.GetLocation() + FVector(0.0f, 0.0f, 320.0f), "TARGET BLOCKED: IMPASSABLE", Red, 0.0f);
             }
         }
 

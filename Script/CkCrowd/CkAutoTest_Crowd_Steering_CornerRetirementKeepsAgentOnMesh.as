@@ -10,7 +10,7 @@
 // perpendicular to the segment, and proximity says nothing about which side of
 // the corridor the agent stands on - so a corner is given up while the agent is
 // still SHORT of it or BESIDE it, and steering re-aims at Waypoints[k+1] along a
-// chord that cuts the UNavArea_Null hole the planner routed around. The polyline
+// chord that cuts the impassable hole the planner routed around. The polyline
 // is FROZEN at plan time (Detour has no such bug: dtPathCorridor re-string-pulls
 // from the agent's CURRENT position every frame), so nothing re-plans that aim.
 // FProcessor_CrowdAgent_ConstrainToNavmesh then eats the displacement - the
@@ -134,7 +134,7 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
     private const float MaxTipApproachUu = 250.0;
 
     private FCk_Handle_CrowdAgent _Agent;
-    private UCk_NavAreaMarkup_UE _Wall = nullptr;
+    private FCk_Handle_NavSurfaceMarkup _Wall;
 
     private float _FloorZ = 0.0;
     private float _SouthEdgeY = 0.0;
@@ -273,7 +273,7 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
         }
 
         _MeshFound = true;
-        Paint_Wall(InSelf);
+        Paint_Wall();
         _WallPainted = true;
     }
 
@@ -433,9 +433,9 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
         utils_crowd_agent::Request_MoveTo(_Agent, FCk_Request_CrowdAgent_MoveTo(Goal));
     }
 
-    // UNavArea_Null is a HOLE, not a toll: a cost area would leave the corridor traversable and the
-    // path would simply pay to cross it, producing no corner at all.
-    private void Paint_Wall(FCk_Handle& InOwner)
+    // Impassable markup is a HOLE, not a toll: a cost area would leave the corridor traversable and
+    // the path would simply pay to cross it, producing no corner at all.
+    private void Paint_Wall()
     {
         const auto WallSouthY = _SouthEdgeY - WallOverhangUu;
         const auto Centre = FVector(
@@ -447,17 +447,19 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
             0.5 * (WallTipY - WallSouthY),
             WallHalfZ);
 
-        _Wall = utils_nav_area_markup::Request_Create(InOwner,
-            FTransform(FRotator::ZeroRotator, Centre, FVector::OneVector),
-            HalfExtents,
-            UNavArea_Null);
+        auto Request = FCk_Request_NavSurface_AreaMarkup(
+            utils_shapes::Make_Box(FCk_ShapeBox_Dimensions(HalfExtents)),
+            FGameplayTag());
+        Request.Set_WorldTransform(FTransform(FRotator::ZeroRotator, Centre, FVector::OneVector));
+
+        _Wall = utils_nav_surface::Request_ImpassableBox(Request);
     }
 
     private void Destroy_Wall()
     {
         if (ck::Is_NOT_Valid(_Wall)) { return; }
-        utils_nav_area_markup::Request_Destroy(_Wall);
-        _Wall = nullptr;
+        utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_Wall));
+        _Wall = FCk_Handle_NavSurfaceMarkup();
     }
 
     private void Begin_Teardown(bool InPassed, const FString& InFailMessage)

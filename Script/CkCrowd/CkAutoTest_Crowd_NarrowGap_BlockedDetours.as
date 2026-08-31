@@ -8,7 +8,7 @@
 // discovering with its body that the toll-priced through-route cannot
 // physically be walked.
 //
-// Shape: two UNavArea_Null slabs (short enough that a detour around their ends
+// Shape: two impassable-markup slabs (short enough that a detour around their ends
 // exists), one parked blocker in the gap, one walker crossing. Contract: the
 // walker ARRIVES, the blocker is NOT displaced, and the walker never comes
 // anywhere near contact with it.
@@ -26,8 +26,8 @@ class UCk_AutoTest_Crowd_NarrowGap_BlockedDetours : UCk_AutoTest_Base
     private const float MaxBlockerDriftUu = 15.0;
     private const float MinWalkerClearanceUu = 55.0;
 
-    private UCk_NavAreaMarkup_UE _SlabPosY = nullptr;
-    private UCk_NavAreaMarkup_UE _SlabNegY = nullptr;
+    private FCk_Handle_NavSurfaceMarkup _SlabPosY;
+    private FCk_Handle_NavSurfaceMarkup _SlabNegY;
     private FCk_Handle_CrowdAgent _Blocker;
     private FCk_Handle_CrowdAgent _Walker;
     private FVector _BlockerSpawnLoc = FVector::ZeroVector;
@@ -73,14 +73,8 @@ class UCk_AutoTest_Crowd_NarrowGap_BlockedDetours : UCk_AutoTest_Base
             _FloorZ = float(OriginOnMesh.Z);
 
             const auto CentreY = GapHalfWidthUu + WallHalfY;
-            _SlabPosY = utils_nav_area_markup::Request_Create(SelfHandle,
-                FTransform(FRotator::ZeroRotator, FVector(0.0, CentreY, _FloorZ), FVector::OneVector),
-                FVector(WallHalfX, WallHalfY, WallHalfZ),
-                UNavArea_Null);
-            _SlabNegY = utils_nav_area_markup::Request_Create(SelfHandle,
-                FTransform(FRotator::ZeroRotator, FVector(0.0, -CentreY, _FloorZ), FVector::OneVector),
-                FVector(WallHalfX, WallHalfY, WallHalfZ),
-                UNavArea_Null);
+            _SlabPosY = Paint_Slab(FVector(0.0, CentreY, _FloorZ));
+            _SlabNegY = Paint_Slab(FVector(0.0, -CentreY, _FloorZ));
             utils_nav::Request_NavigationRebuild_ForTesting(SelfHandle);
             return;
         }
@@ -142,8 +136,26 @@ class UCk_AutoTest_Crowd_NarrowGap_BlockedDetours : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoEndPlay(FCk_Handle InHandle)
     {
-        if (_SlabPosY != nullptr) { utils_nav_area_markup::Request_Destroy(_SlabPosY); _SlabPosY = nullptr; }
-        if (_SlabNegY != nullptr) { utils_nav_area_markup::Request_Destroy(_SlabNegY); _SlabNegY = nullptr; }
+        if (ck::IsValid(_SlabPosY))
+        {
+            utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_SlabPosY));
+            _SlabPosY = FCk_Handle_NavSurfaceMarkup();
+        }
+        if (ck::IsValid(_SlabNegY))
+        {
+            utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_SlabNegY));
+            _SlabNegY = FCk_Handle_NavSurfaceMarkup();
+        }
+    }
+
+    private FCk_Handle_NavSurfaceMarkup Paint_Slab(FVector InCentre)
+    {
+        auto Request = FCk_Request_NavSurface_AreaMarkup(
+            utils_shapes::Make_Box(FCk_ShapeBox_Dimensions(FVector(WallHalfX, WallHalfY, WallHalfZ))),
+            FGameplayTag());
+        Request.Set_WorldTransform(FTransform(FRotator::ZeroRotator, InCentre, FVector::OneVector));
+
+        return utils_nav_surface::Request_ImpassableBox(Request);
     }
 
     private FCk_Handle_CrowdAgent Spawn_Agent(FCk_Handle& InOwner, FVector InLoc)

@@ -7,7 +7,7 @@ class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTe
     private FCk_Handle             _QueueOwner;
     private FCk_Handle_Queue       _Queue;
     private FCk_Handle             _Member;
-    private UCk_NavAreaMarkup_UE   _Markup = nullptr;
+    private FCk_Handle_NavSurfaceMarkup _Markup;
     private FVector                _FrontWorld;
     private int32                  _RetryExhaustedEvents = 0;
     private int32                  _NavigationChangedEvents = 0;
@@ -84,9 +84,12 @@ class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTe
         _Member = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
         auto MarkupOwner = InHandle;
-        _Markup = utils_nav_area_markup::Request_Create(MarkupOwner,
-            FTransform(FRotator::ZeroRotator, _FrontWorld, FVector::OneVector),
-            FVector(180.0f, 180.0f, 300.0f), UNavArea_Null);
+        auto MarkupRequest = FCk_Request_NavSurface_AreaMarkup(
+            utils_shapes::Make_Box(FCk_ShapeBox_Dimensions(FVector(180.0f, 180.0f, 300.0f))),
+            FGameplayTag());
+        MarkupRequest.Set_WorldTransform(FTransform(FRotator::ZeroRotator, _FrontWorld, FVector::OneVector));
+
+        _Markup = utils_nav_surface::Request_ImpassableBox(MarkupRequest);
         utils_nav::Request_NavigationRebuild_ForTesting(MarkupOwner);
     }
 
@@ -143,9 +146,12 @@ class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTe
     UFUNCTION()
     private void Step_RemoveMarkupAndRebuild(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
+        // The markup entity's destroy is deferred; its EndPlay unpaint unregisters the nav-relevant
+        // object, which dirties the affected tiles and drives exactly ONE rebuild by itself. An
+        // explicit rebuild here would run BEFORE the deferred unpaint (baking the markup back in)
+        // and then be followed by the unpaint's own rebuild - two generation events where
+        // Check_NavigationChanged requires exactly one.
         DestroyMarkup();
-        auto Context = InHandle;
-        utils_nav::Request_NavigationRebuild_ForTesting(Context);
     }
 
     UFUNCTION()
@@ -188,7 +194,7 @@ class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTe
     private void DestroyMarkup()
     {
         if (ck::Is_NOT_Valid(_Markup)) { return; }
-        utils_nav_area_markup::Request_Destroy(_Markup);
-        _Markup = nullptr;
+        utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_Markup));
+        _Markup = FCk_Handle_NavSurfaceMarkup();
     }
 }

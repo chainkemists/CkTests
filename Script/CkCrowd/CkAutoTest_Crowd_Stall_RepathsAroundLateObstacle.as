@@ -10,8 +10,8 @@
 // into the new hole, is held there by ConstrainToNavmesh, and presses forever.
 //
 // Shape: a walker is sent from x=-700 to x=+700 across open mesh. The instant
-// its FIRST path is installed and it is Walking, a NAV-NULL wall (UNavArea_Null
-// via UCk_NavAreaMarkup_UE - a hole, not a cost disc) is painted across the
+// its FIRST path is installed and it is Walking, an IMPASSABLE wall (neutral
+// markup - a hole, not a cost disc) is painted across the
 // corridor at x=0 spanning |y| <= 500. The nav volume reaches |y| = 1000, so
 // ~500uu of open mesh survives on each side: an alternate route EXISTS. The
 // walker must still arrive.
@@ -65,7 +65,7 @@ class UCk_AutoTest_Crowd_Stall_RepathsAroundLateObstacle : UCk_AutoTest_Base
     private const int32 MaxTeardownPolls = 40;
 
     private FCk_Handle_CrowdAgent _Agent;
-    private UCk_NavAreaMarkup_UE _Wall = nullptr;
+    private FCk_Handle_NavSurfaceMarkup _Wall;
 
     private float _FloorZ = 0.0;
     private bool _MeshFound = false;
@@ -169,7 +169,7 @@ class UCk_AutoTest_Crowd_Stall_RepathsAroundLateObstacle : UCk_AutoTest_Base
 
             _RevisionAtPaint = utils_nav::Get_PathResult(_Agent).Get_RequestRevision();
             _MaxRevisionSeen = _RevisionAtPaint;
-            Paint_Wall(SelfHandle);
+            Paint_Wall();
             _WallPainted = true;
             return;
         }
@@ -282,22 +282,25 @@ class UCk_AutoTest_Crowd_Stall_RepathsAroundLateObstacle : UCk_AutoTest_Base
         utils_crowd_agent::Request_MoveTo(_Agent, FCk_Request_CrowdAgent_MoveTo(Goal));
     }
 
-    private void Paint_Wall(FCk_Handle& InOwner)
+    private void Paint_Wall()
     {
-        // UNavArea_Null is a HOLE, not a toll: a cost disc (what stationary agents
+        // Impassable markup is a HOLE, not a toll: a cost disc (what stationary agents
         // paint) would leave the corridor traversable and the walker would simply
         // pay to cross it, exercising nothing.
-        _Wall = utils_nav_area_markup::Request_Create(InOwner,
-            FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, _FloorZ), FVector::OneVector),
-            FVector(WallHalfX, WallHalfY, WallHalfZ),
-            UNavArea_Null);
+        auto Request = FCk_Request_NavSurface_AreaMarkup(
+            utils_shapes::Make_Box(FCk_ShapeBox_Dimensions(FVector(WallHalfX, WallHalfY, WallHalfZ))),
+            FGameplayTag());
+        Request.Set_WorldTransform(
+            FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, _FloorZ), FVector::OneVector));
+
+        _Wall = utils_nav_surface::Request_ImpassableBox(Request);
     }
 
     private void Destroy_Wall()
     {
         if (ck::Is_NOT_Valid(_Wall)) { return; }
-        utils_nav_area_markup::Request_Destroy(_Wall);
-        _Wall = nullptr;
+        utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_Wall));
+        _Wall = FCk_Handle_NavSurfaceMarkup();
     }
 
     private void Begin_Teardown(bool InPassed, const FString& InFailMessage)
