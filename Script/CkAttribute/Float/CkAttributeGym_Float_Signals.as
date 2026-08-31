@@ -54,7 +54,7 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_GenericEntityScript_UE
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Unbind delegate 2", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test min/max clamp signals", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Unbind all delegates", 5, 5));
-		AutoConfig.ManualCommands.Add("panel [P] Signal value preset · 150 / 0 / 300 / -50");
+		AutoConfig.ManualCommands.Add("panel [P] Signal value preset - 150 / 0 / 300 / -50");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}
