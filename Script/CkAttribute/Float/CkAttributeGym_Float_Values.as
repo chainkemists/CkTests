@@ -46,7 +46,7 @@ class UCk_EntityScript_AttributeGym_FloatValues : UCk_GenericEntityScript_UE
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Add more modifiers (+12.75)", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Clear all modifiers", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Reset components to defaults", 5, 5));
-		AutoConfig.ManualCommands.Add("panel [J] Modifiers ring · add modifier / clear modifiers");
+		AutoConfig.ManualCommands.Add("panel [J] Modifiers ring - add modifier / clear modifiers");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

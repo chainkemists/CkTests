@@ -631,7 +631,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         auto Rows = TArray<FCkGym_ControlRow>();
         Rows.Add(CkGym_Control::Header("STATIC BAKE"));
         Rows.Add(CkGym_Control::Status("Last witness run",
-            f"{_LastPass}/{_LastTotal} pass · {_LastFail} fail · {_LastExpectedMiss} expected-miss", _LastFail > 0));
+            f"{_LastPass}/{_LastTotal} pass - {_LastFail} fail - {_LastExpectedMiss} expected-miss", _LastFail > 0));
         Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Run the witnesses now"));
         Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Rebake - remove, witness, re-bake"));
         Rows.Add(CkGym_Control::Toggle(EKeys::T, "T", "View ray", _ViewRayEnabled));

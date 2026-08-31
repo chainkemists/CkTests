@@ -45,7 +45,7 @@ class UCk_EntityScript_AttributeGym_FloatModifiers : UCk_GenericEntityScript_UE
         AutoConfig.Steps.Add(FCkGym_AutoStep("Modify existing buff (20.25 -> 35.75)", 5, 5));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Clear all modifiers", 6, 6));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add non-revocable modifier (+12.5)", 7, 7));
-        AutoConfig.ManualCommands.Add("panel [K] Modifiers ring · add weapon / revoke weapon / clear all");
+        AutoConfig.ManualCommands.Add("panel [K] Modifiers ring - add weapon / revoke weapon / clear all");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
