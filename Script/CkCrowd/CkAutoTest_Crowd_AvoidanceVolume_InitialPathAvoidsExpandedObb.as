@@ -20,8 +20,8 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
     private FCk_Handle _VolumeEntity;
     private FCk_Handle_CrowdAvoidanceVolume _Volume;
     private FCk_Handle_CrowdAgent _Agent;
-    private UCk_NavAreaMarkup_UE _TopWall = nullptr;
-    private UCk_NavAreaMarkup_UE _BottomWall = nullptr;
+    private FCk_Handle_NavSurfaceMarkup _TopWall;
+    private FCk_Handle_NavSurfaceMarkup _BottomWall;
     private FVector _Centre;
     private bool _RouteIssued = false;
     private bool _ReplacementRouteIssued = false;
@@ -159,14 +159,8 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
         utils_entity_lifetime::Request_DestroyEntity(_AgentEntity);
 
         const auto WallCentreY = SealedCorridorHalfWidth + SealedWallHalfExtent;
-        _TopWall = utils_nav_area_markup::Request_Create(InOwner,
-            FTransform(FRotator::ZeroRotator,
-                FVector(0.0, WallCentreY, _Centre.Z), FVector::OneVector),
-            FVector(SealedWallHalfExtent, SealedWallHalfExtent, 200.0), UNavArea_Null);
-        _BottomWall = utils_nav_area_markup::Request_Create(InOwner,
-            FTransform(FRotator::ZeroRotator,
-                FVector(0.0, -WallCentreY, _Centre.Z), FVector::OneVector),
-            FVector(SealedWallHalfExtent, SealedWallHalfExtent, 200.0), UNavArea_Null);
+        _TopWall = Paint_SealedWall(FVector(0.0, WallCentreY, _Centre.Z));
+        _BottomWall = Paint_SealedWall(FVector(0.0, -WallCentreY, _Centre.Z));
         utils_nav::Request_NavigationRebuild_ForTesting(InOwner);
 
         _VolumeEntity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
@@ -281,12 +275,31 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
     private float DistanceToBaseline(FVector InPoint)
     { return float(Math::Abs(InPoint.Y)); }
 
+    private FCk_Handle_NavSurfaceMarkup Paint_SealedWall(FVector InCentre)
+    {
+        auto Request = FCk_Request_NavSurface_AreaMarkup(
+            utils_shapes::Make_Box(FCk_ShapeBox_Dimensions(
+                FVector(SealedWallHalfExtent, SealedWallHalfExtent, 200.0))),
+            FGameplayTag());
+        Request.Set_WorldTransform(FTransform(FRotator::ZeroRotator, InCentre, FVector::OneVector));
+
+        return utils_nav_surface::Request_ImpassableBox(Request);
+    }
+
     UFUNCTION(BlueprintOverride)
     void DoEndPlay(FCk_Handle InHandle)
     {
         if (ck::IsValid(_VolumeEntity)) { utils_entity_lifetime::Request_DestroyEntity(_VolumeEntity); }
         if (ck::IsValid(_AgentEntity)) { utils_entity_lifetime::Request_DestroyEntity(_AgentEntity); }
-        if (_TopWall != nullptr) { utils_nav_area_markup::Request_Destroy(_TopWall); _TopWall = nullptr; }
-        if (_BottomWall != nullptr) { utils_nav_area_markup::Request_Destroy(_BottomWall); _BottomWall = nullptr; }
+        if (ck::IsValid(_TopWall))
+        {
+            utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_TopWall));
+            _TopWall = FCk_Handle_NavSurfaceMarkup();
+        }
+        if (ck::IsValid(_BottomWall))
+        {
+            utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_BottomWall));
+            _BottomWall = FCk_Handle_NavSurfaceMarkup();
+        }
     }
 }
