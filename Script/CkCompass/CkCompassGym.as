@@ -356,7 +356,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Entries = ck::IsValid(Compass) ? utils_compass::Get_Entries(Compass).Num() : 0;
 
         Rows.Add(CkGym_Control::Header("COMPASS"));
-        Rows.Add(CkGym_Control::Status("Heading", f"{Heading} · {Entries} entries"));
+        Rows.Add(CkGym_Control::Status("Heading", f"{Heading} - {Entries} entries"));
         Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Ping 1500uu ahead (5s TTL)"));
         Rows.Add(CkGym_Control::Toggle(EKeys::T, "T", "Quest-only category filter", _QuestFilterActive));
         Rows.Add(CkGym_Control::Action(EKeys::P, "P", "Readout to the log"));

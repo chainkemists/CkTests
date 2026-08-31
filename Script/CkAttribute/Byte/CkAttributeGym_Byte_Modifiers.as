@@ -48,7 +48,7 @@ class UCk_EntityScript_AttributeGym_ByteModifiers : UCk_GenericEntityScript_UE
         AutoConfig.Steps.Add(FCkGym_AutoStep("Modify existing buff", 5, 5));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Clear all modifiers", 6, 6));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add non-revocable modifier", 7, 7));
-        AutoConfig.ManualCommands.Add("panel [G] Add modifier · [N] Clear modifiers");
+        AutoConfig.ManualCommands.Add("panel [G] Add modifier - [N] Clear modifiers");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

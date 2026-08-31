@@ -77,8 +77,8 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_GenericEntityScript_UE
         AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth 10, SetArmor 20, SetVelocity low", 3, 3));
         AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth -10, SetArmor 0 (push past min)", 4, 4));
         AutoConfig.Steps.Add(FCkGym_AutoStep("ResetBasicValues", 5, 5));
-        AutoConfig.ManualCommands.Add("panel [1] Health preset · [2] Armor preset · [3] Velocity preset");
-        AutoConfig.ManualCommands.Add("panel [B] Test boundaries · [R] Reset values");
+        AutoConfig.ManualCommands.Add("panel [1] Health preset - [2] Armor preset - [3] Velocity preset");
+        AutoConfig.ManualCommands.Add("panel [B] Test boundaries - [R] Reset values");
         AutoConfig.ManualCommands.Add("console Ck_GymAttribute_SetVelocity [x] [y] [z] (free-range)");
 
         return ECk_EntityScript_ConstructionFlow::Finished;

@@ -50,9 +50,9 @@ class UCk_EntityScript_IntegerGym_Modifiers : UCk_GenericEntityScript_UE
 		StepConfig.Steps.Add(FCkGym_SmStep(UCk_IntegerGym_Step_AddWeapon,   "Add weapon bonus (+25)"));
 		StepConfig.Steps.Add(FCkGym_SmStep(UCk_IntegerGym_Step_AddBuff,     "Add buff bonus (+10)"));
 		StepConfig.Steps.Add(FCkGym_SmStep(UCk_IntegerGym_Step_ClearAll,    "Clear all modifiers"));
-		StepConfig.ManualCommands.Add("panel [I] Weapon bonus ring · +25 / +50 / -25 / -200");
-		StepConfig.ManualCommands.Add("panel [O] Buff bonus ring · +10 / +40 / -10 / -150");
-		StepConfig.ManualCommands.Add("panel [J] Remove weapon · [K] Remove buff · [M] Clear all modifiers");
+		StepConfig.ManualCommands.Add("panel [I] Weapon bonus ring - +25 / +50 / -25 / -200");
+		StepConfig.ManualCommands.Add("panel [O] Buff bonus ring - +10 / +40 / -10 / -150");
+		StepConfig.ManualCommands.Add("panel [J] Remove weapon - [K] Remove buff - [M] Clear all modifiers");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

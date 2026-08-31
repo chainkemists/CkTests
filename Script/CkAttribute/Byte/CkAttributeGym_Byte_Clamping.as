@@ -63,7 +63,7 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_GenericEntityScript_UE
 		AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
 		AutoConfig.PerStationAutoCommand = "panel [1] Clamping station auto";
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Cycling Armor/Stamina/Health values", 0, 0));
-		AutoConfig.ManualCommands.Add("panel [B] Test boundaries · [R] Reset all stations");
+		AutoConfig.ManualCommands.Add("panel [B] Test boundaries - [R] Reset all stations");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

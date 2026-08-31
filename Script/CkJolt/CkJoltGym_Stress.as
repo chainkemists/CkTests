@@ -294,7 +294,7 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Rows = TArray<FCkGym_ControlRow>();
         Rows.Add(CkGym_Control::Header("BALL RAIN"));
-        Rows.Add(CkGym_Control::Status("Live balls", f"{_Balls.Num()} · {_TotalSpawned} spawned"));
+        Rows.Add(CkGym_Control::Status("Live balls", f"{_Balls.Num()} - {_TotalSpawned} spawned"));
         Rows.Add(CkGym_Control::Cycle(EKeys::One,   "1", "Initial balls (on reset)", f"{_InitialBalls}"));
         Rows.Add(CkGym_Control::Cycle(EKeys::Two,   "2", "Balls per wave",           f"{_BallsPerWave}"));
         Rows.Add(CkGym_Control::Cycle(EKeys::Three, "3", "Wave interval",            f"{_WaveIntervalSeconds}s"));

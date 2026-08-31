@@ -56,7 +56,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_GenericEntityScript_UE
 		AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth 10, SetArmor 5, SetExperience 100", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth -10, SetArmor -5 (push past min)", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("ResetToDefaults", 5, 5));
-		AutoConfig.ManualCommands.Add("panel [5] Health preset · [6] Armor preset · [7] Experience preset");
+		AutoConfig.ManualCommands.Add("panel [5] Health preset - [6] Armor preset - [7] Experience preset");
 		AutoConfig.ManualCommands.Add("panel [N] Reset all stations");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;

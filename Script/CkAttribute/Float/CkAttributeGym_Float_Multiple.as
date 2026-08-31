@@ -45,7 +45,7 @@ class UCk_EntityScript_AttributeGym_FloatMultiple : UCk_GenericEntityScript_UE
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Batch value update (+15.5)", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test iteration filtering (>100)", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Clear combat batch", 5, 5));
-		AutoConfig.ManualCommands.Add("panel [M] Multiple ring · add batch / clear batch");
+		AutoConfig.ManualCommands.Add("panel [M] Multiple ring - add batch / clear batch");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

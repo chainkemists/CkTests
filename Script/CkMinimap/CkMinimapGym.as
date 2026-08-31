@@ -539,7 +539,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Entries = ck::IsValid(Minimap) ? utils_minimap::Get_Entries(Minimap).Num() : 0;
 
         Rows.Add(CkGym_Control::Header("PROJECTION"));
-        Rows.Add(CkGym_Control::Status("View extent", f"{Extent} · {Entries} entries"));
+        Rows.Add(CkGym_Control::Status("View extent", f"{Extent} - {Entries} entries"));
         Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Zoom in (halve the extent)"));
         Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Zoom out (double the extent)"));
         Rows.Add(CkGym_Control::ToggleNamed(EKeys::T, "T", "Rotation", DoGet_RotatesWithObserver(),

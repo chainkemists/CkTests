@@ -48,7 +48,7 @@ class UCk_EntityScript_IntegerGym_MinMaxCurrent : UCk_GenericEntityScript_UE
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test component detection", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test value retrieval", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Reset to defaults", 5, 5));
-		AutoConfig.ManualCommands.Add("panel [8] Min preset · [9] Max preset · [0] Current preset");
+		AutoConfig.ManualCommands.Add("panel [8] Min preset - [9] Max preset - [0] Current preset");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

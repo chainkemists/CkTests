@@ -57,8 +57,8 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_GenericEntityScript_UE
 		AutoConfig.GlobalAutoCommand = "panel [T] Auto-cycle all stations";
 		AutoConfig.PerStationAutoCommand = "panel [4] Clamping station auto";
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Cycling Resource value (0-100 range)", 0, 0));
-		AutoConfig.ManualCommands.Add("panel [U] Resource preset · 50 / 0 / 100 / 150 / -50");
-		AutoConfig.ManualCommands.Add("panel [B] Test boundaries · [R] Reset clamping station");
+		AutoConfig.ManualCommands.Add("panel [U] Resource preset - 50 / 0 / 100 / 150 / -50");
+		AutoConfig.ManualCommands.Add("panel [B] Test boundaries - [R] Reset clamping station");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

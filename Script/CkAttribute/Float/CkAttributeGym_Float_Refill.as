@@ -43,7 +43,7 @@ class UCk_EntityScript_AttributeGym_FloatRefill : UCk_GenericEntityScript_UE
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Drain again (energy 10, mana 5)", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Resume energy refill", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Reset to full", 5, 5));
-		AutoConfig.ManualCommands.Add("panel [G] Refill ring · toggle refill / drain energy / drain mana");
+		AutoConfig.ManualCommands.Add("panel [G] Refill ring - toggle refill / drain energy / drain mana");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

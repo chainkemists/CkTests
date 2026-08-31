@@ -49,7 +49,7 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_GenericEntityScript_UE
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Batch value update (+15)", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test iteration filtering", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Clear combat batch", 5, 5));
-		AutoConfig.ManualCommands.Add("panel [M] Add batch · [U] Clear batch");
+		AutoConfig.ManualCommands.Add("panel [M] Add batch - [U] Clear batch");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

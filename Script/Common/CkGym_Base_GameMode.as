@@ -12,7 +12,7 @@ class ACk_Gym_Base_GameMode : ACk_GameMode_UE
     private int32 _StartupTravelIndex = -1;
 
     // Resolves the user's startup-gym preference (Editor Preferences ->
-    // Ck Tests -> Gym Cycler) and ServerTravels there — ONCE per game
+    // Ck Tests -> Gym Cycler) and ServerTravels there - ONCE per game
     // session. BeginPlay re-fires on every gym travel, so without the
     // consumed one-shot the preference would yank the user back to the
     // pinned gym whenever they pick anything else from the switchboard.
@@ -24,7 +24,7 @@ class ACk_Gym_Base_GameMode : ACk_GameMode_UE
     {
         auto _CkPerfScope = ck::ScopedStat();
 
-        // The redirect already ran (or was skipped) this session — this
+        // The redirect already ran (or was skipped) this session - this
         // BeginPlay is a user-initiated travel landing. Just restore the HUD.
         if (UCk_Utils_GymRegistry_UE::Get_HasConsumedStartupResolve())
         {

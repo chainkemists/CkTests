@@ -51,7 +51,7 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_GenericEntityScript_UE
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Unbind selective delegates", 3, 3));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Test rebinding", 4, 4));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Unbind all delegates", 5, 5));
-		AutoConfig.ManualCommands.Add("panel [0] Signal value preset · 150 / 0 / 255 / 200");
+		AutoConfig.ManualCommands.Add("panel [0] Signal value preset - 150 / 0 / 255 / 200");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

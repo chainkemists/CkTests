@@ -44,7 +44,7 @@ class UCk_EntityScript_AttributeGym_FloatIncrementDecrement : UCk_GenericEntityS
 		AutoConfig.Steps.Add(FCkGym_AutoStep("DecrementRevocable (x2)", 8, 9));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Revoke all revocable", 10, 10));
 		AutoConfig.Steps.Add(FCkGym_AutoStep("Reset to default", 11, 11));
-		AutoConfig.ManualCommands.Add("panel [N] Inc/Dec ring · increment / decrement / revoke all");
+		AutoConfig.ManualCommands.Add("panel [N] Inc/Dec ring - increment / decrement / revoke all");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}

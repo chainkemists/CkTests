@@ -246,7 +246,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Header("CONSOLE (free-range input the panel cannot express)"));
         Rows.Add(CkGym_Control::Status("Shield at a coordinate", "Ck_GymInventory_AddShieldAt X Y"));
         Rows.Add(CkGym_Control::Status("Split N off a stack", "Ck_GymInventory_SplitStack N"));
-        Rows.Add(CkGym_Control::Status("Add N of an item", "Ck_GymInventory_AddPotion N · Ck_GymInventory_AddArrow N"));
+        Rows.Add(CkGym_Control::Status("Add N of an item", "Ck_GymInventory_AddPotion N - Ck_GymInventory_AddArrow N"));
 
         return Rows;
     }
