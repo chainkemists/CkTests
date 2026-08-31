@@ -9,7 +9,7 @@ class ACk_CrowdGym_AvoidanceVolume_PlayerController : ACk_Gym_Base_PlayerControl
     private TArray<FCk_Handle> _TrackedAgentEntities;
     private TArray<FCk_Handle> _TrackedVolumeEntities;
     private TArray<FCk_Handle_CrowdAgent> _StressAgents;
-    private TArray<UCk_NavAreaMarkup_UE> _TrackedMarkup;
+    private TArray<FCk_Handle_NavSurfaceMarkup> _TrackedMarkup;
     private TArray<FVector> _StressVolumeCenters;
     private TArray<ECk_CrowdAvoidanceVolume_TraversalPolicy> _StressVolumePolicies;
     private FVector _PrimaryVolumeCenter = FVector::ZeroVector;
@@ -182,8 +182,8 @@ class ACk_CrowdGym_AvoidanceVolume_PlayerController : ACk_Gym_Base_PlayerControl
         _ActiveScenario = InScenario;
         _LastResult = InScenario == Scenario_SealedAvoidIfPossible ? "Waiting for sealed fallback" : "Waiting for Hard Exclude failure";
         const auto WallCenterY = SealedCorridorHalfWidth + SealedWallHalfExtent;
-        const auto TopTracked = TrackMarkup(utils_nav_area_markup::Request_Create(_OwnerHandle, FTransform(FRotator::ZeroRotator, GetCourseCenter() + FVector(0.0, WallCenterY, 0.0), FVector::OneVector), FVector(SealedWallHalfExtent, SealedWallHalfExtent, 200.0), UNavArea_Null));
-        const auto BottomTracked = TrackMarkup(utils_nav_area_markup::Request_Create(_OwnerHandle, FTransform(FRotator::ZeroRotator, GetCourseCenter() + FVector(0.0, -WallCenterY, 0.0), FVector::OneVector), FVector(SealedWallHalfExtent, SealedWallHalfExtent, 200.0), UNavArea_Null));
+        const auto TopTracked = TrackMarkup(Paint_SealedWall(GetCourseCenter() + FVector(0.0, WallCenterY, 0.0)));
+        const auto BottomTracked = TrackMarkup(Paint_SealedWall(GetCourseCenter() + FVector(0.0, -WallCenterY, 0.0)));
         if (TopTracked == false || BottomTracked == false)
         { ClearEntities(); _ActiveScenario = Scenario_None; _LastResult = "MARKUP FAILED"; return; }
         _PrimaryVolume = SpawnVolume(GetVolumeCenter(), FVector(180.0, 90.0, 100.0), FRotator::ZeroRotator, InPolicy, n"CrowdAvoidanceVolumeGymSealedVolume");
@@ -327,9 +327,20 @@ class ACk_CrowdGym_AvoidanceVolume_PlayerController : ACk_Gym_Base_PlayerControl
         return Agent;
     }
 
-    private bool TrackMarkup(UCk_NavAreaMarkup_UE InMarkup)
+    private FCk_Handle_NavSurfaceMarkup Paint_SealedWall(FVector InCentre)
     {
-        if (InMarkup == nullptr) { return false; }
+        auto Request = FCk_Request_NavSurface_AreaMarkup(
+            utils_shapes::Make_Box(FCk_ShapeBox_Dimensions(
+                FVector(SealedWallHalfExtent, SealedWallHalfExtent, 200.0))),
+            FGameplayTag());
+        Request.Set_WorldTransform(FTransform(FRotator::ZeroRotator, InCentre, FVector::OneVector));
+
+        return utils_nav_surface::Request_ImpassableBox(Request);
+    }
+
+    private bool TrackMarkup(FCk_Handle_NavSurfaceMarkup InMarkup)
+    {
+        if (ck::Is_NOT_Valid(InMarkup)) { return false; }
         _TrackedMarkup.Add(InMarkup);
         return true;
     }
@@ -338,7 +349,7 @@ class ACk_CrowdGym_AvoidanceVolume_PlayerController : ACk_Gym_Base_PlayerControl
     {
         for (auto Entity : _TrackedAgentEntities) { if (ck::IsValid(Entity)) { utils_entity_lifetime::Request_DestroyEntity(Entity); } }
         for (auto Entity : _TrackedVolumeEntities) { if (ck::IsValid(Entity)) { utils_entity_lifetime::Request_DestroyEntity(Entity); } }
-        for (auto Markup : _TrackedMarkup) { if (Markup != nullptr) { utils_nav_area_markup::Request_Destroy(Markup); } }
+        for (auto Markup : _TrackedMarkup) { if (ck::IsValid(Markup)) { utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(Markup)); } }
         _TrackedAgentEntities.Empty(); _TrackedVolumeEntities.Empty(); _StressAgents.Empty();
         _TrackedMarkup.Empty(); _StressVolumeCenters.Empty(); _StressVolumePolicies.Empty();
         _PrimaryAgentEntity = FCk_Handle(); _PrimaryVolumeEntity = FCk_Handle();
