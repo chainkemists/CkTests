@@ -82,11 +82,21 @@ auto
     TestNotNull(TEXT("VisualLod crowd fade material exposes a render-platform resource"), Resource);
     TestFalse(TEXT("VisualLod crowd fade material is neither compiling nor carrying a shader compile error"),
               Material->IsCompilingOrHadCompileError(GMaxRHIShaderPlatform));
+    // GetCompileErrors is WITH_EDITOR-only, and this file guards on WITH_DEV_AUTOMATION_TESTS.
+    // Those are independent: WITH_DEV_AUTOMATION_TESTS comes from bCompileDevTests, so it is ON
+    // in a Development GAME build while WITH_EDITOR is not. Without this guard the file compiles
+    // in an editor target and fails to compile in every non-editor one, which is invisible to a
+    // pipeline that only builds the editor.
+    //
+    // The compile-failure case stays covered in both configurations by the
+    // IsCompilingOrHadCompileError verdict above; only the per-error detail is editor-only.
+#if WITH_EDITOR
     if (Resource != nullptr)
     {
         TestTrue(TEXT("VisualLod crowd fade material reports no shader compile errors"),
                  Resource->GetCompileErrors().IsEmpty());
     }
+#endif // WITH_EDITOR
 
     AddInfo(TEXT("Skipped Ck batched-VF flag inspection: CkTests has no direct public CkIskmRendererVF contract; "
                  "the test does not reach through renderer-private registration state."));
