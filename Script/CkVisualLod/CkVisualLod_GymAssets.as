@@ -13,6 +13,47 @@
 // the deferred-asset-init system re-runs this chain once the engine is safe.
 //============================================================================
 
+// Three profile assets intentionally share the demo collection. Render-band validation requires
+// the exact same collection/default mesh as the crowd; profiles change render cost only.
+asset Asset_VisualLodGym_FullProfile of UCk_IskmRenderer_Data
+{
+    _AnimCollection = iskm_assets::AnimCollection_Demo();
+}
+
+asset Asset_VisualLodGym_ReducedProfile of UCk_IskmRenderer_Data
+{
+    _AnimCollection = iskm_assets::AnimCollection_Demo();
+    _FarAnimationUpdateInterval = FCk_Time(0.066);
+
+    FCk_IskmRenderer_RenderingInfo Rendering;
+    Rendering.Set_bCastDynamicShadow(false);
+    Rendering.Set_bCastContactShadow(false);
+    Rendering.Set_bReceivesDecals(false);
+    Rendering.Set_bAffectDynamicIndirectLighting(false);
+    Rendering.Set_bAffectDistanceFieldLighting(false);
+    Rendering.Set_bVisibleInRayTracing(false);
+    Rendering.Set_bOutputVelocity(false);
+    Set_RenderingInfo(Rendering);
+}
+
+asset Asset_VisualLodGym_CulledProfile of UCk_IskmRenderer_Data
+{
+    _AnimCollection = iskm_assets::AnimCollection_Demo();
+    _FreezeFarAnimation = ECk_EnableDisable::Enable;
+
+    FCk_IskmRenderer_RenderingInfo Rendering;
+    Rendering.Set_bCastDynamicShadow(false);
+    Rendering.Set_bCastContactShadow(false);
+    Rendering.Set_bRenderInMainPass(false);
+    Rendering.Set_bRenderInDepthPass(false);
+    Rendering.Set_bReceivesDecals(false);
+    Rendering.Set_bAffectDynamicIndirectLighting(false);
+    Rendering.Set_bAffectDistanceFieldLighting(false);
+    Rendering.Set_bVisibleInRayTracing(false);
+    Rendering.Set_bOutputVelocity(false);
+    Set_RenderingInfo(Rendering);
+}
+
 asset Asset_VisualLodGym_ArbiterConfig of UCk_VisualLodArbiter_Data
 {
     _DomainTag = utils_gameplay_tag::ResolveGameplayTag(n"Gym.VisualLod.Domain");
@@ -47,10 +88,33 @@ asset Asset_VisualLodGym_ArbiterConfig of UCk_VisualLodArbiter_Data
     CrowdCfg.Set_TileSize(1500.0f);
     CrowdCfg.Set_IdleSequenceIndex(0);
     CrowdCfg.Set_MoveSequenceIndex(2);
+
+    FCk_VisualLod_RenderBand FullBand;
+    FullBand.Set_DistanceThreshold(0.0f);
+    FullBand.Set_RendererProfile(Asset_VisualLodGym_FullProfile);
+    TArray<FCk_VisualLod_RenderBand> RenderBands;
+    RenderBands.Add(FullBand);
+
+    FCk_VisualLod_RenderBand ReducedBand;
+    ReducedBand.Set_DistanceThreshold(1500.0f);
+    ReducedBand.Set_ReturnHysteresis(250.0f);
+    ReducedBand.Set_RendererProfile(Asset_VisualLodGym_ReducedProfile);
+    RenderBands.Add(ReducedBand);
+
+    FCk_VisualLod_RenderBand CulledBand;
+    CulledBand.Set_DistanceThreshold(3000.0f);
+    CulledBand.Set_ReturnHysteresis(400.0f);
+    CulledBand.Set_RendererProfile(Asset_VisualLodGym_CulledProfile);
+    RenderBands.Add(CulledBand);
+    CrowdCfg.Set_RenderBands(RenderBands);
+
     _CrowdConfigs.Add(CrowdCfg);
 }
 
 namespace visual_lod_gym_assets
 {
     UCk_VisualLodArbiter_Data ArbiterConfig() { return Asset_VisualLodGym_ArbiterConfig; }
+    UCk_IskmRenderer_Data FullRenderProfile() { return Asset_VisualLodGym_FullProfile; }
+    UCk_IskmRenderer_Data ReducedRenderProfile() { return Asset_VisualLodGym_ReducedProfile; }
+    UCk_IskmRenderer_Data CulledRenderProfile() { return Asset_VisualLodGym_CulledProfile; }
 }
