@@ -122,6 +122,69 @@ namespace ck_test_groundnav_plates
         return Geometry;
     }
 
+    // A 20-degree ramp running into a flat landing. Their normals differ by the ramp angle at the
+    // junction, so this is the fixture that says how WIDE the cone may be: merge across it and a
+    // plate claims level ground where there is a slope.
+    auto Make_RampMeetsLanding() -> FCk_GroundNav_GeometryBatch
+    {
+        auto Geometry = FCk_GroundNav_GeometryBatch{};
+
+        constexpr auto RampRun = 600.0;
+        const auto RampRise = RampRun * FMath::Tan(FMath::DegreesToRadians(20.0));
+
+        const auto A = FVector{0.0, 0.0, 10.0};
+        const auto B = FVector{RampRun, 0.0, 10.0 + RampRise};
+        const auto C = FVector{RampRun, 400.0, 10.0 + RampRise};
+        const auto D = FVector{0.0, 400.0, 10.0};
+
+        Geometry.Add_Triangle(A, B, C);
+        Geometry.Add_Triangle(A, C, D);
+
+        const auto E = FVector{RampRun, 0.0, 10.0 + RampRise};
+        const auto F = FVector{1200.0, 0.0, 10.0 + RampRise};
+        const auto G = FVector{1200.0, 400.0, 10.0 + RampRise};
+        const auto H = FVector{RampRun, 400.0, 10.0 + RampRise};
+
+        Geometry.Add_Triangle(E, F, G);
+        Geometry.Add_Triangle(E, G, H);
+
+        return Geometry;
+    }
+
+    // Gently rolling ground: nominally one walkable surface, but every cell's normal differs a little
+    // from its neighbour. This is the fixture that says how NARROW the cone may be, since a cone
+    // tighter than the variation shatters one continuous floor into fragments.
+    auto Make_RollingGround() -> FCk_GroundNav_GeometryBatch
+    {
+        auto Geometry = FCk_GroundNav_GeometryBatch{};
+
+        constexpr auto Step = 50.0;
+        constexpr auto Amplitude = 5.0;
+        constexpr auto Wavelength = 200.0;
+
+        const auto Get_Height = [&](double InX, double InY) -> double
+        {
+            return 10.0 +
+                (Amplitude * FMath::Sin(InX / Wavelength) * FMath::Cos(InY / Wavelength));
+        };
+
+        for (auto X = 0.0; X < 1200.0; X += Step)
+        {
+            for (auto Y = 0.0; Y < 400.0; Y += Step)
+            {
+                const auto A = FVector{X,        Y,        Get_Height(X, Y)};
+                const auto B = FVector{X + Step, Y,        Get_Height(X + Step, Y)};
+                const auto C = FVector{X + Step, Y + Step, Get_Height(X + Step, Y + Step)};
+                const auto D = FVector{X,        Y + Step, Get_Height(X, Y + Step)};
+
+                Geometry.Add_Triangle(A, B, C);
+                Geometry.Add_Triangle(A, C, D);
+            }
+        }
+
+        return Geometry;
+    }
+
     auto Make_StairRegion() -> FBox
     {
         return FBox{FVector{0.0, 0.0, -50.0}, FVector{1200.0, 400.0, 400.0}};
@@ -366,6 +429,60 @@ bool FCkTest_GroundNav_Plates_RemainsWellFormedAcrossTheTunableRange::RunTest(co
                 Tolerance, ConeDegrees),
                 CoveredCells, StairBake._Layers.Get_AssignedSpanCount());
         }
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Plates_ConeSeparatesSlopeFromLevelWithoutShattering,
+    "CkTests.UnitTests.CkGroundNav.Bake.Plates_ConeSeparatesSlopeFromLevelWithoutShattering",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Plates_ConeSeparatesSlopeFromLevelWithoutShattering::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_plates;
+
+    const auto Tunables = FCk_GroundNav_MergeTunables{};
+
+    {
+        // A 20-degree ramp running into a flat landing. These must never become one plate: a plate
+        // claiming level ground where there is a slope is exactly the lie the funnel cannot detect.
+        const auto Baked = Bake(Make_RampMeetsLanding(), Make_StairRegion());
+
+        if (NOT TestTrue(TEXT("the landing fixture bakes"), Baked._Completed))
+        { return false; }
+
+        auto Plates = FCk_GroundNav_PlateField{};
+        DoDecompose_Plates(Baked._Spans, Baked._Layers, Tunables, Plates);
+
+        TestEqual(TEXT("a ramp and the landing it meets stay two plates"), Plates._Plates.Num(), 2);
+    }
+
+    {
+        // Gently rolling ground, where every cell normal differs slightly from its neighbour. One
+        // continuous floor must not fragment into a plate per cell.
+        const auto Baked = Bake(Make_RollingGround(), Make_StairRegion());
+
+        if (NOT TestTrue(TEXT("the rolling fixture bakes"), Baked._Completed))
+        { return false; }
+
+        auto Plates = FCk_GroundNav_PlateField{};
+        DoDecompose_Plates(Baked._Spans, Baked._Layers, Tunables, Plates);
+
+        const auto CellCount = Baked._Layers.Get_AssignedSpanCount();
+
+        TestTrue(FString::Printf(TEXT("rolling ground does not shatter (%d plates over %d cells)"),
+            Plates._Plates.Num(), CellCount),
+            Plates._Plates.Num() <= 20);
+
+        // And it is not one plate either — the ground genuinely is not planar, and a decomposition
+        // that flattened it would pass the bound above for the wrong reason.
+        TestTrue(TEXT("but it is not claimed to be one flat surface"), Plates._Plates.Num() > 1);
     }
 
     return true;
