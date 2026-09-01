@@ -96,5 +96,6 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Goap AutoReplan",    ACk_GoapAutoReplanGym_GameMode,          "", "CkGoap");
         CkGym_Cycler::RegisterProjectGym("Goap Empire",        ACk_GoapEmpireGym_GameMode,              "", "CkGoap");
         CkGym_Cycler::RegisterProjectGym("Goap F.E.A.R.",      ACk_GoapFEARGym_GameMode,                "", "CkGoap");
+        CkGym_Cycler::RegisterProjectGym("GroundNav Tuning Range", ACk_GroundNavGym_TuningRange_GameMode, "", "CkGroundNav");
     }
 }
