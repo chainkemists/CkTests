@@ -237,6 +237,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         Legends.Add("one point per cell - BLUE = least room, RED = most (scaled to this bake)");
         Legends.Add("one point per cell - green = layer 0 (ground), blue = layer 1 (deck above it)");
         Legends.Add("RED = cut by the filters, dim grey = what survived");
+        Legends.Add("one line per crossing - BLUE = tightest, RED = widest; a mast marks one that changes floor");
         return Legends;
     }
 
@@ -247,6 +248,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         Labels.Add("1 Clearance");
         Labels.Add("2 Layers");
         Labels.Add("3 Rejected (what the filters threw away)");
+        Labels.Add("4 Portals (the crossings between plates)");
         return Labels;
     }
 
@@ -270,6 +272,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         Description.Add(FText::FromString("The staircase has 20uu risers. At the default plane-fit tolerance of 10uu you get one plate per tread; press F once to raise it past 20 and the treads merge into ramps. Watch the worst height spread in the summary - when it reaches 20 the steps have stopped existing."));
         Description.Add(FText::FromString("The platform leaves 220uu of headroom over the floor, so the region reports two layers. Raise the agent height past 220 with M and the floor beneath it is culled, dropping the count to one."));
         Description.Add(FText::FromString("The catwalk is 75uu wide and drops 240uu on both sides. Draw mode 3 shows what the ledge filter removed - at sensitivity 1.0 the whole catwalk goes red."));
+        Description.Add(FText::FromString("Draw mode 4 shows the crossings between plates. The two pillars stand 160uu apart, so the crossing through the gap between them offers about 80uu - that number, not the open floor either side of it, is what decides whether a body can get through."));
         Description.Add(FText::FromString("Fail signatures: status BackendUnavailable = no Jolt static world in this PIE mode; NoGeometryInRegion = the scene did not bake into Jolt, or the pawn drifted outside the region."));
         Station.Description = Description;
 
