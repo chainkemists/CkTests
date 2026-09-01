@@ -132,6 +132,60 @@ bool FCkTest_GroundNav_Snapshot_CarriesTheWholeBake::RunTest(const FString& Para
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Snapshot_CellCountCannotExceedTheLattice,
+    "CkTests.UnitTests.CkGroundNav.Bake.Snapshot_CellCountCannotExceedTheLattice",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Snapshot_CellCountCannotExceedTheLattice::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_snapshot;
+
+    auto WalkableSpans = 0;
+    auto PlateCount = 0;
+
+    const auto Snapshot = Make_TwoStoreySnapshot(TNumericLimits<int32>::Max(), WalkableSpans, PlateCount);
+
+    TestTrue(TEXT("the snapshot reports the lattice it was built on"),
+        Snapshot._LatticeSizeX > 0 && Snapshot._LatticeSizeY > 0);
+
+    // The lattice is a function of the region and the cell size and nothing else, so a mismatch here
+    // means the field was built against different bounds than the ones the snapshot reports — which
+    // would make every world-space position it carries wrong by the same amount.
+    // CeilToInt on a double widens to int64, which makes TestEqual ambiguous against the int32 the
+    // field actually holds — narrow here rather than at each call site.
+    const auto ExpectedSizeX = static_cast<int32>(
+        FMath::CeilToInt(Snapshot._Region.GetSize().X / Snapshot._CellSizeUu));
+    const auto ExpectedSizeY = static_cast<int32>(
+        FMath::CeilToInt(Snapshot._Region.GetSize().Y / Snapshot._CellSizeUu));
+
+    TestEqual(TEXT("lattice width follows the region and the cell size"),
+        Snapshot._LatticeSizeX, ExpectedSizeX);
+    TestEqual(TEXT("lattice height does too"),
+        Snapshot._LatticeSizeY, ExpectedSizeY);
+
+    // One surface per column per layer is the whole premise of a layered field: a count above that
+    // ceiling is not a big bake, it is a count of something other than cells, and every per-cell
+    // figure derived from it (the plate collapse ratio) is wrong by the same factor.
+    const auto CellSlots = Snapshot._LatticeSizeX * Snapshot._LatticeSizeY * Snapshot._LayerCount;
+
+    if (Snapshot._WalkableCellCount > CellSlots)
+    {
+        AddError(FString::Printf(
+            TEXT("reported %d walkable cells on a %d x %d lattice of %d layer(s), which holds at most %d"),
+            Snapshot._WalkableCellCount, Snapshot._LatticeSizeX, Snapshot._LatticeSizeY,
+            Snapshot._LayerCount, CellSlots));
+        return false;
+    }
+
+    TestTrue(TEXT("the drawn cells never outnumber the counted ones"),
+        Snapshot._Cells.Num() <= Snapshot._WalkableCellCount);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_GroundNav_Snapshot_CappingCellsKeepsCountsExact,
     "CkTests.UnitTests.CkGroundNav.Bake.Snapshot_CappingCellsKeepsCountsExact",
     kCkUnitTestFlags)
