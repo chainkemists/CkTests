@@ -104,6 +104,13 @@ namespace ck_test_groundnav_reachability
 
         return Tile->_Plates.Get_PlateIndexAt(CellX, CellY, 0);
     }
+
+    // Ground continuous across all three tiles of a 3x1 field, so every plate is one component right
+    // up until a tile stops being built.
+    auto Make_GroundAcrossThreeTiles() -> TArray<FBox>
+    {
+        return TArray<FBox>{FBox{FVector{-200.0, -200.0, -10.0}, FVector{1400.0, 600.0, 0.0}}};
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -301,6 +308,108 @@ bool FCkTest_GroundNav_Reachability_SameComponentDoesNotMeanPassable::RunTest(co
         TEXT("but no crossing admits a %.0f uu radius (widest offers %.2f)"),
         kFatAgentRadiusUu, WidestCrossing),
         WidestCrossing < kFatAgentRadiusUu);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Reachability_AnUnbuiltTileRefusesToProveDisconnection,
+    "CkTests.UnitTests.CkGroundNav.Bake.Reachability_AnUnbuiltTileRefusesToProveDisconnection",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Reachability_AnUnbuiltTileRefusesToProveDisconnection::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_reachability;
+
+    auto Field = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the three-tile field bakes"),
+        Bake(Make_GroundAcrossThreeTiles(), Make_Params(FIntPoint{3, 1}), Field)))
+    { return false; }
+
+    auto LeftTile = int32{INDEX_NONE};
+    auto RightTile = int32{INDEX_NONE};
+
+    const auto LeftPlate = Get_PlateAt(Field, 200.0, 200.0, LeftTile);
+    const auto RightPlate = Get_PlateAt(Field, 1000.0, 200.0, RightTile);
+
+    if (NOT TestTrue(TEXT("both ends of the field have ground"),
+        LeftPlate != ck::groundnav::FCk_GroundNav_Plate::kNoPlate &&
+        RightPlate != ck::groundnav::FCk_GroundNav_Plate::kNoPlate))
+    { return false; }
+
+    TestFalse(TEXT("with every tile built, the two ends are not disconnected"),
+        Field.Get_AreProvablyDisconnected(LeftTile, LeftPlate, RightTile, RightPlate));
+
+    // Take the middle tile away. The crossings that joined the ends go with it, so the labels really
+    // do separate — asserted below, so what follows cannot pass against a field where nothing moved.
+    Field._Tiles[1]._Status = ECk_GroundNav_BuildStatus::Unbuilt;
+
+    ck::groundnav::DoDerive_SeamPortals(Field);
+    ck::groundnav::DoLabel_Reachability(Field);
+
+    TestNotEqual(TEXT("the two ends now carry different component labels"),
+        Field.Get_ReachabilityLabel(LeftTile, LeftPlate),
+        Field.Get_ReachabilityLabel(RightTile, RightPlate));
+
+    // And yet the answer must still be "not proven". The labels differ because the ground between
+    // them was never baked, not because the world separates them — and answering true here would
+    // refuse work on a hole in the data, which is the one thing this contract forbids.
+    TestFalse(TEXT("but the separation is NOT proven, because unbuilt ground caused it"),
+        Field.Get_AreProvablyDisconnected(LeftTile, LeftPlate, RightTile, RightPlate));
+
+    // The distinction has to survive the tile coming back, or it would only ever be a one-way door.
+    Field._Tiles[1]._Status = ECk_GroundNav_BuildStatus::Built;
+
+    ck::groundnav::DoDerive_SeamPortals(Field);
+    ck::groundnav::DoLabel_Reachability(Field);
+
+    TestFalse(TEXT("and once the tile is built again the ends are connected as before"),
+        Field.Get_AreProvablyDisconnected(LeftTile, LeftPlate, RightTile, RightPlate));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Reachability_AnOutOfRangeTileIsRefusedNotRead,
+    "CkTests.UnitTests.CkGroundNav.Bake.Reachability_AnOutOfRangeTileIsRefusedNotRead",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Reachability_AnOutOfRangeTileIsRefusedNotRead::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_reachability;
+
+    auto Field = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the field bakes"),
+        Bake(Make_ContinuousGround(), Make_Params(FIntPoint{2, 1}), Field)))
+    { return false; }
+
+    // _TilePlateOffsets carries TileCount + 1 entries so that every tile's range is one subtraction
+    // away. The cost is that a bounds check on the tile index ALONE admits TileCount itself, and the
+    // offset lookup then reads one past the end — a real out-of-bounds read behind a valid-looking
+    // index. One past the last tile has to be refused, not read.
+    TestEqual(TEXT("one past the last tile is refused"),
+        Field.Get_ReachabilityLabel(Field.Get_TileCount(), 0), int32{INDEX_NONE});
+
+    TestEqual(TEXT("and so is a negative tile"),
+        Field.Get_ReachabilityLabel(-1, 0), int32{INDEX_NONE});
+
+    TestEqual(TEXT("and a negative plate"),
+        Field.Get_ReachabilityLabel(0, -1), int32{INDEX_NONE});
+
+    TestEqual(TEXT("and a plate past the end of a real tile"),
+        Field.Get_ReachabilityLabel(0, 1000000), int32{INDEX_NONE});
+
+    // A refused lookup must not become a PROOF: two unknowns are not two different components.
+    TestFalse(TEXT("and an unknown plate proves nothing about reachability"),
+        Field.Get_AreProvablyDisconnected(Field.Get_TileCount(), 0, -1, 0));
 
     return true;
 }
