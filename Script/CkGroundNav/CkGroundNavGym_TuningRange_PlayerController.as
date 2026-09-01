@@ -65,6 +65,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     private const int32 k_Row_Print       = 20;
     private const int32 k_Row_Reset       = 21;
     private const int32 k_Row_Viewpoint   = 22;
+    private const int32 k_Row_BakeField   = 23;
 
     // ---- State -----------------------------------------------------------------------------------
 
@@ -238,6 +239,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         Legends.Add("one point per cell - green = layer 0 (ground), blue = layer 1 (deck above it)");
         Legends.Add("RED = cut by the filters, dim grey = what survived");
         Legends.Add("one line per crossing - BLUE = tightest, RED = widest; a mast marks one that changes floor");
+        Legends.Add("BLUE box per tile, RED = a tile that did not build; thick lines = the seams between tiles");
         return Legends;
     }
 
@@ -249,6 +251,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         Labels.Add("2 Layers");
         Labels.Add("3 Rejected (what the filters threw away)");
         Labels.Add("4 Portals (the crossings between plates)");
+        Labels.Add("5 Tiles (needs a field bake - press Y)");
         return Labels;
     }
 
@@ -471,6 +474,19 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         _BakeCount += 1;
     }
 
+    // The same scene baked as several tiles instead of one region. Everything else is identical, so
+    // the two runs are directly comparable - which is the point: a tiled bake that disagreed with the
+    // whole one would show up here as a seam, and nowhere else.
+    private void DoBakeField()
+    {
+        DoPushAllTunables();
+        DoSetTunable("TileSizeUu", 800.0f);
+        System::ExecuteConsoleCommand("ck.GroundNav.Clear");
+        System::ExecuteConsoleCommand(
+            f"ck.GroundNav.BakeFieldAt {k_BakeCentre.X} {k_BakeCentre.Y} {k_BakeCentre.Z}");
+        _BakeCount += 1;
+    }
+
     // ---- Control panel ---------------------------------------------------------------------------
 
     FString Get_ControlPanelTitle() override
@@ -514,6 +530,8 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         Rows.Add(CkGym_Control::Action(EKeys::P, "P", "Print every tunable to the log"));
         Rows.Add(CkGym_Control::Action(EKeys::O, "O", "Reset to the gym preset"));
         Rows.Add(CkGym_Control::Action(EKeys::V, "V", "Fly back to the starting viewpoint"));
+        Rows.Add(CkGym_Control::Action(EKeys::Y, "Y",
+            "Bake the scene as a TILED field (draw mode 5 shows the tiles and their seams)"));
 
         return Rows;
     }
@@ -526,6 +544,12 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         if (InRowIndex == k_Row_Bake)
         {
             DoBake();
+            return;
+        }
+
+        if (InRowIndex == k_Row_BakeField)
+        {
+            DoBakeField();
             return;
         }
 
