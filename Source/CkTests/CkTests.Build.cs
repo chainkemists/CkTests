@@ -70,6 +70,7 @@ public class CkTests : CkModuleRules
             "CkInventory",
             "CkIskmRenderer",
             "CkIsmRenderer",
+            "CkGroundNav",
             "CkJolt",
             "CkThirdParty",
             "CkLabel",
