@@ -73,6 +73,11 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     private bool _GeometryIsBuilt = false;
     private int32 _BakeCount = 0;
 
+    // T and every tunable key re-run the bake so the drawing tracks the change. They re-run the KIND
+    // of bake that last ran - region after R, tiled field after Y - because a region bake would
+    // replace the field and mode 5 would then have no tiles to draw.
+    private bool _LastBakeWasField = false;
+
     private int32 _ModeIndex = 0;
     private int32 _PlaneFitIndex = 1;
     private int32 _NormalConeIndex = 2;
@@ -251,7 +256,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         Labels.Add("2 Layers");
         Labels.Add("3 Rejected (what the filters threw away)");
         Labels.Add("4 Portals (the crossings between plates)");
-        Labels.Add("5 Tiles (needs a field bake - press Y)");
+        Labels.Add("5 Tiles (needs a field bake - press Y; T then keeps re-baking the field)");
         return Labels;
     }
 
@@ -472,6 +477,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         System::ExecuteConsoleCommand(
             f"ck.GroundNav.BakeAt {k_BakeCentre.X} {k_BakeCentre.Y} {k_BakeCentre.Z}");
         _BakeCount += 1;
+        _LastBakeWasField = false;
     }
 
     // The same scene baked as several tiles instead of one region. Everything else is identical, so
@@ -485,6 +491,18 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         System::ExecuteConsoleCommand(
             f"ck.GroundNav.BakeFieldAt {k_BakeCentre.X} {k_BakeCentre.Y} {k_BakeCentre.Z}");
         _BakeCount += 1;
+        _LastBakeWasField = true;
+    }
+
+    private void DoRebake()
+    {
+        if (_LastBakeWasField)
+        {
+            DoBakeField();
+            return;
+        }
+
+        DoBake();
     }
 
     // ---- Control panel ---------------------------------------------------------------------------
@@ -531,7 +549,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         Rows.Add(CkGym_Control::Action(EKeys::O, "O", "Reset to the gym preset"));
         Rows.Add(CkGym_Control::Action(EKeys::V, "V", "Fly back to the starting viewpoint"));
         Rows.Add(CkGym_Control::Action(EKeys::Y, "Y",
-            "Bake the scene as a TILED field (draw mode 5 shows the tiles and their seams)"));
+            "Bake the scene as a TILED field (draw mode 5 shows the tiles and their seams; T and the tunables then re-bake the field until you press R)"));
 
         return Rows;
     }
@@ -556,7 +574,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         if (InRowIndex == k_Row_Mode)
         {
             _ModeIndex = (_ModeIndex + 1) % Get_ModeLabels().Num();
-            DoBake();
+            DoRebake();
             return;
         }
 
@@ -569,49 +587,49 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         if (InRowIndex == k_Row_PlaneFit)
         {
             _PlaneFitIndex = (_PlaneFitIndex + 1) % Get_PlaneFitValues().Num();
-            DoBake();
+            DoRebake();
             return;
         }
 
         if (InRowIndex == k_Row_NormalCone)
         {
             _NormalConeIndex = (_NormalConeIndex + 1) % Get_NormalConeValues().Num();
-            DoBake();
+            DoRebake();
             return;
         }
 
         if (InRowIndex == k_Row_Ledge)
         {
             _LedgeIndex = (_LedgeIndex + 1) % Get_LedgeValues().Num();
-            DoBake();
+            DoRebake();
             return;
         }
 
         if (InRowIndex == k_Row_StepHeight)
         {
             _StepHeightIndex = (_StepHeightIndex + 1) % Get_StepHeightValues().Num();
-            DoBake();
+            DoRebake();
             return;
         }
 
         if (InRowIndex == k_Row_AgentHeight)
         {
             _AgentHeightIndex = (_AgentHeightIndex + 1) % Get_AgentHeightValues().Num();
-            DoBake();
+            DoRebake();
             return;
         }
 
         if (InRowIndex == k_Row_AgentRadius)
         {
             _AgentRadiusIndex = (_AgentRadiusIndex + 1) % Get_AgentRadiusValues().Num();
-            DoBake();
+            DoRebake();
             return;
         }
 
         if (InRowIndex == k_Row_CellSize)
         {
             _CellSizeIndex = (_CellSizeIndex + 1) % Get_CellSizeValues().Num();
-            DoBake();
+            DoRebake();
             return;
         }
 
