@@ -36,8 +36,13 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     private const FVector k_PillarSouthCentre = FVector(-900.0, -180.0, 150.0);
     private const FVector k_PillarScale       = FVector(2.0, 2.0, 3.0);
 
-    // The bake follows the pawn, so the starting viewpoint has to sit close enough to the middle of
-    // the scene that the default region covers all of it.
+    // The bake is aimed at the scene, NOT at the pawn. ck.GroundNav.Bake centres its region on the
+    // viewer, which is unusable here: this pawn flies, and a viewer that climbs above the region
+    // height leaves the ground behind and below it, so the bake reports NoGeometryInRegion while the
+    // scene sits in plain view. ck.GroundNav.BakeAt pins the region instead, so flying around changes
+    // what you can SEE and never what was baked.
+    private const FVector k_BakeCentre = FVector(200.0, 0.0, 120.0);
+
     private const FVector  k_PlayerViewLocation = FVector(300.0, -900.0, 550.0);
     private const FRotator k_PlayerViewRotation = FRotator(-22.0, 75.0, 0.0);
 
@@ -49,16 +54,17 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
 
     private const int32 k_Row_Bake        = 5;
     private const int32 k_Row_Mode        = 6;
-    private const int32 k_Row_Clear       = 7;
-    private const int32 k_Row_PlaneFit    = 9;
-    private const int32 k_Row_NormalCone  = 10;
-    private const int32 k_Row_Ledge       = 12;
-    private const int32 k_Row_StepHeight  = 13;
-    private const int32 k_Row_AgentHeight = 14;
-    private const int32 k_Row_AgentRadius = 15;
-    private const int32 k_Row_CellSize    = 17;
-    private const int32 k_Row_Print       = 19;
-    private const int32 k_Row_Reset       = 20;
+    private const int32 k_Row_Clear       = 8;
+    private const int32 k_Row_PlaneFit    = 10;
+    private const int32 k_Row_NormalCone  = 11;
+    private const int32 k_Row_Ledge       = 13;
+    private const int32 k_Row_StepHeight  = 14;
+    private const int32 k_Row_AgentHeight = 15;
+    private const int32 k_Row_AgentRadius = 16;
+    private const int32 k_Row_CellSize    = 18;
+    private const int32 k_Row_Print       = 20;
+    private const int32 k_Row_Reset       = 21;
+    private const int32 k_Row_Viewpoint   = 22;
 
     // ---- State -----------------------------------------------------------------------------------
 
@@ -219,6 +225,19 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         Labels.Add("50 uu (the 75uu catwalk is now 1.5 cells)");
         Labels.Add("100 uu (a whole tread is one cell)");
         return Labels;
+    }
+
+    // What the current mode paints, in the mode's own colours. Without this the drawing is a
+    // picture nobody can read: green-vs-blue means layer in two modes and nothing in the other two,
+    // and the clearance ramp runs the opposite way to the usual red-is-bad reflex.
+    private TArray<FString> Get_ModeLegends()
+    {
+        auto Legends = TArray<FString>();
+        Legends.Add("one wireframe box per plate - green = layer 0, blue = layer 1");
+        Legends.Add("one point per cell - BLUE = least room, RED = most (scaled to this bake)");
+        Legends.Add("one point per cell - green = layer 0 (ground), blue = layer 1 (deck above it)");
+        Legends.Add("RED = cut by the filters, dim grey = what survived");
+        return Legends;
     }
 
     private TArray<FString> Get_ModeLabels()
@@ -424,10 +443,10 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     // agree from the first keypress even if something else wrote them earlier in the session.
     private void DoPushAllTunables()
     {
-        // The region has to be wide enough that the scene stays covered as the pawn moves around it,
-        // and tall enough that a pawn hovering well above the floor still sees the floor.
-        DoSetTunable("ExtentUu", 2000.0f);
-        DoSetTunable("HeightUu", 900.0f);
+        // Sized to the scene rather than to the viewer: the scene spans X -1200..1400 and Y +/-1200,
+        // and everything walkable in it sits between Z=0 and Z=240.
+        DoSetTunable("ExtentUu", 1500.0f);
+        DoSetTunable("HeightUu", 400.0f);
         DoSetTunable("MaxCells", 40000.0f);
 
         DoSetTunable("Mode", float(_ModeIndex));
@@ -444,7 +463,8 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     {
         DoPushAllTunables();
         System::ExecuteConsoleCommand("ck.GroundNav.Clear");
-        System::ExecuteConsoleCommand("ck.GroundNav.Bake");
+        System::ExecuteConsoleCommand(
+            f"ck.GroundNav.BakeAt {k_BakeCentre.X} {k_BakeCentre.Y} {k_BakeCentre.Z}");
         _BakeCount += 1;
     }
 
@@ -464,12 +484,14 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
             _GeometryIsBuilt ? "floor + 12 steps (20uu risers) + platform + 75uu catwalk + 160uu pinch"
                              : "NOT BAKED INTO JOLT - every bake will find nothing",
             _GeometryIsBuilt == false));
-        Rows.Add(CkGym_Control::Status("Bake region", "follows your pawn, +/-2000uu wide, 900uu tall"));
+        Rows.Add(CkGym_Control::Status("Bake region",
+        f"white box, pinned to ({k_BakeCentre.X}, {k_BakeCentre.Y}, {k_BakeCentre.Z}), +/-1500uu wide, 400uu tall - it does not follow you"));
         Rows.Add(CkGym_Control::Status("Bakes run", f"{_BakeCount}"));
 
         Rows.Add(CkGym_Control::Header("BAKE"));
-        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Bake now (summary prints to the log)"));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Bake the scene (summary prints to the log)"));
         Rows.Add(CkGym_Control::Cycle(EKeys::T, "T", "Draw mode", Get_ModeLabels()[_ModeIndex]));
+        Rows.Add(CkGym_Control::Status("Colours", Get_ModeLegends()[_ModeIndex]));
         Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Clear the drawing"));
 
         Rows.Add(CkGym_Control::Header("MERGE - how cells collapse into plates"));
@@ -488,6 +510,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         Rows.Add(CkGym_Control::Header("OTHER"));
         Rows.Add(CkGym_Control::Action(EKeys::P, "P", "Print every tunable to the log"));
         Rows.Add(CkGym_Control::Action(EKeys::O, "O", "Reset to the gym preset"));
+        Rows.Add(CkGym_Control::Action(EKeys::V, "V", "Fly back to the starting viewpoint"));
 
         return Rows;
     }
@@ -574,6 +597,12 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         if (InRowIndex == k_Row_Reset)
         {
             DoResetTunables();
+            return;
+        }
+
+        if (InRowIndex == k_Row_Viewpoint)
+        {
+            DoBringPlayerToViewpoint();
             return;
         }
     }
