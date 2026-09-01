@@ -6,6 +6,7 @@
 
 #include "CkGroundNav/Bake/CkGroundNav_Clearance.h"
 #include "CkGroundNav/Bake/CkGroundNav_Plates.h"
+#include "CkGroundNav/Bake/CkGroundNav_Portals.h"
 #include "CkGroundNav/Bake/CkGroundNav_Rasterize.h"
 #include "CkGroundNav/Debug/CkGroundNav_DebugSnapshot.h"
 
@@ -22,6 +23,7 @@ namespace ck_test_groundnav_snapshot
     using ck::groundnav::DoCompute_Clearance;
     using ck::groundnav::DoDecompose_Plates;
     using ck::groundnav::DoExtract_Layers;
+    using ck::groundnav::DoExtract_Portals;
     using ck::groundnav::DoFilter_Walkability;
     using ck::groundnav::DoRasterizeSpans;
     using ck::groundnav::EDebugSnapshotStatus;
@@ -30,6 +32,7 @@ namespace ck_test_groundnav_snapshot
     using ck::groundnav::FCk_GroundNav_DebugSnapshot;
     using ck::groundnav::FCk_GroundNav_LayerField;
     using ck::groundnav::FCk_GroundNav_PlateField;
+    using ck::groundnav::FCk_GroundNav_PortalField;
     using ck::groundnav::FCk_GroundNav_SpanField;
     using ck::groundnav::Make_DebugSnapshot;
 
@@ -65,10 +68,13 @@ namespace ck_test_groundnav_snapshot
         auto Plates = FCk_GroundNav_PlateField{};
         DoDecompose_Plates(Spans, Layers, FCk_GroundNav_MergeTunables{}, Plates);
 
+        auto Portals = FCk_GroundNav_PortalField{};
+        DoExtract_Portals(Spans, Layers, Connections, Plates, Clearance, Portals);
+
         OutWalkableSpans = Layers.Get_AssignedSpanCount();
         OutPlates = Plates._Plates.Num();
 
-        return Make_DebugSnapshot(Spans, Layers, Clearance, Plates, Region, InMaxCells);
+        return Make_DebugSnapshot(Spans, Layers, Clearance, Plates, Portals, Region, InMaxCells);
     }
 }
 
@@ -101,6 +107,11 @@ bool FCkTest_GroundNav_Snapshot_CarriesTheWholeBake::RunTest(const FString& Para
 
     TestEqual(TEXT("both storeys are represented"), Snapshot._LayerCount, 2);
     TestFalse(TEXT("nothing was capped"), Snapshot._CellsWereTruncated);
+
+    // Two floors with no way between them. A portal here would mean the snapshot invented a route,
+    // and a route the world does not have is the one error a path consumer cannot detect for itself.
+    TestEqual(TEXT("and nothing claims to cross between them"), Snapshot.Get_PortalCount(), 0);
+    TestEqual(TEXT("so the tightest crossing reads as none"), Snapshot.Get_NarrowestPortalUu(), 0.0f);
 
     // Cells arrive in world space, already positioned. A viewer that had to reconstruct this from a
     // lattice index would need the span field, which is exactly what the snapshot exists to avoid.
