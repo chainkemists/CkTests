@@ -9,6 +9,7 @@
 // this file, so the numbers mean the same thing on every machine and in every checkout.
 
 #include "CkGroundNav/Backend/CkGroundNav_GeometryBackend_Stub.h"
+#include "CkGroundNav/CkGroundNav_Log.h"
 #include "CkGroundNav/Field/CkGroundNav_Field.h"
 
 #include "CkShapes/Capsule/CkShapeCapsule_Fragment_Data.h"
@@ -88,7 +89,10 @@ namespace ck_test_groundnav_reference
     // The probe count is in the unit FCk_GroundNav_BakeStageResult defines: one innermost cell or span
     // read, billed identically by every stage. It was 117962 when the stages each billed something of
     // their own — triangles, spans, a plate count — and the sum measured nothing.
-    constexpr auto kReferenceProbes = 825978;
+    // 825978 before the closure check, + 60 for it: the scene's 5 boxes are each 12 triangles, every
+    // one of them overlaps at least one tile's halo, and a body's whole mesh is read once per BUILD —
+    // so 5 * 12 = 60 probes, whatever tiling or slicing produced them.
+    constexpr auto kReferenceProbes = 826038;
     constexpr auto kReferenceWalkableCells = 9792;
     constexpr auto kReferencePlates = 22;
     constexpr auto kReferencePortals = 6;
@@ -104,6 +108,11 @@ namespace ck_test_groundnav_reference
         int32 _Seams = 0;
         int32 _Components = 0;
         float _CollapseRatio = 0.0f;
+
+        // The bake's cost, both halves. Bytes are exact and deterministic for a fixture, so they are
+        // pinned; wall time is a measurement of this machine and is only ever reported.
+        int64 _FieldBytes = 0;
+        double _BakeMilliseconds = 0.0;
     };
 
     auto Bake_Reference(FReferenceNumbers& OutNumbers) -> bool
@@ -111,13 +120,18 @@ namespace ck_test_groundnav_reference
         const auto Backend = FCk_GroundNav_GeometryBackend_Stub{Make_ReferenceScene()};
 
         auto Field = FCk_GroundNav_Field{};
+
+        const auto StartedAt = FPlatformTime::Seconds();
         const auto Result = DoBake_Field(Backend, Make_Params(), FCk_GroundNav_Epoch{1}, Field);
+        const auto ElapsedMilliseconds = (FPlatformTime::Seconds() - StartedAt) * 1000.0;
 
         if (NOT Result.Get_IsCompleted())
         { return false; }
 
         OutNumbers = FReferenceNumbers{};
         OutNumbers._ProbesSpent = Result.Get_ProbesSpent();
+        OutNumbers._FieldBytes = static_cast<int64>(Field.Get_AllocatedSize());
+        OutNumbers._BakeMilliseconds = ElapsedMilliseconds;
         OutNumbers._Seams = Field.Get_SeamPortalCount();
         OutNumbers._Components = Field.Get_ReachabilityComponentCount();
 
@@ -155,9 +169,13 @@ bool FCkTest_GroundNav_Reference_NumbersAreStableAndRecorded::RunTest(const FStr
     // Reported through the failure channel deliberately: these are the phase's tracked numbers, and the
     // point of the message is that it names them all when any one of them moves.
     const auto Report = FString::Printf(
-        TEXT("reference: probes %d, walkable cells %d, plates %d (collapse %.2f), portals %d, seams %d, components %d"),
+        TEXT("reference: probes %d, walkable cells %d, plates %d (collapse %.2f), portals %d, seams %d, components %d, field %lld bytes, %.2f ms"),
         Numbers._ProbesSpent, Numbers._WalkableCells, Numbers._Plates, Numbers._CollapseRatio,
-        Numbers._Portals, Numbers._Seams, Numbers._Components);
+        Numbers._Portals, Numbers._Seams, Numbers._Components, Numbers._FieldBytes, Numbers._BakeMilliseconds);
+
+    // The wall time is this machine's and is never asserted; it is written to the log so the phase
+    // can record a measured bake cost beside the numbers it pins.
+    ck::groundnav::Display(TEXT("{}"), Report);
 
     // The scene has to be worth measuring before any number from it means anything.
     if (NOT TestTrue(FString::Printf(TEXT("the reference scene has ground, plates and crossings [%s]"), *Report),
@@ -197,6 +215,11 @@ bool FCkTest_GroundNav_Reference_NumbersAreStableAndRecorded::RunTest(const FStr
 
     TestEqual(FString::Printf(TEXT("reachability components on the reference scene [%s]"), *Report),
         Numbers._Components, kReferenceComponents);
+
+    TestEqual(TEXT("the field's footprint is identical across runs"), Repeat._FieldBytes, Numbers._FieldBytes);
+
+    TestTrue(FString::Printf(TEXT("the published field holds its tiles on the heap [%s]"), *Report),
+        Numbers._FieldBytes > 0);
 
     return true;
 }
