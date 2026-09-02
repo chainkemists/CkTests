@@ -137,7 +137,8 @@ bool FCkTest_GroundNav_Walkability_LowClearanceFollowsProfileHeight::RunTest(con
         if (NOT Rasterize(Geometry, Region, 25.0f, Profile, Field))
         { return false; }
 
-        DoFilter_LowClearance(Profile, Field);
+        auto Probes = 0;
+        DoFilter_LowClearance(Profile, Field, Probes);
 
         OutFloorWalkable = Get_WalkableSpanCountAtIndex(Field, 0);
         OutRoofWalkable = Get_WalkableSpanCountAtIndex(Field, 1);
@@ -199,7 +200,8 @@ bool FCkTest_GroundNav_Walkability_LedgeFilterDemotesTheCliffEdge::RunTest(const
     TestEqual(TEXT("the plateau top row is walkable before filtering"),
         Get_WalkableCountAtXAndHeight(Field, 19, PlateauTop), RowDepth);
 
-    DoFilter_Ledges(Profile, Field);
+    auto Probes = 0;
+    DoFilter_Ledges(Profile, Field, Probes);
 
     TestEqual(TEXT("the row on the lip of the drop is demoted"),
         Get_WalkableCountAtXAndHeight(Field, 19, PlateauTop), 0);
@@ -240,7 +242,8 @@ bool FCkTest_GroundNav_Walkability_LedgeSensitivityRelaxesForNarrowGeometry::Run
         if (NOT Rasterize(Geometry, Region, 25.0f, Profile, Field))
         { return -1; }
 
-        DoFilter_Ledges(Profile, Field);
+        auto Probes = 0;
+        DoFilter_Ledges(Profile, Field, Probes);
 
         auto Count = 0;
 
@@ -321,7 +324,8 @@ bool FCkTest_GroundNav_Walkability_RoughPerchHoldsASawtoothTogether::RunTest(con
         { return -1; }
 
         auto Connections = FCk_GroundNav_ConnectionField{};
-        DoBuild_Connections(Profile, Field, Connections);
+        auto Probes = 0;
+        DoBuild_Connections(Profile, Field, Connections, Probes);
 
         return Get_ConnectionCountAlongX(Connections);
     };
@@ -361,7 +365,8 @@ bool FCkTest_GroundNav_Walkability_ConnectionsAreSymmetricAndSkipDemotedSpans::R
     { return false; }
 
     auto Connections = FCk_GroundNav_ConnectionField{};
-    DoBuild_Connections(Profile, Field, Connections);
+    auto Probes = 0;
+    DoBuild_Connections(Profile, Field, Connections, Probes);
 
     // A 20x20 lattice of identical cells: every interior column connects on all four sides, every
     // edge column loses one, every corner two. 4*20*20 - 4*20 = 1520.
@@ -406,7 +411,7 @@ bool FCkTest_GroundNav_Walkability_ConnectionsAreSymmetricAndSkipDemotedSpans::R
         { Span._IsWalkable = false; }
     }
 
-    DoBuild_Connections(Profile, Field, Connections);
+    DoBuild_Connections(Profile, Field, Connections, Probes);
 
     for (auto Y = 0; Y < Connections._SizeY; ++Y)
     {
@@ -462,6 +467,7 @@ bool FCkTest_GroundNav_Walkability_LedgeFilterReadsAWallAsSupportNotADrop::RunTe
     };
 
     const auto Profile = Make_ProfileOfHeight(180.0f);
+    auto Probes = 0;
 
     {
         // A wall rising past our head from below. The height difference to its top is 490 uu, exactly
@@ -471,7 +477,7 @@ bool FCkTest_GroundNav_Walkability_LedgeFilterReadsAWallAsSupportNotADrop::RunTe
         Wall._MaxZ = 500.0f;
 
         auto Field = Make_ThreeColumnStrip(Wall);
-        DoFilter_Ledges(Profile, Field);
+        DoFilter_Ledges(Profile, Field, Probes);
 
         TestTrue(TEXT("ground at the foot of a wall is standable, not a ledge"),
             Field.Get_Column(1, 0)[0]._IsWalkable);
@@ -485,7 +491,7 @@ bool FCkTest_GroundNav_Walkability_LedgeFilterReadsAWallAsSupportNotADrop::RunTe
         Overhead._MaxZ = 210.0f;
 
         auto Field = Make_ThreeColumnStrip(Overhead);
-        DoFilter_Ledges(Profile, Field);
+        DoFilter_Ledges(Profile, Field, Probes);
 
         TestFalse(TEXT("ground beside a void is demoted even with a floor far above it"),
             Field.Get_Column(1, 0)[0]._IsWalkable);
