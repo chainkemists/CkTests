@@ -81,11 +81,19 @@ namespace ck_test_groundnav_reference
         return Params;
     }
 
-    // Pinned from the first green run against the fixture above. If either moves, a bake stage changed
+    // Pinned from a green run against the fixture above. If any of these moves, a bake stage changed
     // what it produces for the same input, and the failure names the whole set so the change can be
-    // read rather than guessed at.
-    constexpr auto kReferenceProbes = 117962;
+    // read rather than guessed at. Every re-pin must explain its delta in the commit.
+    //
+    // The probe count is in the unit FCk_GroundNav_BakeStageResult defines: one innermost cell or span
+    // read, billed identically by every stage. It was 117962 when the stages each billed something of
+    // their own — triangles, spans, a plate count — and the sum measured nothing.
+    constexpr auto kReferenceProbes = 825978;
+    constexpr auto kReferenceWalkableCells = 9792;
     constexpr auto kReferencePlates = 22;
+    constexpr auto kReferencePortals = 6;
+    constexpr auto kReferenceSeams = 17;
+    constexpr auto kReferenceComponents = 5;
 
     struct FReferenceNumbers
     {
@@ -175,8 +183,20 @@ bool FCkTest_GroundNav_Reference_NumbersAreStableAndRecorded::RunTest(const FStr
     TestEqual(FString::Printf(TEXT("probes spent on the reference scene [%s]"), *Report),
         Numbers._ProbesSpent, kReferenceProbes);
 
+    TestEqual(FString::Printf(TEXT("walkable cells on the reference scene [%s]"), *Report),
+        Numbers._WalkableCells, kReferenceWalkableCells);
+
     TestEqual(FString::Printf(TEXT("plates on the reference scene [%s]"), *Report),
         Numbers._Plates, kReferencePlates);
+
+    TestEqual(FString::Printf(TEXT("crossings within tiles on the reference scene [%s]"), *Report),
+        Numbers._Portals, kReferencePortals);
+
+    TestEqual(FString::Printf(TEXT("seams between tiles on the reference scene [%s]"), *Report),
+        Numbers._Seams, kReferenceSeams);
+
+    TestEqual(FString::Printf(TEXT("reachability components on the reference scene [%s]"), *Report),
+        Numbers._Components, kReferenceComponents);
 
     return true;
 }
