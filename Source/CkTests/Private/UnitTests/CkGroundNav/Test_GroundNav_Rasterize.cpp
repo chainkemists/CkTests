@@ -350,3 +350,148 @@ bool FCkTest_GroundNav_Rasterize_OverBudgetLatticeFailsWithStatus::RunTest(const
 }
 
 // --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Rasterize_AnExactHeightTieIsBrokenOnContentNotOrder,
+    "CkTests.UnitTests.CkGroundNav.Bake.Rasterize_AnExactHeightTieIsBrokenOnContentNotOrder",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Rasterize_AnExactHeightTieIsBrokenOnContentNotOrder::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_raster;
+
+    // Two faces meeting at exactly the same top height inside ONE cell. The tie is exact by
+    // CONSTRUCTION, not by tolerance: every vertex that can survive clipping at the top carries the
+    // literal Z 100.0, and Sutherland-Hodgman interpolating between two equal Z values reproduces it
+    // bit-for-bit, so no epsilon is involved on either side of the comparison.
+    //
+    // The merge must therefore pick a surface on CONTENT — the non-walkable face wins, because a
+    // face flush with a floor is something solid standing on it — and give the same answer whichever
+    // triangle the batch happens to list first. Reversing submission order is the whole experiment:
+    // under a strict height compare the loser of the tie is simply whoever arrived last, and this
+    // column flips between walkable and not.
+    const auto MiddleCellMinX = 500.0;
+    const auto MiddleCellMinY = 500.0;
+
+    // Flat, walkable, Z = 100 everywhere; its footprint covers the whole middle cell.
+    const auto FlatA = FVector{480.0, 480.0, 100.0};
+    const auto FlatB = FVector{580.0, 480.0, 100.0};
+    const auto FlatC = FVector{480.0, 580.0, 100.0};
+
+    // A 71.6-degree face (3uu of fall per uu of travel in +X, well past the 45-degree default) whose
+    // top edge lies ON the cell's low-X boundary at Z = 100 — the same height as the floor above.
+    const auto SteepA = FVector{500.0, 490.0, 100.0};
+    const auto SteepB = FVector{500.0, 590.0, 100.0};
+    const auto SteepC = FVector{600.0, 540.0, -200.0};
+
+    auto FlatFirst = FCk_GroundNav_GeometryBatch{};
+    FlatFirst.Add_Triangle(FlatA, FlatB, FlatC);
+    FlatFirst.Add_Triangle(SteepA, SteepB, SteepC);
+
+    auto SteepFirst = FCk_GroundNav_GeometryBatch{};
+    SteepFirst.Add_Triangle(SteepA, SteepB, SteepC);
+    SteepFirst.Add_Triangle(FlatA, FlatB, FlatC);
+
+    auto FlatFirstField = FCk_GroundNav_SpanField{};
+    auto SteepFirstField = FCk_GroundNav_SpanField{};
+
+    TestTrue(TEXT("rasterization completes with the flat triangle first"),
+        Rasterize(FlatFirst, FlatFirstField).Get_IsCompleted());
+
+    TestTrue(TEXT("and with the steep triangle first"),
+        Rasterize(SteepFirst, SteepFirstField).Get_IsCompleted());
+
+    // The middle column is the one both triangles were authored around.
+    TestTrue(TEXT("the fixture targets the middle cell"),
+        FMath::IsNearlyEqual(FlatFirstField.Get_ColumnMinCorner(
+            FlatFirstField._SizeX / 2, FlatFirstField._SizeY / 2).X, MiddleCellMinX) &&
+        FMath::IsNearlyEqual(FlatFirstField.Get_ColumnMinCorner(
+            FlatFirstField._SizeX / 2, FlatFirstField._SizeY / 2).Y, MiddleCellMinY));
+
+    const auto& FlatFirstColumn = Get_MiddleColumn(FlatFirstField);
+    const auto& SteepFirstColumn = Get_MiddleColumn(SteepFirstField);
+
+    TestEqual(TEXT("both faces merge into one span"), FlatFirstColumn.Num(), 1);
+    TestEqual(TEXT("in either submission order"), SteepFirstColumn.Num(), FlatFirstColumn.Num());
+
+    if (FlatFirstColumn.Num() == 1 && SteepFirstColumn.Num() == 1)
+    {
+        // Exact, not near: a tie decided within a tolerance is a tie still decided by arrival order.
+        TestTrue(TEXT("the surviving top is the authored height exactly"),
+            FlatFirstColumn[0]._MaxZ == 100.0f);
+
+        TestTrue(TEXT("and does not depend on submission order"),
+            SteepFirstColumn[0]._MaxZ == FlatFirstColumn[0]._MaxZ);
+
+        TestFalse(TEXT("the non-walkable face wins the tie"), FlatFirstColumn[0]._IsWalkable);
+        TestFalse(TEXT("in either submission order"), SteepFirstColumn[0]._IsWalkable);
+
+        TestTrue(TEXT("and the surviving normal is the same one both times"),
+            SteepFirstColumn[0]._Normal == FlatFirstColumn[0]._Normal);
+
+        TestTrue(TEXT("which is the steep face's normal, not the flat one's"),
+            FlatFirstColumn[0]._Normal.Get_UpDot() < 0.5);
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Rasterize_ColumnsAreSortedAndDisjoint,
+    "CkTests.UnitTests.CkGroundNav.Bake.Rasterize_ColumnsAreSortedAndDisjoint",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Rasterize_ColumnsAreSortedAndDisjoint::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_raster;
+
+    // The step fixture with a second storey over it: three surfaces per column, none of them merged
+    // under a 10uu climb threshold. The clearance filter reads headroom as the NEXT span's _MinZ minus
+    // this span's _MaxZ, so an unordered or overlapping column does not fail loudly there — it quietly
+    // computes a negative or a wrong headroom and demotes the wrong cells.
+    auto Geometry = FCk_GroundNav_GeometryBatch{};
+    Geometry.Add_Box(FBox{FVector{0.0, 0.0, -10.0}, FVector{1000.0, 1000.0, 0.0}});
+    Geometry.Add_Box(FBox{FVector{0.0, 0.0, 20.0}, FVector{1000.0, 1000.0, 30.0}});
+    Geometry.Add_Box(Make_Floor(1000.0));
+
+    auto Field = FCk_GroundNav_SpanField{};
+    const auto Result = Rasterize(Geometry, Field, 10.0f);
+
+    TestTrue(TEXT("rasterization completes"), Result.Get_IsCompleted());
+
+    auto ColumnsWithThreeSpans = 0;
+    auto OrderBreaks = 0;
+    auto OverlapBreaks = 0;
+
+    for (auto Y = 0; Y < Field._SizeY; ++Y)
+    {
+        for (auto X = 0; X < Field._SizeX; ++X)
+        {
+            const auto& Column = Field.Get_Column(X, Y);
+
+            if (Column.Num() == 3)
+            { ++ColumnsWithThreeSpans; }
+
+            for (auto Index = 0; Index < Column.Num() - 1; ++Index)
+            {
+                if (Column[Index]._MinZ > Column[Index + 1]._MinZ)
+                { ++OrderBreaks; }
+
+                if (Column[Index]._MaxZ >= Column[Index + 1]._MinZ)
+                { ++OverlapBreaks; }
+            }
+        }
+    }
+
+    TestEqual(TEXT("the fixture really does stack three spans in every column"),
+        ColumnsWithThreeSpans, Field.Get_ColumnCount());
+
+    TestEqual(TEXT("every column is sorted ascending by _MinZ"), OrderBreaks, 0);
+    TestEqual(TEXT("and no span reaches into the one above it"), OverlapBreaks, 0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
