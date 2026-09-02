@@ -29,6 +29,7 @@ namespace ck_test_groundnav_budget
     using ck::groundnav::Get_CompletedField;
     using ck::groundnav::Request_AdvanceBuild;
     using ck::groundnav::Request_BeginBuild;
+    using ck::groundnav::Request_ReleaseCompletedField;
 
     constexpr auto kCellSize = 25.0f;
     constexpr auto kCellHeight = 10.0f;
@@ -333,6 +334,104 @@ bool FCkTest_GroundNav_Budget_NothingIsReachableUntilTheBuildIsWhole::RunTest(co
 
     TestTrue(TEXT("the finished build is reachable"), Get_CompletedField(State) != nullptr);
     TestTrue(TEXT("and says it is complete"), State.Get_IsComplete());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Budget_AWorldChangeBetweenSlicesFailsClosed,
+    "CkTests.UnitTests.CkGroundNav.Bake.Budget_AWorldChangeBetweenSlicesFailsClosed",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Budget_AWorldChangeBetweenSlicesFailsClosed::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_budget;
+
+    // Non-const, unlike every other backend here: this is the one test that moves the world.
+    auto Backend = FCk_GroundNav_GeometryBackend_Stub{Make_Ground()};
+
+    auto State = FCk_GroundNav_FieldBuildState{};
+
+    if (NOT TestTrue(TEXT("the build begins"),
+        Request_BeginBuild(Make_Params(), FCk_GroundNav_Epoch{1}, State).Get_IsCompleted()))
+    { return false; }
+
+    // A budget of one probe forces the smallest slice the builder allows, which is one tile.
+    const auto FirstSlice = Request_AdvanceBuild(Backend, 1, State);
+
+    if (NOT TestEqual(TEXT("the first slice pauses with tiles left to bake"),
+        FirstSlice.Get_Status(), ECk_GroundNav_BakeStatus::BudgetExhausted))
+    { return false; }
+
+    const auto TilesBakedBeforeTheChange = State._NextTileIndex;
+
+    // The world moves under the half-finished build. The BOXES are untouched, so the only thing the
+    // builder can be reacting to is the revision — and the tiles it would go on to bake would still be
+    // byte-identical. Fail-closed means it refuses anyway: the token is all the evidence there is.
+    Backend.Request_BumpWorldRevision();
+
+    const auto NextSlice = Request_AdvanceBuild(Backend, 1, State);
+
+    TestEqual(TEXT("the next slice refuses rather than baking against a world it cannot vouch for"),
+        NextSlice.Get_Status(), ECk_GroundNav_BakeStatus::StaleGeometry);
+
+    TestEqual(TEXT("without baking another tile"), State._NextTileIndex, TilesBakedBeforeTheChange);
+
+    TestEqual(TEXT("and the build records the failure"), State._Status,
+        ECk_GroundNav_BuildStatus::Failed);
+
+    TestFalse(TEXT("so it does not claim to be complete"), State.Get_IsComplete());
+    TestTrue(TEXT("and publishes nothing"), Get_CompletedField(State) == nullptr);
+
+    // A build that failed closed STAYS failed. Re-driving it must not launder a field out of tiles
+    // baked either side of the change, whatever the world settles at afterwards.
+    const auto AfterFailure = Request_AdvanceBuild(Backend, 1, State);
+
+    TestEqual(TEXT("and re-driving it refuses on the same grounds"),
+        AfterFailure.Get_Status(), ECk_GroundNav_BakeStatus::StaleGeometry);
+
+    TestTrue(TEXT("still publishing nothing"), Get_CompletedField(State) == nullptr);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Budget_AReleasedBuildIsSpent,
+    "CkTests.UnitTests.CkGroundNav.Bake.Budget_AReleasedBuildIsSpent",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Budget_AReleasedBuildIsSpent::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_budget;
+
+    auto State = FCk_GroundNav_FieldBuildState{};
+    auto SliceCount = 0;
+
+    if (NOT TestTrue(TEXT("the sliced build completes"), Build_Sliced(1, State, SliceCount)))
+    { return false; }
+
+    const auto ExpectedTileCount = kDivisions * kDivisions;
+
+    const auto Released = Request_ReleaseCompletedField(State);
+
+    if (NOT TestTrue(TEXT("releasing a finished build hands over a field"), Released.IsValid()))
+    { return false; }
+
+    TestEqual(TEXT("with every tile in it"), Released->Get_TileCount(), ExpectedTileCount);
+
+    // The build is SPENT. Without this the moved-from partial would still report complete, and a second
+    // release would hand back a non-null EMPTY field — which reads exactly like a world whose tiles have
+    // no floor, and would be answered confidently by every query.
+    const auto SecondRelease = Request_ReleaseCompletedField(State);
+
+    TestFalse(TEXT("a second release hands over nothing"), SecondRelease.IsValid());
+
+    TestTrue(TEXT("and the spent build is no longer reachable"), Get_CompletedField(State) == nullptr);
+    TestFalse(TEXT("nor does it claim to be complete"), State.Get_IsComplete());
 
     return true;
 }
