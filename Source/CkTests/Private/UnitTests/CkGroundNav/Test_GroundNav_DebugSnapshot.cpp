@@ -63,7 +63,7 @@ namespace ck_test_groundnav_snapshot
         DoExtract_Layers(Spans, Connections, Layers);
 
         auto Clearance = FCk_GroundNav_ClearanceField{};
-        DoCompute_Clearance(Layers, kCellSize, Clearance);
+        DoCompute_Clearance(Layers, Connections, kCellSize, Clearance);
 
         auto Plates = FCk_GroundNav_PlateField{};
         DoDecompose_Plates(Spans, Layers, FCk_GroundNav_MergeTunables{}, Plates);
