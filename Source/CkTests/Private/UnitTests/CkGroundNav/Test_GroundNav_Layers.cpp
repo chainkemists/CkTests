@@ -62,7 +62,8 @@ namespace ck_test_groundnav_layers
         if (NOT DoFilter_Walkability(InProfile, Result._Spans, Result._Connections).Get_IsCompleted())
         { return Result; }
 
-        DoFind_ConnectedComponents(Result._Spans, Result._Connections, Result._Components);
+        auto Probes = 0;
+        DoFind_ConnectedComponents(Result._Spans, Result._Connections, Result._Components, Probes);
 
         Result._Completed = DoExtract_Layers(
             Result._Spans, Result._Connections, Result._Layers).Get_IsCompleted();
