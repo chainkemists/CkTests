@@ -120,7 +120,7 @@ namespace ck_test_groundnav_tilebake
         if (NOT DoExtract_Layers(Spans, Connections, Layers).Get_IsCompleted())
         { return false; }
 
-        return DoCompute_Clearance(Layers, kCellSize, OutClearance).Get_IsCompleted();
+        return DoCompute_Clearance(Layers, Connections, kCellSize, OutClearance).Get_IsCompleted();
     }
 }
 

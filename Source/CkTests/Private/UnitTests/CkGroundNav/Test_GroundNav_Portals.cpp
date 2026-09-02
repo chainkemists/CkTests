@@ -71,7 +71,7 @@ namespace ck_test_groundnav_portals
         if (NOT DoExtract_Layers(Result._Spans, Connections, Result._Layers).Get_IsCompleted())
         { return Result; }
 
-        if (NOT DoCompute_Clearance(Result._Layers, kCellSize, Result._Clearance).Get_IsCompleted())
+        if (NOT DoCompute_Clearance(Result._Layers, Connections, kCellSize, Result._Clearance).Get_IsCompleted())
         { return Result; }
 
         if (NOT DoDecompose_Plates(
