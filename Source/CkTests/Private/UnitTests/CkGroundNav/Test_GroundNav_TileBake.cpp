@@ -338,3 +338,35 @@ bool FCkTest_GroundNav_Tile_FailedBakeIsAStatusNotAnEmptyTile::RunTest(const FSt
 }
 
 // --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Tile_AZeroClearanceCapIsRejectedNotBaked,
+    "CkTests.UnitTests.CkGroundNav.Bake.Tile_AZeroClearanceCapIsRejectedNotBaked",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Tile_AZeroClearanceCapIsRejectedNotBaked::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_tilebake;
+
+    // A zero cap sizes the halo at zero cells, and a rimless tile is wrong twice over: every
+    // seam stub loses the far column it would have been derived from, and every ledge at the tile
+    // border is filtered against a neighbour that is not in the lattice. Neither failure is visible in
+    // what the tile publishes, so the cap has to be refused at admission rather than baked.
+    auto Params = Make_Params();
+    Params._MaxClearanceUu = 0.0f;
+
+    auto Tile = FCk_GroundNav_Tile{};
+    const auto Result = DoBake_Tile(Make_GroundWithHole(), Params, Tile);
+
+    TestFalse(TEXT("a zero clearance cap does not complete"), Result.Get_IsCompleted());
+    TestEqual(TEXT("it is rejected at admission"), Result.Get_Status(),
+        ECk_GroundNav_BakeStatus::InvalidInput);
+
+    TestFalse(TEXT("and the tile does not claim to be built"), Tile.Get_IsBuilt());
+    TestEqual(TEXT("carrying no plates"), Tile._Plates._Plates.Num(), 0);
+    TestEqual(TEXT("and no crossings"), Tile._Portals._Portals.Num(), 0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
