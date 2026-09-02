@@ -65,7 +65,7 @@ namespace ck_test_groundnav_clearance
         { return Result; }
 
         Result._Completed = DoCompute_Clearance(
-            Result._Layers, kCellSize, Result._Clearance).Get_IsCompleted();
+            Result._Layers, Connections, kCellSize, Result._Clearance).Get_IsCompleted();
 
         return Result;
     }
@@ -253,6 +253,161 @@ bool FCkTest_GroundNav_Clearance_MatchesABruteForceReference::RunTest(const FStr
     // nothing at all.
     TestTrue(TEXT("and that set is neither empty nor everything"),
         AdmittedByField > 0 && AdmittedByField < WalkableCells);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_test_groundnav_clearance
+{
+    // A 1000 uu floor with a 200 uu square something standing on its middle, at a height the test
+    // chooses. Column 15 is the floor cell just west of it; column 16 is its own western edge; column
+    // 20 is its middle. Row 20 crosses it through the centre.
+    constexpr auto kRaisedMinUu = 400.0;
+    constexpr auto kRaisedMaxUu = 600.0;
+    constexpr auto kFloorTopZ = 10.0;
+
+    constexpr auto kBesideX = 15;
+    constexpr auto kEdgeX = 16;
+    constexpr auto kMiddleX = 20;
+    constexpr auto kRowY = 20;
+
+    auto Make_FloorWithSomethingOnIt(double InHeightUu) -> FCk_GroundNav_GeometryBatch
+    {
+        auto Geometry = FCk_GroundNav_GeometryBatch{};
+        Geometry.Add_Box(FBox{FVector{0.0, 0.0, 0.0}, FVector{1000.0, 1000.0, kFloorTopZ}});
+        Geometry.Add_Box(FBox{
+            FVector{kRaisedMinUu, kRaisedMinUu, kFloorTopZ},
+            FVector{kRaisedMaxUu, kRaisedMaxUu, kFloorTopZ + InHeightUu}});
+
+        return Geometry;
+    }
+
+    auto Make_BareFloor() -> FCk_GroundNav_GeometryBatch
+    {
+        auto Geometry = FCk_GroundNav_GeometryBatch{};
+        Geometry.Add_Box(FBox{FVector{0.0, 0.0, 0.0}, FVector{1000.0, 1000.0, kFloorTopZ}});
+
+        return Geometry;
+    }
+
+    auto Get_FloorRegion() -> FBox
+    {
+        return FBox{FVector{0.0, 0.0, -50.0}, FVector{1000.0, 1000.0, 400.0}};
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Clearance_ARaisedSolidBesideAFloorIsAnObstacle,
+    "CkTests.UnitTests.CkGroundNav.Bake.Clearance_ARaisedSolidBesideAFloorIsAnObstacle",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Clearance_ARaisedSolidBesideAFloorIsAnObstacle::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_clearance;
+
+    // Taller than anything can step onto. Its top is walkable ground of its own and lands in the
+    // floor's layer, because the floor has no walkable cell underneath it.
+    constexpr auto kSolidHeightUu = 300.0;
+
+    const auto Bare = Bake(Make_BareFloor(), Get_FloorRegion());
+    const auto WithSolid = Bake(Make_FloorWithSomethingOnIt(kSolidHeightUu), Get_FloorRegion());
+
+    if (NOT TestTrue(TEXT("both scenes bake"), Bare._Completed && WithSolid._Completed))
+    { return false; }
+
+    if (NOT TestEqual(TEXT("the solid's top and the floor share one layer"), WithSolid._Layers._LayerCount, 1))
+    { return false; }
+
+    TestTrue(TEXT("the solid's top is walkable ground of its own"),
+        WithSolid._Layers.Get_OccupancyAt(kMiddleX, kRowY, 0) > 0);
+
+    // The floor beside the solid: open ground on the bare floor, one cell from a wall with it there.
+    TestTrue(FString::Printf(TEXT("without the solid the same cell is open ground (%.1f)"),
+        Bare._Clearance.Get_ClearanceAt(kBesideX, kRowY, 0)),
+        Bare._Clearance.Get_ClearanceAt(kBesideX, kRowY, 0) > kCellSize);
+
+    TestEqual(TEXT("the floor cell beside the solid reads exactly one cell of room"),
+        WithSolid._Clearance.Get_ClearanceAt(kBesideX, kRowY, 0), kCellSize);
+
+    // And the top of the solid is an island: its rim is one cell from a drop, its middle is not.
+    TestEqual(TEXT("the solid's own edge cell reads one cell of room"),
+        WithSolid._Clearance.Get_ClearanceAt(kEdgeX, kRowY, 0), kCellSize);
+
+    TestTrue(FString::Printf(TEXT("and its middle reads more (%.1f)"),
+        WithSolid._Clearance.Get_ClearanceAt(kMiddleX, kRowY, 0)),
+        WithSolid._Clearance.Get_ClearanceAt(kMiddleX, kRowY, 0) > kCellSize);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Clearance_ACurbUnderTheStepHeightIsGround,
+    "CkTests.UnitTests.CkGroundNav.Bake.Clearance_ACurbUnderTheStepHeightIsGround",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Clearance_ACurbUnderTheStepHeightIsGround::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_clearance;
+
+    // Under the profile's step height, so the floor and the curb's top are linked and it is all one
+    // piece of ground as far as clearance is concerned.
+    constexpr auto kCurbHeightUu = 30.0;
+
+    const auto Bare = Bake(Make_BareFloor(), Get_FloorRegion());
+    const auto WithCurb = Bake(Make_FloorWithSomethingOnIt(kCurbHeightUu), Get_FloorRegion());
+
+    if (NOT TestTrue(TEXT("both scenes bake"), Bare._Completed && WithCurb._Completed))
+    { return false; }
+
+    TestEqual(TEXT("a curb the body can step onto does not erode the floor beside it"),
+        WithCurb._Clearance.Get_ClearanceAt(kBesideX, kRowY, 0),
+        Bare._Clearance.Get_ClearanceAt(kBesideX, kRowY, 0));
+
+    TestEqual(TEXT("nor is the curb's own edge a rim"),
+        WithCurb._Clearance.Get_ClearanceAt(kEdgeX, kRowY, 0),
+        Bare._Clearance.Get_ClearanceAt(kEdgeX, kRowY, 0));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Clearance_AStepOverTheStepHeightErodesBothSides,
+    "CkTests.UnitTests.CkGroundNav.Bake.Clearance_AStepOverTheStepHeightErodesBothSides",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Clearance_AStepOverTheStepHeightErodesBothSides::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_clearance;
+
+    // Over the step height but well under the standing height: the body can neither step up nor
+    // walk under, so each side is a wall to the other — the low side cannot climb it and the high
+    // side has a drop.
+    constexpr auto kStepHeightUu = 60.0;
+
+    const auto WithStep = Bake(Make_FloorWithSomethingOnIt(kStepHeightUu), Get_FloorRegion());
+
+    if (NOT TestTrue(TEXT("the scene bakes"), WithStep._Completed))
+    { return false; }
+
+    TestEqual(TEXT("the floor beside the step reads one cell of room"),
+        WithStep._Clearance.Get_ClearanceAt(kBesideX, kRowY, 0), kCellSize);
+
+    TestEqual(TEXT("the step's own edge reads one cell of room"),
+        WithStep._Clearance.Get_ClearanceAt(kEdgeX, kRowY, 0), kCellSize);
+
+    TestTrue(FString::Printf(TEXT("and the middle of the step reads more (%.1f)"),
+        WithStep._Clearance.Get_ClearanceAt(kMiddleX, kRowY, 0)),
+        WithStep._Clearance.Get_ClearanceAt(kMiddleX, kRowY, 0) > kCellSize);
 
     return true;
 }

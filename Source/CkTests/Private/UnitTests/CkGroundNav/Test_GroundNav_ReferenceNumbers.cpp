@@ -92,7 +92,10 @@ namespace ck_test_groundnav_reference
     // 825978 before the closure check, + 60 for it: the scene's 5 boxes are each 12 triangles, every
     // one of them overlaps at least one tile's halo, and a body's whole mesh is read once per BUILD —
     // so 5 * 12 = 60 probes, whatever tiling or slicing produced them.
-    constexpr auto kReferenceProbes = 826038;
+    // 826038 before the clearance transform started consulting the connection field: every relax now
+    // reads whether the neighbour is linked (one read straight, up to four around a diagonal), which is
+    // what makes a wall top or a ledge an obstacle instead of open ground. + 252422 for those reads.
+    constexpr auto kReferenceProbes = 1078460;
     constexpr auto kReferenceWalkableCells = 9792;
     constexpr auto kReferencePlates = 22;
     constexpr auto kReferencePortals = 6;
