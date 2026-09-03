@@ -5,8 +5,8 @@
 //============================================================================
 //
 // The GroundNav twin of Crowd_NarrowGap_NoRouteFailsClean. The original is NOT
-// touched and NOT parameterised - an AS autotest class is one fixture, and the
-// delta-zero requirement forbids editing it. This asserts the SAME terminal
+// touched and NOT parameterised - an AS autotest class is one fixture. This
+// asserts the SAME terminal
 // signal sequence on the GroundNav provider that the original asserts on
 // Recast, which is the whole claim being made about the fork: it was extended,
 // not replaced, so a caller sees the same shape of failure either way.
