@@ -16,15 +16,23 @@
 // Worst case at 30fps: 2*240*(1/30) / 0.7 ~= 23cm of equilibrium overlap
 // -> floor = 84 - 23 = 61cm.
 //
-// ZERO INTERPENETRATION WHILE AGENTS ACTIVELY DRIVE INWARD IS NOT AN
-// INVARIANT of this resolver family (0.7 factor, 4 iterations, deliberately
-// under-relaxed; stock UE ships dtCrowd's equivalent DISABLED and leans on
-// physics capsules). The residual is an EQUILIBRIUM, not a transient: it
-// scales with press-speed x frame-time, so no fixed floor mid-press is
-// derivable and no resolver tuning makes one robust. Asserting 84cm here
-// demands a guarantee the algorithm never made - and it only ever held
-// because Steering used to DAMP path-follow as neighbours pressed, i.e.
-// agents gave up when crowded. That "giving up" WAS the freeze bug.
+// BETWEEN TWO AGENTS THAT ARE BOTH ACTIVELY DRIVING INWARD - which is what
+// this test constructs - ZERO INTERPENETRATION IS NOT AN INVARIANT of this
+// resolver family (0.7 factor, 4 iterations, deliberately under-relaxed;
+// stock UE ships dtCrowd's equivalent DISABLED and leans on physics
+// capsules). The residual is an EQUILIBRIUM, not a transient: it scales with
+// press-speed x frame-time, so no fixed floor mid-press is derivable and no
+// resolver tuning makes one robust. Asserting 84cm here demands a guarantee
+// the algorithm never made - and it only ever held because Steering used to
+// DAMP path-follow as neighbours pressed, i.e. agents gave up when crowded.
+// That "giving up" WAS the freeze bug.
+//
+// The one exception, and it does not apply here: a mover pressing an IDLE agent
+// whose stationary markup is CONFIRMED on the navmesh is held at the resting
+// contact distance in a single pass (that pair is resolved as an exact
+// constraint, not a damped impulse - see _StationaryHardBodyMode). All five
+// agents here are moving, so none is a hard body and every pair takes the
+// damped model above.
 //
 // Phase 2 (t=7s, after Request_Stop at t=6s) - NON-PENETRATION AT REST: the
 // safety invariant players actually see (idle NPCs must not clip through
