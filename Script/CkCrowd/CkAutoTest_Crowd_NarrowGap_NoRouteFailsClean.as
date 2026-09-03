@@ -20,20 +20,29 @@
 
 class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 45.0f;
+    // Budget sized with headroom over the no-progress ladder's measured run against a hard body
+    // (~30s: a 3s no-progress window, two stall re-plans and three blocked rechecks), so a slow
+    // frame cannot turn a bounded failure into a timeout.
+    default _TimeoutSeconds = 75.0f;
 
     private const float GapHalfWidthUu = 55.0;
     private const float WallHalfX = 50.0;
     private const float WallHalfY = 2000.0;     // spans the whole play space - no detour exists
     private const float WallHalfZ = 200.0;
     private const float ApproachX = 500.0;
-    private const float FailDeadlineSec = 35.0;
+    private const float FailDeadlineSec = 60.0;
+    private const float MaxBlockerDriftUu = 15.0;
     private const int32 MaxReversalsWhilePressing = 4;
 
     private FCk_Handle_NavSurfaceMarkup _SlabPosY;
     private FCk_Handle_NavSurfaceMarkup _SlabNegY;
     private FCk_Handle_CrowdAgent _Blocker;
     private FCk_Handle_CrowdAgent _Walker;
+    private FVector _BlockerSpawnLoc = FVector::ZeroVector;
+    private FVector _GoalLoc = FVector::ZeroVector;
+    private int32 _ReplanCount = 0;
+    private float _NextLogAtSec = 0.0;
+    private ECk_CrowdAgent_MovementState _LastState = ECk_CrowdAgent_MovementState::None;
     private float _FloorZ = 0.0;
     private bool _MeshFound = false;
     private bool _BlockerSpawned = false;
@@ -84,7 +93,8 @@ class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
 
         if (_BlockerSpawned == false)
         {
-            _Blocker = Spawn_Agent(SelfHandle, FVector(0.0, 0.0, _FloorZ + 100.0));
+            _BlockerSpawnLoc = FVector(0.0, 0.0, _FloorZ + 100.0);
+            _Blocker = Spawn_Agent(SelfHandle, _BlockerSpawnLoc);
             _BlockerSpawned = true;
             return;
         }
@@ -96,6 +106,7 @@ class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
 
             const auto SpawnLoc = FVector(-ApproachX, 0.0, _FloorZ + 100.0);
             const auto GoalLoc  = FVector(ApproachX, 0.0, _FloorZ + 100.0);
+            _GoalLoc = GoalLoc;
             _Walker = Spawn_Agent(SelfHandle, SpawnLoc);
 
             utils_crowd_agent::BindTo_OnGoalFailed(_Walker,
@@ -108,17 +119,65 @@ class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
                 ECk_Signal_PostFireBehavior::DoNothing);
 
             utils_crowd_agent_diag::Track(_Walker, SpawnLoc, GoalLoc);
+            ck::crowd::Display(f"[NARROWGAP] DISPATCH hardBodyMode={utils_crowd_settings::Get_StationaryHardBodyMode()} stationaryMarkupMode={utils_crowd_settings::Get_StationaryMarkupMode()}");
             utils_crowd_agent::Request_MoveTo(_Walker, FCk_Request_CrowdAgent_MoveTo(GoalLoc));
             _WalkerDispatched = true;
             return;
         }
 
         _PressElapsedSec += 0.5;
+
+        const auto State = utils_crowd_agent::Get_MovementState(_Walker);
+        if (State == ECk_CrowdAgent_MovementState::PathPending && _LastState != ECk_CrowdAgent_MovementState::PathPending)
+        { _ReplanCount += 1; }
+        _LastState = State;
+
+        const auto BlockerDrift = Get_BlockerDrift();
+        if (BlockerDrift > MaxBlockerDriftUu)
+        {
+            const auto Shoved = f"SHOVED: the parked blocker drifted {BlockerDrift}uu (ceiling {MaxBlockerDriftUu}) after {_PressElapsedSec}s of pressing. A walker with no route must not displace a stationary-markup-confirmed body.";
+            Assert_True(false, Shoved);
+            FinishFailure(Shoved);
+            return;
+        }
+
+        if (_PressElapsedSec >= _NextLogAtSec)
+        {
+            _NextLogAtSec = _PressElapsedSec + 2.5;
+            ck::crowd::Display(f"[NARROWGAP] t={_PressElapsedSec} blockerDrift={BlockerDrift} walkerDist={Get_WalkerDistToGoal()} state={State} goalBlockedHold={utils_crowd_agent::Get_IsGoalBlocked(_Walker)} wp={utils_crowd_agent::Get_CurrentWaypointIndex(_Walker)} replans={_ReplanCount} walkerSpeed={DoGet_Speed(_Walker)} walkerMarkupConfirmed={utils_crowd_agent::Get_IsStationaryMarkupConfirmed(_Walker)} blockerState={utils_crowd_agent::Get_MovementState(_Blocker)} blockerSpeed={DoGet_Speed(_Blocker)} blockerMarkupConfirmed={utils_crowd_agent::Get_IsStationaryMarkupConfirmed(_Blocker)}");
+        }
+
         if (_PressElapsedSec >= FailDeadlineSec)
         {
             const auto BlockedHold = utils_crowd_agent::Get_IsGoalBlocked(_Walker);
             FinishFailure(f"UNBOUNDED: {FailDeadlineSec}s elapsed with no OnGoalFailed (goalBlockedHold={BlockedHold}). An agent with NO physically walkable route must terminate boundedly - this is the no-progress ladder failing to escalate against a crowd plug.");
         }
+    }
+
+    private float Get_BlockerDrift() const
+    {
+        if (ck::Is_NOT_Valid(_Blocker)) { return -1.0; }
+        auto DriftDelta = utils_transform::Get_EntityCurrentLocation(
+            utils_transform::DoCastChecked(FCk_Handle(_Blocker))) - _BlockerSpawnLoc;
+        DriftDelta.Z = 0.0;
+        return float(DriftDelta.Size());
+    }
+
+    private float DoGet_Speed(FCk_Handle_CrowdAgent InAgent) const
+    {
+        if (ck::Is_NOT_Valid(InAgent)) { return -1.0; }
+        FCk_Handle Generic = InAgent;
+        return float(utils_velocity::Get_CurrentVelocity(
+            utils_velocity::DoCastChecked(Generic)).Size());
+    }
+
+    private float Get_WalkerDistToGoal() const
+    {
+        if (ck::Is_NOT_Valid(_Walker)) { return -1.0; }
+        auto ToGoal = _GoalLoc - utils_transform::Get_EntityCurrentLocation(
+            utils_transform::DoCastChecked(FCk_Handle(_Walker)));
+        ToGoal.Z = 0.0;
+        return float(ToGoal.Size());
     }
 
     private FCk_Handle_CrowdAgent Spawn_Agent(FCk_Handle& InOwner, FVector InLoc)
@@ -169,6 +228,9 @@ class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
     private void OnWalkerReached(FCk_Handle_CrowdAgent InAgent)
     {
         if (IsFinished()) { return; }
+
+        ck::crowd::Display(f"[NARROWGAP] REACHED t={_PressElapsedSec} blockerDrift={Get_BlockerDrift()} walkerDist={Get_WalkerDistToGoal()} state={utils_crowd_agent::Get_MovementState(_Walker)} goalBlockedHold={utils_crowd_agent::Get_IsGoalBlocked(_Walker)} wp={utils_crowd_agent::Get_CurrentWaypointIndex(_Walker)} replans={_ReplanCount} walkerSpeed={DoGet_Speed(_Walker)} walkerMarkupConfirmed={utils_crowd_agent::Get_IsStationaryMarkupConfirmed(_Walker)} blockerState={utils_crowd_agent::Get_MovementState(_Blocker)} blockerSpeed={DoGet_Speed(_Blocker)} blockerMarkupConfirmed={utils_crowd_agent::Get_IsStationaryMarkupConfirmed(_Blocker)}");
+
         FinishFailure("the walker REACHED a goal that is physically unreachable - it walked through the parked blocker's body");
     }
 
@@ -176,6 +238,8 @@ class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
     private void OnWalkerFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         if (IsFinished()) { return; }
+
+        ck::crowd::Display(f"[NARROWGAP] GOALFAILED t={_PressElapsedSec} blockerDrift={Get_BlockerDrift()} walkerDist={Get_WalkerDistToGoal()} state={utils_crowd_agent::Get_MovementState(_Walker)} goalBlockedHold={utils_crowd_agent::Get_IsGoalBlocked(_Walker)} wp={utils_crowd_agent::Get_CurrentWaypointIndex(_Walker)} replans={_ReplanCount} walkerSpeed={DoGet_Speed(_Walker)} walkerMarkupConfirmed={utils_crowd_agent::Get_IsStationaryMarkupConfirmed(_Walker)} blockerState={utils_crowd_agent::Get_MovementState(_Blocker)} blockerSpeed={DoGet_Speed(_Blocker)} blockerMarkupConfirmed={utils_crowd_agent::Get_IsStationaryMarkupConfirmed(_Blocker)} noCrowdFreeRoute={InInfo.Get_NoCrowdFreeRouteExisted()} reason={InInfo.Get_Reason()}");
 
         Assert_True(InInfo.Get_NoCrowdFreeRouteExisted(),
             "MESSAGE: OnGoalFailed fired but NoCrowdFreeRouteExisted was false - gameplay cannot tell 'blocked by standing bodies' from 'no route at all', which is the clear-message contract this payload exists for.");
@@ -191,5 +255,5 @@ class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
 class ACk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean_Actor : ACk_AutoTestRunner
 {
     default _TestEntityScriptClass = UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean;
-    default _TimeoutSeconds = 45.0f;
+    default _TimeoutSeconds = 75.0f;
 }

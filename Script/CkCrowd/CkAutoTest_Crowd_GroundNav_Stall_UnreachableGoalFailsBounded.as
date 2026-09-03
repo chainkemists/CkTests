@@ -5,8 +5,8 @@
 //============================================================================
 //
 // The GroundNav twin of Crowd_Stall_UnreachableGoalFailsBounded. The original
-// is NOT touched and NOT parameterised - an AS autotest class is one fixture,
-// and the delta-zero requirement forbids editing it. This asserts the SAME
+// is NOT touched and NOT parameterised - an AS autotest class is one fixture.
+// This asserts the SAME
 // bounded-failure sequence on the GroundNav provider that the original asserts
 // on Recast: a move whose goal cannot be reached must terminate, once, within a
 // budget, and leave the agent stopped and in the stable failed-goal hold.
@@ -14,7 +14,7 @@
 // THE MID-WALK SEAL VARIANT IS DEFERRED. The original seals the corridor while
 // the agent is already following an installed polyline; that is not reproducible
 // on this provider yet, because GroundNav has no change detection on geometry
-// change (fenced to the phase that adds it) and the crowd's PathRefresh is
+// change, and the crowd's PathRefresh is
 // Recast-adapter based, so a rebuild under a walking agent is simply not
 // observed - the agent keeps its installed route and arrives. This twin
 // therefore seals the goal BEFORE the first Request_MoveTo and asserts the
@@ -208,7 +208,7 @@ class UCk_AutoTest_Crowd_GroundNav_Stall_UnreachableGoalFailsBounded : UCk_AutoT
 
         // Standing in the Jolt world BEFORE the single bake, so the field the agent plans against
         // has never contained a route to the goal. A wall added after the bake would need change
-        // detection to be observed at all, which this phase does not have.
+        // detection to be observed at all, which GroundNav does not have.
         _WallEntity = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         _WallEntity.Request_OverrideToSelf();
         _WallBody = Add_StaticBox(_WallEntity,

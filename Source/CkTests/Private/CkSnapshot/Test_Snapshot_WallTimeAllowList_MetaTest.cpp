@@ -63,16 +63,25 @@ namespace ck_test_walltime_fence
             {TEXT("CkProfile/Public/CkProfile/Stats/CkStats_Utils.cpp"), 3},
             {TEXT("CkWatermark/Public/CkWatermark/CkWatermark_Panel_Widget.cpp"), 2},
             {TEXT("CkWatermark/Public/CkWatermark/Stats/CkWatermarkStat_Time_Widget.cpp"), 1},
-            {TEXT("CkNavigation/Public/CkNavigation/Nav/CkNav_Algorithm.cpp"), 3},
+            {TEXT("CkNavigation/Public/CkNavigation/Nav/CkNav_Algorithm.cpp"), 4},
             {TEXT("CkStateMachine/Public/CkStateMachine/Debug/CkStateMachine_Debug_Processor.cpp"), 3},
+            // Two start/elapsed pairs around the debug overlay's own draw work. How long a frame of
+            // overlay took is a wall-clock question, it paces nothing, and neither stamp leaves the frame
+            // that read it.
+            {TEXT("CkGroundNav/Public/CkGroundNav/Debug/CkGroundNav_DebugDraw.cpp"), 4},
 
             // ---- Deferral and trouble-report stamps: "how long has this been stuck", which is a question about
             // the process rather than about the simulation. ----------------------------------------------------
-            {TEXT("CkNavigation/Public/CkNavigation/Nav/CkNav_Processor.cpp"), 3},
+            {TEXT("CkNavigation/Public/CkNavigation/Nav/CkNav_Processor.cpp"), 2},
             // "How long has this path request been pending" — a watchdog, and wall time is what makes it able to
             // fire at all: a path pending ACROSS a load is exactly the case game time cannot measure. Same claim
             // as the load's own watchdogs at the top of this list, made by a different subsystem.
             {TEXT("CkCrowd/Public/CkCrowd/Agent/CkCrowdAgent_PathPendingWatchdog_Processor.cpp"), 1},
+            // Two claims in one file, both about the PROCESS rather than the simulation: the stamp a
+            // parked path episode is aged against ("how long has this been pending"), and the slice
+            // budget the per-frame search drain measures itself with — a budget that read game time
+            // would never terminate on a frozen frame. Neither number is persisted or replicated.
+            {TEXT("CkGroundNav/Public/CkGroundNav/Path/CkGroundNavPath_Processor.cpp"), 4},
             {TEXT("CkCrowd/Public/CkCrowd/Agent/CkCrowdAgent_DrawNavStatus_Processor.cpp"), 1},
             {TEXT("CkCrowd/Public/CkCrowd/Agent/CkCrowdAgent_OnPathResolved_Processor.cpp"), 1},
             {TEXT("CkCrowd/Public/CkCrowd/Agent/CkCrowdAgent_OnRouteResolved_Processor.cpp"), 1},
@@ -132,7 +141,25 @@ namespace ck_test_walltime_fence
     // world cooker's three sweep slices, new 6) and the stats sampler's sampling stamp (2 -> 3). All read
     // before they were listed; the cook is editor-side save-hook work that runs regardless of any game
     // world's clock, and the stats read is measurement, not pacing.
-    constexpr auto WallTimeCeiling = 105;
+    //
+    // 105 -> 113 (2026-09-02), and this one is a RECONCILIATION rather than a new claim: the number had
+    // drifted away from the code because CkGroundNav and CkNavigation are gated by scoped Nav/Crowd/
+    // GroundNav patterns that never run this fence, so nothing here was being read against them. Every
+    // file below was re-counted with the predicate this test itself uses:
+    //
+    //   CkGroundNavPath_Processor.cpp   unlisted -> 4  the parked-episode stamp and its elapsed read
+    //                                                  (a watchdog on a request the simulation is not
+    //                                                  pacing) plus the search drain's per-frame slice
+    //                                                  budget, which is a wall-clock budget by definition
+    //   CkGroundNav_DebugDraw.cpp       unlisted -> 4  two start/elapsed pairs timing the overlay's own
+    //                                                  draw work; measurement, not pacing
+    //   CkNav_Algorithm.cpp                    3 -> 4  re-counted, one more than the row claimed
+    //   CkNav_Processor.cpp                    3 -> 2  re-counted, one FEWER than the row claimed, and
+    //                                                  the row is tightened rather than left slack
+    //
+    // 105 + 4 + 4 + 1 - 1 = 113, which is exactly what the scan finds. No slack: the ceiling is the
+    // total, so the next read anywhere in CkFoundation moves it and has to be argued for here.
+    constexpr auto WallTimeCeiling = 113;
 
     // (ii) The four watchdogs the C6 design MOVED onto the wall clock, with the minimum each must keep. This is
     // the half a ratchet cannot express: silently reverting one of these LOWERS a count.

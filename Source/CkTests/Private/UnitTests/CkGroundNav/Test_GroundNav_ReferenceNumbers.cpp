@@ -1,4 +1,4 @@
-// The reference fixture, and the numbers the phase records against it.
+// The reference fixture, and the numbers tracked against it.
 //
 // A tracked number is PINNED here rather than printed somewhere: a probe count that drifts is either a
 // bake that changed or a fixture that changed, and both are things a reader of this file should be
@@ -178,15 +178,15 @@ bool FCkTest_GroundNav_Reference_NumbersAreStableAndRecorded::RunTest(const FStr
     if (NOT TestTrue(TEXT("the reference scene bakes"), Bake_Reference(Numbers)))
     { return false; }
 
-    // Reported through the failure channel deliberately: these are the phase's tracked numbers, and the
+    // Reported through the failure channel deliberately: these are the tracked reference numbers, and the
     // point of the message is that it names them all when any one of them moves.
     const auto Report = FString::Printf(
         TEXT("reference: probes %d, walkable cells %d, plates %d (collapse %.2f), portals %d, seams %d, components %d, field %lld bytes, %.2f ms"),
         Numbers._ProbesSpent, Numbers._WalkableCells, Numbers._Plates, Numbers._CollapseRatio,
         Numbers._Portals, Numbers._Seams, Numbers._Components, Numbers._FieldBytes, Numbers._BakeMilliseconds);
 
-    // The wall time is this machine's and is never asserted; it is written to the log so the phase
-    // can record a measured bake cost beside the numbers it pins.
+    // The wall time is this machine's and is never asserted; it is written to the log so a measured
+    // bake cost sits beside the numbers this file pins.
     ck::groundnav::Display(TEXT("{}"), Report);
 
     // The scene has to be worth measuring before any number from it means anything.
@@ -323,7 +323,7 @@ namespace ck_test_groundnav_reference_search
         int32 _Crossings = INDEX_NONE;
     };
 
-    /** The query scene with a second wall across its west room, pierced by a 60 uu doorway. Copied verbatim. */
+    /** The query scene with a second wall across its west room, pierced by a 60 uu doorway. */
     auto Make_DoorwayScene() -> TArray<FBox>
     {
         auto Boxes = Make_QueryScene();

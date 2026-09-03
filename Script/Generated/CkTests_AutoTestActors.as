@@ -3749,6 +3749,45 @@ class ACk_AutoTest_GroundNav_RequestCancelledOnTeardown_Actor : ACk_AutoTestRunn
     }
 }
 
+class ACk_AutoTest_GroundNav_Shadow_CountersMoveOnAShadowRun_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 180.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Shadow_CountersMoveOnAShadowRun");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GroundNav_Shadow_InstalledPathIsByteIdenticalToRecast_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 180.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Shadow_InstalledPathIsByteIdenticalToRecast");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GroundNav_Shadow_ReportSchemaIsStable_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 30.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Shadow_ReportSchemaIsStable");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_GroundNav_TiledBakeAgreesAcrossTileSizes_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 40.0f;
