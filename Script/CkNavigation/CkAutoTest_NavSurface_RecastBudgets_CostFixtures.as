@@ -25,9 +25,8 @@
 // THE FIXTURES ARE SIZED FROM A MEASURED BAND, NOT AN ASSUMED ONE. They are built at runtime on the
 // isolation band centred at (0, 110000, 0), which the level's second NavMeshBoundsVolume covers, and
 // Recast bakes NOTHING outside that volume. The volume's extents are level content this test does
-// not own and cannot read, and an earlier version of this file hard-coded the extents it was told
-// the volume had; the fixtures were laid out past the real rim and three of seven endpoints had no
-// polygon under them, forever. So the floor goes down first, the bakeable extent is WALKED OUT from
+// not own and cannot read, so hard-coded extents lay fixtures past the real rim, leaving endpoints
+// with no polygon under them. So the floor goes down first, the bakeable extent is WALKED OUT from
 // the band centre until projection fails, and the fixtures are then laid out and scaled to fit what
 // was actually found. A band too small for the fixture set fails loudly, naming what it measured.
 //
