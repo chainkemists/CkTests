@@ -11,12 +11,21 @@
 // here in the same change.
 
 #include "CkGroundNav/Bake/CkGroundNav_Fingerprint.h"
+#include "CkGroundNav/Bake/CkGroundNav_MarkupTypes.h"
+
+#include "CkShapes/Box/CkShapeBox_Fragment_Data.h"
+#include "CkShapes/Sphere/CkShapeSphere_Fragment_Data.h"
 
 #include "../CkUnitTest_Common.h"
+
+#include "NativeGameplayTags.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 
 using ck::tests::kCkUnitTestFlags;
+
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_CkTests_GroundNav_Fingerprint_AreaA, "CkTests.GroundNav.Fingerprint.AreaA");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_CkTests_GroundNav_Fingerprint_AreaB, "CkTests.GroundNav.Fingerprint.AreaB");
 
 namespace ck_test_groundnav_fingerprint
 {
@@ -41,6 +50,44 @@ namespace ck_test_groundnav_fingerprint
     {
         return Get_ContentFingerprint(Make_Geometry(), Make_Region(),
             FCk_GroundNav_BakeConfig{}, FCk_GroundNav_AgentProfile{});
+    }
+
+    // Two volumes over the fixture's ground, one of each kind, so a perturbation of either half of the
+    // markup contract is visible.
+    auto Make_Markup(
+        int32                    InId,
+        ECk_GroundNav_MarkupKind InKind) -> FCk_GroundNav_MarkupRecord
+    {
+        auto Record = FCk_GroundNav_MarkupRecord{
+            InId,
+            FCk_AnyShape{FCk_ShapeBox_Dimensions{FVector{50.0, 50.0, 50.0}}},
+            FTransform{FVector{100.0 * static_cast<double>(InId), 100.0, 10.0}},
+            InKind};
+
+        Record.Set_AreaTag(TAG_CkTests_GroundNav_Fingerprint_AreaA);
+        Record.Set_CostMultiplier(2.0f);
+
+        return Record;
+    }
+
+    auto Make_Markups() -> TArray<FCk_GroundNav_MarkupRecord>
+    {
+        return TArray<FCk_GroundNav_MarkupRecord>{
+            Make_Markup(1, ECk_GroundNav_MarkupKind::Walkability),
+            Make_Markup(2, ECk_GroundNav_MarkupKind::Cost)};
+    }
+
+    auto Get_Print(
+        TConstArrayView<FCk_GroundNav_MarkupRecord> InMarkups)
+        -> ck::groundnav::FCk_GroundNav_ContentFingerprint
+    {
+        return Get_ContentFingerprint(Make_Geometry(), Make_Region(),
+            FCk_GroundNav_BakeConfig{}, FCk_GroundNav_AgentProfile{}, InMarkups);
+    }
+
+    auto Get_MarkupBaseline() -> ck::groundnav::FCk_GroundNav_ContentFingerprint
+    {
+        return Get_Print(Make_Markups());
     }
 }
 
@@ -202,6 +249,142 @@ bool FCkTest_GroundNav_Fingerprint_EveryEnumeratedInputPerturbsIt::RunTest(const
 
         CheckDiffers(TEXT("rough-perch tolerance"),
             Get_ContentFingerprint(Make_Geometry(), Make_Region(), FCk_GroundNav_BakeConfig{}, Profile));
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Fingerprint_EveryMarkupFieldPerturbsIt,
+    "CkTests.UnitTests.CkGroundNav.Bake.Fingerprint_EveryMarkupFieldPerturbsIt",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Fingerprint_EveryMarkupFieldPerturbsIt::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_fingerprint;
+
+    const auto Baseline = Get_MarkupBaseline();
+
+    TestFalse(TEXT("submitting markup at all changes the fingerprint"), Baseline == Get_Baseline());
+
+    const auto CheckDiffers = [&](
+        const TCHAR*                              InWhat,
+        const TArray<FCk_GroundNav_MarkupRecord>& InPerturbed) -> void
+    {
+        TestFalse(FString::Printf(TEXT("perturbing a markup's %s changes the fingerprint"), InWhat),
+            Get_Print(InPerturbed) == Baseline);
+    };
+
+    {
+        auto Markups = Make_Markups();
+        Markups[0] = FCk_GroundNav_MarkupRecord{
+            7,
+            Markups[0].Get_Shape(),
+            Markups[0].Get_WorldTransform(),
+            Markups[0].Get_Kind()};
+        Markups[0].Set_AreaTag(TAG_CkTests_GroundNav_Fingerprint_AreaA);
+        Markups[0].Set_CostMultiplier(2.0f);
+
+        CheckDiffers(TEXT("id"), Markups);
+    }
+    {
+        // Same dimensions where the two types share one, so only the TYPE differs.
+        auto Markups = Make_Markups();
+        Markups[0] = FCk_GroundNav_MarkupRecord{
+            Markups[0].Get_Id(),
+            FCk_AnyShape{FCk_ShapeSphere_Dimensions{50.0f}},
+            Markups[0].Get_WorldTransform(),
+            Markups[0].Get_Kind()};
+        Markups[0].Set_AreaTag(TAG_CkTests_GroundNav_Fingerprint_AreaA);
+        Markups[0].Set_CostMultiplier(2.0f);
+
+        CheckDiffers(TEXT("shape type"), Markups);
+    }
+    {
+        auto Markups = Make_Markups();
+        Markups[0] = FCk_GroundNav_MarkupRecord{
+            Markups[0].Get_Id(),
+            FCk_AnyShape{FCk_ShapeBox_Dimensions{FVector{50.0, 50.0, 51.0}}},
+            Markups[0].Get_WorldTransform(),
+            Markups[0].Get_Kind()};
+        Markups[0].Set_AreaTag(TAG_CkTests_GroundNav_Fingerprint_AreaA);
+        Markups[0].Set_CostMultiplier(2.0f);
+
+        CheckDiffers(TEXT("shape dimensions"), Markups);
+    }
+    {
+        auto Markups = Make_Markups();
+        Markups[0] = FCk_GroundNav_MarkupRecord{
+            Markups[0].Get_Id(),
+            Markups[0].Get_Shape(),
+            FTransform{FVector{101.0, 100.0, 10.0}},
+            Markups[0].Get_Kind()};
+        Markups[0].Set_AreaTag(TAG_CkTests_GroundNav_Fingerprint_AreaA);
+        Markups[0].Set_CostMultiplier(2.0f);
+
+        CheckDiffers(TEXT("world transform"), Markups);
+    }
+    {
+        auto Markups = Make_Markups();
+        Markups[0].Set_AreaTag(TAG_CkTests_GroundNav_Fingerprint_AreaB);
+
+        CheckDiffers(TEXT("area tag"), Markups);
+    }
+    {
+        auto Markups = Make_Markups();
+        Markups[0] = FCk_GroundNav_MarkupRecord{
+            Markups[0].Get_Id(),
+            Markups[0].Get_Shape(),
+            Markups[0].Get_WorldTransform(),
+            ECk_GroundNav_MarkupKind::Cost};
+        Markups[0].Set_AreaTag(TAG_CkTests_GroundNav_Fingerprint_AreaA);
+        Markups[0].Set_CostMultiplier(2.0f);
+
+        CheckDiffers(TEXT("kind"), Markups);
+    }
+    {
+        auto Markups = Make_Markups();
+        Markups[1].Set_CostMultiplier(3.0f);
+
+        CheckDiffers(TEXT("cost multiplier"), Markups);
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Fingerprint_MarkupOrderAndDisabledRecordsDoNotCount,
+    "CkTests.UnitTests.CkGroundNav.Bake.Fingerprint_MarkupOrderAndDisabledRecordsDoNotCount",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Fingerprint_MarkupOrderAndDisabledRecordsDoNotCount::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_fingerprint;
+
+    const auto Baseline = Get_MarkupBaseline();
+
+    {
+        // The same two volumes, submitted the other way round. Canonical id order is what makes this
+        // hold, and holding it is what stops an unrelated change to collection order forcing a rebake.
+        auto Reordered = Make_Markups();
+        Reordered.Swap(0, 1);
+
+        TestTrue(TEXT("record ORDER does not change the fingerprint"),
+            Get_Print(Reordered) == Baseline);
+    }
+
+    {
+        // A disabled record decides nothing about the field, so its presence must not force a rebuild.
+        auto WithDisabled = Make_Markups();
+        WithDisabled.Emplace(Make_Markup(3, ECk_GroundNav_MarkupKind::Cost));
+        WithDisabled.Last().Set_Enable(ECk_EnableDisable::Disable);
+
+        TestTrue(TEXT("a disabled record does not change the fingerprint"),
+            Get_Print(WithDisabled) == Baseline);
     }
 
     return true;
