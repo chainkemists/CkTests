@@ -93,20 +93,43 @@ bool FCkTest_JoltCook_PackagingMapSelection::RunTest(const FString& Parameters)
         TestEqual(TEXT("similarly named directories remain eligible"), Result._MapPackageNames.Num(), 2);
     }
 
+    // Incremental package updates only need packaging entry maps. Always-cook directories are a
+    // full-rebuild discovery source, so they must not expand the incremental plan; MapsToCook
+    // validation, exclusions, and authored-order dedupe remain exactly the same.
+    {
+        auto Input = Make_Input();
+        Input._bIncludeAlwaysCookDirectories = false;
+        Input._AuthoredMapsToCook = {
+            TEXT("/Game/Maps/Main"), TEXT("/Game/Maps/Menu"), TEXT("/Game/Maps/Main"),
+            TEXT("/Game/Maps/AutoTests/Excluded")};
+        Input._DirectoriesToAlwaysCook = {TEXT("/Game/Always")};
+        Input._DiscoveredAlwaysCookMapCandidates = {
+            TEXT("/Game/Always/DirectoryOnly"), TEXT("/Game/Maps/Main")};
+        const auto Result = Select_PackagingMaps(Input);
+        TestTrue(TEXT("incremental entry-map selection succeeds"), Result._Success);
+        TestTrue(TEXT("incremental selection ignores directory candidates but retains MapsToCook exclusions and dedupe"),
+            Result._MapPackageNames == TArray<FString>{TEXT("/Game/Maps/Main"), TEXT("/Game/Maps/Menu")});
+        TestEqual(TEXT("incremental selection reports only authored entry maps"), Result._NumAuthoredMaps, 2);
+        TestEqual(TEXT("incremental selection reports no directory maps"), Result._NumAlwaysCookMaps, 0);
+    }
+
     // Directory discovery is a second source, not a restriction on explicit MapsToCook. Its order
     // must not depend on asset-registry enumeration; overlaps must not cook the same map twice.
     {
         auto Input = Make_Input();
+        Input._bIncludeAlwaysCookDirectories = true;
         Input._DirectoriesToAlwaysCook = {TEXT("/Game/Always/"), TEXT("/Game/Always/Nested"), TEXT("/Game/Maps")};
         Input._DiscoveredAlwaysCookMapCandidates = {
             TEXT("/Game/Always/ZWorld"), TEXT("/Game/Maps/Main"), TEXT("/Game/Always/Nested/AWorld"),
             TEXT("/Game/Always/Nested/AWorld"), TEXT("/Game/Marketplace/Demo"), TEXT("/Game/AlwaysExtra/NotSelected")};
         const auto Result = Select_PackagingMaps(Input);
-        TestTrue(TEXT("union accepted"), Result._Success);
+        TestTrue(TEXT("full rebuild directory union accepted"), Result._Success);
         const auto Expected = TArray<FString>{TEXT("/Game/Maps/Main"), TEXT("/Game/Maps/Menu"),
             TEXT("/Game/Always/Nested/AWorld"), TEXT("/Game/Always/ZWorld")};
-        TestTrue(TEXT("explicit maps plus sorted directory maps, once each, without unrelated candidates"),
+        TestTrue(TEXT("full rebuild retains explicit maps plus sorted directory maps, once each, without unrelated candidates"),
             Result._MapPackageNames == Expected);
+        TestEqual(TEXT("full rebuild reports authored entry maps separately"), Result._NumAuthoredMaps, 2);
+        TestEqual(TEXT("full rebuild reports only newly added directory maps"), Result._NumAlwaysCookMaps, 2);
     }
 
     {
