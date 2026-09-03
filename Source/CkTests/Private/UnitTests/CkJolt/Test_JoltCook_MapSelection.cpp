@@ -152,6 +152,24 @@ bool FCkTest_JoltCook_PackagingMapSelection::RunTest(const FString& Parameters)
         TestEqual(TEXT("selection supports both engine and plugin roots"), Result._MapPackageNames.Num(), 2);
     }
 
+    // A selected parent can stream a NeverCook child. The same predicate filters root selection,
+    // streaming-level completeness checks, and both full-cook actor enumeration paths.
+    {
+        const auto ExcludedPaths = TArray<FString>{TEXT("Maps/GYMs/"), TEXT("/Game/CkJoltData")};
+        TestFalse(TEXT("allowed parent remains in the cook"),
+            Get_IsPackageExcluded(TEXT("/Game/Maps/LevelDesign/Metrics"), ExcludedPaths));
+        TestTrue(TEXT("NeverCook streaming child cannot contribute baked actors"),
+            Get_IsPackageExcluded(TEXT("/Game/Maps/GYMs/Metrics/Geometry"), ExcludedPaths));
+        TestFalse(TEXT("similarly named eligible sublevel remains required"),
+            Get_IsPackageExcluded(TEXT("/Game/Maps/GYMsExtra/Geometry"), ExcludedPaths));
+        TestTrue(TEXT("generated output cannot contribute baked actors"),
+            Get_IsPackageExcluded(TEXT("/Game/CkJoltData/World"), ExcludedPaths));
+        TestFalse(TEXT("ordinary cook callers keep every level with an empty exclusion list"),
+            Get_IsPackageExcluded(TEXT("/Game/Maps/GYMs/Metrics/Geometry"), {}));
+        TestFalse(TEXT("empty excluded path never matches all levels"),
+            Get_IsPackageExcluded(TEXT("/Game/Maps/Main"), {TEXT("")}));
+    }
+
     return true;
 }
 
