@@ -193,7 +193,7 @@ namespace ck_test_groundnav_pathsearch
 
     // ----------------------------------------------------------------------------------------------------------------
 
-    /** Two floors in one field with a gap no crossing spans. Copied from the reachability suite. */
+    /** Two floors in one field with a gap no crossing spans. */
     auto Make_TwoIslandScene() -> TArray<FBox>
     {
         return TArray<FBox>{
@@ -201,7 +201,7 @@ namespace ck_test_groundnav_pathsearch
             FBox{FVector{1000.0, -400.0, -10.0}, FVector{2000.0, 2000.0, kGroundZ}}};
     }
 
-    /** The query scene with a second wall across its west room, pierced by a 60 uu doorway. Likewise copied. */
+    /** The query scene with a second wall across its west room, pierced by a 60 uu doorway. */
     auto Make_DoorwayScene() -> TArray<FBox>
     {
         auto Boxes = Make_QueryScene();
