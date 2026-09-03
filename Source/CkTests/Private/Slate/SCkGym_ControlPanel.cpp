@@ -12,7 +12,7 @@
 namespace ck_gym_control_panel_widget
 {
     // Rows keep their declared order and stable indices, so a disabled row dims rather than
-    // disappears — matching the Canvas panel's contract.
+    // disappears - matching the Canvas panel's contract.
     constexpr float DisabledAlpha = 0.45f;
 
     auto Get_Dimmed(const FLinearColor& InColor, bool InEnabled) -> FLinearColor
@@ -48,7 +48,7 @@ auto
 {
     if (InPanelCollapsed || InRows.Num() == 0)
     {
-        // Just the reminder chips — either the user hid the panel (rows still fire) or the gym
+        // Just the reminder chips - either the user hid the panel (rows still fire) or the gym
         // declared no rows (only Tab matters).
         ChildSlot
         [
@@ -59,7 +59,7 @@ auto
             [
                 SNew(SBorder)
                 .BorderImage(CkStyle::GetRoundedBrush())
-                .BorderBackgroundColor(CkStyle::OverlayOf(CkStyle::BgRoot(), 0.78f))
+                .BorderBackgroundColor(CkStyle::OverlayOf(CkStyle::BgRoot(), 0.85f))
                 .Padding(FMargin{CkStyle::SpaceS, 2.0f})
                 [
                     DoBuild_HintLine(InPanelCollapsed)
@@ -114,6 +114,12 @@ auto
             DoBuild_HintLine(false)
         ];
 
+    _PanelBackgroundBrush.Emplace(
+        CkStyle::OverlayOf(CkStyle::BgRoot(), 0.85f),
+        8.0f,
+        CkStyle::Border(),
+        1.0f);
+
     ChildSlot
     [
         SNew(SBox)
@@ -122,20 +128,13 @@ auto
         .Padding(FMargin{InOffset.X, InOffset.Y, 0.0f, 0.0f})
         [
             SNew(SBorder)
-            .BorderImage(CkStyle::GetRoundedBrush_Large())
-            .BorderBackgroundColor(CkStyle::Border())
-            .Padding(FMargin{1.0f})
+            .BorderImage(&(_PanelBackgroundBrush.GetValue()))
+            .Padding(FMargin{CkStyle::SpaceM + 1.0f, CkStyle::SpaceS + 1.0f})
             [
-                SNew(SBorder)
-                .BorderImage(CkStyle::GetRoundedBrush_Large())
-                .BorderBackgroundColor(CkStyle::OverlayOf(CkStyle::BgRoot(), 0.82f))
-                .Padding(FMargin{CkStyle::SpaceM, CkStyle::SpaceS})
+                SNew(SBox)
+                .MinDesiredWidth(280.0f)
                 [
-                    SNew(SBox)
-                    .MinDesiredWidth(280.0f)
-                    [
-                        Rows
-                    ]
+                    Rows
                 ]
             ]
         ]
@@ -162,7 +161,7 @@ auto
 
     auto Content = SNew(SHorizontalBox);
 
-    // Key chip column — Status rows keep the column width so labels align.
+    // Key chip column - Status rows keep the column width so labels align.
     Content->AddSlot()
         .AutoWidth()
         .VAlign(VAlign_Center)
