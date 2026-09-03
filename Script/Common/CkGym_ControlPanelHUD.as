@@ -33,6 +33,8 @@ class ACkGym_ControlPanelHUD : AHUD
     }
 
     private bool _PanelHidden = false;
+    private bool _LeftShiftDown = false;
+    private bool _RightShiftDown = false;
 
     private FCk_Handle _PanelLayerOwner;
     private FCk_Handle_InputLayer _PanelLayer;
@@ -63,6 +65,10 @@ class ACkGym_ControlPanelHUD : AHUD
 
         if (ck::Is_NOT_Valid(PC))
         { return; }
+
+        // Reconcile after focus/menu gaps, where a higher input layer may have consumed Shift.
+        _LeftShiftDown = PC.IsInputKeyDown(EKeys::LeftShift);
+        _RightShiftDown = PC.IsInputKeyDown(EKeys::RightShift);
 
         auto Suppressed = UCk_Utils_GymRegistry_UE::Get_SuppressHUDDuringStartup();
         auto Rows = Suppressed ? TArray<FCkGym_ControlRow>() : PC.Get_ControlRows();
@@ -122,15 +128,16 @@ class ACkGym_ControlPanelHUD : AHUD
 
     // Keys a panel row must NEVER capture: a capture CONSUMES, so a row on a movement key would
     // steal the pawn's input (the old polling panel merely observed, which is how such rows crept
-    // in). Tab/H are the framework's own.
+    // in). Tab/H and Shift modifier observation are the framework's own.
     private bool DoIsReservedRowKey(FKey InKey)
     {
         return InKey == EKeys::W || InKey == EKeys::A || InKey == EKeys::S || InKey == EKeys::D ||
                InKey == EKeys::E || InKey == EKeys::Q || InKey == EKeys::C || InKey == EKeys::SpaceBar ||
-               InKey == EKeys::H || InKey == EKeys::Tab;
+               InKey == EKeys::H || InKey == EKeys::Tab ||
+               InKey == EKeys::LeftShift || InKey == EKeys::RightShift;
     }
 
-    // Diff-syncs the capture set to H + every enabled, keyed row (and its alt key). Rows change
+    // Diff-syncs H, pass-through Shift observation, and every enabled keyed row (and its alt key). Rows change
     // rarely (per gym, per scenario state), so the steady state enqueues nothing. A row binding a
     // reserved key is refused LOUDLY and never captured - the row draws but cannot fire, so the
     // authoring mistake is visible in the panel and the log instead of silently freezing the pawn.
@@ -141,6 +148,8 @@ class ACkGym_ControlPanelHUD : AHUD
 
         TArray<FKey> Desired;
         Desired.Add(EKeys::H);
+        Desired.Add(EKeys::LeftShift);
+        Desired.Add(EKeys::RightShift);
 
         for (auto Row : InRows)
         {
@@ -170,8 +179,10 @@ class ACkGym_ControlPanelHUD : AHUD
         {
             if (_SyncedKeys.Contains(Key) == false)
             {
+                const auto Behavior = Key == EKeys::LeftShift || Key == EKeys::RightShift
+                    ? ECk_InputLayer_CaptureBehavior::PassThrough : ECk_InputLayer_CaptureBehavior::Consume;
                 utils_input_layer::Request_AddCapture(_PanelLayer, FCk_Request_InputLayer_AddCapture(
-                    utils_input_layer::Make_KeyCapture(Key, ECk_InputLayer_CaptureBehavior::Consume)));
+                    utils_input_layer::Make_KeyCapture(Key, Behavior)));
             }
         }
 
@@ -198,13 +209,25 @@ class ACkGym_ControlPanelHUD : AHUD
     UFUNCTION()
     private void OnPanelCaptured(FCk_Handle_InputLayer InLayer, FCk_InputSource_RawEvent InEvent, FCk_InputLayer_Capture InCapture)
     {
+        auto Key = InEvent.Get_Key();
+        // Preserve Shift/number/release ordering inside a routed event batch, even when
+        // the physical modifier is already released by the time its number is delivered.
+        if (Key == EKeys::LeftShift || Key == EKeys::RightShift)
+        {
+            if (InEvent.Get_EventType() == ECk_InputSource_EventType::Pressed
+                || InEvent.Get_EventType() == ECk_InputSource_EventType::Released)
+            {
+                const bool Down = InEvent.Get_EventType() == ECk_InputSource_EventType::Pressed;
+                if (Key == EKeys::LeftShift) { _LeftShiftDown = Down; }
+                else { _RightShiftDown = Down; }
+            }
+            return;
+        }
         if (InEvent.Get_EventType() != ECk_InputSource_EventType::Pressed)
         { return; }
 
         if (Get_PanelKeysSuspended())
         { return; }
-
-        auto Key = InEvent.Get_Key();
 
         if (Key == EKeys::H)
         {
@@ -219,21 +242,9 @@ class ACkGym_ControlPanelHUD : AHUD
         // Resolve by key at DELIVERY time against the live rows - first enabled match wins, same
         // contract the polled Get_PressedRow had.
         auto Rows = PC.Get_ControlRows();
-        for (int32 Index = 0; Index < Rows.Num(); Index++)
-        {
-            auto Row = Rows[Index];
-
-            if (Row.Kind == ECkGym_ControlKind::Header || Row.Kind == ECkGym_ControlKind::Status || Row.Enabled == false)
-            { continue; }
-
-            if (Row.KeyLabel.Len() == 0)
-            { continue; }
-
-            if (Row.Key == Key || (Row.HasAltKey && Row.AltKey == Key))
-            {
-                PC.Request_ControlActivated(Index);
-                return;
-            }
-        }
+        const bool ShiftDown = _LeftShiftDown || _RightShiftDown;
+        const int32 RowIndex = CkGym_Control::Get_PressedRow(Rows, Key, ShiftDown);
+        if (RowIndex >= 0)
+        { PC.Request_ControlActivated(RowIndex); }
     }
 }

@@ -27,6 +27,7 @@
 // Reserved keys the panel itself owns, which a gym must therefore NOT bind in a row:
 //   Tab - the gym switchboard (UCkGym_Switchboard_Subsystem)
 //   H   - hide/show this panel
+//   LeftShift/RightShift - modifier observation (passed through to movement)
 //
 // Adopting it, in full:
 //
@@ -143,8 +144,8 @@ namespace CkGym_Control
 
     // The nth entry of a keyed list: 1-9 pick the first nine and 0 picks the tenth, which is the
     // ordinary way a ten-item list is keyed. Both the number row and the numpad fire it.
-    // Indices past the tenth get no key - they still draw, and the gym can still reach them by
-    // whatever means it already had.
+    // The next ten use Shift+1 through Shift+0 on the number row. Shift+numpad is not bound:
+    // some keyboards turn those combinations into navigation keys.
     FCkGym_ControlRow Numbered(int32 InIndex, FString InLabel, bool InIsActive, bool InEnabled = true)
     {
         auto Row = FCkGym_ControlRow();
@@ -153,16 +154,54 @@ namespace CkGym_Control
         Row.Active = InIsActive;
         Row.Enabled = InEnabled;
 
-        if (InIndex < 0 || InIndex > 9)
+        if (InIndex < 0 || InIndex > 19)
         { return Row; }
 
-        Row.Key = Get_NumberRowKey(InIndex);
-        Row.AltKey = Get_NumPadKey(InIndex);
-        Row.HasAltKey = true;
-        auto KeyNumber = InIndex + 1;
-        Row.KeyLabel = InIndex == 9 ? "0" : f"{KeyNumber}";
+        const bool Shifted = InIndex >= 10;
+        const int32 DigitIndex = InIndex % 10;
+        Row.Key = Get_NumberRowKey(DigitIndex);
+        Row.ShiftRequirement = Shifted ? ECkGym_ControlShift::Pressed : ECkGym_ControlShift::Released;
+        Row.HasAltKey = Shifted == false;
+        if (Row.HasAltKey)
+        { Row.AltKey = Get_NumPadKey(DigitIndex); }
+        const int32 KeyNumber = (DigitIndex + 1) % 10;
+        Row.KeyLabel = Shifted
+            ? Get_ShiftedNumberLabel(DigitIndex)
+            : f"{KeyNumber}";
 
         return Row;
+    }
+
+    FString Get_ShiftedNumberLabel(int32 InIndex)
+    {
+        if (InIndex == 0) { return "!"; }
+        if (InIndex == 1) { return "@"; }
+        if (InIndex == 2) { return "#"; }
+        if (InIndex == 3) { return "$"; }
+        if (InIndex == 4) { return "%"; }
+        if (InIndex == 5) { return "^"; }
+        if (InIndex == 6) { return "&"; }
+        if (InIndex == 7) { return "*"; }
+        if (InIndex == 8) { return "("; }
+        return ")";
+    }
+
+    int32 Get_PressedRow(const TArray<FCkGym_ControlRow>&in InRows, FKey InKey, bool InShiftDown)
+    {
+        for (int32 Index = 0; Index < InRows.Num(); ++Index)
+        {
+            const auto Row = InRows[Index];
+            if (Row.Kind == ECkGym_ControlKind::Header || Row.Kind == ECkGym_ControlKind::Status
+                || Row.Enabled == false || Row.KeyLabel.Len() == 0)
+            { continue; }
+            if (Row.ShiftRequirement == ECkGym_ControlShift::Pressed && InShiftDown == false)
+            { continue; }
+            if (Row.ShiftRequirement == ECkGym_ControlShift::Released && InShiftDown)
+            { continue; }
+            if (Row.Key == InKey || (Row.HasAltKey && Row.AltKey == InKey))
+            { return Index; }
+        }
+        return -1;
     }
 
     FKey Get_NumberRowKey(int32 InIndex)

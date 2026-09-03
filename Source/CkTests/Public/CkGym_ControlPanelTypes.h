@@ -37,6 +37,14 @@ enum class ECkGym_ControlKind : uint8
 
 // --------------------------------------------------------------------------------------------------------------------
 
+UENUM(BlueprintType)
+enum class ECkGym_ControlShift : uint8
+{
+    Any,
+    Released,
+    Pressed
+};
+
 // One row of the panel. Build these through the AS CkGym_Control builders rather than by hand: the
 // builders are what keep Kind, HasAltKey and the value column consistent with how the panel draws.
 USTRUCT(BlueprintType)
@@ -82,13 +90,18 @@ struct CKTESTS_API FCkGym_ControlRow
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     bool Enabled = true;
 
+    // Existing action rows accept either Shift state; numbered shortcuts opt into exact matching.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    ECkGym_ControlShift ShiftRequirement = ECkGym_ControlShift::Any;
+
     auto operator==(
         const FCkGym_ControlRow& InOther) const -> bool
     {
         return Label == InOther.Label && Value == InOther.Value && Key == InOther.Key &&
                AltKey == InOther.AltKey && HasAltKey == InOther.HasAltKey &&
                KeyLabel == InOther.KeyLabel && Kind == InOther.Kind &&
-               Active == InOther.Active && Warn == InOther.Warn && Enabled == InOther.Enabled;
+               Active == InOther.Active && Warn == InOther.Warn && Enabled == InOther.Enabled &&
+               ShiftRequirement == InOther.ShiftRequirement;
     }
 };
 
