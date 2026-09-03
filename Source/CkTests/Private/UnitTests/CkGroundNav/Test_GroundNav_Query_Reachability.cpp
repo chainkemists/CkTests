@@ -607,8 +607,8 @@ bool FCkTest_GroundNav_Flood_EarlyExitBoundsExpansion::RunTest(const FString& Pa
     TestEqual(FString::Printf(TEXT("no settled crossing lies beyond the distance limit [%s]"), *Report),
         OverDistance, 0);
 
-    // A limit that bounded the RESULT without bounding the WORK would leave the near-O(1) budget claim
-    // resting on nothing, so the expansion counter is what the assertion reads.
+    // A limit that bounded the RESULT without bounding the WORK would be no budget at all, so the
+    // expansion counter is what the assertion reads.
     TestTrue(FString::Printf(TEXT("the distance limit costs no more than the unbounded run [%s]"), *Report),
         Bounded._ExpansionCount <= Unbounded._ExpansionCount);
 
