@@ -6305,6 +6305,32 @@ class ACk_AutoTest_NavSurface_RecastBudgets_CostFixtures_Actor : ACk_AutoTestRun
     }
 }
 
+class ACk_AutoTest_NavSurface_RecastBudgets_MarkupLiveLatency_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 240.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_NavSurface_RecastBudgets_MarkupLiveLatency");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_NavSurface_RecastBudgets_MovedObstacleRepairLatency_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 240.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_NavSurface_RecastBudgets_MovedObstacleRepairLatency");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_NavSurface_RecastBudgets_OriginFloor_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 20.0f;
