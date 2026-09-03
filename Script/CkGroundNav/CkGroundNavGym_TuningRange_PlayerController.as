@@ -36,6 +36,20 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     private const FVector k_PillarSouthCentre = FVector(-900.0, -180.0, 150.0);
     private const FVector k_PillarScale       = FVector(2.0, 2.0, 3.0);
 
+    // A sheet with nothing on its underside - the one thing in the scene that is NOT closed. The
+    // bake reads an asset's SIMPLE collision first, so a box or a capsule arrives closed no matter
+    // what its triangles look like; /Engine/BasicShapes/Plane carries a collision box and would too.
+    // This mesh has no simple collision at all, which is the one case where the bake falls through
+    // to the cooked triangle mesh and the sheet's four boundary edges reach the closure check.
+    private const FString k_OpenBodyMeshPath = "/Engine/ArtTools/RenderToTexture/Meshes/S_1_Unit_Plane.S_1_Unit_Plane";
+
+    // Clear of the stairs (Y +/-300), the catwalk (Y +450) and both pillars, and on the viewpoint's
+    // side of the scene so the red edges read without flying anywhere. The 2uu lift stops it fighting
+    // the floor plane and stays inside every plane-fit tolerance the panel offers, so the floor
+    // underneath still merges straight through it and stays walkable.
+    private const FVector k_OpenBodyCentre = FVector(200.0, -700.0, 2.0);
+    private const float   k_OpenBodyWidthUu = 200.0f;
+
     // The bake is aimed at the scene, NOT at the pawn. ck.GroundNav.Bake centres its region on the
     // viewer, which is unusable here: this pawn flies, and a viewer that climbs above the region
     // height leaves the ground behind and below it, so the bake reports NoGeometryInRegion while the
@@ -66,12 +80,17 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     private const int32 k_Row_Reset       = 21;
     private const int32 k_Row_Viewpoint   = 22;
     private const int32 k_Row_BakeField   = 23;
+    private const int32 k_Row_OpenBody    = 24;
 
     // ---- State -----------------------------------------------------------------------------------
 
     private FCk_Handle _PcEntity;
     private bool _GeometryIsBuilt = false;
     private int32 _BakeCount = 0;
+
+    // The row reads this back rather than mirroring a bool: the actor IS the state, and a bool that
+    // disagreed with it would report an open body the static world no longer holds.
+    private AStaticMeshActor _OpenBodyActor = nullptr;
 
     // T and every tunable key re-run the bake so the drawing tracks the change. They re-run the KIND
     // of bake that last ran - region after R, tiled field after Y - because a region bake would
@@ -416,6 +435,90 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         return true;
     }
 
+    // Scaled from the asset's own bounds rather than a hardcoded number: the mesh is an engine sheet
+    // whose authored size is not ours to assume, and a sheet baked at the wrong size is either
+    // invisible or covers the scene.
+    private bool DoSpawnOpenBody()
+    {
+        auto SheetActor = Cast<AStaticMeshActor>(SpawnActor(AStaticMeshActor, k_OpenBodyCentre));
+        if (ck::Is_NOT_Valid(SheetActor))
+        {
+            ck::groundnav::Warning("GroundNav gym: failed to spawn the open-collision body");
+            return false;
+        }
+
+        SheetActor.StaticMeshComponent.SetMobility(EComponentMobility::Movable);
+
+        auto SheetMesh = Cast<UStaticMesh>(LoadObject(this, k_OpenBodyMeshPath));
+        if (SheetMesh == nullptr)
+        {
+            ck::groundnav::Warning("GroundNav gym: failed to load the open-collision sheet mesh");
+            SheetActor.DestroyActor();
+            return false;
+        }
+        SheetActor.StaticMeshComponent.SetStaticMesh(SheetMesh);
+
+        auto SheetMaterial = Cast<UMaterialInterface>(LoadObject(this, "/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+        if (SheetMaterial != nullptr)
+        { SheetActor.StaticMeshComponent.SetMaterial(0, SheetMaterial); }
+
+        const auto LocalBounds = SheetMesh.GetBoundingBox();
+        const auto LocalSize = LocalBounds.Max - LocalBounds.Min;
+
+        auto LocalWidthUu = LocalSize.X;
+        if (LocalSize.Y > LocalWidthUu)
+        { LocalWidthUu = LocalSize.Y; }
+
+        if (LocalWidthUu <= 0.0)
+        {
+            ck::groundnav::Warning("GroundNav gym: the open-collision sheet mesh has no width to scale from");
+            SheetActor.DestroyActor();
+            return false;
+        }
+
+        const auto SheetScale = k_OpenBodyWidthUu / LocalWidthUu;
+        SheetActor.SetActorScale3D(FVector(SheetScale, SheetScale, 1.0));
+        SheetActor.StaticMeshComponent.SetCollisionProfileName(n"BlockAll");
+
+        const auto NumBaked = utils_jolt_static_world::Request_BakeActor(SheetActor);
+        if (NumBaked == 0)
+        {
+            ck::groundnav::Warning("GroundNav gym: the open-collision body baked 0 Jolt bodies - the bake would never see it");
+            SheetActor.DestroyActor();
+            return false;
+        }
+
+        _OpenBodyActor = SheetActor;
+        return true;
+    }
+
+    private void DoRemoveOpenBody()
+    {
+        if (ck::Is_NOT_Valid(_OpenBodyActor))
+        { return; }
+
+        // The static world keeps its own copy of the shape, so destroying the actor alone would leave
+        // the open geometry in the bake for the rest of the session.
+        utils_jolt_static_world::Request_RemoveActor(_OpenBodyActor);
+        _OpenBodyActor.DestroyActor();
+        _OpenBodyActor = nullptr;
+    }
+
+    private void DoToggleOpenBody()
+    {
+        if (ck::IsValid(_OpenBodyActor))
+        {
+            DoRemoveOpenBody();
+            ck::groundnav::Log("GroundNav gym: open-collision body removed - press R or Y to bake again");
+            return;
+        }
+
+        if (DoSpawnOpenBody() == false)
+        { return; }
+
+        ck::groundnav::Log("GroundNav gym: open-collision body added - press R or Y to bake again and read the OPEN COLLISION block");
+    }
+
     private void DoBringPlayerToViewpoint()
     {
         auto ViewPawn = GetControlledPawn();
@@ -550,6 +653,8 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         Rows.Add(CkGym_Control::Action(EKeys::V, "V", "Fly back to the starting viewpoint"));
         Rows.Add(CkGym_Control::Action(EKeys::Y, "Y",
             "Bake the scene as a TILED field (draw mode 5 shows the tiles and their seams; T and the tunables then re-bake the field until you press R)"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::X, "X",
+            "Open-collision body (does NOT re-bake - press R or Y afterwards)", ck::IsValid(_OpenBodyActor)));
 
         return Rows;
     }
@@ -648,6 +753,12 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         if (InRowIndex == k_Row_Viewpoint)
         {
             DoBringPlayerToViewpoint();
+            return;
+        }
+
+        if (InRowIndex == k_Row_OpenBody)
+        {
+            DoToggleOpenBody();
             return;
         }
     }
