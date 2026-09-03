@@ -7,8 +7,8 @@
 // and requires the two to agree exactly over a thousand seeded points.
 //
 // The provider assertion is up front and fatal on purpose: a world that could not take the provider
-// would fall back to the project default, and every comparison below would then be Recast agreeing
-// with GroundNav about nothing at all while reporting zero mismatches.
+// would fall back to the project default, and every comparison below would be measuring the wrong
+// provider.
 
 #include "CkGroundNav/Facade/CkGroundNav_WorldFieldRegistry.h"
 #include "CkGroundNav/Field/CkGroundNav_Field.h"
@@ -55,7 +55,7 @@ namespace ck_test_groundnav_facade
 
     constexpr auto kBoundaryRadiusUu = 300.0f;
 
-    // The one search box every neutral query in this test carries, so the expectation does not move
+    // The search box the projection and boundary queries carry, so their expectation does not move
     // with the project's own projection extents.
     inline auto Get_SearchHalfExtents() -> FVector
     {
