@@ -6,10 +6,15 @@
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 #include "StructUtils/InstancedStruct.h"
 
+#include "CkEcs/EntityLifetime/CkEntityLifetime_Fragment.h"
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
 #include "CkEcs/Persistence/CkPersistenceHandlerRegistry.h"
 #include "CkEcs/Snapshot/CkSnapshot_RestoreMarker.h"
 #include "CkEcs/World/CkEcsWorld.h"
+#include "CkAttribute/ByteAttribute/CkByteAttribute_Fragment.h"
+#include "CkAttribute/ByteAttribute/CkByteAttribute_Utils.h"
+#include "CkAttribute/FloatAttribute/CkFloatAttribute_Fragment.h"
+#include "CkAttribute/FloatAttribute/CkFloatAttribute_Utils.h"
 #include "CkInventory/Inventory/CkInventory_Fragment.h"
 #include "CkInventory/Inventory/CkInventory_Utils.h"
 #include "CkInventory/Inventory/DataOnly/CkInventory_DataOnly_Fragment.h"
@@ -241,6 +246,155 @@ bool FCkSnapshot_V3_DataOnlyInventory_PersistContents::RunTest(const FString& Pa
             OptOutInventory.Inventory).IsEmpty());
     TestFalse(TEXT("opted-out DataOnly legacy hydration does not set an item parent"),
         LegacyItem.Has<ck::FFragment_Item_ParentInventory>());
+    return true;
+}
+
+
+// --------------------------------------------------------------------------------------------------------------------
+// FCk_Fragment_*Attribute_ParamsData::_PersistValue - the attribute family's instance-level save opt-out. The
+// registration declares ONE posture (Durable) for the whole payload type, which is right for a stat and wrong for an
+// instance that holds a single frame of volatile state (a player input intent). Disable stamps the snapshot
+// reconstruct-only marker, so capture omits the entity and the SHARED HydrationApply refuses a payload from a save
+// written before the declaration. Produce/HydrationApply are shared templates across Byte/Float/Integer/Vector/
+// Rotator, so Byte proves the mechanism and Float proves it is the shared one rather than a per-family copy.
+//
+// The third assertion is the one that matters most: Produce MUST still emit for an opted-out attribute, because
+// Produce is also the WIRE projection (TProcessor_Attribute_Replicate publishes through
+// UCk_Utils_Net_UE::TryProduce, which resolves this same handler). Gating it there stops replicating every
+// opted-out attribute, silently.
+
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Test_V3_PersistValueAttribute, "ByteAttribute.Test.V3.PersistValue");
+
+namespace
+{
+    auto AddByteAttributeForProduce(
+        ck::FEcsWorld& InWorld,
+        const ECk_EnableDisable InPersistValue,
+        const uint8 InBaseValue) -> FCk_Handle_ByteAttribute
+    {
+        auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(InWorld.Get_Registry());
+        auto Params = FCk_Fragment_ByteAttribute_ParamsData{TAG_Test_V3_PersistValueAttribute, InBaseValue};
+        Params.Set_PersistValue(InPersistValue);
+        return UCk_Utils_ByteAttribute_UE::Add(Owner, Params, ECk_Replication::DoesNotReplicate);
+    }
+
+    // The payload an older save carries for this attribute: the shape Produce emitted before the opt-out existed.
+    auto Make_LegacyByteAttributePayload(const uint8 InValue) -> FInstancedStruct
+    {
+        auto Data = FCk_RepData_ByteAttributes{};
+        Data.Attributes.Emplace(FCk_Fragment_ByteAttribute_BaseFinal{
+            TAG_Test_V3_PersistValueAttribute, InValue, InValue, ECk_MinMaxCurrent::Current});
+        return FInstancedStruct::Make(MoveTemp(Data));
+    }
+
+    // A hydration that actually applied leaves modifier ENTITIES behind: ApplyReplicated*Entry adds an Override
+    // and a revocable Final modifier, and each is a lifetime child of the attribute. Counting children rather than
+    // naming a modifier tag keeps this test off CkAttribute internals that are not DLL-exported.
+    auto Get_ModifierChildCount(const FCk_Handle& InAttribute) -> int32
+    {
+        return InAttribute.Has<ck::FFragment_LifetimeDependents>()
+            ? InAttribute.Get<ck::FFragment_LifetimeDependents>().Get_Entities().Num()
+            : 0;
+    }
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkSnapshot_V3_Attribute_PersistValue,
+    "Ck.Snapshot.V3.Attribute.PersistValue",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCkSnapshot_V3_Attribute_PersistValue::RunTest(const FString& Parameters)
+{
+    const auto* Handler = FCk_PersistenceHandlerRegistry::Find(FCk_RepData_ByteAttributes::StaticStruct());
+    if (NOT TestNotNull(TEXT("byte attribute save handler registered"), Handler)
+        || NOT TestTrue(TEXT("byte attribute handler exposes Produce"),
+            Handler != nullptr && static_cast<bool>(Handler->Produce))
+        || NOT TestTrue(TEXT("byte attribute handler exposes HydrationApply"),
+            Handler != nullptr && static_cast<bool>(Handler->HydrationApply)))
+    { return false; }
+
+    // ---- default Enable keeps the family's Durable behavior -----------------------------------------------------
+    auto DefaultWorld = ck::FEcsWorld{};
+    auto DefaultAttribute = AddByteAttributeForProduce(DefaultWorld, ECk_EnableDisable::Enable, 7);
+    auto DefaultEntity = FCk_Handle{DefaultAttribute};
+
+    TestFalse(TEXT("default-on byte attribute is not marked reconstruct-only"),
+        DefaultEntity.Has<ck::FTag_Snapshot_ReconstructOnly>());
+
+    const auto DefaultPayload = Handler->Produce(DefaultEntity);
+    if (NOT TestTrue(TEXT("default-on byte attribute produces a payload"), DefaultPayload.IsSet()))
+    { return false; }
+
+    const auto& DefaultEntries = DefaultPayload->Get<FCk_RepData_ByteAttributes>().Attributes;
+    if (NOT TestEqual(TEXT("default-on byte attribute payload carries its Current component"),
+            DefaultEntries.Num(), 1))
+    { return false; }
+    TestEqual(TEXT("default-on byte attribute payload preserves its base value"),
+        static_cast<int32>(DefaultEntries[0].Get_Base()), 7);
+
+    // POSITIVE CONTROL: the legacy payload MUST reach the default-on attribute, or the opted-out assertion below
+    // would pass against a handler that simply never applies anything.
+    TestEqual(TEXT("default-on byte attribute has no modifiers before hydration"),
+        Get_ModifierChildCount(DefaultEntity), 0);
+    const auto DefaultApply = Handler->HydrationApply(DefaultEntity, Make_LegacyByteAttributePayload(1), {});
+    TestEqual(TEXT("default-on byte attribute applies a save payload"),
+        DefaultApply, ECk_Persistence_ApplyResult::Applied);
+    TestTrue(TEXT("default-on byte attribute gains modifiers from hydration"),
+        Get_ModifierChildCount(DefaultEntity) > 0);
+
+    // ---- Disable declares the instance reconstruct-only and ignores a legacy payload ------------------------------
+    auto OptOutWorld = ck::FEcsWorld{};
+    auto OptOutAttribute = AddByteAttributeForProduce(OptOutWorld, ECk_EnableDisable::Disable, 0);
+    auto OptOutEntity = FCk_Handle{OptOutAttribute};
+
+    // Capture's own honouring of this marker (no entity row, no payload, no subtractive reconcile) is pinned by
+    // Ck.Snapshot.V3.Capture; what this asserts is that the params flag is what stamps it.
+    TestTrue(TEXT("opted-out byte attribute is marked reconstruct-only"),
+        OptOutEntity.Has<ck::FTag_Snapshot_ReconstructOnly>());
+
+    const auto OptOutApply = Handler->HydrationApply(OptOutEntity, Make_LegacyByteAttributePayload(1), {});
+    TestEqual(TEXT("opted-out byte attribute consumes a legacy save payload as Applied"),
+        OptOutApply, ECk_Persistence_ApplyResult::Applied);
+    TestEqual(TEXT("opted-out byte attribute gains no modifiers from a legacy payload"),
+        Get_ModifierChildCount(OptOutEntity), 0);
+    TestEqual(TEXT("opted-out byte attribute keeps its constructed base value"),
+        static_cast<int32>(UCk_Utils_ByteAttribute_UE::Get_BaseValue(OptOutAttribute, ECk_MinMaxCurrent::Current)), 0);
+
+    // ---- THE REGRESSION GUARD: the opt-out is save transport only ---------------------------------------------
+    // Produce is the one projection the WIRE publishes through (TProcessor_Attribute_Replicate ->
+    // UCk_Utils_Net_UE::TryProduce -> this same handler). If this ever goes unset, every opted-out attribute
+    // silently stops replicating and nothing else in the suite would say so.
+    const auto OptOutProduced = Handler->Produce(OptOutEntity);
+    TestTrue(TEXT("opted-out byte attribute STILL produces for the wire (the opt-out is save transport only)"),
+        OptOutProduced.IsSet());
+
+    // ---- the gate is the SHARED template, not a per-family copy --------------------------------------------------
+    const auto* FloatHandler = FCk_PersistenceHandlerRegistry::Find(FCk_RepData_FloatAttributes::StaticStruct());
+    if (NOT TestNotNull(TEXT("float attribute save handler registered"), FloatHandler))
+    { return true; }
+
+    auto FloatWorld = ck::FEcsWorld{};
+    auto FloatOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(FloatWorld.Get_Registry());
+    auto FloatParams = FCk_Fragment_FloatAttribute_ParamsData{TAG_Test_V3_PersistValueAttribute, 3.0f};
+    FloatParams.Set_PersistValue(ECk_EnableDisable::Disable);
+    auto FloatAttribute = FCk_Handle{UCk_Utils_FloatAttribute_UE::Add(
+        FloatOwner, FloatParams, ECk_Replication::DoesNotReplicate)};
+
+    TestTrue(TEXT("opted-out float attribute is marked reconstruct-only"),
+        FloatAttribute.Has<ck::FTag_Snapshot_ReconstructOnly>());
+    TestTrue(TEXT("opted-out float attribute STILL produces for the wire"),
+        FloatHandler->Produce(FloatAttribute).IsSet());
+    // A NON-EMPTY payload, deliberately: an empty Attributes array returns Applied with or without the
+    // gate, so the empty form would pass vacuously and prove nothing about the float family.
+    auto FloatLegacy = FCk_RepData_FloatAttributes{};
+    FloatLegacy.Attributes.Emplace(FCk_Fragment_FloatAttribute_BaseFinal{
+        TAG_Test_V3_PersistValueAttribute, 9.0f, 9.0f, ECk_MinMaxCurrent::Current});
+
+    TestEqual(TEXT("opted-out float attribute consumes a legacy save payload as Applied"),
+        FloatHandler->HydrationApply(FloatAttribute, FInstancedStruct::Make(FloatLegacy), {}),
+        ECk_Persistence_ApplyResult::Applied);
+    TestEqual(TEXT("opted-out float attribute gains no modifiers from a legacy payload"),
+        Get_ModifierChildCount(FloatAttribute), 0);
     return true;
 }
 
