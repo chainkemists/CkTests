@@ -11,6 +11,10 @@
 #include "CkGroundNav/Backend/CkGroundNav_GeometryBackend_Stub.h"
 #include "CkGroundNav/CkGroundNav_Log.h"
 #include "CkGroundNav/Field/CkGroundNav_Field.h"
+#include "CkGroundNav/Query/CkGroundNav_Query_Boundary.h"
+#include "CkGroundNav/Query/CkGroundNav_Query_Projection.h"
+#include "CkGroundNav/Query/CkGroundNav_Query_Reachability.h"
+#include "CkGroundNav/Search/CkGroundNav_PathPostProcess.h"
 #include "CkGroundNav/Search/CkGroundNav_PathSearch.h"
 
 #include "CkShapes/Capsule/CkShapeCapsule_Fragment_Data.h"
@@ -238,15 +242,31 @@ bool FCkTest_GroundNav_Reference_NumbersAreStableAndRecorded::RunTest(const FStr
 
 namespace ck_test_groundnav_reference_search
 {
+    using ck::groundnav::FCk_GroundNav_ClosestBoundaryQuery;
     using ck::groundnav::FCk_GroundNav_Field;
+    using ck::groundnav::FCk_GroundNav_IsNavigableQuery;
+    using ck::groundnav::FCk_GroundNav_PathCostParams;
     using ck::groundnav::FCk_GroundNav_PathQuery;
+    using ck::groundnav::Get_ClosestBoundary;
+    using ck::groundnav::Get_FlatPlateIndex;
+    using ck::groundnav::Get_Funnelled;
+    using ck::groundnav::Get_IsNavigable;
     using ck::groundnav::Get_Path;
 
     using ck_test_groundnav_queryfixtures::Bake;
+    using ck_test_groundnav_queryfixtures::Get_TwoRouteLengthRatio;
     using ck_test_groundnav_queryfixtures::kGroundZ;
+    using ck_test_groundnav_queryfixtures::kLCorridorGoal;
+    using ck_test_groundnav_queryfixtures::kLCorridorStart;
     using ck_test_groundnav_queryfixtures::kStepHeight;
+    using ck_test_groundnav_queryfixtures::kTwoRouteDirectProbe;
+    using ck_test_groundnav_queryfixtures::kTwoRouteGoal;
+    using ck_test_groundnav_queryfixtures::kTwoRouteStart;
+    using ck_test_groundnav_queryfixtures::Make_LCorridorScene;
+    using ck_test_groundnav_queryfixtures::Make_Params;
     using ck_test_groundnav_queryfixtures::Make_QueryParams;
     using ck_test_groundnav_queryfixtures::Make_QueryScene;
+    using ck_test_groundnav_queryfixtures::Make_TwoRouteScene;
 
     // Two routes over the query suite's own scenes rather than the bake fixture above: what a search
     // spends is a product of plates and crossings, and those are the scenes whose plates and crossings
@@ -268,6 +288,31 @@ namespace ck_test_groundnav_reference_search
     constexpr int32 kQueryRouteCellsRead = 16;
     constexpr int32 kDoorwayRouteExpansions = 3;
     constexpr int32 kDoorwayRouteCellsRead = 21;
+
+    // The same mechanism for the two numbers the cost model and the post-process are stated in, which
+    // are distances and ratios rather than counts. A float pin is unpinned at -1.0: neither a distance
+    // to a wall nor a multiplier can be negative, so the sentinel cannot collide with an answer.
+    constexpr auto kLCornerBoundaryUu = 20.0f;
+    constexpr auto kTwoRouteCrossoverMultiplier = 14.5641f;
+
+    // What two runs of the same arithmetic in floats may differ by. Far under anything a changed
+    // constant in the cost model or the funnel could move either number by.
+    constexpr auto kFloatPinTolerance = 0.01;
+
+    // Wide enough for the funnel's inset to show in the answer and narrow enough for the corridor the
+    // body is asked to walk.
+    constexpr auto kCornerRadiusUu = 20.0f;
+
+    // Wide enough to reach the walls of the corridor the corner is measured in.
+    constexpr auto kBoundaryProbeRadiusUu = 200.0f;
+
+    // One step up from unpriced, and far past any crossover: two answers a step apart give the marked
+    // plate's own leg, and the third gives what the route around it costs.
+    constexpr auto kSteppedMultiplier = 2.0f;
+    constexpr auto kPricedOutMultiplier = 1000.0f;
+
+    // Start, the one bend, goal.
+    constexpr auto kBendsOnce = 3;
 
     struct FRouteNumbers
     {
@@ -334,6 +379,116 @@ namespace ck_test_groundnav_reference_search
             InRouteName, InNumbers._Expansions, InNumbers._CellsRead, InNumbers._Crossings);
     }
 
+    auto Make_CostRouteQuery(
+        const FVector&                      InStart,
+        const FVector&                      InGoal,
+        float                               InRadiusUu,
+        const FCk_GroundNav_PathCostParams& InCost) -> FCk_GroundNav_PathQuery
+    {
+        auto Query = Make_RouteQuery(InStart, InGoal);
+
+        Query._Agent._RadiusUu = InRadiusUu;
+        Query._Cost = InCost;
+
+        return Query;
+    }
+
+    /** How far the one bend of the L corridor's answer stands from the wall it bends around. */
+    auto Measure_LCornerBoundaryUu(
+        double& OutDistanceUu) -> bool
+    {
+        auto Field = MakeShared<FCk_GroundNav_Field>();
+
+        if (NOT Bake(Make_LCorridorScene(), Make_Params(FIntPoint{1, 1}), *Field))
+        { return false; }
+
+        const auto Result = Get_Path(Field, Make_CostRouteQuery(
+            kLCorridorStart, kLCorridorGoal, kCornerRadiusUu, FCk_GroundNav_PathCostParams{}));
+
+        if (Result._Status != ECk_GroundNav_PathStatus::Ready)
+        { return false; }
+
+        auto Waypoints = TArray<FVector>{};
+        Get_Funnelled(Result, kCornerRadiusUu, Waypoints);
+
+        if (Waypoints.Num() != kBendsOnce)
+        { return false; }
+
+        auto Query = FCk_GroundNav_ClosestBoundaryQuery{};
+
+        Query._Location = Waypoints[1];
+        Query._MaxRadiusUu = kBoundaryProbeRadiusUu;
+        Query._VerticalWindowUu = kStepHeight;
+
+        const auto Boundary = Get_ClosestBoundary(*Field, Query);
+
+        if (NOT Boundary.Get_IsSuccess())
+        { return false; }
+
+        OutDistanceUu = static_cast<double>(Boundary._DistanceUu);
+
+        return true;
+    }
+
+    /**
+     * The multiplier at which the short way between the two rooms stops being worth its shortness.
+     *
+     * Read off the search's own linear response rather than assumed: one step of multiplier over an
+     * unchanged route is the marked plate's own leg, and the priced-out answer is what the way around
+     * costs, so where the two meet is arithmetic.
+     */
+    auto Measure_TwoRouteCrossover(
+        double& OutMultiplier) -> bool
+    {
+        auto Field = MakeShared<FCk_GroundNav_Field>();
+
+        if (NOT Bake(Make_TwoRouteScene(), Make_QueryParams(), *Field))
+        { return false; }
+
+        auto Probe = FCk_GroundNav_IsNavigableQuery{};
+
+        Probe._Location = kTwoRouteDirectProbe;
+        Probe._VerticalToleranceUu = kStepHeight;
+
+        const auto Standing = Get_IsNavigable(*Field, Probe);
+
+        if (NOT Standing.Get_IsSuccess())
+        { return false; }
+
+        const auto DirectPlate = Get_FlatPlateIndex(
+            *Field, Standing._Surface._TileIndex, Standing._Surface._PlateIndex);
+
+        const auto Get_CostAt = [&](float InMultiplier) -> TOptional<double>
+        {
+            auto Cost = FCk_GroundNav_PathCostParams{};
+            Cost._PlateCostMultipliers.Add(DirectPlate, InMultiplier);
+
+            const auto Result = Get_Path(
+                Field, Make_CostRouteQuery(kTwoRouteStart, kTwoRouteGoal, kNoRadius, Cost));
+
+            if (Result._Status != ECk_GroundNav_PathStatus::Ready)
+            { return {}; }
+
+            return static_cast<double>(Result._SearchCost);
+        };
+
+        const auto Unpriced = Get_CostAt(1.0f);
+        const auto Stepped = Get_CostAt(kSteppedMultiplier);
+        const auto PricedOut = Get_CostAt(kPricedOutMultiplier);
+
+        if (NOT Unpriced.IsSet() || NOT Stepped.IsSet() || NOT PricedOut.IsSet())
+        { return false; }
+
+        const auto MarkedLegUu = Stepped.GetValue() - Unpriced.GetValue();
+
+        if (MarkedLegUu <= 0.0)
+        { return false; }
+
+        OutMultiplier = 1.0 + ((PricedOut.GetValue() - Unpriced.GetValue()) / MarkedLegUu);
+
+        return true;
+    }
+
     /** A pin asserts once it holds a number; until then it says so on the log and asserts nothing. */
     auto Do_CheckPin(
         FAutomationTestBase& InTest,
@@ -350,6 +505,29 @@ namespace ck_test_groundnav_reference_search
         }
 
         InTest.TestEqual(FString{InWhat}, InMeasured, InPinned);
+    }
+
+    /** The same, for a number that is a distance or a ratio rather than a count. */
+    auto Do_CheckPinFloat(
+        FAutomationTestBase& InTest,
+        const TCHAR*         InWhat,
+        float                InPinned,
+        double               InMeasured,
+        double               InTolerance) -> void
+    {
+        if (InPinned < 0.0f)
+        {
+            ck::groundnav::Display(TEXT("{}"),
+                FString::Printf(TEXT("[SEARCH-BUDGET] %s is unpinned; measured %.4f"), InWhat, InMeasured));
+
+            return;
+        }
+
+        const auto Pinned = static_cast<double>(InPinned);
+
+        InTest.TestTrue(
+            FString::Printf(TEXT("%s [measured %.4f, pinned %.4f]"), InWhat, InMeasured, Pinned),
+            FMath::Abs(InMeasured - Pinned) <= InTolerance);
     }
 }
 
@@ -417,6 +595,35 @@ bool FCkTest_GroundNav_Reference_SearchBudgetsAreStableAndRecorded::RunTest(cons
 
     Do_CheckPin(*this, TEXT("cells read on the doorway reference route"),
         kDoorwayRouteCellsRead, DoorwayRoute._CellsRead);
+
+    // The two numbers the cost model and the post-process are stated in. A drift in the funnel's inset,
+    // in the leg formula or in what the final leg contributes moves one of them, and it is named here
+    // rather than shrugged off wherever it happens to be noticed.
+    auto LCornerUu = -1.0;
+    auto CrossoverMultiplier = -1.0;
+
+    const auto CornerMeasured = Measure_LCornerBoundaryUu(LCornerUu);
+    const auto CrossoverMeasured = Measure_TwoRouteCrossover(CrossoverMultiplier);
+
+    const auto CostReport = FString::Printf(
+        TEXT("[SEARCH-BUDGET] L corner stands %.4f from its wall for a body of %.1f; two-route crossover %.4f against a length ratio of %.4f"),
+        LCornerUu, static_cast<double>(kCornerRadiusUu), CrossoverMultiplier, Get_TwoRouteLengthRatio());
+
+    ck::groundnav::Display(TEXT("{}"), CostReport);
+
+    if (TestTrue(FString::Printf(TEXT("the L corridor answers a bend to measure [%s]"), *CostReport),
+        CornerMeasured))
+    {
+        Do_CheckPinFloat(*this, TEXT("the L corridor's bend stands this far from its wall"),
+            kLCornerBoundaryUu, LCornerUu, kFloatPinTolerance);
+    }
+
+    if (TestTrue(FString::Printf(TEXT("the two-route scene answers both of its routes [%s]"), *CostReport),
+        CrossoverMeasured))
+    {
+        Do_CheckPinFloat(*this, TEXT("the two-route crossover multiplier"),
+            kTwoRouteCrossoverMultiplier, CrossoverMultiplier, kFloatPinTolerance);
+    }
 
     return true;
 }

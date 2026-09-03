@@ -343,6 +343,345 @@ namespace ck_test_groundnav_queryfixtures
         return FMath::RadiansToDegrees(
             FMath::Acos(FMath::Clamp(FVector::DotProduct(InLeft, InRight), -1.0, 1.0)));
     }
+
+    // ----------------------------------------------------------------------------------------------------------------
+
+    // The L: a 100-wide corridor running +X along y in [0, 100] as far as x = 500, then a +Y leg in
+    // x [400, 500]. Its inside corner is the one reflex corner of the free space and therefore the only
+    // place a shortest string can bend, and it is placed where the hand-authored portal sequence the
+    // funnel is pinned against puts it, so the two speak of one shape.
+    inline constexpr auto kLCorridorCornerX = 400.0;
+    inline constexpr auto kLCorridorCornerY = 100.0;
+    inline constexpr auto kLCorridorEastX = 500.0;
+    inline constexpr auto kLCorridorNorthY = 700.0;
+
+    // On the centre line of each leg, half the corridor clear of both its walls.
+    inline const auto kLCorridorStart = FVector{50.0, 50.0, kGroundZ};
+    inline const auto kLCorridorGoal = FVector{450.0, 600.0, kGroundZ};
+
+    // A second point on the SAME leg as the start, so the string between the two bends nowhere.
+    inline const auto kLCorridorStraightGoal = FVector{350.0, 50.0, kGroundZ};
+
+    // Where the two legs' centre lines meet. The chain through it is a route the corridor admits for a
+    // body of any radius under half the width, so its length is an upper bound the shortest one holds to.
+    inline const auto kLCorridorCentreXY = FVector2D{450.0, 50.0};
+
+    /**
+     * The L corridor with ground under it, so a boundary distance can be asked of it.
+     *
+     * The hand-authored portal list the funnel is pinned against carries no field, and a claim about how
+     * far a waypoint sits from a wall has nothing to read without one. Same shape, baked.
+     */
+    inline auto Make_LCorridorScene() -> TArray<FBox>
+    {
+        auto Boxes = TArray<FBox>{};
+
+        Boxes.Emplace(FBox{FVector{-400.0, -400.0, -10.0}, FVector{1200.0, 1200.0, kGroundZ}});
+
+        Boxes.Emplace(FBox{FVector{-400.0, -400.0, 0.0}, FVector{1200.0, 0.0, 300.0}});
+        Boxes.Emplace(FBox{FVector{-400.0, -400.0, 0.0}, FVector{0.0, 1200.0, 300.0}});
+
+        Boxes.Emplace(FBox{
+            FVector{-400.0, kLCorridorCornerY, 0.0}, FVector{kLCorridorCornerX, 1200.0, 300.0}});
+
+        Boxes.Emplace(FBox{FVector{kLCorridorEastX, -400.0, 0.0}, FVector{1200.0, 1200.0, 300.0}});
+
+        Boxes.Emplace(FBox{
+            FVector{kLCorridorCornerX, kLCorridorNorthY, 0.0}, FVector{kLCorridorEastX, 1200.0, 300.0}});
+
+        return Boxes;
+    }
+
+    inline auto Bake_LCorridorScene(
+        FCk_GroundNav_Field& OutField) -> bool
+    {
+        return Bake(Make_LCorridorScene(), Make_Params(FIntPoint{1, 1}), OutField);
+    }
+
+    /** The chain through the two legs' centre lines: a feasible route, and so a bound on the shortest. */
+    inline auto Get_LCorridorCentreChainLengthUu(
+        const FVector& InStart,
+        const FVector& InGoal) -> double
+    {
+        const auto StartXY = FVector2D{InStart.X, InStart.Y};
+        const auto GoalXY = FVector2D{InGoal.X, InGoal.Y};
+
+        return FVector2D::Distance(StartXY, kLCorridorCentreXY) +
+            FVector2D::Distance(kLCorridorCentreXY, GoalXY);
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+
+    // Two rooms and two ways between them: straight through a door low in the dividing wall, or the long
+    // way over the wall's top. Each way is one homotopy class of the free space, so each has exactly one
+    // taut string and the ratio between the two is a property of the geometry alone.
+    inline constexpr auto kTwoRouteDividerMinX = 600.0;
+    inline constexpr auto kTwoRouteDividerMaxX = 700.0;
+    inline constexpr auto kTwoRouteDoorMinY = 150.0;
+    inline constexpr auto kTwoRouteDoorMaxY = 250.0;
+    inline constexpr auto kTwoRouteDividerTopY = 1275.0;
+
+    inline constexpr auto kTwoRouteFreeMinX = 100.0;
+    inline constexpr auto kTwoRouteFreeMaxX = 1200.0;
+    inline constexpr auto kTwoRouteFreeMinY = 100.0;
+    inline constexpr auto kTwoRouteFreeMaxY = 1375.0;
+
+    // Placed the same distance from the divider on either side, which is what makes the two taut lengths
+    // below closed forms rather than four separate legs.
+    inline const auto kTwoRouteStart = FVector{300.0, 300.0, kGroundZ};
+    inline const auto kTwoRouteGoal = FVector{1000.0, 300.0, kGroundZ};
+
+    // Inside the door itself, on neither room's side of it.
+    inline const auto kTwoRouteDirectProbe = FVector{650.0, 200.0, kGroundZ};
+
+    inline auto Make_TwoRouteScene() -> TArray<FBox>
+    {
+        auto Boxes = TArray<FBox>{};
+
+        Boxes.Emplace(FBox{FVector{-400.0, -400.0, -10.0}, FVector{2000.0, 2000.0, kGroundZ}});
+
+        Boxes.Emplace(FBox{FVector{-400.0, -400.0, 0.0}, FVector{2000.0, kTwoRouteFreeMinY, 300.0}});
+        Boxes.Emplace(FBox{FVector{-400.0, kTwoRouteFreeMaxY, 0.0}, FVector{2000.0, 2000.0, 300.0}});
+
+        Boxes.Emplace(FBox{
+            FVector{-400.0, kTwoRouteFreeMinY, 0.0},
+            FVector{kTwoRouteFreeMinX, kTwoRouteFreeMaxY, 300.0}});
+
+        Boxes.Emplace(FBox{
+            FVector{kTwoRouteFreeMaxX, kTwoRouteFreeMinY, 0.0},
+            FVector{2000.0, kTwoRouteFreeMaxY, 300.0}});
+
+        Boxes.Emplace(FBox{
+            FVector{kTwoRouteDividerMinX, kTwoRouteFreeMinY, 0.0},
+            FVector{kTwoRouteDividerMaxX, kTwoRouteDoorMinY, 300.0}});
+
+        Boxes.Emplace(FBox{
+            FVector{kTwoRouteDividerMinX, kTwoRouteDoorMaxY, 0.0},
+            FVector{kTwoRouteDividerMaxX, kTwoRouteDividerTopY, 300.0}});
+
+        return Boxes;
+    }
+
+    inline auto Bake_TwoRouteScene(
+        FCk_GroundNav_Field& OutField) -> bool
+    {
+        return Bake(Make_TwoRouteScene(), Make_QueryParams(), OutField);
+    }
+
+    /** Down through the door and back up, bending on its two upper corners. */
+    inline auto Get_TwoRouteDirectLengthUu() -> double
+    {
+        const auto ReachX = kTwoRouteDividerMinX - kTwoRouteStart.X;
+        const auto DropY = kTwoRouteStart.Y - kTwoRouteDoorMaxY;
+
+        return (2.0 * FMath::Sqrt((ReachX * ReachX) + (DropY * DropY))) +
+            (kTwoRouteDividerMaxX - kTwoRouteDividerMinX);
+    }
+
+    /** Up and over the divider's top, bending on its two upper corners. */
+    inline auto Get_TwoRouteDetourLengthUu() -> double
+    {
+        const auto ReachX = kTwoRouteDividerMinX - kTwoRouteStart.X;
+        const auto ClimbY = kTwoRouteDividerTopY - kTwoRouteStart.Y;
+
+        return (2.0 * FMath::Sqrt((ReachX * ReachX) + (ClimbY * ClimbY))) +
+            (kTwoRouteDividerMaxX - kTwoRouteDividerMinX);
+    }
+
+    inline auto Get_TwoRouteLengthRatio() -> double
+    {
+        return Get_TwoRouteDetourLengthUu() / Get_TwoRouteDirectLengthUu();
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+
+    // A wall across the middle of a room with a gap at each end. The short way around is the east gap,
+    // which stands on the ramp panel; the long way around is the west gap, which stands on flat floor.
+    // So the shorter route is the sloped one, and a slope penalty has something to trade against length.
+    inline constexpr auto kRampVsLevelRampStartX = 900.0;
+    inline constexpr auto kRampVsLevelRampEndX = 1500.0;
+
+    inline constexpr auto kRampVsLevelDividerMinX = 350.0;
+    inline constexpr auto kRampVsLevelDividerMaxX = 1050.0;
+    inline constexpr auto kRampVsLevelDividerMinY = 700.0;
+    inline constexpr auto kRampVsLevelDividerMaxY = 800.0;
+
+    inline constexpr auto kRampVsLevelFreeMinX = 100.0;
+    inline constexpr auto kRampVsLevelFreeMaxX = 1300.0;
+    inline constexpr auto kRampVsLevelFreeMinY = 100.0;
+    inline constexpr auto kRampVsLevelFreeMaxY = 1300.0;
+
+    // Nearer the east gap than the west one, and both on the flat half so the two ends themselves owe
+    // the slope nothing.
+    inline const auto kRampVsLevelStart = FVector{850.0, 400.0, kGroundZ};
+    inline const auto kRampVsLevelGoal = FVector{850.0, 1000.0, kGroundZ};
+
+    inline constexpr auto kRampVsLevelRampProbeX = 1150.0;
+    inline constexpr auto kRampVsLevelLevelProbeX = 200.0;
+
+    /** The panel climbs along +X only, so height is a function of X and is flat west of the panel. */
+    inline auto Get_RampVsLevelSurfaceZ(
+        double InX) -> double
+    {
+        if (InX <= kRampVsLevelRampStartX)
+        { return kGroundZ; }
+
+        return (InX - kRampVsLevelRampStartX) * FMath::Tan(FMath::DegreesToRadians(kRampAngleDegrees));
+    }
+
+    inline auto Get_RampVsLevelRampProbe() -> FVector
+    {
+        return FVector{
+            kRampVsLevelRampProbeX,
+            (kRampVsLevelDividerMinY + kRampVsLevelDividerMaxY) * 0.5,
+            Get_RampVsLevelSurfaceZ(kRampVsLevelRampProbeX)};
+    }
+
+    inline auto Get_RampVsLevelLevelProbe() -> FVector
+    {
+        return FVector{
+            kRampVsLevelLevelProbeX,
+            (kRampVsLevelDividerMinY + kRampVsLevelDividerMaxY) * 0.5,
+            Get_RampVsLevelSurfaceZ(kRampVsLevelLevelProbeX)};
+    }
+
+    inline auto Get_RampVsLevelGapLengthUu(
+        double InReachX) -> double
+    {
+        const auto ToNearY = kRampVsLevelDividerMinY - kRampVsLevelStart.Y;
+        const auto ToFarY = kRampVsLevelGoal.Y - kRampVsLevelDividerMaxY;
+
+        return FMath::Sqrt((InReachX * InReachX) + (ToNearY * ToNearY)) +
+            (kRampVsLevelDividerMaxY - kRampVsLevelDividerMinY) +
+            FMath::Sqrt((InReachX * InReachX) + (ToFarY * ToFarY));
+    }
+
+    inline auto Get_RampVsLevelLevelLengthUu() -> double
+    {
+        return Get_RampVsLevelGapLengthUu(kRampVsLevelStart.X - kRampVsLevelDividerMinX);
+    }
+
+    /** Flat floor as far as the panel's foot, and nothing under the panel: one storey throughout. */
+    inline auto Make_RampVsLevelScene() -> TArray<FBox>
+    {
+        auto Boxes = TArray<FBox>{};
+
+        Boxes.Emplace(FBox{
+            FVector{-400.0, -400.0, -10.0}, FVector{kRampVsLevelRampStartX, 2000.0, kGroundZ}});
+
+        Boxes.Emplace(FBox{FVector{-400.0, -400.0, 0.0}, FVector{2000.0, kRampVsLevelFreeMinY, 300.0}});
+        Boxes.Emplace(FBox{FVector{-400.0, kRampVsLevelFreeMaxY, 0.0}, FVector{2000.0, 2000.0, 300.0}});
+
+        Boxes.Emplace(FBox{
+            FVector{-400.0, kRampVsLevelFreeMinY, 0.0},
+            FVector{kRampVsLevelFreeMinX, kRampVsLevelFreeMaxY, 300.0}});
+
+        Boxes.Emplace(FBox{
+            FVector{kRampVsLevelFreeMaxX, kRampVsLevelFreeMinY, 0.0},
+            FVector{2000.0, kRampVsLevelFreeMaxY, 300.0}});
+
+        Boxes.Emplace(FBox{
+            FVector{kRampVsLevelDividerMinX, kRampVsLevelDividerMinY, 0.0},
+            FVector{kRampVsLevelDividerMaxX, kRampVsLevelDividerMaxY, 300.0}});
+
+        return Boxes;
+    }
+
+    inline auto Bake_RampVsLevelScene(
+        FCk_GroundNav_Field& OutField) -> bool
+    {
+        auto Backend = FCk_GroundNav_GeometryBackend_Stub{Make_RampVsLevelScene()};
+
+        const auto RiseUu = (kRampVsLevelRampEndX - kRampVsLevelRampStartX) *
+            FMath::Tan(FMath::DegreesToRadians(kRampAngleDegrees));
+
+        Backend.Add_Panel(
+            FVector{kRampVsLevelRampStartX, -400.0, kGroundZ},
+            FVector{kRampVsLevelRampEndX, -400.0, kGroundZ + RiseUu},
+            FVector{kRampVsLevelRampEndX, 2000.0, kGroundZ + RiseUu},
+            FVector{kRampVsLevelRampStartX, 2000.0, kGroundZ},
+            ck::groundnav::ECk_GroundNav_BodyKind::Surface);
+
+        return DoBake_Field(Backend, Make_QueryParams(), FCk_GroundNav_Epoch{1}, OutField).Get_IsCompleted();
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+
+    // One wall between two rooms, pierced twice: a tight door on the line the two ends already stand on,
+    // and a wide opening well off it. The tight one is the shorter route and the wide one the roomier,
+    // which is the only trade a clearance bias can make — it cannot move a string within a plate.
+    inline constexpr auto kTwoDoorDividerMinX = 550.0;
+    inline constexpr auto kTwoDoorDividerMaxX = 650.0;
+
+    inline constexpr auto kTwoDoorTightMinY = 270.0;
+    inline constexpr auto kTwoDoorTightMaxY = 330.0;
+    inline constexpr auto kTwoDoorWideMinY = 700.0;
+    inline constexpr auto kTwoDoorWideMaxY = 1000.0;
+
+    inline constexpr auto kTwoDoorFreeMinX = 100.0;
+    inline constexpr auto kTwoDoorFreeMaxX = 1100.0;
+    inline constexpr auto kTwoDoorFreeMinY = 100.0;
+    inline constexpr auto kTwoDoorFreeMaxY = 1100.0;
+
+    inline const auto kTwoDoorStart = FVector{300.0, 300.0, kGroundZ};
+    inline const auto kTwoDoorGoal = FVector{900.0, 300.0, kGroundZ};
+
+    inline const auto kTwoDoorTightProbe = FVector{600.0, 300.0, kGroundZ};
+    inline const auto kTwoDoorWideProbe = FVector{600.0, 850.0, kGroundZ};
+
+    inline auto Make_TwoDoorScene() -> TArray<FBox>
+    {
+        auto Boxes = TArray<FBox>{};
+
+        Boxes.Emplace(FBox{FVector{-400.0, -400.0, -10.0}, FVector{2000.0, 2000.0, kGroundZ}});
+
+        Boxes.Emplace(FBox{FVector{-400.0, -400.0, 0.0}, FVector{2000.0, kTwoDoorFreeMinY, 300.0}});
+        Boxes.Emplace(FBox{FVector{-400.0, kTwoDoorFreeMaxY, 0.0}, FVector{2000.0, 2000.0, 300.0}});
+
+        Boxes.Emplace(FBox{
+            FVector{-400.0, kTwoDoorFreeMinY, 0.0},
+            FVector{kTwoDoorFreeMinX, kTwoDoorFreeMaxY, 300.0}});
+
+        Boxes.Emplace(FBox{
+            FVector{kTwoDoorFreeMaxX, kTwoDoorFreeMinY, 0.0},
+            FVector{2000.0, kTwoDoorFreeMaxY, 300.0}});
+
+        Boxes.Emplace(FBox{
+            FVector{kTwoDoorDividerMinX, kTwoDoorFreeMinY, 0.0},
+            FVector{kTwoDoorDividerMaxX, kTwoDoorTightMinY, 300.0}});
+
+        Boxes.Emplace(FBox{
+            FVector{kTwoDoorDividerMinX, kTwoDoorTightMaxY, 0.0},
+            FVector{kTwoDoorDividerMaxX, kTwoDoorWideMinY, 300.0}});
+
+        Boxes.Emplace(FBox{
+            FVector{kTwoDoorDividerMinX, kTwoDoorWideMaxY, 0.0},
+            FVector{kTwoDoorDividerMaxX, kTwoDoorFreeMaxY, 300.0}});
+
+        return Boxes;
+    }
+
+    inline auto Bake_TwoDoorScene(
+        FCk_GroundNav_Field& OutField) -> bool
+    {
+        return Bake(Make_TwoDoorScene(), Make_QueryParams(), OutField);
+    }
+
+    /** Straight: the two ends stand on the tight door's own centre line, so nothing bends. */
+    inline auto Get_TwoDoorTightLengthUu() -> double
+    {
+        return kTwoDoorGoal.X - kTwoDoorStart.X;
+    }
+
+    /** Out to the wide opening and back, bending on its two near corners. */
+    inline auto Get_TwoDoorWideLengthUu() -> double
+    {
+        const auto ReachX = kTwoDoorDividerMinX - kTwoDoorStart.X;
+        const auto ClimbY = kTwoDoorWideMinY - kTwoDoorStart.Y;
+
+        return (2.0 * FMath::Sqrt((ReachX * ReachX) + (ClimbY * ClimbY))) +
+            (kTwoDoorDividerMaxX - kTwoDoorDividerMinX);
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
