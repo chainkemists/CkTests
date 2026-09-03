@@ -11,10 +11,13 @@
 #include "CkGroundNav/Backend/CkGroundNav_GeometryBackend_Stub.h"
 #include "CkGroundNav/CkGroundNav_Log.h"
 #include "CkGroundNav/Field/CkGroundNav_Field.h"
+#include "CkGroundNav/Search/CkGroundNav_PathSearch.h"
 
 #include "CkShapes/Capsule/CkShapeCapsule_Fragment_Data.h"
 
 #include "../CkUnitTest_Common.h"
+
+#include "Test_GroundNav_QueryFixtures.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -225,6 +228,195 @@ bool FCkTest_GroundNav_Reference_NumbersAreStableAndRecorded::RunTest(const FStr
 
     TestTrue(FString::Printf(TEXT("the published field holds its tiles on the heap [%s]"), *Report),
         Numbers._FieldBytes > 0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_test_groundnav_reference_search
+{
+    using ck::groundnav::FCk_GroundNav_Field;
+    using ck::groundnav::FCk_GroundNav_PathQuery;
+    using ck::groundnav::Get_Path;
+
+    using ck_test_groundnav_queryfixtures::Bake;
+    using ck_test_groundnav_queryfixtures::kGroundZ;
+    using ck_test_groundnav_queryfixtures::kStepHeight;
+    using ck_test_groundnav_queryfixtures::Make_QueryParams;
+    using ck_test_groundnav_queryfixtures::Make_QueryScene;
+
+    // Two routes over the query suite's own scenes rather than the bake fixture above: what a search
+    // spends is a product of plates and crossings, and those are the scenes whose plates and crossings
+    // every other search statement is made against.
+    const auto kQueryRouteStart = FVector{150.0, 150.0, kGroundZ};
+    const auto kQueryRouteGoal = FVector{150.0, 1450.0, kGroundZ};
+
+    const auto kDoorwayRouteStart = FVector{200.0, 500.0, kGroundZ};
+    const auto kDoorwayRouteGoal = FVector{200.0, 1400.0, kGroundZ};
+
+    // A body of no size: the radius every other statement about these two scenes is made for.
+    constexpr auto kNoRadius = 0.0f;
+
+    // Pinned from the first green run. A constant set back to INDEX_NONE reports itself and asserts
+    // nothing, which is how a deliberate change to the search is re-measured before it is re-pinned.
+    // The expansion count is A* iterations and the cell count is the query cost in the bake's own
+    // probe unit; both are deterministic for a fixture, which is what makes either assertable at all.
+    constexpr int32 kQueryRouteExpansions = 2;
+    constexpr int32 kQueryRouteCellsRead = 16;
+    constexpr int32 kDoorwayRouteExpansions = 3;
+    constexpr int32 kDoorwayRouteCellsRead = 21;
+
+    struct FRouteNumbers
+    {
+        ECk_GroundNav_PathStatus _Status = ECk_GroundNav_PathStatus::NoStartSurface;
+
+        int32 _Expansions = INDEX_NONE;
+        int32 _CellsRead = INDEX_NONE;
+        int32 _Crossings = INDEX_NONE;
+    };
+
+    /** The query scene with a second wall across its west room, pierced by a 60 uu doorway. Copied verbatim. */
+    auto Make_DoorwayScene() -> TArray<FBox>
+    {
+        auto Boxes = Make_QueryScene();
+
+        Boxes.Emplace(FBox{FVector{0.0, 1000.0, 0.0}, FVector{300.0, 1100.0, 300.0}});
+        Boxes.Emplace(FBox{FVector{360.0, 1000.0, 0.0}, FVector{700.0, 1100.0, 300.0}});
+
+        return Boxes;
+    }
+
+    auto Make_RouteQuery(
+        const FVector& InStart,
+        const FVector& InGoal) -> FCk_GroundNav_PathQuery
+    {
+        auto Query = FCk_GroundNav_PathQuery{};
+
+        Query._Start = InStart;
+        Query._Goal = InGoal;
+        Query._VerticalToleranceUu = kStepHeight;
+        Query._Agent._RadiusUu = kNoRadius;
+
+        return Query;
+    }
+
+    auto Measure_Route(
+        const TArray<FBox>& InBoxes,
+        const FVector&      InStart,
+        const FVector&      InGoal,
+        FRouteNumbers&      OutNumbers) -> bool
+    {
+        auto Field = MakeShared<FCk_GroundNav_Field>();
+
+        if (NOT Bake(InBoxes, Make_QueryParams(), *Field))
+        { return false; }
+
+        const auto Result = Get_Path(Field, Make_RouteQuery(InStart, InGoal));
+
+        OutNumbers = FRouteNumbers{};
+        OutNumbers._Status = Result._Status;
+        OutNumbers._Expansions = Result._ExpansionCount;
+        OutNumbers._CellsRead = Result._Cost._CellsRead;
+        OutNumbers._Crossings = Result._Crossings.Num();
+
+        return true;
+    }
+
+    auto Get_RouteReport(
+        const TCHAR*         InRouteName,
+        const FRouteNumbers& InNumbers) -> FString
+    {
+        return FString::Printf(
+            TEXT("[SEARCH-BUDGET] %s route: expansions %d, cells read %d, crossings %d"),
+            InRouteName, InNumbers._Expansions, InNumbers._CellsRead, InNumbers._Crossings);
+    }
+
+    /** A pin asserts once it holds a number; until then it says so on the log and asserts nothing. */
+    auto Do_CheckPin(
+        FAutomationTestBase& InTest,
+        const TCHAR*         InWhat,
+        int32                InPinned,
+        int32                InMeasured) -> void
+    {
+        if (InPinned == INDEX_NONE)
+        {
+            ck::groundnav::Display(TEXT("{}"),
+                FString::Printf(TEXT("[SEARCH-BUDGET] %s is unpinned; measured %d"), InWhat, InMeasured));
+
+            return;
+        }
+
+        InTest.TestEqual(FString{InWhat}, InMeasured, InPinned);
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Reference_SearchBudgetsAreStableAndRecorded,
+    "CkTests.UnitTests.CkGroundNav.Search.Reference_SearchBudgetsAreStableAndRecorded",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Reference_SearchBudgetsAreStableAndRecorded::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_reference_search;
+
+    auto QueryRoute = FRouteNumbers{};
+    auto DoorwayRoute = FRouteNumbers{};
+
+    if (NOT TestTrue(TEXT("the query scene bakes and answers its reference route"),
+        Measure_Route(Make_QueryScene(), kQueryRouteStart, kQueryRouteGoal, QueryRoute)))
+    { return false; }
+
+    if (NOT TestTrue(TEXT("the doorway scene bakes and answers its reference route"),
+        Measure_Route(Make_DoorwayScene(), kDoorwayRouteStart, kDoorwayRouteGoal, DoorwayRoute)))
+    { return false; }
+
+    const auto QueryReport = Get_RouteReport(TEXT("query"), QueryRoute);
+    const auto DoorwayReport = Get_RouteReport(TEXT("doorway"), DoorwayRoute);
+
+    ck::groundnav::Display(TEXT("{}"), QueryReport);
+    ck::groundnav::Display(TEXT("{}"), DoorwayReport);
+
+    // A count spent on a route nobody can walk measures nothing, so the status is checked before the
+    // budget it produced.
+    if (NOT TestEqual(FString::Printf(TEXT("the query reference route is answered [%s]"), *QueryReport),
+        QueryRoute._Status, ECk_GroundNav_PathStatus::Ready))
+    { return false; }
+
+    if (NOT TestEqual(FString::Printf(TEXT("the doorway reference route is answered [%s]"), *DoorwayReport),
+        DoorwayRoute._Status, ECk_GroundNav_PathStatus::Ready))
+    { return false; }
+
+    // Determinism is what makes a count assertable at all: the same scene and the same query must
+    // spend the same expansions every run, or no budget expressed in them could be held to.
+    auto QueryRepeat = FRouteNumbers{};
+
+    if (NOT TestTrue(TEXT("the query reference route is answered again"),
+        Measure_Route(Make_QueryScene(), kQueryRouteStart, kQueryRouteGoal, QueryRepeat)))
+    { return false; }
+
+    TestEqual(TEXT("the expansion count is identical across runs"),
+        QueryRepeat._Expansions, QueryRoute._Expansions);
+
+    TestEqual(TEXT("and so is the cell count"), QueryRepeat._CellsRead, QueryRoute._CellsRead);
+
+    TestEqual(TEXT("and so is the corridor"), QueryRepeat._Crossings, QueryRoute._Crossings);
+
+    Do_CheckPin(*this, TEXT("expansions spent on the query reference route"),
+        kQueryRouteExpansions, QueryRoute._Expansions);
+
+    Do_CheckPin(*this, TEXT("cells read on the query reference route"),
+        kQueryRouteCellsRead, QueryRoute._CellsRead);
+
+    Do_CheckPin(*this, TEXT("expansions spent on the doorway reference route"),
+        kDoorwayRouteExpansions, DoorwayRoute._Expansions);
+
+    Do_CheckPin(*this, TEXT("cells read on the doorway reference route"),
+        kDoorwayRouteCellsRead, DoorwayRoute._CellsRead);
 
     return true;
 }
