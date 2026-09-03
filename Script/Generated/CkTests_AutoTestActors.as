@@ -1869,6 +1869,32 @@ class ACk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb_Actor : AC
     }
 }
 
+class ACk_AutoTest_Crowd_GroundNav_OneProviderPerEpisode_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 40.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Crowd_GroundNav_OneProviderPerEpisode");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Crowd_GroundNav_WalksInstalledRoute_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 45.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Crowd_GroundNav_WalksInstalledRoute");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Crowd_Separation_CoincidentPairOrbitSearch_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 55.0f;
