@@ -95,7 +95,9 @@ namespace ck_test_groundnav_reference
     // 826038 before the clearance transform started consulting the connection field: every relax now
     // reads whether the neighbour is linked (one read straight, up to four around a diagonal), which is
     // what makes a wall top or a ledge an obstacle instead of open ground. + 252422 for those reads.
-    constexpr auto kReferenceProbes = 1078460;
+    // 1078460 before boundary runs were derived at bake: every cell along every plate side is visited
+    // once to decide whether a crossing covers it. + 1824 for those visits.
+    constexpr auto kReferenceProbes = 1080284;
     constexpr auto kReferenceWalkableCells = 9792;
     constexpr auto kReferencePlates = 22;
     constexpr auto kReferencePortals = 6;
