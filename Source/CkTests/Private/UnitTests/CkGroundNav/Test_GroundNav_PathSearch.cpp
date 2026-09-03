@@ -10,6 +10,12 @@
 // measured against their own order, because a consumer waits on unbuilt ground and gives up on ground
 // with nowhere to stand, and would do the wrong one if the two were ever swapped.
 //
+// What the cost model does to a route is measured the same way. Each scene it is asked over offers two
+// ways round whose taut lengths are closed forms of the geometry, so a route that flipped for the wrong
+// reason flips at the wrong number rather than merely flipping. And a search that could not reach its
+// goal is held to the two things a caller asked for: the corridor it did reach where it asked for one,
+// and nothing at all where it did not.
+//
 // The doorway and two-island scenes are rebuilt here rather than shared: their builders live inside
 // other tests' file-private namespaces and never reached the fixtures header. The boxes are copied
 // verbatim and must be kept so.
@@ -20,8 +26,10 @@
 #include "CkGroundNav/Field/CkGroundNav_Field.h"
 #include "CkGroundNav/Query/CkGroundNav_Funnel.h"
 #include "CkGroundNav/Query/CkGroundNav_QueryCore.h"
+#include "CkGroundNav/Query/CkGroundNav_Query_Boundary.h"
 #include "CkGroundNav/Query/CkGroundNav_Query_Projection.h"
 #include "CkGroundNav/Query/CkGroundNav_Query_Reachability.h"
+#include "CkGroundNav/Search/CkGroundNav_PathPostProcess.h"
 #include "CkGroundNav/Search/CkGroundNav_PathSearch.h"
 #include "CkGroundNav/Search/CkGroundNav_PlatePortalGraph.h"
 #include "CkGroundNav/Search/CkGroundNav_SearchTypes.h"
@@ -39,35 +47,73 @@ using ck::tests::kCkUnitTestFlags;
 
 namespace ck_test_groundnav_pathsearch
 {
+    using ck::groundnav::FCk_GroundNav_ClosestBoundaryQuery;
     using ck::groundnav::FCk_GroundNav_Crossing;
     using ck::groundnav::FCk_GroundNav_Field;
     using ck::groundnav::FCk_GroundNav_FieldParams;
     using ck::groundnav::FCk_GroundNav_FieldPtr;
+    using ck::groundnav::FCk_GroundNav_IsNavigableQuery;
+    using ck::groundnav::FCk_GroundNav_PathCostParams;
     using ck::groundnav::FCk_GroundNav_PathNodeId;
+    using ck::groundnav::FCk_GroundNav_PathPlan;
+    using ck::groundnav::FCk_GroundNav_PathPostParams;
     using ck::groundnav::FCk_GroundNav_PathQuery;
     using ck::groundnav::FCk_GroundNav_PathResult;
     using ck::groundnav::FCk_GroundNav_PathSearch;
+    using ck::groundnav::FCk_GroundNav_PathSharedData;
     using ck::groundnav::FCk_GroundNav_PathSliceParams;
     using ck::groundnav::FCk_GroundNav_PlatePortalGraph;
     using ck::groundnav::FCk_GroundNav_QueryAgent;
     using ck::groundnav::FCk_GroundNav_QueryCost;
+    using ck::groundnav::Get_ClosestBoundary;
     using ck::groundnav::Get_CrossingsFrom;
     using ck::groundnav::Get_CrossingTransitionPoint;
     using ck::groundnav::Get_FlatPlateIndex;
+    using ck::groundnav::Get_IsNavigable;
+    using ck::groundnav::Get_LegCost;
     using ck::groundnav::Get_Path;
+    using ck::groundnav::Get_PathPlan;
     using ck::groundnav::Get_StringPull;
 
     using ck_test_groundnav_queryfixtures::Bake;
     using ck_test_groundnav_queryfixtures::Bake_QueryScene;
+    using ck_test_groundnav_queryfixtures::Bake_RampScene;
+    using ck_test_groundnav_queryfixtures::Bake_RampVsLevelScene;
     using ck_test_groundnav_queryfixtures::Do_MakeEveryTileUnbuilt;
+    using ck_test_groundnav_queryfixtures::Get_RampVsLevelLevelLengthUu;
+    using ck_test_groundnav_queryfixtures::Get_RampVsLevelLevelProbe;
+    using ck_test_groundnav_queryfixtures::Get_RampVsLevelRampProbe;
+    using ck_test_groundnav_queryfixtures::Get_TwoDoorTightLengthUu;
+    using ck_test_groundnav_queryfixtures::Get_TwoDoorWideLengthUu;
+    using ck_test_groundnav_queryfixtures::Get_TwoRouteDetourLengthUu;
+    using ck_test_groundnav_queryfixtures::Get_TwoRouteDirectLengthUu;
+    using ck_test_groundnav_queryfixtures::Get_TwoRouteLengthRatio;
     using ck_test_groundnav_queryfixtures::kCellSize;
     using ck_test_groundnav_queryfixtures::kGroundZ;
+    using ck_test_groundnav_queryfixtures::kLCorridorGoal;
+    using ck_test_groundnav_queryfixtures::kLCorridorStart;
     using ck_test_groundnav_queryfixtures::kMaxClearance;
+    using ck_test_groundnav_queryfixtures::kRampAngleDegrees;
+    using ck_test_groundnav_queryfixtures::kRampBaseZ;
+    using ck_test_groundnav_queryfixtures::kRampMinX;
+    using ck_test_groundnav_queryfixtures::kRampVsLevelGoal;
+    using ck_test_groundnav_queryfixtures::kRampVsLevelStart;
     using ck_test_groundnav_queryfixtures::kStepHeight;
+    using ck_test_groundnav_queryfixtures::kTwoDoorGoal;
+    using ck_test_groundnav_queryfixtures::kTwoDoorStart;
+    using ck_test_groundnav_queryfixtures::kTwoDoorTightProbe;
+    using ck_test_groundnav_queryfixtures::kTwoDoorWideProbe;
+    using ck_test_groundnav_queryfixtures::kTwoRouteDirectProbe;
+    using ck_test_groundnav_queryfixtures::kTwoRouteGoal;
+    using ck_test_groundnav_queryfixtures::kTwoRouteStart;
     using ck_test_groundnav_queryfixtures::Make_FlatParams;
     using ck_test_groundnav_queryfixtures::Make_FlatScene;
+    using ck_test_groundnav_queryfixtures::Make_LCorridorScene;
+    using ck_test_groundnav_queryfixtures::Make_Params;
     using ck_test_groundnav_queryfixtures::Make_QueryParams;
     using ck_test_groundnav_queryfixtures::Make_QueryScene;
+    using ck_test_groundnav_queryfixtures::Make_TwoDoorScene;
+    using ck_test_groundnav_queryfixtures::Make_TwoRouteScene;
 
     using ck_test_groundnav_referencepaths::Get_ReferenceDistance;
     using ck_test_groundnav_referencepaths::Get_XY;
@@ -562,6 +608,209 @@ namespace ck_test_groundnav_pathsearch
             FProbePair{FVector{100.0, 300.0, kGroundZ}, FVector{600.0, 1500.0, kGroundZ}},
             FProbePair{FVector{650.0, 200.0, kGroundZ}, FVector{100.0, 1500.0, kGroundZ}},
             FProbePair{FVector{200.0, 800.0, kGroundZ}, FVector{500.0, 1300.0, kGroundZ}}};
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+
+    // The south face of the wall the doorway pierces. A search that cannot fit through the gap stops on
+    // this side of it, and a corridor that reached past it went through a door nothing admitted.
+    constexpr auto kDoorwaySealY = 1000.0;
+
+    // Wider than the 60 uu doorway can admit, and still answerable: an end is put on the ground for a
+    // body of NO size, and the crossings along the route are what the real radius is tested against.
+    constexpr auto kSealedRoomRadiusUu = 35.0f;
+
+    // Wider than any crossing a 100-wide corridor can offer, and under the field's clearance ceiling, so
+    // no door anywhere is admitted and the source stands alone with nothing to walk to.
+    constexpr auto kUnadmittedRadiusUu = 60.0f;
+
+    // Small enough for both of the two-door scene's doors, so which one a route takes is the cost model's
+    // decision rather than the geometry's.
+    constexpr auto kTwoDoorRadiusUu = 20.0f;
+
+    // One step up from unpriced. Two answers a step apart give the marked plate's own leg length, which
+    // is what turns the crossover into arithmetic instead of a hunt.
+    constexpr auto kSteppedMultiplier = 2.0f;
+
+    // Far past any crossover, so the route that comes back is the one the marked plate is not on.
+    constexpr auto kPricedOutMultiplier = 1000.0f;
+
+    // The penalty the ramp leg is priced at for the unit claim: any positive number states the same
+    // factor, and one this size keeps the two costs far enough apart to compare in floats.
+    constexpr auto kSlopePenaltyK = 2.0f;
+
+    // Comfortably past the penalty at which the ramp route stops being worth its shortness.
+    constexpr auto kSteepSlopePenaltyK = 8.0f;
+
+    // Comfortably past the bias at which the tight door stops being worth its shortness.
+    constexpr auto kStrongClearanceBiasK = 30.0f;
+
+    // The bake recovers a plane from cell heights, so the slope it reports is the authored one to within
+    // the lattice's own grain rather than to the last place.
+    constexpr auto kSlopeTolerance = 0.02;
+
+    // Far enough that the skip-first pass keeps every waypoint, so a plan is measured whole.
+    const auto kDistantAgentLocation = FVector{-5000.0, -5000.0, kGroundZ};
+
+    // Wide enough to reach the walls of any corridor these scenes carve.
+    constexpr auto kBoundaryProbeRadiusUu = 400.0f;
+
+    // No width or distance can be negative, so this reads as "nothing was measured" wherever it appears
+    // and never as an answer that happens to be very small or very large.
+    constexpr auto kNoMeasurement = -1.0;
+
+    // ----------------------------------------------------------------------------------------------------------------
+
+    /** The flat plate a probe stands on, or INDEX_NONE where the field has no ground under it. */
+    auto Get_FlatPlateAt(
+        const FCk_GroundNav_Field& InField,
+        const FVector&             InLocation) -> int32
+    {
+        auto Query = FCk_GroundNav_IsNavigableQuery{};
+
+        Query._Location = InLocation;
+        Query._VerticalToleranceUu = kStepHeight;
+
+        const auto Result = Get_IsNavigable(InField, Query);
+
+        if (NOT Result.Get_IsSuccess())
+        { return INDEX_NONE; }
+
+        return Get_FlatPlateIndex(InField, Result._Surface._TileIndex, Result._Surface._PlateIndex);
+    }
+
+    auto Make_CostQuery(
+        const FVector&                      InStart,
+        const FVector&                      InGoal,
+        float                               InRadiusUu,
+        const FCk_GroundNav_PathCostParams& InCost) -> FCk_GroundNav_PathQuery
+    {
+        auto Query = Make_PathQuery(InStart, InGoal, InRadiusUu);
+
+        Query._Cost = InCost;
+
+        return Query;
+    }
+
+    auto Make_MultipliedQuery(
+        const FVector& InStart,
+        const FVector& InGoal,
+        int32          InFlatPlate,
+        float          InMultiplier) -> FCk_GroundNav_PathQuery
+    {
+        auto Cost = FCk_GroundNav_PathCostParams{};
+        Cost._PlateCostMultipliers.Add(InFlatPlate, InMultiplier);
+
+        return Make_CostQuery(InStart, InGoal, kNoRadius, Cost);
+    }
+
+    auto Make_PartialQuery(
+        const FVector&    InStart,
+        const FVector&    InGoal,
+        float             InRadiusUu,
+        ECk_EnableDisable InAllowPartial) -> FCk_GroundNav_PathQuery
+    {
+        auto Query = Make_PathQuery(InStart, InGoal, InRadiusUu);
+
+        Query._AllowPartialPath = InAllowPartial;
+
+        return Query;
+    }
+
+    auto Make_PostParams(
+        float InRadiusUu) -> FCk_GroundNav_PathPostParams
+    {
+        auto Params = FCk_GroundNav_PathPostParams{};
+
+        Params._Agent = Make_Agent(InRadiusUu);
+        Params._VerticalToleranceUu = kStepHeight;
+        Params._AgentLocation = kDistantAgentLocation;
+
+        return Params;
+    }
+
+    auto Get_CorridorText(
+        const FCk_GroundNav_PathResult& InResult) -> FString
+    {
+        auto Text = FString{};
+
+        for (const auto Plate : InResult._PlateCorridor)
+        { Text += FString::Printf(TEXT("%d "), Plate); }
+
+        return Text;
+    }
+
+    /** The first thing two answered routes disagree about in the plates they walk, or nothing. */
+    auto Get_Disagreement_Corridor(
+        const FCk_GroundNav_PathResult& InLeft,
+        const FCk_GroundNav_PathResult& InRight) -> FString
+    {
+        if (InLeft._PlateCorridor == InRight._PlateCorridor)
+        { return FString{}; }
+
+        return FString::Printf(TEXT("plate corridor of %d vs %d plates"),
+            InLeft._PlateCorridor.Num(), InRight._PlateCorridor.Num());
+    }
+
+    /**
+     * The narrowest door on an answered route, which is the one thing a clearance bias is able to move.
+     *
+     * A route with no doors on it answers a negative width rather than an infinite one, so a comparison
+     * between two such routes reads as the refusal it is instead of as two equal infinities.
+     */
+    auto Get_NarrowestCrossingUu(
+        const FCk_GroundNav_PathResult& InResult) -> double
+    {
+        if (InResult._Crossings.IsEmpty())
+        { return kNoMeasurement; }
+
+        auto NarrowestUu = TNumericLimits<double>::Max();
+
+        for (const auto& Crossing : InResult._Crossings)
+        { NarrowestUu = FMath::Min(NarrowestUu, static_cast<double>(Crossing._ClearanceUu)); }
+
+        return NarrowestUu;
+    }
+
+    /**
+     * How near the nearest wall any waypoint of a plan comes.
+     *
+     * Asked for a body of NO size deliberately: the probe is a question about geometry, and a waypoint
+     * sitting exactly a radius from a wall stands on a cell whose own clearance may refuse that radius,
+     * which would answer about admission instead of about distance.
+     */
+    auto Get_NarrowestWaypointClearanceUu(
+        const FCk_GroundNav_Field&    InField,
+        const FCk_GroundNav_PathPlan& InPlan) -> double
+    {
+        auto NarrowestUu = TNumericLimits<double>::Max();
+        auto Measured = 0;
+
+        for (const auto& Waypoint : InPlan._Waypoints)
+        {
+            auto Query = FCk_GroundNav_ClosestBoundaryQuery{};
+
+            Query._Location = Waypoint._Location;
+            Query._MaxRadiusUu = kBoundaryProbeRadiusUu;
+            Query._VerticalWindowUu = kStepHeight;
+
+            const auto Result = Get_ClosestBoundary(InField, Query);
+
+            if (NOT Result.Get_IsSuccess())
+            { continue; }
+
+            NarrowestUu = FMath::Min(NarrowestUu, static_cast<double>(Result._DistanceUu));
+            ++Measured;
+        }
+
+        return Measured > 0 ? NarrowestUu : kNoMeasurement;
+    }
+
+    /** The ramp fixture's own plane, so a probe can be asked at a height the column actually has ground at. */
+    auto Get_RampSurfaceZ(
+        double InX) -> double
+    {
+        return kRampBaseZ + ((InX - kRampMinX) * FMath::Tan(FMath::DegreesToRadians(kRampAngleDegrees)));
     }
 }
 
@@ -1076,6 +1325,609 @@ bool FCkTest_GroundNav_Search_PreSearchStatusOrder::RunTest(const FString& Param
 
     TestEqual(FString::Printf(TEXT("and nothing expanded to find that out [%s]"), *SamePlateReport),
         SamePlate._ExpansionCount, 0);
+
+    // The one leg across that plate is still priced. A free route is a lie every reader of the cost
+    // inherits, and there is nothing about two ends sharing a plate that makes the walk between them
+    // cost nothing.
+    const auto SamePlateSpanUu = FVector::Dist(SamePlate._StartPoint, SamePlate._GoalPoint);
+
+    TestTrue(FString::Printf(TEXT("and the leg across it is priced at its own length [%s, cost %.6f, span %.6f]"),
+        *SamePlateReport, SamePlate._SearchCost, SamePlateSpanUu),
+        FMath::Abs(static_cast<double>(SamePlate._SearchCost) - SamePlateSpanUu) <= kEpsilon);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Search_CrossoverFlipsAtTheAnalyticRatio,
+    "CkTests.UnitTests.CkGroundNav.Search.Crossover_FlipsAtTheAnalyticRatio",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Search_CrossoverFlipsAtTheAnalyticRatio::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathsearch;
+
+    auto Field = FCk_GroundNav_FieldPtr{};
+
+    if (NOT TestTrue(TEXT("the two-route scene bakes"),
+        Bake_Shared(Make_TwoRouteScene(), Make_QueryParams(), Field)))
+    { return false; }
+
+    const auto DirectPlate = Get_FlatPlateAt(*Field, kTwoRouteDirectProbe);
+
+    if (NOT TestTrue(TEXT("the door through the divider stands on ground of its own"),
+        DirectPlate != INDEX_NONE))
+    { return false; }
+
+    const auto Unpriced = Get_Path(Field,
+        Make_MultipliedQuery(kTwoRouteStart, kTwoRouteGoal, DirectPlate, 1.0f));
+
+    const auto Stepped = Get_Path(Field,
+        Make_MultipliedQuery(kTwoRouteStart, kTwoRouteGoal, DirectPlate, kSteppedMultiplier));
+
+    const auto PricedOut = Get_Path(Field,
+        Make_MultipliedQuery(kTwoRouteStart, kTwoRouteGoal, DirectPlate, kPricedOutMultiplier));
+
+    const auto DirectUu = Get_PulledLengthUu(Unpriced);
+    const auto DetourUu = Get_PulledLengthUu(PricedOut);
+
+    const auto Report = FString::Printf(
+        TEXT("[SEARCH-BUDGET] two route: plate %d, unpriced %s cost %.3f pulled %.3f [%s], priced out %s cost %.3f pulled %.3f [%s], analytic %.3f / %.3f = %.4f"),
+        DirectPlate,
+        Get_StatusName(Unpriced._Status), Unpriced._SearchCost, DirectUu, *Get_CorridorText(Unpriced),
+        Get_StatusName(PricedOut._Status), PricedOut._SearchCost, DetourUu, *Get_CorridorText(PricedOut),
+        Get_TwoRouteDetourLengthUu(), Get_TwoRouteDirectLengthUu(), Get_TwoRouteLengthRatio());
+
+    ck::groundnav::Display(TEXT("{}"), Report);
+
+    if (NOT TestEqual(FString::Printf(TEXT("the unpriced query is answered [%s]"), *Report),
+        Unpriced._Status, ECk_GroundNav_PathStatus::Ready))
+    { return false; }
+
+    if (NOT TestEqual(FString::Printf(TEXT("and so is the priced-out one [%s]"), *Report),
+        PricedOut._Status, ECk_GroundNav_PathStatus::Ready))
+    { return false; }
+
+    if (NOT TestEqual(FString::Printf(TEXT("and so is the stepped one [%s]"), *Report),
+        Stepped._Status, ECk_GroundNav_PathStatus::Ready))
+    { return false; }
+
+    // The two routes are two homotopy classes of one free space, so each has exactly one taut string and
+    // the fixture's stated ratio is a property of the geometry rather than of the search.
+    TestTrue(FString::Printf(TEXT("the unpriced route is the analytic direct one [%s]"), *Report),
+        FMath::Abs(DirectUu - Get_TwoRouteDirectLengthUu()) <= kOracleToleranceUu);
+
+    TestTrue(FString::Printf(TEXT("and the priced-out route is the analytic detour [%s]"), *Report),
+        FMath::Abs(DetourUu - Get_TwoRouteDetourLengthUu()) <= kOracleToleranceUu);
+
+    // The cost prices the chain through the doors' own transition points, which is a route through the
+    // same portals as the string and therefore never the shorter of the two.
+    TestTrue(FString::Printf(TEXT("the answered cost is at least the string it priced [%s]"), *Report),
+        static_cast<double>(Unpriced._SearchCost) >= DirectUu - kEpsilon);
+
+    if (NOT TestTrue(FString::Printf(TEXT("the unpriced route goes through the marked plate [%s]"), *Report),
+        Unpriced._PlateCorridor.Contains(DirectPlate)))
+    { return false; }
+
+    if (NOT TestTrue(FString::Printf(TEXT("and the priced-out one does not [%s]"), *Report),
+        NOT PricedOut._PlateCorridor.Contains(DirectPlate)))
+    { return false; }
+
+    if (NOT TestEqual(FString::Printf(TEXT("one step of multiplier does not yet move the route [%s]"), *Report),
+        Get_Disagreement_Corridor(Unpriced, Stepped), FString{}))
+    { return false; }
+
+    // One step of multiplier over one unchanged route IS the marked plate's own leg: everything else the
+    // route is priced on stayed exactly as it was.
+    const auto MarkedLegUu =
+        static_cast<double>(Stepped._SearchCost) - static_cast<double>(Unpriced._SearchCost);
+
+    if (NOT TestTrue(FString::Printf(TEXT("and the step it costs is the marked plate's leg [%s, leg %.4f]"),
+        *Report, MarkedLegUu), MarkedLegUu > kEpsilon))
+    { return false; }
+
+    // Where the two routes cost the same, read off the search's own linear response to the multiplier
+    // rather than assumed: the priced-out answer is what the other route costs, and the step above is
+    // what one unit of multiplier buys.
+    const auto CrossoverM = 1.0 +
+        ((static_cast<double>(PricedOut._SearchCost) - static_cast<double>(Unpriced._SearchCost)) / MarkedLegUu);
+
+    // One cell of route over the leg the multiplier acts on: the finest step that is still a real
+    // difference in the answer rather than float noise.
+    const auto DeltaM = static_cast<double>(kCellSize) / MarkedLegUu;
+
+    const auto Under = Get_Path(Field, Make_MultipliedQuery(
+        kTwoRouteStart, kTwoRouteGoal, DirectPlate, static_cast<float>(CrossoverM - DeltaM)));
+
+    const auto Over = Get_Path(Field, Make_MultipliedQuery(
+        kTwoRouteStart, kTwoRouteGoal, DirectPlate, static_cast<float>(CrossoverM + DeltaM)));
+
+    const auto FlipReport = FString::Printf(
+        TEXT("[SEARCH-BUDGET] two route crossover %.4f +/- %.4f: under %s [%s], over %s [%s], length ratio %.4f"),
+        CrossoverM, DeltaM,
+        Get_StatusName(Under._Status), *Get_CorridorText(Under),
+        Get_StatusName(Over._Status), *Get_CorridorText(Over),
+        Get_TwoRouteLengthRatio());
+
+    ck::groundnav::Display(TEXT("{}"), FlipReport);
+
+    TestTrue(FString::Printf(TEXT("a plate has to be priced up before it is given up [%s]"), *FlipReport),
+        CrossoverM > 1.0);
+
+    TestTrue(FString::Printf(TEXT("just under the crossover the route still goes through it [%s]"), *FlipReport),
+        Under._PlateCorridor.Contains(DirectPlate));
+
+    TestTrue(FString::Printf(TEXT("and just over it the route no longer does [%s]"), *FlipReport),
+        NOT Over._PlateCorridor.Contains(DirectPlate));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Search_SlopeRampLosesToLevelAtThreshold,
+    "CkTests.UnitTests.CkGroundNav.Search.Slope_RampLosesToLevelAtThreshold",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Search_SlopeRampLosesToLevelAtThreshold::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathsearch;
+
+    auto RampField = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the ramp scene bakes"), Bake_RampScene(RampField)))
+    { return false; }
+
+    constexpr auto NearProbeX = 100.0;
+    constexpr auto FarProbeX = 500.0;
+    constexpr auto ProbeY = 400.0;
+
+    auto NearQuery = FCk_GroundNav_IsNavigableQuery{};
+    NearQuery._Location = FVector{NearProbeX, ProbeY, Get_RampSurfaceZ(NearProbeX)};
+    NearQuery._VerticalToleranceUu = kStepHeight;
+
+    auto FarQuery = FCk_GroundNav_IsNavigableQuery{};
+    FarQuery._Location = FVector{FarProbeX, ProbeY, Get_RampSurfaceZ(FarProbeX)};
+    FarQuery._VerticalToleranceUu = kStepHeight;
+
+    const auto Near = Get_IsNavigable(RampField, NearQuery);
+    const auto Far = Get_IsNavigable(RampField, FarQuery);
+
+    if (NOT TestTrue(TEXT("both ends of the sampled leg stand on the ramp"),
+        Near.Get_IsSuccess() && Far.Get_IsSuccess()))
+    { return false; }
+
+    const auto From = FVector{NearProbeX, ProbeY, static_cast<double>(Near._SurfaceZUu)};
+    const auto To = FVector{FarProbeX, ProbeY, static_cast<double>(Far._SurfaceZUu)};
+
+    auto Shared = FCk_GroundNav_PathSharedData{};
+    Shared._CellSizeUu = RampField._Params._Config.Get_CellSizeUu();
+
+    Shared._SlopePenaltyK = 0.0f;
+    const auto UnpricedUu = static_cast<double>(Get_LegCost(Shared, From, To, 1.0f, 1.0f));
+
+    Shared._SlopePenaltyK = kSlopePenaltyK;
+    const auto PricedUu = static_cast<double>(Get_LegCost(Shared, From, To, 1.0f, 1.0f));
+
+    const auto RunUu = FVector::Dist2D(From, To);
+    const auto RiseOverRun = FMath::Abs(To.Z - From.Z) / RunUu;
+    const auto AuthoredTangent = FMath::Tan(FMath::DegreesToRadians(kRampAngleDegrees));
+
+    const auto LegReport = FString::Printf(
+        TEXT("[SEARCH-BUDGET] ramp leg: rise over run %.6f, authored %.6f, unpriced %.6f, at k=%.1f %.6f"),
+        RiseOverRun, AuthoredTangent, UnpricedUu, static_cast<double>(kSlopePenaltyK), PricedUu);
+
+    ck::groundnav::Display(TEXT("{}"), LegReport);
+
+    if (NOT TestTrue(FString::Printf(TEXT("the sampled leg has length to price [%s]"), *LegReport),
+        UnpricedUu > kEpsilon))
+    { return false; }
+
+    // The fixture's own angle, recovered through the bake: the factor below means nothing about a ramp
+    // whose slope is not the one it was authored at.
+    TestTrue(FString::Printf(TEXT("the baked ramp rises at the tangent of its authored angle [%s]"), *LegReport),
+        FMath::Abs(RiseOverRun - AuthoredTangent) <= kSlopeTolerance);
+
+    // The whole of what the penalty does to one leg: rise over run, times the constant, plus one.
+    const auto ExpectedFactor = 1.0 + (static_cast<double>(kSlopePenaltyK) * RiseOverRun);
+
+    TestTrue(FString::Printf(TEXT("and a penalised leg costs exactly one plus k times that [%s, expected %.6f]"),
+        *LegReport, ExpectedFactor),
+        FMath::Abs((PricedUu / UnpricedUu) - ExpectedFactor) <= kEpsilon);
+
+    // ----------------------------------------------------------------------------------------------------------------
+
+    auto Baked = MakeShared<FCk_GroundNav_Field>();
+
+    if (NOT TestTrue(TEXT("the ramp-versus-level scene bakes"), Bake_RampVsLevelScene(*Baked)))
+    { return false; }
+
+    const auto Field = FCk_GroundNav_FieldPtr{Baked};
+
+    const auto RampPlate = Get_FlatPlateAt(*Field, Get_RampVsLevelRampProbe());
+    const auto LevelPlate = Get_FlatPlateAt(*Field, Get_RampVsLevelLevelProbe());
+
+    if (NOT TestTrue(TEXT("the two ways around the wall stand on two different plates"),
+        RampPlate != INDEX_NONE && LevelPlate != INDEX_NONE && RampPlate != LevelPlate))
+    { return false; }
+
+    auto UnpenalisedCost = FCk_GroundNav_PathCostParams{};
+
+    auto PenalisedCost = FCk_GroundNav_PathCostParams{};
+    PenalisedCost._SlopePenaltyK = kSteepSlopePenaltyK;
+
+    const auto Unpenalised = Get_Path(Field,
+        Make_CostQuery(kRampVsLevelStart, kRampVsLevelGoal, kNoRadius, UnpenalisedCost));
+
+    const auto Penalised = Get_Path(Field,
+        Make_CostQuery(kRampVsLevelStart, kRampVsLevelGoal, kNoRadius, PenalisedCost));
+
+    const auto RampPulledUu = Get_PulledLengthUu(Unpenalised);
+    const auto LevelPulledUu = Get_PulledLengthUu(Penalised);
+
+    // The straight line between the two ends, which the wall between them makes infeasible: a floor
+    // under both routes that no answer of either kind may come in below.
+    const auto StraightUu = FVector::Dist2D(kRampVsLevelStart, kRampVsLevelGoal);
+
+    const auto SceneReport = FString::Printf(
+        TEXT("[SEARCH-BUDGET] ramp versus level: ramp plate %d, level plate %d, unpenalised %s cost %.3f pulled %.3f [%s], at k=%.1f %s cost %.3f pulled %.3f [%s], analytic level %.3f, straight %.3f"),
+        RampPlate, LevelPlate,
+        Get_StatusName(Unpenalised._Status), Unpenalised._SearchCost,
+        RampPulledUu, *Get_CorridorText(Unpenalised),
+        static_cast<double>(kSteepSlopePenaltyK),
+        Get_StatusName(Penalised._Status), Penalised._SearchCost,
+        LevelPulledUu, *Get_CorridorText(Penalised),
+        Get_RampVsLevelLevelLengthUu(), StraightUu);
+
+    ck::groundnav::Display(TEXT("{}"), SceneReport);
+
+    if (NOT TestEqual(FString::Printf(TEXT("the unpenalised query is answered [%s]"), *SceneReport),
+        Unpenalised._Status, ECk_GroundNav_PathStatus::Ready))
+    { return false; }
+
+    if (NOT TestEqual(FString::Printf(TEXT("and so is the penalised one [%s]"), *SceneReport),
+        Penalised._Status, ECk_GroundNav_PathStatus::Ready))
+    { return false; }
+
+    // With nothing charged for climbing, the shorter way round wins, and the shorter way round is the
+    // one over the ramp.
+    TestTrue(FString::Printf(TEXT("an unpenalised route takes the shorter, sloped way [%s]"), *SceneReport),
+        Unpenalised._PlateCorridor.Contains(RampPlate));
+
+    TestTrue(FString::Printf(TEXT("and not the longer, level one [%s]"), *SceneReport),
+        NOT Unpenalised._PlateCorridor.Contains(LevelPlate));
+
+    TestTrue(FString::Printf(TEXT("a penalised route gives the slope up for the level way [%s]"), *SceneReport),
+        Penalised._PlateCorridor.Contains(LevelPlate));
+
+    TestTrue(FString::Printf(TEXT("and stops going over the ramp [%s]"), *SceneReport),
+        NOT Penalised._PlateCorridor.Contains(RampPlate));
+
+    // The level way round turns on the divider's west end and on nothing else, so its taut string is a
+    // closed form of the fixture and is held to it exactly.
+    TestTrue(FString::Printf(TEXT("the level route is the analytic long way round [%s]"), *SceneReport),
+        FMath::Abs(LevelPulledUu - Get_RampVsLevelLevelLengthUu()) <= kOracleToleranceUu);
+
+    // The sloped way round is measured rather than derived. Which corner its string turns on is the
+    // bake's answer over ground that changes plane partway along it, and the only thing the trade needs
+    // of that number is the thing asserted here: that giving the slope up costs length.
+    TestTrue(FString::Printf(TEXT("and the sloped route really is the shorter of the two [%s]"), *SceneReport),
+        RampPulledUu < LevelPulledUu - kEpsilon);
+
+    TestTrue(FString::Printf(TEXT("while still going the long way round the wall between the ends [%s]"), *SceneReport),
+        RampPulledUu >= StraightUu - kEpsilon);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Search_ClearanceBiasPicksTheWiderDoor,
+    "CkTests.UnitTests.CkGroundNav.Search.ClearanceBias_PicksTheWiderDoor",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Search_ClearanceBiasPicksTheWiderDoor::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathsearch;
+
+    auto Field = FCk_GroundNav_FieldPtr{};
+
+    if (NOT TestTrue(TEXT("the two-door scene bakes"),
+        Bake_Shared(Make_TwoDoorScene(), Make_QueryParams(), Field)))
+    { return false; }
+
+    const auto TightPlate = Get_FlatPlateAt(*Field, kTwoDoorTightProbe);
+    const auto WidePlate = Get_FlatPlateAt(*Field, kTwoDoorWideProbe);
+
+    if (NOT TestTrue(TEXT("the two openings stand on two different plates"),
+        TightPlate != INDEX_NONE && WidePlate != INDEX_NONE && TightPlate != WidePlate))
+    { return false; }
+
+    auto UnbiasedCost = FCk_GroundNav_PathCostParams{};
+
+    auto BiasedCost = FCk_GroundNav_PathCostParams{};
+    BiasedCost._ClearanceBiasK = kStrongClearanceBiasK;
+
+    const auto Unbiased = Get_Path(Field,
+        Make_CostQuery(kTwoDoorStart, kTwoDoorGoal, kTwoDoorRadiusUu, UnbiasedCost));
+
+    const auto Biased = Get_Path(Field,
+        Make_CostQuery(kTwoDoorStart, kTwoDoorGoal, kTwoDoorRadiusUu, BiasedCost));
+
+    const auto UnbiasedPlan = Get_PathPlan(Unbiased, *Field, Make_PostParams(kTwoDoorRadiusUu));
+    const auto BiasedPlan = Get_PathPlan(Biased, *Field, Make_PostParams(kTwoDoorRadiusUu));
+
+    const auto NarrowestUnbiasedUu = Get_NarrowestCrossingUu(Unbiased);
+    const auto NarrowestBiasedUu = Get_NarrowestCrossingUu(Biased);
+
+    const auto Report = FString::Printf(
+        TEXT("[SEARCH-BUDGET] two door: tight plate %d, wide plate %d, unbiased %s cost %.3f pulled %.3f door %.3f wall %.3f [%s], at k=%.1f %s cost %.3f pulled %.3f door %.3f wall %.3f [%s], analytic %.3f / %.3f"),
+        TightPlate, WidePlate,
+        Get_StatusName(Unbiased._Status), Unbiased._SearchCost, Get_PulledLengthUu(Unbiased),
+        NarrowestUnbiasedUu, Get_NarrowestWaypointClearanceUu(*Field, UnbiasedPlan), *Get_CorridorText(Unbiased),
+        static_cast<double>(kStrongClearanceBiasK),
+        Get_StatusName(Biased._Status), Biased._SearchCost, Get_PulledLengthUu(Biased),
+        NarrowestBiasedUu, Get_NarrowestWaypointClearanceUu(*Field, BiasedPlan), *Get_CorridorText(Biased),
+        Get_TwoDoorWideLengthUu(), Get_TwoDoorTightLengthUu());
+
+    ck::groundnav::Display(TEXT("{}"), Report);
+
+    if (NOT TestEqual(FString::Printf(TEXT("the unbiased query is answered [%s]"), *Report),
+        Unbiased._Status, ECk_GroundNav_PathStatus::Ready))
+    { return false; }
+
+    if (NOT TestEqual(FString::Printf(TEXT("and so is the biased one [%s]"), *Report),
+        Biased._Status, ECk_GroundNav_PathStatus::Ready))
+    { return false; }
+
+    // Nothing charged for tightness: the shorter route wins, and the shorter route is the tight door.
+    TestTrue(FString::Printf(TEXT("an unbiased route takes the tighter, shorter door [%s]"), *Report),
+        Unbiased._PlateCorridor.Contains(TightPlate));
+
+    TestTrue(FString::Printf(TEXT("a biased route gives that shortness up for the wider opening [%s]"), *Report),
+        Biased._PlateCorridor.Contains(WidePlate));
+
+    TestTrue(FString::Printf(TEXT("and stops going through the tight one [%s]"), *Report),
+        NOT Biased._PlateCorridor.Contains(TightPlate));
+
+    // Both routes leave the same room and arrive in the same one; what the bias changed is the door
+    // between them, which is the only thing a per-crossing factor is able to change.
+    if (NOT Unbiased._PlateCorridor.IsEmpty() && NOT Biased._PlateCorridor.IsEmpty())
+    {
+        TestEqual(FString::Printf(TEXT("both routes leave the plate the start stands on [%s]"), *Report),
+            Unbiased._PlateCorridor[0], Biased._PlateCorridor[0]);
+
+        TestEqual(FString::Printf(TEXT("and arrive on the plate the goal stands on [%s]"), *Report),
+            Unbiased._PlateCorridor.Last(), Biased._PlateCorridor.Last());
+    }
+
+    // The measured claim: the narrowest door the route is asked to fit through gets wider. The funnelled
+    // string still hugs whatever corners it passes, so the waypoints themselves are only reported.
+    TestTrue(FString::Printf(TEXT("the narrowest door on the route strictly widens [%s]"), *Report),
+        NarrowestBiasedUu > NarrowestUnbiasedUu + kEpsilon);
+
+    TestTrue(FString::Printf(TEXT("the unbiased route is the analytic short way through [%s]"), *Report),
+        FMath::Abs(Get_PulledLengthUu(Unbiased) - Get_TwoDoorTightLengthUu()) <= kOracleToleranceUu);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Search_PartialSealedRoomEndsAtTheSeal,
+    "CkTests.UnitTests.CkGroundNav.Search.Partial_SealedRoomEndsAtTheSeal",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Search_PartialSealedRoomEndsAtTheSeal::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathsearch;
+
+    auto Field = FCk_GroundNav_FieldPtr{};
+
+    if (NOT TestTrue(TEXT("the doorway scene bakes"),
+        Bake_Shared(Make_DoorwayScene(), Make_QueryParams(), Field)))
+    { return false; }
+
+    const auto Pair = Make_DoorwayPairs()[0];
+
+    // Wider than the doorway admits, so the labels still say the two ends MAY be joined and the search
+    // runs and exhausts rather than being refused before it starts.
+    const auto Sealed = Get_Path(Field,
+        Make_PartialQuery(Pair._Start, Pair._Goal, kSealedRoomRadiusUu, ECk_EnableDisable::Enable));
+
+    const auto Refused = Get_Path(Field,
+        Make_PartialQuery(Pair._Start, Pair._Goal, kSealedRoomRadiusUu, ECk_EnableDisable::Disable));
+
+    const auto Plan = Get_PathPlan(Sealed, *Field, Make_PostParams(kSealedRoomRadiusUu));
+    const auto RefusedPlan = Get_PathPlan(Refused, *Field, Make_PostParams(kSealedRoomRadiusUu));
+
+    const auto Report = FString::Printf(
+        TEXT("asked for a partial: %s cost %.3f, %d plates [%s], %d crossings, %d waypoints; refused: %s, %d plates, %d crossings, %d waypoints"),
+        Get_StatusName(Sealed._Status), Sealed._SearchCost,
+        Sealed._PlateCorridor.Num(), *Get_CorridorText(Sealed), Sealed._Crossings.Num(), Plan._Waypoints.Num(),
+        Get_StatusName(Refused._Status),
+        Refused._PlateCorridor.Num(), Refused._Crossings.Num(), RefusedPlan._Waypoints.Num());
+
+    ck::groundnav::Display(TEXT("{}"), Report);
+
+    if (NOT TestEqual(FString::Printf(TEXT("a search that cannot fit through the seal answers Partial [%s]"), *Report),
+        Sealed._Status, ECk_GroundNav_PathStatus::Partial))
+    { return false; }
+
+    TestTrue(FString::Printf(TEXT("with a corridor to walk [%s]"), *Report),
+        Sealed._PlateCorridor.Num() > 0);
+
+    TestTrue(FString::Printf(TEXT("beginning on the plate the start stands on [%s]"), *Report),
+        NOT Sealed._PlateCorridor.IsEmpty() &&
+        Sealed._PlateCorridor[0] == Get_FlatPlateAt(*Field, Pair._Start));
+
+    TestTrue(FString::Printf(TEXT("and every leg of it leaving the plate the leg before arrived on [%s]"), *Report),
+        Get_CorridorIsChained(Sealed));
+
+    if (NOT TestTrue(FString::Printf(TEXT("and a plan with waypoints on it [%s]"), *Report),
+        Plan._Waypoints.Num() > 0))
+    { return true; }
+
+    // A partial is the route to where the search actually got. Ending it on the far side of a seal the
+    // body cannot pass would hand a caller a line that walks into a wall.
+    TestTrue(FString::Printf(TEXT("whose last waypoint stops on the near side of the seal [%s, last y %.3f]"),
+        *Report, Plan._Waypoints.Last()._Location.Y),
+        Plan._Waypoints.Last()._Location.Y < kDoorwaySealY);
+
+    TestTrue(FString::Printf(TEXT("and stands nearer the goal than the start did [%s]"), *Report),
+        FVector::Dist2D(Plan._Waypoints.Last()._Location, Sealed._GoalPoint) <
+            FVector::Dist2D(Sealed._StartPoint, Sealed._GoalPoint));
+
+    // A caller that did not ask for a partial is not given one: an answer it cannot tell from a route is
+    // worse than no answer.
+    TestEqual(FString::Printf(TEXT("a search that was not asked for a partial answers Unreachable [%s]"), *Report),
+        Refused._Status, ECk_GroundNav_PathStatus::Unreachable);
+
+    TestEqual(FString::Printf(TEXT("with no doors to walk through [%s]"), *Report),
+        Refused._Crossings.Num(), 0);
+
+    TestEqual(FString::Printf(TEXT("no plates to walk over [%s]"), *Report),
+        Refused._PlateCorridor.Num(), 0);
+
+    TestEqual(FString::Printf(TEXT("and a plan with nothing on it [%s]"), *Report),
+        RefusedPlan._Waypoints.Num(), 0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Search_PartialNodeCapReportsPartialOrBudgetExceeded,
+    "CkTests.UnitTests.CkGroundNav.Search.Partial_NodeCapReportsPartialOrBudgetExceeded",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Search_PartialNodeCapReportsPartialOrBudgetExceeded::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathsearch;
+
+    auto Field = FCk_GroundNav_FieldPtr{};
+
+    if (NOT TestTrue(TEXT("the doorway scene bakes"),
+        Bake_Shared(Make_DoorwayScene(), Make_QueryParams(), Field)))
+    { return false; }
+
+    auto Pair = FProbePair{};
+    auto Uncapped = FCk_GroundNav_PathResult{};
+
+    if (NOT TestTrue(TEXT("the scene offers a route costing more than one expansion"),
+        Get_SearchedPair(Field, Make_DoorwayPairs(), kMinCappedExpansions, Pair, Uncapped)))
+    { return false; }
+
+    const auto SpentExpansions = Uncapped._ExpansionCount;
+
+    auto Asked = Make_PartialQuery(Pair._Start, Pair._Goal, kNoRadius, ECk_EnableDisable::Enable);
+    Asked._MaxExpansions = SpentExpansions - 1;
+
+    auto NotAsked = Make_PartialQuery(Pair._Start, Pair._Goal, kNoRadius, ECk_EnableDisable::Disable);
+    NotAsked._MaxExpansions = SpentExpansions - 1;
+
+    const auto Partial = Get_Path(Field, Asked);
+    const auto Refused = Get_Path(Field, NotAsked);
+
+    const auto Report = FString::Printf(
+        TEXT("uncapped %s in %d expansions; capped at %d: asked %s with %d plates [%s], not asked %s with %d plates"),
+        Get_StatusName(Uncapped._Status), SpentExpansions, SpentExpansions - 1,
+        Get_StatusName(Partial._Status), Partial._PlateCorridor.Num(), *Get_CorridorText(Partial),
+        Get_StatusName(Refused._Status), Refused._PlateCorridor.Num());
+
+    ck::groundnav::Display(TEXT("{}"), Report);
+
+    // A cap is a ceiling on the WORK, so a caller who said it would take what was found is given it.
+    TestEqual(FString::Printf(TEXT("a capped search that asked for a partial answers Partial [%s]"), *Report),
+        Partial._Status, ECk_GroundNav_PathStatus::Partial);
+
+    TestNotEqual(FString::Printf(TEXT("and never a truncated Ready [%s]"), *Report),
+        Partial._Status, ECk_GroundNav_PathStatus::Ready);
+
+    TestTrue(FString::Printf(TEXT("with the corridor it did reach [%s]"), *Report),
+        Partial._PlateCorridor.Num() > 0);
+
+    TestEqual(FString::Printf(TEXT("one that did not ask answers BudgetExceeded [%s]"), *Report),
+        Refused._Status, ECk_GroundNav_PathStatus::BudgetExceeded);
+
+    TestNotEqual(FString::Printf(TEXT("and never a truncated Ready either [%s]"), *Report),
+        Refused._Status, ECk_GroundNav_PathStatus::Ready);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Search_PartialBestNodeIsSourceIsUnreachable,
+    "CkTests.UnitTests.CkGroundNav.Search.Partial_BestNodeIsSourceIsUnreachable",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Search_PartialBestNodeIsSourceIsUnreachable::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathsearch;
+
+    auto Field = FCk_GroundNav_FieldPtr{};
+
+    if (NOT TestTrue(TEXT("the L corridor scene bakes"),
+        Bake_Shared(Make_LCorridorScene(), Make_Params(FIntPoint{1, 1}), Field)))
+    { return false; }
+
+    // The same query for a body that fits: what follows is a statement about the radius, and would say
+    // nothing if the corridor refused every body.
+    const auto Answerable = Get_Path(Field,
+        Make_PartialQuery(kLCorridorStart, kLCorridorGoal, kNoRadius, ECk_EnableDisable::Enable));
+
+    if (NOT TestEqual(TEXT("the corridor answers a body of no size"),
+        Answerable._Status, ECk_GroundNav_PathStatus::Ready))
+    { return false; }
+
+    if (NOT TestTrue(TEXT("and does so through at least one door"), Answerable._Crossings.Num() > 0))
+    { return false; }
+
+    const auto Asked = Get_Path(Field,
+        Make_PartialQuery(kLCorridorStart, kLCorridorGoal, kUnadmittedRadiusUu, ECk_EnableDisable::Enable));
+
+    const auto NotAsked = Get_Path(Field,
+        Make_PartialQuery(kLCorridorStart, kLCorridorGoal, kUnadmittedRadiusUu, ECk_EnableDisable::Disable));
+
+    const auto Plan = Get_PathPlan(Asked, *Field, Make_PostParams(kUnadmittedRadiusUu));
+
+    const auto Report = FString::Printf(
+        TEXT("a body of %.0f: asked %s with %d plates, %d crossings, %d waypoints; not asked %s with %d plates"),
+        static_cast<double>(kUnadmittedRadiusUu),
+        Get_StatusName(Asked._Status), Asked._PlateCorridor.Num(), Asked._Crossings.Num(), Plan._Waypoints.Num(),
+        Get_StatusName(NotAsked._Status), NotAsked._PlateCorridor.Num());
+
+    ck::groundnav::Display(TEXT("{}"), Report);
+
+    // Nothing the search expanded ever stood closer to the goal than standing still did, so there is no
+    // corridor to walk back and an empty one is not a partial answer.
+    TestEqual(FString::Printf(TEXT("a body no door admits is Unreachable even having asked for a partial [%s]"), *Report),
+        Asked._Status, ECk_GroundNav_PathStatus::Unreachable);
+
+    TestNotEqual(FString::Printf(TEXT("and never Partial [%s]"), *Report),
+        Asked._Status, ECk_GroundNav_PathStatus::Partial);
+
+    TestEqual(FString::Printf(TEXT("with no plates to walk over [%s]"), *Report),
+        Asked._PlateCorridor.Num(), 0);
+
+    TestEqual(FString::Printf(TEXT("no doors to walk through [%s]"), *Report),
+        Asked._Crossings.Num(), 0);
+
+    TestEqual(FString::Printf(TEXT("and a plan with nothing on it [%s]"), *Report),
+        Plan._Waypoints.Num(), 0);
+
+    TestEqual(FString::Printf(TEXT("and the same answer for a caller that never asked [%s]"), *Report),
+        NotAsked._Status, ECk_GroundNav_PathStatus::Unreachable);
 
     return true;
 }
