@@ -1,8 +1,12 @@
 // Language=angelscript
+// Settle questions go to the neutral nav surface, and on CkGroundNav the fixture stages its own field
+// over the origin floor, so it runs unchanged on any provider.
 
 class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 20.0f;
+
+    private FCkAutoTest_GroundNavFixture _Field;
 
     private FCk_Handle             _QueueOwner;
     private FCk_Handle_Queue       _Queue;
@@ -19,10 +23,21 @@ class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTe
     {
         auto LocalHandle = InHandle;
         utils_transform::Add(LocalHandle, FTransform::Identity, ECk_Replication::DoesNotReplicate);
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        // On CkGroundNav nothing in the shared level carries a field, so the fixture stages one over
+        // the origin floor; on Recast the level's own navmesh is the surface and nothing is staged.
+        if (utils_nav_surface::Get_Provider() == ECk_NavSurface_Provider::GroundNav &&
+            _Field.Request_StageOriginField(InHandle) == false)
+        {
+            FinishFailure(_Field.Get_StagingError());
+            return;
+        }
 
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
+
+        Add_Step_WaitUntil("the nav surface settled", n"Check_SurfaceSettled");
         Add_Step_WaitUntil("front location is navigable before null markup", n"Check_FrontNavigable");
         Add_Step("compose a queue and paint a null area over its only front", n"Step_ComposeBlockedQueue");
+        Add_Step_WaitUntil("the nav surface settled", n"Check_SurfaceSettled");
         Add_Step_WaitUntil("null markup removes the front from navigation", n"Check_FrontBlocked");
         Add_Step("join a member into the impossible formation", n"Step_RequestJoin");
         Add_Step_WaitUntil("queue exhausts its one navigation retry", n"Check_RetryExhausted");
@@ -37,6 +52,9 @@ class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTe
     UFUNCTION(BlueprintOverride)
     void DoEndPlay(FCk_Handle InHandle)
     {
+        _Field.Do_ReportCrossover("Queue_NavigationChangeRetriesImpossibleFormation", IsFinished() ? "finished" : "unfinished");
+        _Field.Request_ReleaseOriginField();
+
         DestroyMarkup();
     }
 
@@ -57,13 +75,19 @@ class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTe
     }
 
     UFUNCTION()
+    private void Check_SurfaceSettled(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Result = OutResult;
+        Result.Set(utils_nav_surface::Get_IsSurfaceSettled());
+    }
+
+    UFUNCTION()
     private void Check_FrontNavigable(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        FVector Projected;
-        auto Context = InHandle;
-        const bool Projects = utils_nav::Try_ProjectOntoNavmesh(
-            Context, FVector(200.0f, 0.0f, 0.0f), 20.0f, Projected, 300.0f);
-        if (Projects) { _FrontWorld = Projected; }
+        const auto Projected = Do_ProjectOntoSurface(
+            FVector(200.0f, 0.0f, 0.0f), FVector(20.0f, 20.0f, 300.0f));
+        const bool Projects = Projected.Get_Status() == ECk_NavSurface_QueryStatus::Success;
+        if (Projects) { _FrontWorld = Projected.Get_Location(); }
         auto Result = OutResult;
         Result.Set(Projects);
     }
@@ -83,26 +107,23 @@ class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTe
             FCk_Delegate_Queue_OnFormationStateChanged(this, n"OnFormationStateChanged"));
         _Member = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto MarkupOwner = InHandle;
         auto MarkupRequest = FCk_Request_NavSurface_AreaMarkup(
             utils_shapes::Make_Box(FCk_ShapeBox_Dimensions(FVector(180.0f, 180.0f, 300.0f))),
             FGameplayTag());
         MarkupRequest.Set_WorldTransform(FTransform(FRotator::ZeroRotator, _FrontWorld, FVector::OneVector));
 
         _Markup = utils_nav_surface::Request_ImpassableBox(MarkupRequest);
-        utils_nav::Request_NavigationRebuild_ForTesting(MarkupOwner);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
     }
 
     UFUNCTION()
     private void Check_FrontBlocked(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        FVector FrontProjected;
-        FVector ApproachProjected;
-        auto Context = InHandle;
-        const bool FrontProjects = utils_nav::Try_ProjectOntoNavmesh(
-            Context, _FrontWorld, 20.0f, FrontProjected, 300.0f);
-        const bool ApproachProjects = utils_nav::Try_ProjectOntoNavmesh(
-            Context, _FrontWorld + FVector(-500.0f, 0.0f, 0.0f), 20.0f, ApproachProjected, 300.0f);
+        const auto ProbeExtents = FVector(20.0f, 20.0f, 300.0f);
+        const bool FrontProjects = Do_ProjectOntoSurface(
+            _FrontWorld, ProbeExtents).Get_Status() == ECk_NavSurface_QueryStatus::Success;
+        const bool ApproachProjects = Do_ProjectOntoSurface(
+            _FrontWorld + FVector(-500.0f, 0.0f, 0.0f), ProbeExtents).Get_Status() == ECk_NavSurface_QueryStatus::Success;
         auto Result = OutResult;
         Result.Set(ck::IsValid(_Markup) && FrontProjects == false && ApproachProjects);
     }
@@ -136,10 +157,9 @@ class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTe
             "impossible formation publishes no target assignment revision");
         Assert_True(Snapshot.Get_State() == ECk_Queue_MemberState::PendingAdmission,
             "member remains pending rather than falsely arriving on blocked topology");
-        FVector ApproachProjected;
-        auto Context = InHandle;
-        Assert_True(utils_nav::Try_ProjectOntoNavmesh(
-                Context, _FrontWorld + FVector(-500.0f, 0.0f, 0.0f), 20.0f, ApproachProjected, 300.0f),
+        Assert_True(Do_ProjectOntoSurface(
+                _FrontWorld + FVector(-500.0f, 0.0f, 0.0f),
+                FVector(20.0f, 20.0f, 300.0f)).Get_Status() == ECk_NavSurface_QueryStatus::Success,
             "target-only null markup preserves the queue approach navigation area");
     }
 
@@ -157,10 +177,8 @@ class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTe
     UFUNCTION()
     private void Check_NavigationChanged(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        FVector Projected;
-        auto Context = InHandle;
-        const bool FrontRestored = utils_nav::Try_ProjectOntoNavmesh(
-            Context, _FrontWorld, 20.0f, Projected, 300.0f);
+        const bool FrontRestored = Do_ProjectOntoSurface(
+            _FrontWorld, FVector(20.0f, 20.0f, 300.0f)).Get_Status() == ECk_NavSurface_QueryStatus::Success;
         auto Result = OutResult;
         Result.Set(FrontRestored && _NavigationChangedEvents == 1
             && _NavigationChangedRevision > _RetryExhaustedRevision);
@@ -189,6 +207,15 @@ class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTe
             "navigation recovery advances the formation revision after exhaustion");
         Assert_True(Snapshot.Get_AssignmentRevision() > _NavigationChangedRevision,
             "recovered topology publishes a fresh assignment after NavigationChanged");
+    }
+
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
     }
 
     private void DestroyMarkup()

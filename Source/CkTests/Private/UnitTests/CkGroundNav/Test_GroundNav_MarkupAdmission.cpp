@@ -9,9 +9,11 @@
 // A volume here never PUBLISHES a field: that needs a physics world for the geometry backend, and the
 // published field is writable only by the build, the repair and the cost derive. So the walkability
 // hand-off is pinned here in its nothing-published form, which is a rule of its own - nothing is
-// marked, because the first build bakes the record in through the volume's records. The
-// published-field form, where a walkability change marks its record's ground and arms a repair, is
-// pinned by the PIE repair tests, CkAutoTest_GroundNav_Repair_*.
+// marked, because the first build bakes the record in through the volume's records. Its one exception
+// is reachable headlessly and pinned here too: a build already RUNNING has snapshotted its records, so
+// a change arriving mid-build is owed a repair even with nothing published yet. The published-field
+// form, where a walkability change marks its record's ground and arms a repair, is pinned by the PIE
+// repair tests, CkAutoTest_GroundNav_Repair_*.
 
 #include "CkCore/Time/CkTime.h"
 
@@ -80,6 +82,11 @@ namespace ck_test_groundnav_markup
         return FCk_AnyShape{FCk_ShapeBox_Dimensions{InHalfExtents}};
     }
 
+    auto Make_DirtyBox() -> FBox
+    {
+        return FBox{FVector{100.0, 100.0, -50.0}, FVector{300.0, 300.0, 100.0}};
+    }
+
     auto Make_Listener() -> TStrongObjectPtr<UCk_Test_CompletionListener_UE>
     {
         return TStrongObjectPtr<UCk_Test_CompletionListener_UE>{
@@ -127,6 +134,18 @@ namespace ck_test_groundnav_markup
             InVolume.Get<ck::FFragment_GroundNavVolume_RepairState>(),
             InVolume.Get<ck::FFragment_GroundNavVolume_Markup>(),
             InVolume.Get<ck::FFragment_GroundNavVolume_MarkupRequests>());
+    }
+
+    auto DoDrain_RepairRequests(
+        ck::FEcsWorld&              InWorld,
+        FCk_Handle_GroundNavVolume& InVolume) -> void
+    {
+        ck::FProcessor_GroundNavVolume_HandleRepairRequests{InWorld.Get_Registry()}.ForEachEntity(
+            FCk_Time{kSixtyHertz},
+            InVolume,
+            InVolume.Get<ck::FFragment_GroundNavVolume_BuiltField>(),
+            InVolume.Get<ck::FFragment_GroundNavVolume_RepairState>(),
+            InVolume.Get<ck::FFragment_GroundNavVolume_RepairRequests>());
     }
 }
 
@@ -744,6 +763,149 @@ bool FCkTest_GroundNav_Markup_TeardownCancelsPendingRequests::RunTest(const FStr
 
     TestTrue(TEXT("and nothing was admitted on the way out"),
         UCk_Utils_GroundNavVolume_UE::Get_MarkupRecords(Volume).IsEmpty());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// The one walkability case that is NOT the nothing-published wait above. A build SNAPSHOTS the volume's
+// records when it starts, so a paint arriving while one is running is outside what that build will bake:
+// the field it publishes will decide the record's ground without knowing the record. That ground is
+// therefore owed a repair the moment the build publishes, and the footprint the record covers is what
+// the repair takes. Without a build running the same paint marks nothing, which
+// Markup_WalkabilityRecordMarksNothingUntilAFieldIsPublished pins in all three of its shapes.
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Markup_WalkabilityRecordDuringABuildRaisesARepair,
+    "CkTests.UnitTests.CkGroundNav.Volume.Markup_WalkabilityRecordDuringABuildRaisesARepair",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Markup_WalkabilityRecordDuringABuildRaisesARepair::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_markup;
+
+    DoRegister_TestAreaPolicies();
+
+    auto World = ck::FEcsWorld{};
+
+    auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(World.Get_Registry());
+    auto Volume = UCk_Utils_GroundNavVolume_UE::Add(Owner, Make_Params());
+    auto MarkupEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(World.Get_Registry());
+
+    if (NOT TestTrue(TEXT("the volume has published no field, so the running build is the only thing that can mark anything"),
+        ck::IsValid(Volume) && ck::Is_NOT_Valid(UCk_Utils_GroundNavVolume_UE::Get_Field(Volume))))
+    { return false; }
+
+    // The tag a volume carries between StartBuild and the publish that ends the build. Added directly
+    // because opening a real build needs a physics world for the geometry backend.
+    Volume.AddOrGet<ck::FTag_GroundNavVolume_BuildInProgress>();
+
+    const auto Listener = Make_Listener();
+
+    UCk_Utils_GroundNavVolume_UE::Request_AreaMarkup(Volume,
+        FCk_Request_GroundNavVolume_AreaMarkup{
+            MarkupEntity,
+            Make_Box(FVector{100.0}),
+            FTransform{FVector{200.0, 200.0, 0.0}},
+            TAG_Test_GroundNav_Markup_Blocked.GetTag()},
+        Make_Delegate(Listener.Get()));
+
+    DoDrain_MarkupRequests(World, Volume);
+
+    if (NOT TestEqual(TEXT("the drain admits exactly one record"),
+        UCk_Utils_GroundNavVolume_UE::Get_MarkupRecords(Volume).Num(), 1))
+    { return false; }
+
+    TestTrue(TEXT("a paint landing outside the running build's snapshot arms a repair for after its publish"),
+        Volume.Has<ck::FTag_GroundNavVolume_NeedsRepair>());
+    TestTrue(TEXT("and marks the record's own ground for that repair to take"),
+        UCk_Utils_GroundNavVolume_UE::Get_PendingDirtyBounds(Volume).IsValid != 0);
+
+    TestFalse(TEXT("and raises no cost tag - the two kinds are answered by different stages"),
+        Volume.Has<ck::FTag_GroundNavVolume_MarkupCostDirty>());
+
+    TestEqual(TEXT("the request completes exactly once"), Listener->_TimesRequestCompleted, 1);
+    TestTrue(TEXT("reporting Succeeded - the request rides admission, never the repair it armed"),
+        Listener->_LastRequestResult == ECk_Request_OperationResult::Succeeded);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// A dirty region raised while a build is running is PARKED, not refused. The build snapshotted the
+// volume when it started, so the region names ground that build will publish without having looked at
+// it - and the repair that answers the region can only open once there IS a published field to carry
+// its untouched tiles over from. Its caller therefore hears nothing yet: a verdict now would be a
+// verdict about ground no stage has been to. With nothing published AND no build coming there is no
+// publish to wait for, and the same region is refused rather than parked forever.
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Repair_RegionDuringABuildWaitsForItsPublish,
+    "CkTests.UnitTests.CkGroundNav.Volume.Repair_RegionDuringABuildWaitsForItsPublish",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Repair_RegionDuringABuildWaitsForItsPublish::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_markup;
+
+    auto World = ck::FEcsWorld{};
+
+    auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(World.Get_Registry());
+    auto Volume = UCk_Utils_GroundNavVolume_UE::Add(Owner, Make_Params());
+
+    if (NOT TestTrue(TEXT("the volume composes and has published no field"),
+        ck::IsValid(Volume) && ck::Is_NOT_Valid(UCk_Utils_GroundNavVolume_UE::Get_Field(Volume))))
+    { return false; }
+
+    Volume.AddOrGet<ck::FTag_GroundNavVolume_BuildInProgress>();
+
+    const auto Listener = Make_Listener();
+
+    UCk_Utils_GroundNavVolume_UE::Request_Repair(Volume,
+        FCk_Request_GroundNavVolume_Repair{Make_DirtyBox()},
+        Make_Delegate(Listener.Get()));
+
+    DoDrain_RepairRequests(World, Volume);
+
+    TestTrue(TEXT("a region raised during a build arms a repair for after that build's publish"),
+        Volume.Has<ck::FTag_GroundNavVolume_NeedsRepair>());
+    TestTrue(TEXT("and the ground it named is accumulated on the volume"),
+        UCk_Utils_GroundNavVolume_UE::Get_PendingDirtyBounds(Volume).IsValid != 0);
+
+    TestEqual(TEXT("the request is parked, not answered - nothing has looked at that ground yet"),
+        Listener->_TimesRequestCompleted, 0);
+
+    // The negative, on a volume of its own so the parked request above cannot colour it: with nothing
+    // published and no build coming there is no publish for the region to wait for, and a retry would
+    // not change that - which is exactly what Failed says.
+    auto QuietOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(World.Get_Registry());
+    auto QuietVolume = UCk_Utils_GroundNavVolume_UE::Add(QuietOwner, Make_Params());
+
+    if (NOT TestTrue(TEXT("the second volume carries neither a published field nor any build marker"),
+        ck::Is_NOT_Valid(UCk_Utils_GroundNavVolume_UE::Get_Field(QuietVolume)) &&
+        NOT QuietVolume.Has<ck::FTag_GroundNavVolume_BuildInProgress>() &&
+        NOT QuietVolume.Has<ck::FTag_GroundNavVolume_NeedsBuild>()))
+    { return false; }
+
+    const auto QuietListener = Make_Listener();
+
+    UCk_Utils_GroundNavVolume_UE::Request_Repair(QuietVolume,
+        FCk_Request_GroundNavVolume_Repair{Make_DirtyBox()},
+        Make_Delegate(QuietListener.Get()));
+
+    DoDrain_RepairRequests(World, QuietVolume);
+
+    TestEqual(TEXT("a region with no publish to wait for completes exactly once"),
+        QuietListener->_TimesRequestCompleted, 1);
+    TestTrue(TEXT("reporting Failed - a build is what bakes that ground"),
+        QuietListener->_LastRequestResult == ECk_Request_OperationResult::Failed);
+
+    TestFalse(TEXT("and it arms no repair"),
+        QuietVolume.Has<ck::FTag_GroundNavVolume_NeedsRepair>());
+    TestFalse(TEXT("and marks no dirty ground"),
+        UCk_Utils_GroundNavVolume_UE::Get_PendingDirtyBounds(QuietVolume).IsValid != 0);
 
     return true;
 }

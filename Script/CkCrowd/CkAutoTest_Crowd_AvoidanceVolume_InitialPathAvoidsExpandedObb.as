@@ -1,8 +1,12 @@
 // Language=angelscript
+// Every nav query and rebuild kick goes to the neutral nav surface, and on CkGroundNav the fixture
+// stages its own field over the origin floor, so it runs unchanged on any provider.
 
 class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 25.0f;
+
+    private FCkAutoTest_GroundNavFixture _Field;
 
     private const float AgentRadius = 42.0f;
     private const FVector Spawn = FVector(-700.0, 0.0, 100.0);
@@ -36,7 +40,16 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
         utils_transform::Add(LocalHandle,
             FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        // On CkGroundNav nothing in the shared level carries a field, so the fixture stages one over
+        // the origin floor; on Recast the level's own navmesh is the surface and nothing is staged.
+        if (utils_nav_surface::Get_Provider() == ECk_NavSurface_Provider::GroundNav &&
+            _Field.Request_StageOriginField(InHandle) == false)
+        {
+            FinishFailure(_Field.Get_StagingError());
+            return;
+        }
+
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
@@ -58,13 +71,14 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
         }
         if (_RouteIssued == false)
         {
-            FVector Projected;
-            if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, FVector::ZeroVector, 100.0f, Projected, 300.0f) == false)
+            const auto CorridorProbeExtents = FVector(100.0, 100.0, 300.0);
+            const auto Projected = Do_ProjectOntoSurface(FVector::ZeroVector, CorridorProbeExtents);
+            if (Projected.Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { return; }
-            _Centre = FVector(0.0, 0.0, float(Projected.Z));
-            if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, Spawn + FVector(0.0, 0.0, _Centre.Z), 100.0f, Projected, 300.0f) == false)
+            _Centre = FVector(0.0, 0.0, float(Projected.Get_Location().Z));
+            if (Do_ProjectOntoSurface(Spawn + FVector(0.0, 0.0, _Centre.Z), CorridorProbeExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { return; }
-            if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, Goal + FVector(0.0, 0.0, _Centre.Z), 100.0f, Projected, 300.0f) == false)
+            if (Do_ProjectOntoSurface(Goal + FVector(0.0, 0.0, _Centre.Z), CorridorProbeExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { return; }
             SpawnVolumeAndAgent(SelfHandle);
             return;
@@ -154,6 +168,15 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
         _ReplacementRouteIssued = true;
     }
 
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
+    }
+
     private void BeginSealedCorridor(FCk_Handle& InOwner)
     {
         utils_entity_lifetime::Request_DestroyEntity(_AgentEntity);
@@ -161,7 +184,7 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
         const auto WallCentreY = SealedCorridorHalfWidth + SealedWallHalfExtent;
         _TopWall = Paint_SealedWall(FVector(0.0, WallCentreY, _Centre.Z));
         _BottomWall = Paint_SealedWall(FVector(0.0, -WallCentreY, _Centre.Z));
-        utils_nav::Request_NavigationRebuild_ForTesting(InOwner);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         _VolumeEntity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         auto VolumeTransform = utils_transform::Add(_VolumeEntity,
@@ -289,6 +312,9 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
     UFUNCTION(BlueprintOverride)
     void DoEndPlay(FCk_Handle InHandle)
     {
+        _Field.Do_ReportCrossover("Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb", IsFinished() ? "finished" : "unfinished");
+        _Field.Request_ReleaseOriginField();
+
         if (ck::IsValid(_VolumeEntity)) { utils_entity_lifetime::Request_DestroyEntity(_VolumeEntity); }
         if (ck::IsValid(_AgentEntity)) { utils_entity_lifetime::Request_DestroyEntity(_AgentEntity); }
         if (ck::IsValid(_TopWall))
