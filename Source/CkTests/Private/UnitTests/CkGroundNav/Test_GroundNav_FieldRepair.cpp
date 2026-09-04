@@ -21,6 +21,7 @@
 // only where it moved" be an assertion rather than a restatement of the tile count.
 
 #include "CkGroundNav/Backend/CkGroundNav_GeometryBackend_Stub.h"
+#include "CkGroundNav/Bake/CkGroundNav_LinkTypes.h"
 #include "CkGroundNav/CkGroundNav_Log.h"
 #include "CkGroundNav/Field/CkGroundNav_Field.h"
 #include "CkGroundNav/Field/CkGroundNav_FieldRepair.h"
@@ -267,6 +268,39 @@ namespace ck_test_groundnav_fieldrepair
         }
 
         return Indices;
+    }
+
+    // A link whose two ends stand on tile 4 and tile 8 - the centre tile and the far corner - neither
+    // of which the moved obstacle's dirty box selects, halo included. What it pins is that a repair
+    // which re-bakes SOMEWHERE ELSE still re-resolves the link to exactly what a full bake of the same
+    // world resolves it to, rather than carrying an entry across that names the old plate numbering.
+    constexpr auto kLinkStartTileIndex = 4;
+    constexpr auto kLinkEndTileIndex = 8;
+
+    const auto kLinkStart = FVector{600.0, 600.0, 0.0};
+    const auto kLinkEnd = FVector{1000.0, 1000.0, 0.0};
+
+    auto Make_UnrelatedLink() -> FCk_GroundNav_LinkRecord
+    {
+        return FCk_GroundNav_LinkRecord{1, kLinkStart, kLinkEnd};
+    }
+
+    auto Make_FieldParamsWithLink() -> FCk_GroundNav_FieldParams
+    {
+        auto Params = Make_FieldParams();
+        Params._Links = TArray<FCk_GroundNav_LinkRecord>{Make_UnrelatedLink()};
+
+        return Params;
+    }
+
+    auto Bake_FieldWithLink(
+        const TArray<FBox>&        InBoxes,
+        const FCk_GroundNav_Epoch& InEpoch,
+        FCk_GroundNav_Field&       OutField) -> FCk_GroundNav_BakeStageResult
+    {
+        const auto Backend = FCk_GroundNav_GeometryBackend_Stub{InBoxes};
+
+        return DoBake_Field(Backend, Make_FieldParamsWithLink(), InEpoch, OutField);
     }
 
     /** Run a whole repair at the given budget, reporting how many Advance calls it took. */
@@ -978,6 +1012,94 @@ bool FCkTest_GroundNav_FieldRepair_RepairBakesUnderTheCallersRecordsNotTheSource
 
     TestEqual(TEXT("and its params hold no records either"),
         Unpainted->_Params._MarkupRecords.Num(), 0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_FieldRepair_RepairOfAnUnrelatedTileKeepsEveryLinkResolved,
+    "CkTests.UnitTests.CkGroundNav.Repair.RepairOfAnUnrelatedTileKeepsEveryLinkResolved",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_FieldRepair_RepairOfAnUnrelatedTileKeepsEveryLinkResolved::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_fieldrepair;
+
+    auto SourceField = MakeShared<FCk_GroundNav_Field>();
+
+    if (NOT TestTrue(TEXT("world A bakes with a link on tiles the repair will not touch"),
+        Bake_FieldWithLink(Make_WorldA(), FCk_GroundNav_Epoch{kSourceEpoch}, *SourceField).Get_IsCompleted()))
+    { return false; }
+
+    const auto FieldA = FCk_GroundNav_FieldPtr{SourceField};
+
+    if (NOT TestTrue(TEXT("and resolves it"),
+        FieldA->Get_ResolvedLinkCount() == 1 && FieldA->_ResolvedLinks[0].Get_IsResolved()))
+    { return false; }
+
+    // The fixture's whole point: the dirty box reaches neither endpoint's tile, so a repair that
+    // re-resolved nothing and a repair that re-resolved everything are told apart by the entry alone.
+    const auto Selected = Get_RepairTileIndices(*FieldA, Make_DirtyBounds());
+
+    if (NOT TestTrue(TEXT("the repair selects neither endpoint's tile"),
+        NOT Selected.Contains(kLinkStartTileIndex) && NOT Selected.Contains(kLinkEndTileIndex) &&
+        Selected.Num() > 0))
+    { return false; }
+
+    auto FullB = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("a full bake of world B with the same link completes"),
+        Bake_FieldWithLink(Make_WorldB(), FCk_GroundNav_Epoch{kRepairEpoch}, FullB).Get_IsCompleted()))
+    { return false; }
+
+    const auto Backend = FCk_GroundNav_GeometryBackend_Stub{Make_WorldB()};
+
+    auto State = FCk_GroundNav_FieldRepairState{};
+    auto SliceCount = 0;
+
+    if (NOT TestTrue(TEXT("the repair against world B completes"),
+        Run_Repair(Backend, FieldA, Make_DirtyBounds(), FieldA->_Params._MarkupRecords,
+            kUnlimitedProbeBudget, State, SliceCount)
+            .Get_IsCompleted()))
+    { return false; }
+
+    const auto Repaired = Get_RepairedField(State);
+
+    if (NOT TestTrue(TEXT("and yields a field"), Repaired.IsValid()))
+    { return false; }
+
+    const auto FieldDiff = Get_FirstFieldDifference(
+        *Repaired, FullB, EPolicyComparison::Include, EEpochComparison::Exclude);
+
+    if (NOT FieldDiff.IsEmpty())
+    {
+        AddError(FString::Printf(
+            TEXT("the repaired field with a link differs from a full rebake of the same world at %s"),
+            *FieldDiff));
+        return false;
+    }
+
+    if (NOT TestTrue(TEXT("the repaired field still holds the link"),
+        Repaired->Get_ResolvedLinkCount() == 1))
+    { return false; }
+
+    TestEqual(TEXT("with nothing unresolved"), Repaired->Get_UnresolvedLinkCount(), 0);
+
+    const auto& Entry = Repaired->_ResolvedLinks[0];
+
+    TestTrue(TEXT("and both of its ends still resolved"), Entry.Get_IsResolved());
+    TestTrue(TEXT("and it is still traversable"), Entry.Get_IsTraversable());
+
+    TestEqual(TEXT("its start still stands on the tile it was authored over"),
+        Entry._StartSurface._TileIndex, kLinkStartTileIndex);
+    TestEqual(TEXT("and its end on the other one"),
+        Entry._EndSurface._TileIndex, kLinkEndTileIndex);
+
+    // The published field a reader took before the repair is untouched, links included.
+    TestTrue(TEXT("the field held across the repair still holds its own resolution"),
+        FieldA->Get_ResolvedLinkCount() == 1 && FieldA->_ResolvedLinks[0].Get_IsResolved());
 
     return true;
 }

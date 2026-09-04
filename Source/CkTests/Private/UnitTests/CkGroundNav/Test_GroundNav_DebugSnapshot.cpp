@@ -29,6 +29,7 @@ namespace ck_test_groundnav_snapshot
     using ck::groundnav::EDebugSnapshotStatus;
     using ck::groundnav::FCk_GroundNav_ClearanceField;
     using ck::groundnav::FCk_GroundNav_ConnectionField;
+    using ck::groundnav::FCk_GroundNav_DebugLink;
     using ck::groundnav::FCk_GroundNav_DebugSnapshot;
     using ck::groundnav::FCk_GroundNav_LayerField;
     using ck::groundnav::FCk_GroundNav_PlateField;
@@ -75,6 +76,61 @@ namespace ck_test_groundnav_snapshot
         OutPlates = Plates._Plates.Num();
 
         return Make_DebugSnapshot(Spans, Layers, Clearance, Plates, Portals, Region, InMaxCells);
+    }
+
+    // --------------------------------------------------------------------------------------------------
+
+    constexpr auto kDisabledLinkId = 3;
+    constexpr auto kUnresolvedLinkId = 11;
+
+    const auto kLadderFoot = FVector{100.0, 200.0, 0.0};
+    const auto kLadderTop = FVector{100.0, 200.0, 400.0};
+    const auto kOverTheHole = FVector{900.0, 900.0, 0.0};
+
+    // Resolved at both ends and switched off by its author. A viewer must not read this as missing
+    // ground: the two are fixed in entirely different places, and one of them cannot be fixed at all.
+    auto Make_DisabledLink() -> FCk_GroundNav_DebugLink
+    {
+        auto Link = FCk_GroundNav_DebugLink{};
+
+        Link._Start = kLadderFoot;
+        Link._End = kLadderTop;
+        Link._AreaTagName = FName{TEXT("Nav.Area.Ladder")};
+        Link._UserTypeTagName = FName{TEXT("Nav.Link.Ladder")};
+        Link._Id = kDisabledLinkId;
+        Link._StartFlatPlate = 4;
+        Link._EndFlatPlate = 9;
+        Link._CostMultiplierForward = 2.5f;
+        Link._CostMultiplierBackward = 1.25f;
+        Link._ClearanceUu = 45.0f;
+        Link._Direction = ECk_GroundNav_LinkDirection::Bidirectional;
+        Link._StartStatus = ECk_NavSurface_QueryStatus::Success;
+        Link._EndStatus = ECk_NavSurface_QueryStatus::Success;
+        Link._Enabled = false;
+        Link._Live = false;
+
+        return Link;
+    }
+
+    // One end with no ground under it. The authored record is HELD either way, so the snapshot carries
+    // the failure as a per-end status rather than by leaving the link out - a link nobody drew and a
+    // link nobody authored look identical, and those are the two a viewer must tell apart.
+    auto Make_UnresolvedLink() -> FCk_GroundNav_DebugLink
+    {
+        auto Link = FCk_GroundNav_DebugLink{};
+
+        Link._Start = kLadderFoot;
+        Link._End = kOverTheHole;
+        Link._AreaTagName = FName{TEXT("Nav.Area.Drop")};
+        Link._Id = kUnresolvedLinkId;
+        Link._StartFlatPlate = 4;
+        Link._Direction = ECk_GroundNav_LinkDirection::Forward;
+        Link._StartStatus = ECk_NavSurface_QueryStatus::Success;
+        Link._EndStatus = ECk_NavSurface_QueryStatus::NoSurface;
+        Link._Enabled = true;
+        Link._Live = false;
+
+        return Link;
     }
 }
 
@@ -265,6 +321,83 @@ bool FCkTest_GroundNav_Snapshot_EveryStatusIsNameable::RunTest(const FString& Pa
             static_cast<int32>(Status)));
         return false;
     }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Snapshot_CarriesLinksAsValuesOnly,
+    "CkTests.UnitTests.CkGroundNav.Bake.Snapshot_CarriesLinksAsValuesOnly",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Snapshot_CarriesLinksAsValuesOnly::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_snapshot;
+
+    auto Survivor = FCk_GroundNav_DebugSnapshot{};
+
+    {
+        auto Producer = MakeUnique<FCk_GroundNav_DebugSnapshot>();
+
+        Producer->_Status = EDebugSnapshotStatus::Current;
+        Producer->_Links.Emplace(Make_DisabledLink());
+        Producer->_Links.Emplace(Make_UnresolvedLink());
+
+        Survivor = *Producer;
+
+        Producer.Reset();
+    }
+
+    // Everything below reads a snapshot whose producer no longer exists. If anything a link carries
+    // reached back into it - a handle, a field pointer, a tag looked up on demand - the copy would be
+    // reading a corpse, which is exactly what a viewer drawing a frame later would be doing.
+    if (NOT TestEqual(TEXT("both links survive their producer"), Survivor._Links.Num(), 2))
+    { return false; }
+
+    const auto& Disabled = Survivor._Links[0];
+
+    TestEqual(TEXT("the disabled link keeps its id"), Disabled._Id, kDisabledLinkId);
+    TestTrue(TEXT("and its endpoints"),
+        Disabled._Start == kLadderFoot && Disabled._End == kLadderTop);
+    TestEqual(TEXT("and its area tag, as a name"),
+        Disabled._AreaTagName, FName{TEXT("Nav.Area.Ladder")});
+    TestEqual(TEXT("and its user type tag"),
+        Disabled._UserTypeTagName, FName{TEXT("Nav.Link.Ladder")});
+    TestEqual(TEXT("and the plate its start resolved to"), Disabled._StartFlatPlate, 4);
+    TestEqual(TEXT("and the plate its end resolved to"), Disabled._EndFlatPlate, 9);
+    TestEqual(TEXT("and what it costs forward"), Disabled._CostMultiplierForward, 2.5f);
+    TestEqual(TEXT("and backward"), Disabled._CostMultiplierBackward, 1.25f);
+    TestEqual(TEXT("and the clearance it admits"), Disabled._ClearanceUu, 45.0f);
+    TestEqual(TEXT("and which ways it may be walked"),
+        Disabled._Direction, ECk_GroundNav_LinkDirection::Bidirectional);
+
+    // Both ends found ground: a viewer reading this as unresolved would send a developer looking for
+    // a hole in the world instead of at the switch that is actually off.
+    TestEqual(TEXT("its start end resolved"),
+        Disabled._StartStatus, ECk_NavSurface_QueryStatus::Success);
+    TestEqual(TEXT("and so did its far end"),
+        Disabled._EndStatus, ECk_NavSurface_QueryStatus::Success);
+
+    TestFalse(TEXT("and it reads as switched off"), Disabled._Enabled);
+    TestFalse(TEXT("and therefore not live"), Disabled._Live);
+
+    const auto& Unresolved = Survivor._Links[1];
+
+    TestEqual(TEXT("the unresolved link keeps its id too"), Unresolved._Id, kUnresolvedLinkId);
+    TestTrue(TEXT("and the endpoints its AUTHOR gave it, not what they resolved to"),
+        Unresolved._Start == kLadderFoot && Unresolved._End == kOverTheHole);
+    TestEqual(TEXT("its start still landed on a plate"), Unresolved._StartFlatPlate, 4);
+
+    // The far end is the whole of the case: no ground, so no plate, and a status saying which of the
+    // two reasons it is - ground that is missing rather than ground nobody has baked.
+    TestEqual(TEXT("its far end found no ground"),
+        Unresolved._EndStatus, ECk_NavSurface_QueryStatus::NoSurface);
+    TestTrue(TEXT("so it resolved to no plate"), Unresolved._EndFlatPlate == INDEX_NONE);
+
+    TestTrue(TEXT("and it is enabled, which is a different thing from resolved"), Unresolved._Enabled);
+    TestFalse(TEXT("and not live, because a link that did not resolve is not there"), Unresolved._Live);
 
     return true;
 }

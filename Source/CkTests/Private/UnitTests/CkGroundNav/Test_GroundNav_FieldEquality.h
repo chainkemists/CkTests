@@ -326,6 +326,94 @@ namespace ck_test_groundnav_field_equality
         return Get_FirstSeamPortalDifference(InLhs, InRhs).IsEmpty();
     }
 
+    inline auto Get_FirstSurfaceRefDifference(
+        const ck::groundnav::FCk_GroundNav_SurfaceRef& InLhs,
+        const ck::groundnav::FCk_GroundNav_SurfaceRef& InRhs) -> FString
+    {
+        if (InLhs._TileIndex != InRhs._TileIndex)
+        { return TEXT("._TileIndex differs"); }
+
+        if (InLhs._LayerIndex != InRhs._LayerIndex)
+        { return TEXT("._LayerIndex differs"); }
+
+        if (InLhs._CellX != InRhs._CellX)
+        { return TEXT("._CellX differs"); }
+
+        if (InLhs._CellY != InRhs._CellY)
+        { return TEXT("._CellY differs"); }
+
+        if (InLhs._PlateIndex != InRhs._PlateIndex)
+        { return TEXT("._PlateIndex differs"); }
+
+        return {};
+    }
+
+    inline auto Get_FirstResolvedLinkDifference(
+        const ck::groundnav::FCk_GroundNav_ResolvedLink& InLhs,
+        const ck::groundnav::FCk_GroundNav_ResolvedLink& InRhs) -> FString
+    {
+        if (InLhs._Id != InRhs._Id)
+        { return TEXT("._Id differs"); }
+
+        if (InLhs._Start != InRhs._Start)
+        { return TEXT("._Start differs"); }
+
+        if (InLhs._End != InRhs._End)
+        { return TEXT("._End differs"); }
+
+        const auto StartSurfaceDiff = Get_FirstSurfaceRefDifference(InLhs._StartSurface, InRhs._StartSurface);
+
+        if (NOT StartSurfaceDiff.IsEmpty())
+        { return FString::Printf(TEXT("._StartSurface%s"), *StartSurfaceDiff); }
+
+        const auto EndSurfaceDiff = Get_FirstSurfaceRefDifference(InLhs._EndSurface, InRhs._EndSurface);
+
+        if (NOT EndSurfaceDiff.IsEmpty())
+        { return FString::Printf(TEXT("._EndSurface%s"), *EndSurfaceDiff); }
+
+        if (InLhs._StartFlatPlate != InRhs._StartFlatPlate)
+        { return TEXT("._StartFlatPlate differs"); }
+
+        if (InLhs._EndFlatPlate != InRhs._EndFlatPlate)
+        { return TEXT("._EndFlatPlate differs"); }
+
+        if (InLhs._StartStatus != InRhs._StartStatus)
+        { return TEXT("._StartStatus differs"); }
+
+        if (InLhs._EndStatus != InRhs._EndStatus)
+        { return TEXT("._EndStatus differs"); }
+
+        if (InLhs._Direction != InRhs._Direction)
+        { return TEXT("._Direction differs"); }
+
+        if (InLhs._CostMultiplierForward != InRhs._CostMultiplierForward)
+        { return TEXT("._CostMultiplierForward differs"); }
+
+        if (InLhs._CostMultiplierBackward != InRhs._CostMultiplierBackward)
+        { return TEXT("._CostMultiplierBackward differs"); }
+
+        if (InLhs._ClearanceUu != InRhs._ClearanceUu)
+        { return TEXT("._ClearanceUu differs"); }
+
+        if (InLhs._AreaTag != InRhs._AreaTag)
+        { return TEXT("._AreaTag differs"); }
+
+        if (InLhs._UserTypeTag != InRhs._UserTypeTag)
+        { return TEXT("._UserTypeTag differs"); }
+
+        if (InLhs._Enable != InRhs._Enable)
+        { return TEXT("._Enable differs"); }
+
+        return {};
+    }
+
+    inline auto Get_ResolvedLinksEqual(
+        const ck::groundnav::FCk_GroundNav_ResolvedLink& InLhs,
+        const ck::groundnav::FCk_GroundNav_ResolvedLink& InRhs) -> bool
+    {
+        return Get_FirstResolvedLinkDifference(InLhs, InRhs).IsEmpty();
+    }
+
     inline auto Get_FirstOpenBodyDifference(
         const ck::groundnav::FCk_GroundNav_OpenBody& InLhs,
         const ck::groundnav::FCk_GroundNav_OpenBody& InRhs) -> FString
@@ -547,11 +635,20 @@ namespace ck_test_groundnav_field_equality
         if (InLhs._UnmatchedSeamStubCount != InRhs._UnmatchedSeamStubCount)
         { return TEXT("_UnmatchedSeamStubCount differs"); }
 
+        if (InLhs._UnresolvedLinkCount != InRhs._UnresolvedLinkCount)
+        { return TEXT("_UnresolvedLinkCount differs"); }
+
         const auto SeamPortalsDiff = Get_FirstArrayDifference(
             InLhs._SeamPortals, InRhs._SeamPortals, &Get_FirstSeamPortalDifference);
 
         if (NOT SeamPortalsDiff.IsEmpty())
         { return FString::Printf(TEXT("_SeamPortals%s"), *SeamPortalsDiff); }
+
+        const auto ResolvedLinksDiff = Get_FirstArrayDifference(
+            InLhs._ResolvedLinks, InRhs._ResolvedLinks, &Get_FirstResolvedLinkDifference);
+
+        if (NOT ResolvedLinksDiff.IsEmpty())
+        { return FString::Printf(TEXT("_ResolvedLinks%s"), *ResolvedLinksDiff); }
 
         const auto TileEdgeBoundaryDiff = Get_FirstArrayDifference(InLhs._TileEdgeBoundary, InRhs._TileEdgeBoundary,
             [](const TArray<ck::groundnav::FCk_GroundNav_BoundarySegment>& InElementLhs,

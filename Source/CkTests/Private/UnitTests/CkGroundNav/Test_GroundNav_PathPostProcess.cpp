@@ -92,6 +92,9 @@ namespace ck_test_groundnav_pathpostprocess
     constexpr auto kStraightIsTwoWaypoints = 2;
     constexpr auto kBentOnceIsThreeWaypoints = 3;
 
+    // No route here crosses an authored link, so no waypoint of one is exempt from the offset.
+    const auto kNothingPinned = TArray<FVector>{};
+
     // ----------------------------------------------------------------------------------------------------------------
 
     auto Make_Agent(
@@ -357,10 +360,11 @@ bool FCkTest_GroundNav_Path_CornerOffsetMovesOnlyInsideCorners::RunTest(const FS
     const auto OffsetUu = static_cast<double>(kCornerOffsetK * kCorridorRadiusUu);
 
     const auto Offset = Get_CornerOffset(
-        Funnelled, *Field, static_cast<float>(OffsetUu), Make_Agent(kCorridorRadiusUu), kStepHeight);
+        Funnelled, kNothingPinned, *Field, static_cast<float>(OffsetUu),
+        Make_Agent(kCorridorRadiusUu), kStepHeight);
 
     const auto Unmoved = Get_CornerOffset(
-        Funnelled, *Field, 0.0f, Make_Agent(kCorridorRadiusUu), kStepHeight);
+        Funnelled, kNothingPinned, *Field, 0.0f, Make_Agent(kCorridorRadiusUu), kStepHeight);
 
     if (NOT TestEqual(TEXT("the pass answers with as many waypoints as it was given"),
         Offset.Num(), Funnelled.Num()))
