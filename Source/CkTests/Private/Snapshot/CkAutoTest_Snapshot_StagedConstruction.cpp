@@ -103,8 +103,6 @@ namespace ck
         const auto ScriptIsValid = ck::IsValid(Script, ck::IsValid_Policy_NullptrOnly{});
         CK_ENSURE_IF_NOT(ScriptIsValid,
             TEXT("StagedConstruction NeedsSetup tag on entity [{}] whose script is not a StagedChild"), InHandle)
-        {}
-        if (NOT ScriptIsValid)
         { return; }
 
         Script->FinishStagedConstruction();
@@ -285,8 +283,6 @@ auto
     const auto SlotIsKnown = SlotIndex != nullptr;
     CK_ENSURE_IF_NOT(SlotIsKnown,
         TEXT("StagedParent OnChildConstructed fired for [{}] which is not a pending child"), ChildHandle)
-    {}
-    if (NOT SlotIsKnown)
     { return; }
 
     // Stamped ON COMPLETION, not at request time, on purpose — this is the racy shape the loader must survive:
