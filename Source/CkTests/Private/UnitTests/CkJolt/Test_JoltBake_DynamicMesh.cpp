@@ -5,6 +5,7 @@
 #include "CkJolt/CkJolt_Utils.h"
 #include "CkJolt/StaticWorld/CkJoltBakeExtraction.h"
 #include "CkJolt/StaticWorld/CkJoltMeshShape_Utils.h"
+#include "CkJolt/StaticWorld/CkJoltStaticWorld_Data.h"
 #include "CkJoltEditor/Cook/CkJoltCook_MeshShapeAudit.h"
 
 #include <Components/DynamicMeshComponent.h>
@@ -997,6 +998,23 @@ bool FCkTest_JoltCook_MeshShapeAudit_PureHelpers::RunTest(const FString& Paramet
     TestEqual(TEXT("a current no-verdict tri-mesh stays up to date"),
         Get_MeshShapeCurrentBlobFreshness({true, true, -0.02}),
         ECk_Jolt_MeshShapeCurrentBlobFreshness::UpToDate);
+
+    TestEqual(TEXT("current v3 blob encoding is preview-restorable"),
+        Get_MeshShapeAuditCookedPreviewCompatibility(
+            ck::jolt::MeshShapeCookVersion_Current, static_cast<uint32>(JPH_VERSION_ID)),
+        ECk_Jolt_MeshShapeAuditCookedPreviewCompatibility::Restorable);
+    TestEqual(TEXT("pre-winding-fix v2 blob encoding is preview-restorable"),
+        Get_MeshShapeAuditCookedPreviewCompatibility(
+            ck::jolt::bake::mesh_shape_utils::PreWindingFixMeshShapeCookVersion,
+            static_cast<uint32>(JPH_VERSION_ID)),
+        ECk_Jolt_MeshShapeAuditCookedPreviewCompatibility::Restorable);
+    TestEqual(TEXT("unknown stale cook version never reaches preview restore"),
+        Get_MeshShapeAuditCookedPreviewCompatibility(1, static_cast<uint32>(JPH_VERSION_ID)),
+        ECk_Jolt_MeshShapeAuditCookedPreviewCompatibility::IncompatibleCookVersion);
+    TestEqual(TEXT("Jolt-version mismatch never reaches preview restore"),
+        Get_MeshShapeAuditCookedPreviewCompatibility(
+            ck::jolt::MeshShapeCookVersion_Current, static_cast<uint32>(JPH_VERSION_ID) + 1),
+        ECk_Jolt_MeshShapeAuditCookedPreviewCompatibility::IncompatibleJoltVersion);
 
     // JPH's containers use Jolt's allocator even though the preview helper only copies values.
     const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
