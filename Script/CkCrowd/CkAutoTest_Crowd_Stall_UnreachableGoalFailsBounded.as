@@ -39,11 +39,16 @@
 // SHARED-WORLD HYGIENE: a leftover nav-null area would split the navmesh for
 // every later crowd test. The wall comes down before the test reports, the run
 // waits for the tiles to return, and DoEndPlay unpaints it as a backstop.
+//
+// Every nav query and rebuild kick goes to the neutral nav surface, and on CkGroundNav the fixture
+// stages its own field over the origin floor, so it runs unchanged on any provider.
 //============================================================================
 
 class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 48.0f;
+
+    private FCkAutoTest_GroundNavFixture _Field;
 
     private const float SpawnX = -700.0;
     private const float GoalX = 700.0;
@@ -144,7 +149,16 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        // On CkGroundNav nothing in the shared level carries a field, so the fixture stages one over
+        // the origin floor; on Recast the level's own navmesh is the surface and nothing is staged.
+        if (utils_nav_surface::Get_Provider() == ECk_NavSurface_Provider::GroundNav &&
+            _Field.Request_StageOriginField(InHandle) == false)
+        {
+            FinishFailure(_Field.Get_StagingError());
+            return;
+        }
+
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
@@ -156,6 +170,9 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoEndPlay(FCk_Handle InHandle)
     {
+        _Field.Do_ReportCrossover("Crowd_Stall_UnreachableGoalFailsBounded", IsFinished() ? "finished" : "unfinished");
+        _Field.Request_ReleaseOriginField();
+
         Destroy_Wall();
     }
 
@@ -185,13 +202,14 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
 
         if (_MeshFound == false)
         {
-            FVector Projected;
-            if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, FVector::ZeroVector, 100.0f, Projected, 300.0f) == false)
+            const auto CorridorProbeExtents = FVector(100.0, 100.0, 300.0);
+            const auto Projected = Do_ProjectOntoSurface(FVector::ZeroVector, CorridorProbeExtents);
+            if (Projected.Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { return; }
-            _FloorZ = float(Projected.Z);
-            if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, FVector(SpawnX, 0.0, _FloorZ), 100.0f, Projected, 300.0f) == false)
+            _FloorZ = float(Projected.Get_Location().Z);
+            if (Do_ProjectOntoSurface(FVector(SpawnX, 0.0, _FloorZ), CorridorProbeExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { return; }
-            if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, FVector(GoalX, 0.0, _FloorZ), 100.0f, Projected, 300.0f) == false)
+            if (Do_ProjectOntoSurface(FVector(GoalX, 0.0, _FloorZ), CorridorProbeExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { return; }
 
             _MeshFound = true;
@@ -493,6 +511,15 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
         Destroy_Wall();
     }
 
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
+    }
+
     private void Tick_Teardown(FCk_Handle& InSelf)
     {
         _TeardownPolls += 1;
@@ -500,9 +527,9 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
         auto MeshRestored = true;
         if (_MeshFound)
         {
-            FVector Restored;
-            MeshRestored = utils_nav::Try_ProjectOntoNavmesh(InSelf,
-                FVector(0.0, 0.0, _FloorZ), WallProbeHalfExtentUu, Restored, 300.0f);
+            MeshRestored = Do_ProjectOntoSurface(
+                FVector(0.0, 0.0, _FloorZ),
+                FVector(WallProbeHalfExtentUu, WallProbeHalfExtentUu, 300.0)).Get_Status() == ECk_NavSurface_QueryStatus::Success;
         }
 
         if (MeshRestored == false && _TeardownPolls < MaxTeardownPolls)
