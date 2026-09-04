@@ -3711,6 +3711,19 @@ class ACk_AutoTest_Grid_TagFilterForbidden_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_GroundNav_DebugSubmenu_RendersDiagnosticsAsValues_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 300.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_DebugSubmenu_RendersDiagnosticsAsValues");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_GroundNav_FacadeAnswersThroughGroundNav_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 30.0f;
