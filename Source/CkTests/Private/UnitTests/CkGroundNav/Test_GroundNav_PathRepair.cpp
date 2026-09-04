@@ -40,7 +40,6 @@ using ck::tests::kCkUnitTestFlags;
 
 namespace ck_test_groundnav_repair
 {
-    using ck::groundnav::ECk_GroundNav_RepairVerdict;
     using ck::groundnav::FCk_GroundNav_Crossing;
     using ck::groundnav::FCk_GroundNav_CrossingKey;
     using ck::groundnav::FCk_GroundNav_Epoch;
