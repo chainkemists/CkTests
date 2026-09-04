@@ -197,6 +197,36 @@ namespace ck_test_jolt_bake_dynamicmesh
         }
         return true;
     }
+
+    static auto HaveSameTriangleVertexSets(
+        const JPH::IndexedTriangleList& InLeft,
+        const JPH::IndexedTriangleList& InRight) -> bool
+    {
+        if (InLeft.size() != InRight.size())
+        { return false; }
+
+        for (size_t Index = 0; Index < InLeft.size(); ++Index)
+        {
+            for (int32 LeftCorner = 0; LeftCorner < 3; ++LeftCorner)
+            {
+                auto FoundMatchingVertex = false;
+                for (int32 RightCorner = 0; RightCorner < 3; ++RightCorner)
+                {
+                    if (InLeft[Index].mIdx[LeftCorner] == InRight[Index].mIdx[RightCorner])
+                    {
+                        FoundMatchingVertex = true;
+                        break;
+                    }
+                }
+
+                if (NOT FoundMatchingVertex)
+                { return false; }
+            }
+        }
+
+        return true;
+    }
+
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -548,6 +578,27 @@ namespace ck_test_jolt_bake_dynamicmesh
             { OutTriangles.push_back(JPH::IndexedTriangle(Face[0], Face[1], Face[2])); }
         }
     }
+
+    static auto Make_FragmentedCubeLists(
+        bool InInverted,
+        JPH::VertexList& OutVertices,
+        JPH::IndexedTriangleList& OutTriangles) -> void
+    {
+        auto CubeVertices = JPH::VertexList{};
+        auto CubeTriangles = JPH::IndexedTriangleList{};
+        Fill_CubeLists(CubeVertices, CubeTriangles, 0.0, InInverted);
+
+        OutVertices.clear();
+        OutTriangles.clear();
+        for (const auto& Triangle : CubeTriangles)
+        {
+            const auto Base = static_cast<uint32>(OutVertices.size());
+            OutVertices.push_back(CubeVertices[Triangle.mIdx[0]]);
+            OutVertices.push_back(CubeVertices[Triangle.mIdx[1]]);
+            OutVertices.push_back(CubeVertices[Triangle.mIdx[2]]);
+            OutTriangles.push_back(JPH::IndexedTriangle(Base, Base + 1, Base + 2));
+        }
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -750,6 +801,84 @@ bool FCkTest_JoltBake_TriMesh_WindingNormalization::RunTest(const FString& Param
     TestEqual(TEXT("mixed disconnected components repair only inverted component"), Mixed._NumRepairedComponents, 1);
     TestTrue(TEXT("mixed disconnected components finish outward"),
         ComputeMeshWindingRatio(Vertices, Triangles) > 0.0);
+
+    Make_FragmentedCubeLists(true, Vertices, Triangles);
+    const auto FragmentedInvertedBefore = Triangles;
+    const auto FragmentedInverted = NormalizeInsideOutMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("fragmented inside-out cube normalizes from the aggregate fallback"), FragmentedInverted._Status,
+        ECk_Jolt_WindingNormalizationStatus::Normalized);
+    TestEqual(TEXT("fragmented inside-out cube has one edge-connected component per triangle"),
+        FragmentedInverted._NumComponents, 12);
+    TestEqual(TEXT("fragmented inside-out cube has one no-verdict component per triangle"),
+        FragmentedInverted._NumNoVerdictComponents, 12);
+    TestEqual(TEXT("fragmented inside-out cube aggregate fallback repairs every no-verdict component"),
+        FragmentedInverted._NumAggregateNoVerdictComponentsRepaired, 12);
+    TestEqual(TEXT("fragmented inside-out cube preserves triangle count"), static_cast<int32>(Triangles.size()), 12);
+    TestEqual(TEXT("fragmented inside-out cube preserves duplicated vertex topology"),
+        static_cast<int32>(Vertices.size()), 36);
+    auto HasValidFragmentedIndices = true;
+    for (const auto& Triangle : Triangles)
+    {
+        const auto HasValidIndices =
+            Triangle.mIdx[0] < Vertices.size() &&
+            Triangle.mIdx[1] < Vertices.size() &&
+            Triangle.mIdx[2] < Vertices.size() &&
+            Triangle.mIdx[0] != Triangle.mIdx[1] &&
+            Triangle.mIdx[1] != Triangle.mIdx[2] &&
+            Triangle.mIdx[2] != Triangle.mIdx[0];
+        HasValidFragmentedIndices = HasValidFragmentedIndices && HasValidIndices;
+    }
+    TestTrue(TEXT("fragmented inside-out cube keeps valid nondegenerate indices"), HasValidFragmentedIndices);
+    TestTrue(TEXT("fragmented inside-out cube preserves each triangle's vertex topology"),
+        HaveSameTriangleVertexSets(Triangles, FragmentedInvertedBefore));
+    TestTrue(TEXT("fragmented inside-out cube finishes strongly outward"),
+        ComputeMeshWindingRatio(Vertices, Triangles) > 0.9);
+
+    Make_FragmentedCubeLists(false, Vertices, Triangles);
+    const auto FragmentedOutwardBefore = Triangles;
+    const auto FragmentedOutward = NormalizeInsideOutMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("fragmented outward cube stays unchanged"), FragmentedOutward._Status,
+        ECk_Jolt_WindingNormalizationStatus::NoVerdict);
+    TestEqual(TEXT("fragmented outward cube has no aggregate repair"),
+        FragmentedOutward._NumAggregateNoVerdictComponentsRepaired, 0);
+    TestTrue(TEXT("fragmented outward cube keeps index order"),
+        HaveSameTriangleIndices(Triangles, FragmentedOutwardBefore));
+    TestTrue(TEXT("fragmented outward cube stays strongly outward"),
+        ComputeMeshWindingRatio(Vertices, Triangles) > 0.9);
+
+    Make_FragmentedCubeLists(false, Vertices, Triangles);
+    for (size_t TriangleIndex = 5; TriangleIndex < Triangles.size(); ++TriangleIndex)
+    { Swap(Triangles[TriangleIndex].mIdx[1], Triangles[TriangleIndex].mIdx[2]); }
+    const auto MixedFragmentedBefore = Triangles;
+    TestTrue(TEXT("mixed fragmented cube starts strongly inside-out"),
+        ComputeMeshWindingRatio(Vertices, Triangles) < -0.05);
+    const auto MixedFragmented = NormalizeInsideOutMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("mixed fragmented cube normalizes"), MixedFragmented._Status,
+        ECk_Jolt_WindingNormalizationStatus::Normalized);
+    TestEqual(TEXT("mixed fragmented cube repairs only negative contributions"),
+        MixedFragmented._NumAggregateNoVerdictComponentsRepaired, 7);
+
+    auto OutwardFragmentsStayUnchanged = true;
+    auto InvertedFragmentsAreReversed = true;
+    for (size_t TriangleIndex = 0; TriangleIndex < Triangles.size(); ++TriangleIndex)
+    {
+        const auto& Before = MixedFragmentedBefore[TriangleIndex].mIdx;
+        const auto& After = Triangles[TriangleIndex].mIdx;
+        if (TriangleIndex < 5)
+        {
+            OutwardFragmentsStayUnchanged = OutwardFragmentsStayUnchanged &&
+                Before[0] == After[0] && Before[1] == After[1] && Before[2] == After[2];
+        }
+        else
+        {
+            InvertedFragmentsAreReversed = InvertedFragmentsAreReversed &&
+                Before[0] == After[0] && Before[1] == After[2] && Before[2] == After[1];
+        }
+    }
+    TestTrue(TEXT("mixed fragmented cube preserves outward components"), OutwardFragmentsStayUnchanged);
+    TestTrue(TEXT("mixed fragmented cube reverses inward components"), InvertedFragmentsAreReversed);
+    TestTrue(TEXT("mixed fragmented cube finishes strongly outward"),
+        ComputeMeshWindingRatio(Vertices, Triangles) > 0.9);
     return true;
 }
 
