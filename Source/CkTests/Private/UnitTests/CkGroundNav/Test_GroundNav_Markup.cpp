@@ -25,6 +25,8 @@
 #include "CkShapes/Box/CkShapeBox_Fragment_Data.h"
 #include "CkShapes/Capsule/CkShapeCapsule_Fragment_Data.h"
 
+#include "Test_GroundNav_FieldEquality.h"
+
 #include "../CkUnitTest_Common.h"
 
 #include "NativeGameplayTags.h"
@@ -205,193 +207,7 @@ namespace ck_test_groundnav_markup
         return DoBake_Field(Backend, Make_FieldParams(InMarkups), InEpoch, OutField).Get_IsCompleted();
     }
 
-    // ---- Exact comparison ---------------------------------------------------------------------------------
-    //
-    // Written out member by member rather than memcmp'd: these structures carry doubles beside int32s,
-    // so they have padding a byte compare would read, and padding is not a value anything set.
-
-    enum class EPolicyComparison
-    {
-        // Everything, the cost labelling included.
-        Include,
-
-        // Everything a cost-only derive is forbidden to touch. What is left out is exactly what such a
-        // derive is allowed to change, so a derive that moved anything else fails this.
-        Ignore
-    };
-
-    template <typename T, typename T_Predicate>
-    auto Get_ArraysEqual(
-        const TArray<T>& InLhs,
-        const TArray<T>& InRhs,
-        T_Predicate      InPredicate) -> bool
-    {
-        if (InLhs.Num() != InRhs.Num())
-        { return false; }
-
-        for (auto Index = 0; Index < InLhs.Num(); ++Index)
-        {
-            if (NOT InPredicate(InLhs[Index], InRhs[Index]))
-            { return false; }
-        }
-
-        return true;
-    }
-
-    template <typename T>
-    auto Get_ValueArraysEqual(
-        const TArray<T>& InLhs,
-        const TArray<T>& InRhs) -> bool
-    {
-        return Get_ArraysEqual(InLhs, InRhs, [](const T& InA, const T& InB) -> bool { return InA == InB; });
-    }
-
-    auto Get_NestedIndexArraysEqual(
-        const TArray<TArray<int32>>& InLhs,
-        const TArray<TArray<int32>>& InRhs) -> bool
-    {
-        return Get_ArraysEqual(InLhs, InRhs,
-            [](const TArray<int32>& InA, const TArray<int32>& InB) -> bool
-            {
-                return Get_ValueArraysEqual(InA, InB);
-            });
-    }
-
-    auto Get_PlatesEqual(
-        const FCk_GroundNav_Plate& InLhs,
-        const FCk_GroundNav_Plate& InRhs,
-        EPolicyComparison          InPolicy) -> bool
-    {
-        const auto ShapeMatches =
-            InLhs._LayerIndex == InRhs._LayerIndex &&
-            InLhs._MinX == InRhs._MinX && InLhs._MinY == InRhs._MinY &&
-            InLhs._MaxX == InRhs._MaxX && InLhs._MaxY == InRhs._MaxY &&
-            InLhs._MaxPlaneResidualUu == InRhs._MaxPlaneResidualUu &&
-            InLhs._HeightRangeUu == InRhs._HeightRangeUu &&
-            InLhs._MinClearanceUu == InRhs._MinClearanceUu;
-
-        if (InPolicy == EPolicyComparison::Ignore)
-        { return ShapeMatches; }
-
-        return ShapeMatches &&
-            InLhs._AreaPolicyIndex == InRhs._AreaPolicyIndex &&
-            InLhs._CostMultiplier == InRhs._CostMultiplier;
-    }
-
-    auto Get_PortalsEqual(
-        const FCk_GroundNav_Portal& InLhs,
-        const FCk_GroundNav_Portal& InRhs) -> bool
-    {
-        return InLhs._PlateA == InRhs._PlateA && InLhs._PlateB == InRhs._PlateB &&
-               InLhs._Direction == InRhs._Direction &&
-               InLhs._FromMin == InRhs._FromMin && InLhs._FromMax == InRhs._FromMax &&
-               InLhs._MinEndZUu == InRhs._MinEndZUu && InLhs._MaxEndZUu == InRhs._MaxEndZUu &&
-               InLhs._TraversalClearanceUu == InRhs._TraversalClearanceUu;
-    }
-
-    auto Get_SegmentsEqual(
-        const FCk_GroundNav_BoundarySegment& InLhs,
-        const FCk_GroundNav_BoundarySegment& InRhs) -> bool
-    {
-        return InLhs._PlateIndex == InRhs._PlateIndex && InLhs._LayerIndex == InRhs._LayerIndex &&
-               InLhs._Side == InRhs._Side &&
-               InLhs._FromCell == InRhs._FromCell && InLhs._ToCell == InRhs._ToCell &&
-               InLhs._Start == InRhs._Start && InLhs._End == InRhs._End &&
-               InLhs._InwardNormalXY == InRhs._InwardNormalXY;
-    }
-
-    auto Get_StubsEqual(
-        const FCk_GroundNav_SeamStub& InLhs,
-        const FCk_GroundNav_SeamStub& InRhs) -> bool
-    {
-        return InLhs._Direction == InRhs._Direction && InLhs._AlongIndex == InRhs._AlongIndex &&
-               InLhs._PlateIndex == InRhs._PlateIndex &&
-               InLhs._NearSurfaceZUu == InRhs._NearSurfaceZUu &&
-               InLhs._FarSurfaceZUu == InRhs._FarSurfaceZUu &&
-               InLhs._ClearanceUu == InRhs._ClearanceUu;
-    }
-
-    auto Get_SeamPortalsEqual(
-        const FCk_GroundNav_SeamPortal& InLhs,
-        const FCk_GroundNav_SeamPortal& InRhs) -> bool
-    {
-        return InLhs._TileIndexA == InRhs._TileIndexA && InLhs._TileIndexB == InRhs._TileIndexB &&
-               InLhs._PlateA == InRhs._PlateA && InLhs._PlateB == InRhs._PlateB &&
-               InLhs._Direction == InRhs._Direction &&
-               InLhs._AlongMin == InRhs._AlongMin && InLhs._AlongMax == InRhs._AlongMax &&
-               InLhs._MinEndZUu == InRhs._MinEndZUu && InLhs._MaxEndZUu == InRhs._MaxEndZUu &&
-               InLhs._TraversalClearanceUu == InRhs._TraversalClearanceUu;
-    }
-
-    // Epochs are deliberately excluded: they are the one thing a rebuild and a derive are SUPPOSED to
-    // move, and every caller here bakes its comparands under the same epoch or asserts on them directly.
-    auto Get_TilesEqual(
-        const FCk_GroundNav_Tile& InLhs,
-        const FCk_GroundNav_Tile& InRhs,
-        EPolicyComparison         InPolicy) -> bool
-    {
-        const auto HeaderMatches =
-            InLhs._Coord == InRhs._Coord &&
-            InLhs._Status == InRhs._Status &&
-            InLhs._Origin == InRhs._Origin &&
-            InLhs._CellSizeUu == InRhs._CellSizeUu &&
-            InLhs._MaxClearanceUu == InRhs._MaxClearanceUu &&
-            InLhs._SizeX == InRhs._SizeX && InLhs._SizeY == InRhs._SizeY &&
-            InLhs._LayerCount == InRhs._LayerCount &&
-            InLhs._BakeStats._SourceTriangleCount == InRhs._BakeStats._SourceTriangleCount &&
-            InLhs._BakeStats._RasterizedSpanCount == InRhs._BakeStats._RasterizedSpanCount &&
-            InLhs._BakeStats._RejectedCellCount == InRhs._BakeStats._RejectedCellCount;
-
-        if (NOT HeaderMatches)
-        { return false; }
-
-        const auto CellsMatch =
-            Get_ValueArraysEqual(InLhs._SurfaceZ, InRhs._SurfaceZ) &&
-            Get_ValueArraysEqual(InLhs._Clearance._Cells, InRhs._Clearance._Cells) &&
-            Get_ValueArraysEqual(InLhs._Plates._CellToPlate, InRhs._Plates._CellToPlate);
-
-        if (NOT CellsMatch)
-        { return false; }
-
-        const auto PlatesMatch = Get_ArraysEqual(InLhs._Plates._Plates, InRhs._Plates._Plates,
-            [&](const FCk_GroundNav_Plate& InA, const FCk_GroundNav_Plate& InB) -> bool
-            {
-                return Get_PlatesEqual(InA, InB, InPolicy);
-            });
-
-        if (NOT PlatesMatch)
-        { return false; }
-
-        if (InPolicy == EPolicyComparison::Include &&
-            NOT Get_ValueArraysEqual(InLhs._Plates._AreaPolicies, InRhs._Plates._AreaPolicies))
-        { return false; }
-
-        return Get_ArraysEqual(InLhs._Portals._Portals, InRhs._Portals._Portals, &Get_PortalsEqual) &&
-               Get_NestedIndexArraysEqual(InLhs._Portals._PlateToPortals, InRhs._Portals._PlateToPortals) &&
-               Get_ArraysEqual(InLhs._Boundary._Segments, InRhs._Boundary._Segments, &Get_SegmentsEqual) &&
-               Get_ArraysEqual(InLhs._Boundary._EdgeCandidates, InRhs._Boundary._EdgeCandidates, &Get_SegmentsEqual) &&
-               Get_NestedIndexArraysEqual(InLhs._Boundary._Buckets, InRhs._Boundary._Buckets) &&
-               Get_ArraysEqual(InLhs._SeamStubs, InRhs._SeamStubs, &Get_StubsEqual);
-    }
-
-    auto Get_FieldsEqual(
-        const FCk_GroundNav_Field& InLhs,
-        const FCk_GroundNav_Field& InRhs,
-        EPolicyComparison          InPolicy) -> bool
-    {
-        const auto TilesMatch = Get_ArraysEqual(InLhs._Tiles, InRhs._Tiles,
-            [&](const FCk_GroundNav_Tile& InA, const FCk_GroundNav_Tile& InB) -> bool
-            {
-                return Get_TilesEqual(InA, InB, InPolicy);
-            });
-
-        return TilesMatch &&
-               InLhs._UnmatchedSeamStubCount == InRhs._UnmatchedSeamStubCount &&
-               Get_ArraysEqual(InLhs._SeamPortals, InRhs._SeamPortals, &Get_SeamPortalsEqual) &&
-               Get_ValueArraysEqual(InLhs._TilePlateOffsets, InRhs._TilePlateOffsets) &&
-               Get_ValueArraysEqual(InLhs._ReachabilityLabels, InRhs._ReachabilityLabels) &&
-               Get_ValueArraysEqual(InLhs._ComponentIsOpen, InRhs._ComponentIsOpen);
-    }
+    using namespace ck_test_groundnav_field_equality;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -858,6 +674,78 @@ bool FCkTest_GroundNav_Markup_PlateMergeSplitsOnPolicyInequality::RunTest(const 
     }
 
     TestEqual(TEXT("every cell belongs to the plate its policy names"), MismatchCount, 0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Markup_CostDeriveCarriesItsRecordsInTheParams,
+    "CkTests.UnitTests.CkGroundNav.Bake.Markup_CostDeriveCarriesItsRecordsInTheParams",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Markup_CostDeriveCarriesItsRecordsInTheParams::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_markup;
+
+    const auto SourceEpoch = FCk_GroundNav_Epoch{1};
+
+    auto Source = MakeShared<FCk_GroundNav_Field>();
+
+    if (NOT TestTrue(TEXT("the source field bakes"), Bake_Field({}, SourceEpoch, *Source)))
+    { return false; }
+
+    if (NOT TestTrue(TEXT("carrying no records of its own"), Source->_Params._MarkupRecords.IsEmpty()))
+    { return false; }
+
+    // Wholly inside tile (0,0), which covers [0, 400] on both axes.
+    auto Record = Make_Markup(7, FVector{200.0, 200.0, 0.0}, FVector{100.0, 100.0, 50.0},
+        ECk_GroundNav_MarkupKind::Cost);
+    Record.Set_AreaTag(TAG_CkTests_GroundNav_Markup_Slow);
+    Record.Set_CostMultiplier(2.0f);
+
+    const auto Markups = TArray<FCk_GroundNav_MarkupRecord>{Record};
+
+    const auto DerivedEpoch = SourceEpoch.Get_Next();
+    const auto Derived = Get_FieldWithMarkupCost(*Source, Markups, DerivedEpoch);
+
+    if (NOT TestTrue(TEXT("the derive completes and yields a field"),
+        Derived.Value.Get_IsCompleted() && Derived.Key.IsValid()))
+    { return false; }
+
+    // A published field has to account for its OWN cost labelling. The records are what anything asking
+    // the field what it was made under reads, and a derive that restamped plates without writing its
+    // list back would leave that account describing whatever the last BUILD baked with instead.
+    const auto& DerivedRecords = Derived.Key->_Params._MarkupRecords;
+
+    if (NOT TestEqual(TEXT("and its params carry the records its plates were priced with"),
+        DerivedRecords.Num(), 1))
+    { return false; }
+
+    TestEqual(TEXT("the very record, by id"), DerivedRecords[0].Get_Id(), Record.Get_Id());
+
+    TestTrue(TEXT("with its area tag"),
+        DerivedRecords[0].Get_AreaTag() == TAG_CkTests_GroundNav_Markup_Slow.GetTag());
+
+    TestTrue(TEXT("its kind"), DerivedRecords[0].Get_Kind() == ECk_GroundNav_MarkupKind::Cost);
+
+    TestTrue(FString::Printf(TEXT("and its multiplier (was %f)"), DerivedRecords[0].Get_CostMultiplier()),
+        DerivedRecords[0].Get_CostMultiplier() == 2.0f);
+
+    TestTrue(TEXT("while the field it was derived from still carries none"),
+        Source->_Params._MarkupRecords.IsEmpty());
+
+    // A record DELETED from the list leaves the account empty, on the same terms it leaves the plates
+    // unpriced - the list the derive was handed IS the answer, never the one the source happened to hold.
+    const auto Removed = Get_FieldWithMarkupCost(*Derived.Key, {}, DerivedEpoch.Get_Next());
+
+    if (NOT TestTrue(TEXT("the derive after the removal completes and yields a field"),
+        Removed.Value.Get_IsCompleted() && Removed.Key.IsValid()))
+    { return false; }
+
+    TestEqual(TEXT("and its params carry no records at all"),
+        Removed.Key->_Params._MarkupRecords.Num(), 0);
 
     return true;
 }
