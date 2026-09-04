@@ -127,7 +127,7 @@ bool FCkTest_GroundNav_Facade_Equivalence::RunTest(const FString& Parameters)
     if (NOT TestNotNull(TEXT("the probe world was created"), World))
     { return false; }
 
-    ck::groundnav::world_fields::Publish(World, FCk_Handle{}, Baked);
+    ck::groundnav::world_fields::Publish(World, FCk_Handle{}, Baked, {});
 
     UCk_Utils_NavSurface_UE::Request_SetProvider(World, ECk_NavSurface_Provider::GroundNav);
 
