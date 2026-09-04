@@ -60,6 +60,55 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     private const FVector  k_PlayerViewLocation = FVector(300.0, -900.0, 550.0);
     private const FRotator k_PlayerViewRotation = FRotator(-22.0, 75.0, 0.0);
 
+    // ---- Links station ---------------------------------------------------------------------------
+    //
+    // The other stations bake a DEBUG-owned field through ck.GroundNav.BakeAt: a picture, owned by the
+    // draw layer, that no volume holds and no request can be aimed at. A link is authored ON a volume,
+    // and both the mode-7 draw and ck.GroundNav.LinksAt read the volumes' PUBLISHED fields - so this
+    // station mints a volume of its own over its own corner of the floor and bakes it for real. The
+    // debug bake the rest of the panel drives is untouched by it, and vice versa.
+    //
+    // The corner is the north-west quadrant, which is the one part of the scene nothing else occupies:
+    // the stairs and the platform sit inside Y +/-500, the catwalk at Y +412..487, the pillars at
+    // Y +/-280, and the open-collision sheet at Y -700.
+
+    // 400 x 400 x 200, standing on the floor - X -700..-300, Y 700..1100, top face at Z 200. The Z
+    // scale is 2.0, well past the 0.5 below which a slab bakes to zero walkable tiles.
+    private const FVector k_LinksDeckCentre = FVector(-500.0, 900.0, 100.0);
+    private const FVector k_LinksDeckScale  = FVector(4.0, 4.0, 2.0);
+
+    // Deck plus the floor around it, and nothing else in the scene.
+    private const FVector k_LinksVolumeMin = FVector(-1000.0, 500.0, -100.0);
+    private const FVector k_LinksVolumeMax = FVector(100.0, 1300.0, 400.0);
+
+    // The DROP: off the deck's +X edge and down onto the floor beyond it. One-way, because walking off
+    // a ledge is not the same act as climbing back up it - that is what the ladder is for.
+    private const FVector k_LinksDropStart = FVector(-360.0, 900.0, 200.0);
+    private const FVector k_LinksDropEnd   = FVector(-180.0, 900.0, 0.0);
+
+    // The LADDER: off the floor south of the deck and up onto its top face. Priced at twice its own
+    // span, so a route that has any way round prefers the way round; narrowed to 40uu of clearance,
+    // which still admits the 34uu default agent and refuses anything wider.
+    private const FVector k_LinksLadderStart = FVector(-500.0, 640.0, 0.0);
+    private const FVector k_LinksLadderEnd   = FVector(-500.0, 760.0, 200.0);
+
+    private const float k_LinksLadderMultiplier = 2.0f;
+    private const float k_LinksLadderClearanceUu = 40.0f;
+
+    // The station's own bake, deliberately the same shape every GroundNav fixture in the corpus uses.
+    // LedgeSensitivity is pinned off: the deck is a 400uu square that drops 200uu on all four sides,
+    // and the ledge filter at its default would demote its whole top - leaving the two links with
+    // nothing to land on for a reason that has nothing to do with links.
+    private const float k_LinksCellSizeUu = 25.0f;
+    private const float k_LinksCellHeightUu = 10.0f;
+    private const float k_LinksTileSizeUu = 500.0f;
+    private const float k_LinksAgentRadiusUu = 34.0f;
+    private const float k_LinksAgentHalfHeightUu = 90.0f;
+
+    // 0.05s a poll, so this is 30 seconds of waiting on a NAMED condition before the station gives up
+    // and says so in its own status row rather than hanging silently.
+    private const int32 k_LinksSettlePollCeiling = 600;
+
     // ---- Control row indices ---------------------------------------------------------------------
     //
     // Header and Status rows never reach Request_ControlActivated but they DO occupy an index. These
@@ -82,11 +131,34 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     private const int32 k_Row_BakeField   = 23;
     private const int32 k_Row_OpenBody    = 24;
 
+    // Appended after every existing row on purpose: a section inserted higher up would renumber
+    // every constant above it, and the panel dispatches on the index.
+    private const int32 k_Row_LinksToggle = 28;
+
     // ---- State -----------------------------------------------------------------------------------
 
     private FCk_Handle _PcEntity;
     private bool _GeometryIsBuilt = false;
     private int32 _BakeCount = 0;
+
+    // ---- Links station state ---------------------------------------------------------------------
+
+    private FCk_Handle _LinksVolumeEntity;
+    private FCk_Handle_GroundNavVolume _LinksVolume;
+    private FCk_Handle _LinksDropEntity;
+    private FCk_Handle _LinksLadderEntity;
+
+    // ONE repeating timer, not a chain of one-shots: utils_timer::Add mints a child entity per timer,
+    // so re-arming a one-shot every poll would leave one behind for every frame it waited.
+    private FCk_Handle_Timer _LinksSettleTimer;
+
+    private bool _LinksArmed = false;
+    private int32 _LinksSettlePolls = 0;
+
+    // The one thing about the links station with no readback: what it is waiting on. Everything else
+    // the panel reports - whether the field is built, whether each link is live, how many did not
+    // resolve, whether they are enabled - is read off the volume every frame.
+    private FString _LinksStage = "not started";
 
     // The row reads this back rather than mirroring a bool: the actor IS the state, and a bool that
     // disagreed with it would report an open body the static world no longer holds.
@@ -304,6 +376,23 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         Station.Description = Description;
 
         Stations.Add(Station);
+
+        auto LinksStation = FCkGym_Station_SpawnParams_Payload();
+        LinksStation.Tags.Add(n"GroundNavLinks");
+        LinksStation.AutoSize = true;
+        LinksStation.Transform = FTransform(FRotator(0.0, 270.0, 0.0), FVector(-500.0, 2600.0, 0.0), FVector::OneVector);
+        LinksStation.Title = FText::FromString("GroundNav - Nav Links");
+
+        auto LinksDescription = TArray<FText>();
+        LinksDescription.Add(FText::FromString("A deck standing on the floor to the north-west, joined to the ground beside it by two authored navigation links: a one-way DROP off the deck's east edge, and a one-way LADDER back up its south face. Both are authored on a volume this station bakes for itself - the R and Y bakes the rest of the panel drives are a debug picture that no volume holds, and a link has to be authored ON one."));
+        LinksDescription.Add(FText::FromString("Type ck.GroundNav.LinksAt 0 0 0 to draw both links and print what each end resolved to. It reads the PUBLISHED field, so it needs no bake at all: green means traversable, grey disabled, orange an end over ground nobody has baked, red an end with no ground under it."));
+        LinksDescription.Add(FText::FromString("Type ck.GroundNav.Debug.Mode 7 and then press R or Y to see the same links over the dimmed plates they join. Note that R, Y and every tunable key push this gym's own draw mode back over the top, so set the mode again after a bake - or stay on ck.GroundNav.LinksAt, which does not care."));
+        LinksDescription.Add(FText::FromString("Press U to disable both links and again to re-enable them. A disabled link is invisible to search and to reachability, and the LINKS panel rows below report each one's live state, read off the volume rather than remembered."));
+        LinksDescription.Add(FText::FromString("The ladder is priced at twice its own straight-line span and narrowed to 40uu of clearance; the drop is priced at its span and admits any agent. A link never costs less than its own length - that is what keeps the search's Euclidean heuristic admissible."));
+        LinksStation.Description = LinksDescription;
+
+        Stations.Add(LinksStation);
+
         return Stations;
     }
 
@@ -333,7 +422,178 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         DoBringPlayerToViewpoint();
         DoWaitOneFrame(n"OnViewpointSettle");
 
+        DoArm_LinksStation();
+
         ck::groundnav::Log("GroundNav gym: scene built - press R to bake");
+    }
+
+    // ---- Links station ---------------------------------------------------------------------------
+    //
+    // Mints a volume over the deck and the floor around it, bakes it, and authors the drop and the
+    // ladder once the surface has gone quiet. Guarded so Ck_Gym_Restart re-running the gym does not
+    // stack a second volume over the same ground.
+
+    private void DoArm_LinksStation()
+    {
+        if (_LinksArmed)
+        { return; }
+
+        if (_GeometryIsBuilt == false)
+        {
+            _LinksStage = "the scene is not in the Jolt static world - nothing to bake over";
+            return;
+        }
+
+        _LinksArmed = true;
+
+        // The settle below is answered by whichever provider the world is on, and it folds over every
+        // GroundNav volume the world holds - this station's, and nothing else in this scene. The
+        // provider is a per-WORLD selection and the cycler travels to reach another gym, so this one
+        // is not handed back: the world it was set on ends with the gym.
+        utils_nav_surface::Request_SetProvider(ECk_NavSurface_Provider::GroundNav);
+
+        _LinksVolumeEntity = utils_entity_lifetime::Request_CreateEntity(_PcEntity);
+        _LinksVolumeEntity.Request_OverrideToSelf();
+        _LinksVolumeEntity.Set_DebugName(n"GroundNavGym_LinksField");
+
+        auto Config = FCk_GroundNav_BakeConfig(k_LinksCellSizeUu, k_LinksCellHeightUu);
+        Config.Set_TileSizeUu(k_LinksTileSizeUu);
+
+        auto Profile = FCk_GroundNav_AgentProfile(
+            utils_shapes::Make_Capsule(
+                FCk_ShapeCapsule_Dimensions(k_LinksAgentHalfHeightUu, k_LinksAgentRadiusUu)));
+        Profile.Set_LedgeSensitivity(0.0f);
+
+        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(
+            FBox(k_LinksVolumeMin, k_LinksVolumeMax), Config, Profile);
+
+        // The bake waited on must be the one asked for, not one that happened to run at setup.
+        VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
+
+        _LinksVolume = utils_ground_nav_volume::Add(_LinksVolumeEntity, VolumeParams);
+
+        if (ck::Is_NOT_Valid(_LinksVolume))
+        {
+            _LinksStage = "Add() returned an invalid volume handle";
+            return;
+        }
+
+        utils_ground_nav_volume::Request_Build(_LinksVolume, FCk_Request_GroundNavVolume_Build());
+
+        _LinksStage = "baking, then waiting for the surface to settle";
+        _LinksSettlePolls = 0;
+
+        auto PollParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        PollParams.Set_StartingState(ECk_Timer_State::Running)
+                  .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+
+        auto PollTimer = utils_timer::Add(_PcEntity, PollParams);
+        PollTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnLinksSettlePoll"));
+
+        _LinksSettleTimer = PollTimer;
+    }
+
+    // The one named condition worth waiting on after a bake: nothing in flight and nothing pending, so
+    // the field the volume publishes is the one every query - and every link resolution - answers
+    // from. A fixed number of hops would bake a guess about the probe budget into the gym.
+    UFUNCTION()
+    private void OnLinksSettlePoll(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        _LinksSettlePolls += 1;
+
+        if (utils_nav_surface::Get_IsSurfaceSettled())
+        {
+            DoStop_LinksSettlePoll();
+            DoAuthor_Links();
+            return;
+        }
+
+        if (_LinksSettlePolls >= k_LinksSettlePollCeiling)
+        {
+            DoStop_LinksSettlePoll();
+            _LinksStage = "the surface never settled - no links were authored";
+            ck::groundnav::Log("GroundNav gym: the links field never settled - the drop and the ladder were not authored");
+        }
+    }
+
+    private void DoStop_LinksSettlePoll()
+    {
+        if (ck::Is_NOT_Valid(_LinksSettleTimer))
+        { return; }
+
+        utils_timer::Request_Stop(_LinksSettleTimer);
+        _LinksSettleTimer = FCk_Handle_Timer();
+    }
+
+    private void DoAuthor_Links()
+    {
+        _LinksDropEntity = utils_entity_lifetime::Request_CreateEntity(_PcEntity);
+        _LinksDropEntity.Request_OverrideToSelf();
+        _LinksDropEntity.Set_DebugName(n"GroundNavGym_DropLink");
+
+        _LinksLadderEntity = utils_entity_lifetime::Request_CreateEntity(_PcEntity);
+        _LinksLadderEntity.Request_OverrideToSelf();
+        _LinksLadderEntity.Set_DebugName(n"GroundNavGym_LadderLink");
+
+        DoRequest_Links(ECk_EnableDisable::Enable);
+
+        _LinksStage = f"authored after {_LinksSettlePolls} settle polls";
+        ck::groundnav::Log("GroundNav gym: the drop and the ladder are authored - ck.GroundNav.LinksAt 0 0 0 lists them");
+    }
+
+    // Both links, every time, from one place: the toggle re-requests them with the enable flag flipped
+    // and nothing else changed, so the two forms cannot drift apart. Naming the SAME entities is what
+    // keeps each record's id - an update keeps the id the entity was first admitted under.
+    private void DoRequest_Links(ECk_EnableDisable InEnable)
+    {
+        if (ck::Is_NOT_Valid(_LinksVolume))
+        { return; }
+
+        // The id is -1 because the VOLUME assigns it; the record's identity carries no setter.
+        auto DropRecord = FCk_GroundNav_LinkRecord(-1, k_LinksDropStart, k_LinksDropEnd);
+
+        DropRecord.Set_Direction(ECk_GroundNav_LinkDirection::Forward)
+                  .Set_Enable(InEnable);
+
+        utils_ground_nav_volume::Request_Link(_LinksVolume,
+            FCk_Request_GroundNavVolume_Link(_LinksDropEntity, DropRecord));
+
+        auto LadderRecord = FCk_GroundNav_LinkRecord(-1, k_LinksLadderStart, k_LinksLadderEnd);
+
+        LadderRecord.Set_Direction(ECk_GroundNav_LinkDirection::Forward)
+                    .Set_CostMultiplierForward(k_LinksLadderMultiplier)
+                    .Set_ClearanceUu(k_LinksLadderClearanceUu)
+                    .Set_Enable(InEnable);
+
+        utils_ground_nav_volume::Request_Link(_LinksVolume,
+            FCk_Request_GroundNavVolume_Link(_LinksLadderEntity, LadderRecord));
+    }
+
+    private void DoToggle_Links()
+    {
+        if (ck::Is_NOT_Valid(_LinksVolume))
+        { return; }
+
+        auto Enable = ECk_EnableDisable::Enable;
+
+        if (Get_LinksAreEnabled())
+        { Enable = ECk_EnableDisable::Disable; }
+
+        DoRequest_Links(Enable);
+
+        ck::groundnav::Log("GroundNav gym: link enable flipped - the derive republishes, then ck.GroundNav.LinksAt shows the new state");
+    }
+
+    // Read off the record the volume holds rather than mirrored in a bool: the volume IS the state,
+    // and a member that disagreed with it would report links the field no longer carries.
+    private bool Get_LinksAreEnabled()
+    {
+        auto Records = utils_ground_nav_volume::Get_LinkRecords(_LinksVolume);
+
+        if (Records.Num() == 0)
+        { return false; }
+
+        return Records[0].Get_Enable() == ECk_EnableDisable::Enable;
     }
 
     // ---- Scene construction ----------------------------------------------------------------------
@@ -368,6 +628,11 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         { return false; }
 
         if (DoSpawnBox(k_PillarSouthCentre, k_PillarScale) == false)
+        { return false; }
+
+        // The links station's deck. It is scene geometry like everything else here, so it goes into
+        // the Jolt static world through the same call - the links volume bakes from that world.
+        if (DoSpawnBox(k_LinksDeckCentre, k_LinksDeckScale) == false)
         { return false; }
 
         return true;
@@ -656,7 +921,41 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         Rows.Add(CkGym_Control::Toggle(EKeys::X, "X",
             "Open-collision body (does NOT re-bake - press R or Y afterwards)", ck::IsValid(_OpenBodyActor)));
 
+        // Every value here is read off the volume as the row is built, so the panel reports the links
+        // the field actually carries rather than what this controller last asked for.
+        Rows.Add(CkGym_Control::Header("LINKS - the deck to the north-west (its own volume, not the R bake)"));
+        Rows.Add(CkGym_Control::Status("Field", Get_LinksFieldStatus(),
+            utils_ground_nav_volume::Get_IsBuilt(_LinksVolume) == false));
+        Rows.Add(CkGym_Control::Status("Drop / ladder", Get_LinksLiveStatus()));
+        Rows.Add(CkGym_Control::ToggleNamed(EKeys::U, "U",
+            "Links (ck.GroundNav.LinksAt 0 0 0 lists them; ck.GroundNav.Debug.Mode 7 draws them over a bake)",
+            Get_LinksAreEnabled(), "enabled", "disabled"));
+
         return Rows;
+    }
+
+    private FString Get_LinksFieldStatus()
+    {
+        if (utils_ground_nav_volume::Get_IsBuilt(_LinksVolume) == false)
+        { return _LinksStage; }
+
+        const auto Tiles = utils_ground_nav_volume::Get_BuiltTileCount(_LinksVolume);
+
+        return f"published - {Tiles} tiles - {_LinksStage}";
+    }
+
+    private FString Get_LinksLiveStatus()
+    {
+        const auto Records = utils_ground_nav_volume::Get_LinkRecords(_LinksVolume).Num();
+
+        if (Records == 0)
+        { return "nothing authored yet"; }
+
+        const auto DropLive = utils_ground_nav_volume::Get_IsLinkLive(_LinksDropEntity);
+        const auto LadderLive = utils_ground_nav_volume::Get_IsLinkLive(_LinksLadderEntity);
+        const auto Unresolved = utils_ground_nav_volume::Get_UnresolvedLinkCount(_LinksVolume);
+
+        return f"{Records} records - drop live: {DropLive} - ladder live: {LadderLive} - ends that found no ground: {Unresolved}";
     }
 
     void Request_ControlActivated(int32 InRowIndex) override
@@ -759,6 +1058,12 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         if (InRowIndex == k_Row_OpenBody)
         {
             DoToggleOpenBody();
+            return;
+        }
+
+        if (InRowIndex == k_Row_LinksToggle)
+        {
+            DoToggle_Links();
             return;
         }
     }
