@@ -2,17 +2,26 @@
 //
 // A snapshot exists so a viewer can draw a bake without holding anything that produced it. The
 // assertions here are about that boundary — that the copy is complete, that capping the drawn cells
-// does not corrupt the reported counts, and that a viewer can tell an empty region from a failed one.
+// does not corrupt the reported counts, that a viewer can tell an empty region from a failed one,
+// that a capture survives the field AND the world it was taken from, and that the cache beside it
+// hands back one whole capture or none.
 
+#include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
+
+#include "CkGroundNav/Backend/CkGroundNav_GeometryBackend_Stub.h"
 #include "CkGroundNav/Bake/CkGroundNav_Clearance.h"
 #include "CkGroundNav/Bake/CkGroundNav_Plates.h"
 #include "CkGroundNav/Bake/CkGroundNav_Portals.h"
 #include "CkGroundNav/Bake/CkGroundNav_Rasterize.h"
 #include "CkGroundNav/Debug/CkGroundNav_DebugSnapshot.h"
+#include "CkGroundNav/Facade/CkGroundNav_WorldFieldRegistry.h"
+#include "CkGroundNav/Field/CkGroundNav_Field.h"
 
 #include "CkShapes/Capsule/CkShapeCapsule_Fragment_Data.h"
 
 #include "../CkUnitTest_Common.h"
+
+#include <Engine/World.h>
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -25,17 +34,30 @@ namespace ck_test_groundnav_snapshot
     using ck::groundnav::DoExtract_Layers;
     using ck::groundnav::DoExtract_Portals;
     using ck::groundnav::DoFilter_Walkability;
+    using ck::groundnav::DoBake_Field;
     using ck::groundnav::DoRasterizeSpans;
     using ck::groundnav::EDebugSnapshotStatus;
     using ck::groundnav::FCk_GroundNav_ClearanceField;
     using ck::groundnav::FCk_GroundNav_ConnectionField;
+    using ck::groundnav::FCk_GroundNav_DebugCorridor;
     using ck::groundnav::FCk_GroundNav_DebugLink;
+    using ck::groundnav::FCk_GroundNav_DebugMarkup;
     using ck::groundnav::FCk_GroundNav_DebugSnapshot;
+    using ck::groundnav::FCk_GroundNav_DebugSnapshotCache;
+    using ck::groundnav::FCk_GroundNav_DebugSnapshotCacheKey;
+    using ck::groundnav::FCk_GroundNav_Epoch;
+    using ck::groundnav::FCk_GroundNav_Field;
+    using ck::groundnav::FCk_GroundNav_FieldParams;
+    using ck::groundnav::FCk_GroundNav_FieldPtr;
+    using ck::groundnav::FCk_GroundNav_GeometryBackend_Stub;
     using ck::groundnav::FCk_GroundNav_LayerField;
     using ck::groundnav::FCk_GroundNav_PlateField;
     using ck::groundnav::FCk_GroundNav_PortalField;
     using ck::groundnav::FCk_GroundNav_SpanField;
     using ck::groundnav::Make_DebugSnapshot;
+    using ck::groundnav::Make_DebugSnapshotFromField;
+
+    namespace world_fields = ck::groundnav::world_fields;
 
     constexpr auto kCellSize = 25.0f;
 
@@ -131,6 +153,343 @@ namespace ck_test_groundnav_snapshot
         Link._Live = false;
 
         return Link;
+    }
+
+    // --------------------------------------------------------------------------------------------------
+
+    constexpr auto kCellHeight = 10.0f;
+    constexpr auto kTileSize = 400.0f;
+    constexpr auto kMaxClearance = 100.0f;
+
+    constexpr auto kUncapped = TNumericLimits<int32>::Max();
+
+    // 2x2 tiles of 400uu from the origin - the same field shape the publish and repair pins bake.
+    auto Make_FieldParams() -> FCk_GroundNav_FieldParams
+    {
+        auto Config = FCk_GroundNav_BakeConfig{kCellSize, kCellHeight};
+        Config.Set_TileSizeUu(kTileSize);
+
+        auto Profile = FCk_GroundNav_AgentProfile{
+            FCk_AnyShape{FCk_ShapeCapsule_Dimensions{70.0f, 20.0f}}};
+        Profile.Set_LedgeSensitivity(0.0f);
+
+        auto Params = FCk_GroundNav_FieldParams{};
+
+        Params._OriginXY = FVector2D::ZeroVector;
+        Params._Divisions = FIntPoint{2, 2};
+        Params._MinZUu = -50.0f;
+        Params._MaxZUu = 300.0f;
+        Params._Config = Config;
+        Params._Profile = Profile;
+        Params._MaxClearanceUu = kMaxClearance;
+
+        return Params;
+    }
+
+    // Ground reaching past the lattice on every side, so every tile's halo has real world in it.
+    auto Make_WholeGround() -> TArray<FBox>
+    {
+        return TArray<FBox>{FBox{FVector{-400.0, -400.0, -10.0}, FVector{1200.0, 1200.0, 0.0}}};
+    }
+
+    // The same ground with a chasm through the middle: a rebuild against this MOVES tiles rather than
+    // merely restamping them, which is what a cache key has to notice.
+    auto Make_GroundWithChasm() -> TArray<FBox>
+    {
+        return TArray<FBox>{
+            FBox{FVector{-400.0, -400.0, -10.0}, FVector{1200.0, 300.0, 0.0}},
+            FBox{FVector{-400.0, 500.0, -10.0}, FVector{1200.0, 1200.0, 0.0}}};
+    }
+
+    auto Bake_Field(
+        const TArray<FBox>&        InBoxes,
+        const FCk_GroundNav_Epoch& InEpoch) -> TSharedPtr<FCk_GroundNav_Field>
+    {
+        const auto Backend = FCk_GroundNav_GeometryBackend_Stub{InBoxes};
+
+        auto Field = TSharedPtr<FCk_GroundNav_Field>{MakeShared<FCk_GroundNav_Field>()};
+
+        if (NOT DoBake_Field(Backend, Make_FieldParams(), InEpoch, *Field).Get_IsCompleted())
+        { return {}; }
+
+        return Field;
+    }
+
+    // --------------------------------------------------------------------------------------------------
+
+    // The arrays a field bake never fills, because they are collected from the WORLD rather than from
+    // the field: a markup, the two links above, and one agent's corridor. Those carry the members a
+    // capture most easily gets wrong - a tag reduced to a name, an agent reduced to its printed name -
+    // so the teardown pin walks them too rather than walking empty arrays that would survive anything.
+    auto Do_StampWorldCollectedValues(
+        FCk_GroundNav_DebugSnapshot& InOutSnapshot) -> void
+    {
+        auto Markup = FCk_GroundNav_DebugMarkup{};
+
+        Markup._Bounds = FBox{FVector{100.0, 100.0, -10.0}, FVector{300.0, 300.0, 90.0}};
+        Markup._AreaTagName = FName{TEXT("Nav.Area.Mud")};
+        Markup._RecordId = 2;
+        Markup._CostMultiplier = 3.0f;
+        Markup._RequestedAtEpoch = 3;
+        Markup._IsEnabled = true;
+        Markup._IsLive = true;
+
+        InOutSnapshot._Markups.Emplace(Markup);
+
+        InOutSnapshot._Links.Emplace(Make_DisabledLink());
+        InOutSnapshot._Links.Emplace(Make_UnresolvedLink());
+
+        auto Corridor = FCk_GroundNav_DebugCorridor{};
+
+        Corridor._Bounds = FBox{FVector{0.0, 0.0, -10.0}, FVector{800.0, 800.0, 90.0}};
+        Corridor._PathName = TEXT("GroundNavPath_Fixture");
+        Corridor._InflationUu = 50.0f;
+        Corridor._CorridorEpoch = 3;
+        Corridor._FieldEpoch = 4;
+        Corridor._HasField = true;
+
+        InOutSnapshot._Corridors.Emplace(Corridor);
+
+        InOutSnapshot._ChangedBounds.Emplace(
+            FBox{FVector{0.0, 0.0, -10.0}, FVector{400.0, 400.0, 90.0}});
+
+        InOutSnapshot._RepairInProgress = true;
+        InOutSnapshot._RepairDirtyBounds = FBox{FVector{0.0, 0.0, -10.0}, FVector{200.0, 200.0, 90.0}};
+        InOutSnapshot._RepairTileIndices.Emplace(0);
+        InOutSnapshot._RepairTileBounds.Emplace(
+            FBox{FVector{0.0, 0.0, -50.0}, FVector{400.0, 400.0, 300.0}});
+    }
+
+    // --------------------------------------------------------------------------------------------------
+
+    constexpr auto InformEngineOfWorld = false;
+
+    struct FWorldFixture
+    {
+        UWorld* _World = nullptr;
+        FCk_Handle _WorldEntity;
+    };
+
+    auto Make_WorldFixture(
+        const TCHAR* InWorldName) -> FWorldFixture
+    {
+        auto Fixture = FWorldFixture{};
+
+        Fixture._World = UWorld::CreateWorld(EWorldType::Game, InformEngineOfWorld, FName{InWorldName});
+
+        if (Fixture._World == nullptr)
+        { return Fixture; }
+
+        Fixture._WorldEntity = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(Fixture._World);
+
+        if (ck::Is_NOT_Valid(Fixture._WorldEntity))
+        { return Fixture; }
+
+        return Fixture;
+    }
+
+    auto Get_IsReady(
+        const FWorldFixture& InFixture) -> bool
+    {
+        return InFixture._World != nullptr && ck::IsValid(InFixture._WorldEntity);
+    }
+
+    auto Destroy_WorldFixture(
+        FWorldFixture& InFixture) -> void
+    {
+        if (InFixture._World != nullptr)
+        { InFixture._World->DestroyWorld(InformEngineOfWorld); }
+
+        InFixture._World = nullptr;
+    }
+
+    // --------------------------------------------------------------------------------------------------
+
+    constexpr auto kSurfaceRevision = int64{4200};
+
+    // A key names the volume by VALUES only, so a test builds one the same way a producer would: the
+    // world by the name its UWorld answers to, and the entity by the whole of its id. The world's own
+    // transient entity stands in for a volume here - what a key reads off it is an id, and an id is an
+    // id whatever entity carries it.
+    auto Make_Key(
+        const FCk_GroundNav_DebugSnapshot& InSnapshot,
+        const FWorldFixture&               InFixture,
+        int64                              InSurfaceRevision) -> FCk_GroundNav_DebugSnapshotCacheKey
+    {
+        auto Key = FCk_GroundNav_DebugSnapshotCacheKey{};
+
+        const auto Entity = InFixture._WorldEntity.Get_Entity();
+
+        Key._WorldName = InFixture._World != nullptr ? InFixture._World->GetFName() : FName{};
+        Key._VolumeEntityNumber = static_cast<int32>(Entity.Get_EntityNumber());
+        Key._VolumeEntityVersion = static_cast<int32>(Entity.Get_VersionNumber());
+        Key._NewestTileEpoch = InSnapshot.Get_NewestTileEpoch();
+        Key._SurfaceRevision = InSurfaceRevision;
+
+        return Key;
+    }
+
+    // --------------------------------------------------------------------------------------------------
+
+    /**
+     * Everything a viewer reads off a capture, folded from every array and every getter it offers.
+     *
+     * Taken twice - once while the field and the world stand, once after both are gone - because a
+     * member that had kept a pointer, a handle or an index it resolved on demand would answer a
+     * DIFFERENT number the second time rather than failing outright.
+     */
+    struct FSnapshotTally
+    {
+        int32 _OpenBodies = 0;
+        int32 _OpenEdgePoints = 0;
+        int32 _OpenBodyDescriptionChars = 0;
+
+        int32 _Cells = 0;
+        int32 _CellLayerSum = 0;
+
+        int32 _RejectedCells = 0;
+        int32 _RejectedCellLayerSum = 0;
+
+        int32 _Plates = 0;
+        double _PlateHeightSum = 0.0;
+
+        int32 _Portals = 0;
+        int32 _CrossLayerPortals = 0;
+
+        int32 _Tiles = 0;
+        int64 _TileEpochSum = 0;
+
+        int32 _Seams = 0;
+        double _SeamClearanceSum = 0.0;
+
+        int32 _BoundaryRuns = 0;
+        int32 _TileRimRuns = 0;
+
+        int32 _Markups = 0;
+        int32 _NamedMarkups = 0;
+
+        int32 _Links = 0;
+        int32 _NamedLinks = 0;
+        int32 _LinkIdSum = 0;
+
+        int32 _Corridors = 0;
+        int32 _CorridorNameChars = 0;
+
+        int32 _ChangedBounds = 0;
+        int32 _RepairTileIndices = 0;
+        int32 _RepairTileBounds = 0;
+
+        int32 _PlateCount = 0;
+        int32 _PortalCount = 0;
+        int32 _TileCount = 0;
+        int32 _SeamCount = 0;
+        int32 _BoundaryCount = 0;
+        int32 _BuiltTileCount = 0;
+        int32 _RepairTileCount = 0;
+        int32 _OpenBodyCount = 0;
+
+        int64 _NewestTileEpoch = 0;
+        float _NarrowestPortalUu = 0.0f;
+        bool _IsDrawable = false;
+
+        auto operator==(const FSnapshotTally&) const -> bool = default;
+    };
+
+    auto Make_Tally(
+        const FCk_GroundNav_DebugSnapshot& InSnapshot) -> FSnapshotTally
+    {
+        auto Result = FSnapshotTally{};
+
+        for (const auto& OpenBody : InSnapshot._OpenBodies)
+        {
+            ++Result._OpenBodies;
+            Result._OpenEdgePoints += OpenBody._OpenEdgePoints.Num();
+            Result._OpenBodyDescriptionChars += OpenBody._Description.Len();
+        }
+
+        for (const auto& Cell : InSnapshot._Cells)
+        {
+            ++Result._Cells;
+            Result._CellLayerSum += Cell._LayerIndex;
+        }
+
+        for (const auto& Plate : InSnapshot._Plates)
+        {
+            ++Result._Plates;
+            Result._PlateHeightSum += static_cast<double>(Plate._HeightRangeUu);
+        }
+
+        for (const auto& Portal : InSnapshot._Portals)
+        {
+            ++Result._Portals;
+            Result._CrossLayerPortals += Portal._IsCrossLayer ? 1 : 0;
+        }
+
+        for (const auto& Tile : InSnapshot._Tiles)
+        {
+            ++Result._Tiles;
+            Result._TileEpochSum += Tile._Epoch;
+        }
+
+        for (const auto& Seam : InSnapshot._Seams)
+        {
+            ++Result._Seams;
+            Result._SeamClearanceSum += static_cast<double>(Seam._TraversalClearanceUu);
+        }
+
+        for (const auto& Run : InSnapshot._Boundary)
+        {
+            ++Result._BoundaryRuns;
+            Result._TileRimRuns += Run._IsTileRim ? 1 : 0;
+        }
+
+        for (const auto& Cell : InSnapshot._RejectedCells)
+        {
+            ++Result._RejectedCells;
+            Result._RejectedCellLayerSum += Cell._LayerIndex;
+        }
+
+        for (const auto& Markup : InSnapshot._Markups)
+        {
+            ++Result._Markups;
+            Result._NamedMarkups += Markup._AreaTagName.IsNone() ? 0 : 1;
+        }
+
+        for (const auto& Link : InSnapshot._Links)
+        {
+            ++Result._Links;
+            Result._NamedLinks += Link._AreaTagName.IsNone() ? 0 : 1;
+            Result._LinkIdSum += Link._Id;
+        }
+
+        for (const auto& Corridor : InSnapshot._Corridors)
+        {
+            ++Result._Corridors;
+            Result._CorridorNameChars += Corridor._PathName.Len();
+        }
+
+        for (const auto& Bounds : InSnapshot._ChangedBounds)
+        { Result._ChangedBounds += Bounds.IsValid != 0 ? 1 : 0; }
+
+        for (const auto& TileIndex : InSnapshot._RepairTileIndices)
+        { Result._RepairTileIndices += TileIndex >= 0 ? 1 : 0; }
+
+        for (const auto& Bounds : InSnapshot._RepairTileBounds)
+        { Result._RepairTileBounds += Bounds.IsValid != 0 ? 1 : 0; }
+
+        Result._PlateCount = InSnapshot.Get_PlateCount();
+        Result._PortalCount = InSnapshot.Get_PortalCount();
+        Result._TileCount = InSnapshot.Get_TileCount();
+        Result._SeamCount = InSnapshot.Get_SeamCount();
+        Result._BoundaryCount = InSnapshot.Get_BoundaryCount();
+        Result._BuiltTileCount = InSnapshot.Get_BuiltTileCount();
+        Result._RepairTileCount = InSnapshot.Get_RepairTileCount();
+        Result._OpenBodyCount = InSnapshot.Get_OpenBodyCount();
+        Result._NewestTileEpoch = InSnapshot.Get_NewestTileEpoch();
+        Result._NarrowestPortalUu = InSnapshot.Get_NarrowestPortalUu();
+        Result._IsDrawable = InSnapshot.Get_IsDrawable();
+
+        return Result;
     }
 }
 
@@ -398,6 +757,250 @@ bool FCkTest_GroundNav_Snapshot_CarriesLinksAsValuesOnly::RunTest(const FString&
 
     TestTrue(TEXT("and it is enabled, which is a different thing from resolved"), Unresolved._Enabled);
     TestFalse(TEXT("and not live, because a link that did not resolve is not there"), Unresolved._Live);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Snapshot_OutlivesItsProducer,
+    "CkTests.UnitTests.CkGroundNav.Bake.Snapshot_OutlivesItsProducer",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Snapshot_OutlivesItsProducer::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_snapshot;
+
+    auto Fixture = Make_WorldFixture(TEXT("CkTest_GroundNav_SnapshotOutlivesItsProducer"));
+
+    if (NOT TestNotNull(TEXT("the fixture world stands"), Fixture._World))
+    { return false; }
+
+    auto Snapshot = FCk_GroundNav_DebugSnapshot{};
+    auto WhileStanding = FSnapshotTally{};
+
+    {
+        auto Field = Bake_Field(Make_WholeGround(), FCk_GroundNav_Epoch{4});
+
+        if (NOT Field.IsValid())
+        {
+            AddError(TEXT("the fixture field did not bake, so there is no producer to outlive"));
+            Destroy_WorldFixture(Fixture);
+            return false;
+        }
+
+        auto Published = FCk_GroundNav_FieldPtr{Field};
+
+        world_fields::Publish(Fixture._World, Fixture._WorldEntity, Published, {});
+
+        Snapshot = Make_DebugSnapshotFromField(*Published, kUncapped);
+        Do_StampWorldCollectedValues(Snapshot);
+
+        WhileStanding = Make_Tally(Snapshot);
+
+        // A field with real tiles, plates and cells in it, so what follows is an enumeration of
+        // something rather than a walk over empty arrays that would survive anything.
+        TestTrue(TEXT("the capture has tiles"), WhileStanding._Tiles > 0);
+        TestTrue(TEXT("and built ones"), WhileStanding._BuiltTileCount > 0);
+        TestTrue(TEXT("and plates"), WhileStanding._Plates > 0);
+        TestTrue(TEXT("and cells"), WhileStanding._Cells > 0);
+        TestTrue(TEXT("and the world-collected values that carry names"), WhileStanding._NamedLinks > 0);
+
+        world_fields::Unpublish(Fixture._World, Fixture._WorldEntity);
+
+        Published.Reset();
+        Field.Reset();
+    }
+
+    Destroy_WorldFixture(Fixture);
+
+    // Everything below reads a capture whose field, registry entry and WORLD are all gone. A member
+    // that had kept a pointer, a handle or an index it resolved on demand would either fire an ensure
+    // here or answer a different number - which is exactly what a viewer drawing a frame after a
+    // level teardown would be doing.
+    const auto AfterTeardown = Make_Tally(Snapshot);
+
+    TestTrue(TEXT("every count and every getter answers what it answered before the teardown"),
+        AfterTeardown == WhileStanding);
+
+    TestEqual(TEXT("and the status came through unchanged"),
+        Snapshot._Status, EDebugSnapshotStatus::Current);
+
+    TestTrue(TEXT("and a capture of a completed bake is still drawable"), Snapshot.Get_IsDrawable());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Snapshot_CacheKeyFollowsTheField,
+    "CkTests.UnitTests.CkGroundNav.Bake.Snapshot_CacheKeyFollowsTheField",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Snapshot_CacheKeyFollowsTheField::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_snapshot;
+
+    auto Fixture = Make_WorldFixture(TEXT("CkTest_GroundNav_SnapshotCacheKey"));
+    auto SecondWorld = Make_WorldFixture(TEXT("CkTest_GroundNav_SnapshotCacheKey_Elsewhere"));
+
+    if (NOT TestTrue(TEXT("both fixture worlds stand and answer an entity"),
+        Get_IsReady(Fixture) && Get_IsReady(SecondWorld)))
+    {
+        Destroy_WorldFixture(SecondWorld);
+        Destroy_WorldFixture(Fixture);
+        return false;
+    }
+
+    const auto FirstField = Bake_Field(Make_WholeGround(), FCk_GroundNav_Epoch{4});
+    const auto RebuiltField = Bake_Field(Make_GroundWithChasm(), FCk_GroundNav_Epoch{5});
+
+    if (NOT FirstField.IsValid() || NOT RebuiltField.IsValid())
+    {
+        AddError(TEXT("a fixture field did not bake, so there is no key to derive"));
+        Destroy_WorldFixture(SecondWorld);
+        Destroy_WorldFixture(Fixture);
+        return false;
+    }
+
+    const auto FirstSnapshot = Make_DebugSnapshotFromField(*FirstField, kUncapped);
+    const auto RebuiltSnapshot = Make_DebugSnapshotFromField(*RebuiltField, kUncapped);
+
+    // Derived twice from the same field. A key that folded in an address, a build time or anything
+    // else the capture merely happened to observe would already differ here, and every staleness
+    // decision made against it downstream would be a coin toss.
+    const auto FirstKey = Make_Key(FirstSnapshot, Fixture, kSurfaceRevision);
+    const auto SameFieldAgain = Make_Key(FirstSnapshot, Fixture, kSurfaceRevision);
+
+    TestTrue(TEXT("the same field derives the same key"), FirstKey.Get_IsEqual(SameFieldAgain));
+
+    TestTrue(TEXT("and the rebuild carries a newer tile epoch"),
+        RebuiltSnapshot.Get_NewestTileEpoch() != FirstSnapshot.Get_NewestTileEpoch());
+
+    const auto RebuiltKey = Make_Key(RebuiltSnapshot, Fixture, kSurfaceRevision);
+
+    TestFalse(TEXT("so the rebuilt field derives a different key"), FirstKey.Get_IsEqual(RebuiltKey));
+
+    // The world's revision moves when ANOTHER of its volumes publishes, which changes nothing about
+    // this field and everything about whether a viewer is looking at a current world.
+    const auto ElsewhereKey = Make_Key(FirstSnapshot, Fixture, kSurfaceRevision + 1);
+
+    TestFalse(TEXT("and a surface revision that moved elsewhere is a different key too"),
+        FirstKey.Get_IsEqual(ElsewhereKey));
+
+    // The same field, at the same epoch, named in a SECOND world. The volume id is held equal on
+    // purpose so the world's name is the only thing that differs: entity numbers are handed out per
+    // registry, so two worlds running at once genuinely do hold the same ones, and a key without the
+    // world would let one world's capture answer for the other's.
+    auto OtherWorldKey = Make_Key(FirstSnapshot, SecondWorld, kSurfaceRevision);
+
+    OtherWorldKey._VolumeEntityNumber = FirstKey._VolumeEntityNumber;
+    OtherWorldKey._VolumeEntityVersion = FirstKey._VolumeEntityVersion;
+
+    TestFalse(TEXT("and the same field at the same epoch under another world's name is a different key"),
+        FirstKey.Get_IsEqual(OtherWorldKey));
+
+    // A number is a SLOT: destroy the volume holding it and the next entity created inherits it under
+    // a new version. A key naming only the number would call the newcomer's field the old one's.
+    auto RecycledNumberKey = FirstKey;
+
+    RecycledNumberKey._VolumeEntityVersion = FirstKey._VolumeEntityVersion + 1;
+
+    TestFalse(TEXT("and the same number handed out again under a newer version is a different key"),
+        FirstKey.Get_IsEqual(RecycledNumberKey));
+
+    Destroy_WorldFixture(SecondWorld);
+    Destroy_WorldFixture(Fixture);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Snapshot_CacheReplacesTheWholeValue,
+    "CkTests.UnitTests.CkGroundNav.Bake.Snapshot_CacheReplacesTheWholeValue",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Snapshot_CacheReplacesTheWholeValue::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_snapshot;
+
+    auto Fixture = Make_WorldFixture(TEXT("CkTest_GroundNav_SnapshotCacheReplace"));
+
+    if (NOT TestTrue(TEXT("the fixture world stands and answers an entity"), Get_IsReady(Fixture)))
+    {
+        Destroy_WorldFixture(Fixture);
+        return false;
+    }
+
+    const auto FirstField = Bake_Field(Make_WholeGround(), FCk_GroundNav_Epoch{4});
+    const auto RebuiltField = Bake_Field(Make_GroundWithChasm(), FCk_GroundNav_Epoch{5});
+
+    if (NOT FirstField.IsValid() || NOT RebuiltField.IsValid())
+    {
+        AddError(TEXT("a fixture field did not bake, so there is nothing to cache"));
+        Destroy_WorldFixture(Fixture);
+        return false;
+    }
+
+    const auto FirstSnapshot = Make_DebugSnapshotFromField(*FirstField, kUncapped);
+    const auto RebuiltSnapshot = Make_DebugSnapshotFromField(*RebuiltField, kUncapped);
+
+    const auto FirstKey = Make_Key(FirstSnapshot, Fixture, kSurfaceRevision);
+    const auto RebuiltKey = Make_Key(RebuiltSnapshot, Fixture, kSurfaceRevision);
+
+    auto Cache = FCk_GroundNav_DebugSnapshotCache{};
+
+    TestFalse(TEXT("an empty cache answers no key"), Cache.TryGet_Current(FirstKey).IsValid());
+
+    Cache.Replace(FirstKey, FirstSnapshot);
+
+    TestTrue(TEXT("and reports the key it now holds"), Cache.Get_Key().Get_IsEqual(FirstKey));
+
+    const auto Held = Cache.TryGet_Current(FirstKey);
+
+    if (NOT TestTrue(TEXT("which hands the capture back"), Held.IsValid()))
+    { return false; }
+
+    TestFalse(TEXT("while a key it was not captured under gets nothing"),
+        Cache.TryGet_Current(RebuiltKey).IsValid());
+
+    // The two captures have to be measurably different bakes, or a replace that quietly kept half of
+    // the old value would pass every assertion below.
+    TestTrue(TEXT("the rebuild walks over different ground"),
+        RebuiltSnapshot._WalkableCellCount != FirstSnapshot._WalkableCellCount);
+
+    Cache.Replace(RebuiltKey, RebuiltSnapshot);
+
+    const auto Replaced = Cache.TryGet_Current(RebuiltKey);
+
+    if (NOT TestTrue(TEXT("the replacement is what the new key answers"), Replaced.IsValid()))
+    { return false; }
+
+    TestEqual(TEXT("the held cells are the replacement's"),
+        Replaced->_Cells.Num(), RebuiltSnapshot._Cells.Num());
+
+    TestEqual(TEXT("and its plates"), Replaced->Get_PlateCount(), RebuiltSnapshot.Get_PlateCount());
+    TestEqual(TEXT("and its tiles"), Replaced->Get_TileCount(), RebuiltSnapshot.Get_TileCount());
+
+    TestEqual(TEXT("and the counted total, which never came from the value it replaced"),
+        Replaced->_WalkableCellCount, RebuiltSnapshot._WalkableCellCount);
+
+    TestEqual(TEXT("and the epoch"),
+        Replaced->Get_NewestTileEpoch(), RebuiltSnapshot.Get_NewestTileEpoch());
+
+    TestFalse(TEXT("and the superseded key now answers null"),
+        Cache.TryGet_Current(FirstKey).IsValid());
+
+    // A reference taken BEFORE the replace still reads the value it was handed, which is what keeps a
+    // reader mid-draw from being torn by a publish landing under it.
+    TestEqual(TEXT("while the reference taken before it still reads the capture it took"),
+        Held->_WalkableCellCount, FirstSnapshot._WalkableCellCount);
+
+    Destroy_WorldFixture(Fixture);
 
     return true;
 }
