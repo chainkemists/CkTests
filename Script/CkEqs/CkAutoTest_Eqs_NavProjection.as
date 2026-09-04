@@ -13,9 +13,9 @@
 // Phase 2 (projection enabled - no navmesh at altitude):
 //   Same SimpleGrid at Z=20000uu, _ProjectOntoNav=true,
 //   _NavProjectionSearchHalfExtentUu=200uu.
-//   No navmesh tile exists at that altitude, so every candidate fails
-//   UNavigationSystemV1::ProjectPointToNavigation -> all candidates dropped
-//   at generate time -> query fails with 0 candidates -> HasResults=false.
+//   No navmesh tile exists at that altitude, so every candidate fails projection through
+//   the provider-neutral facade (utils_nav_surface::Try_ProjectPoint) -> all candidates
+//   dropped at generate time -> query fails with 0 candidates -> HasResults=false.
 //
 // This test is deliberately world-independent: no navmesh bake required.
 // Positive projection (candidates snap to navmesh surface) is demonstrated
