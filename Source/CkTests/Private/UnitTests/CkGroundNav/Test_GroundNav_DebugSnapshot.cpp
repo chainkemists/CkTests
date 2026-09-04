@@ -13,6 +13,7 @@
 #include "CkGroundNav/Bake/CkGroundNav_Plates.h"
 #include "CkGroundNav/Bake/CkGroundNav_Portals.h"
 #include "CkGroundNav/Bake/CkGroundNav_Rasterize.h"
+#include "CkGroundNav/Debug/CkGroundNav_DebugDraw.h"
 #include "CkGroundNav/Debug/CkGroundNav_DebugSnapshot.h"
 #include "CkGroundNav/Facade/CkGroundNav_WorldFieldRegistry.h"
 #include "CkGroundNav/Field/CkGroundNav_Field.h"
@@ -49,7 +50,10 @@ namespace ck_test_groundnav_snapshot
     using ck::groundnav::FCk_GroundNav_Field;
     using ck::groundnav::FCk_GroundNav_FieldParams;
     using ck::groundnav::FCk_GroundNav_FieldPtr;
+    using ck::groundnav::FCk_GroundNav_DebugBakeParams;
     using ck::groundnav::FCk_GroundNav_GeometryBackend_Stub;
+    using ck::groundnav::ICk_GroundNav_GeometryBackend;
+    using ck::groundnav::Make_DebugSnapshotFromBackend;
     using ck::groundnav::FCk_GroundNav_LayerField;
     using ck::groundnav::FCk_GroundNav_PlateField;
     using ck::groundnav::FCk_GroundNav_PortalField;
@@ -490,6 +494,83 @@ namespace ck_test_groundnav_snapshot
         Result._IsDrawable = InSnapshot.Get_IsDrawable();
 
         return Result;
+    }
+
+    // --------------------------------------------------------------------------------------------------
+
+    /**
+     * A backend that answers "I cannot" and nothing else.
+     *
+     * The Jolt backend reaches BackendUnavailable the same way - Get_IsValid() false - but it can only
+     * be driven there by handing it no world context, which trips a harness-escalated ensure
+     * (CkGroundNav_GeometryBackend_Jolt.cpp:37-41). The status is produced through the interface entry
+     * point instead, which is the seam that exists precisely so a bake can be driven without one.
+     */
+    class FUnusableBackend final : public ICk_GroundNav_GeometryBackend
+    {
+    public:
+        auto Get_IsValid() const -> bool override
+        { return false; }
+
+        auto Get_HasGeometryInBounds(const FBox&) const -> bool override
+        { return false; }
+
+        auto Get_StaticBodiesInBounds(const FBox&, TArray<ck::groundnav::FCk_GroundNav_BodyRef>& OutBodies) const -> int32 override
+        {
+            OutBodies.Reset();
+            return 0;
+        }
+
+        auto Get_TrianglesInBounds(const FBox&, FCk_GroundNav_GeometryBatch&) const -> int32 override
+        { return 0; }
+
+        auto Get_WorldRevision() const -> uint64 override
+        { return 0; }
+
+        auto Get_BodyKind(const ck::groundnav::FCk_GroundNav_BodyRef&) const -> ck::groundnav::ECk_GroundNav_BodyKind override
+        { return ck::groundnav::ECk_GroundNav_BodyKind::Solid; }
+
+        auto Get_BodyBounds(const ck::groundnav::FCk_GroundNav_BodyRef&) const -> FBox override
+        { return FBox{ForceInit}; }
+
+        auto Get_BodyTriangles(const ck::groundnav::FCk_GroundNav_BodyRef&, FCk_GroundNav_GeometryBatch&) const -> int32 override
+        { return 0; }
+
+        auto Get_BodyDescription(const ck::groundnav::FCk_GroundNav_BodyRef&) const -> FString override
+        { return FString{TEXT("no backend")}; }
+    };
+
+    // A region well clear of anything a fixture authors, so "no geometry here" is the scene rather
+    // than a near miss.
+    auto Make_RegionBakeParams() -> FCk_GroundNav_DebugBakeParams
+    {
+        auto Params = FCk_GroundNav_DebugBakeParams{};
+
+        Params._Centre = FVector{0.0, 0.0, 0.0};
+        Params._Extent = FVector{200.0, 200.0, 100.0};
+        Params._Config = FCk_GroundNav_BakeConfig{kCellSize, kCellHeight};
+        Params._Profile = FCk_GroundNav_AgentProfile{
+            FCk_AnyShape{FCk_ShapeCapsule_Dimensions{70.0f, 20.0f}}};
+        Params._MaxCells = kUncapped;
+
+        return Params;
+    }
+
+    auto Do_AssertFailureStatusIsReadable(
+        FAutomationTestBase&               InTest,
+        const FCk_GroundNav_DebugSnapshot& InSnapshot,
+        EDebugSnapshotStatus               InExpected) -> void
+    {
+        InTest.TestEqual(TEXT("the derivation answers the status the failure earned"),
+            InSnapshot._Status, InExpected);
+
+        InTest.TestFalse(TEXT("and a capture that is not Current is not drawable"),
+            InSnapshot.Get_IsDrawable());
+
+        // The summary is how a developer READS the status, so a status nobody can print is a status
+        // nobody has.
+        InTest.TestTrue(TEXT("and the summary says so rather than being empty"),
+            NOT ck::groundnav::Get_DebugSnapshotSummary(InSnapshot).IsEmpty());
     }
 }
 
@@ -1001,6 +1082,120 @@ bool FCkTest_GroundNav_Snapshot_CacheReplacesTheWholeValue::RunTest(const FStrin
         Held->_WalkableCellCount, FirstSnapshot._WalkableCellCount);
 
     Destroy_WorldFixture(Fixture);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Snapshot_BackendThatCannotAnswerIsBackendUnavailable,
+    "CkTests.UnitTests.CkGroundNav.Bake.Snapshot_BackendThatCannotAnswerIsBackendUnavailable",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Snapshot_BackendThatCannotAnswerIsBackendUnavailable::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_snapshot;
+
+    const auto Backend = FUnusableBackend{};
+
+    const auto Snapshot = Make_DebugSnapshotFromBackend(Backend, Make_RegionBakeParams());
+
+    Do_AssertFailureStatusIsReadable(*this, Snapshot, EDebugSnapshotStatus::BackendUnavailable);
+
+    // The region is stamped BEFORE the backend is consulted, so a viewer pointed at a world with no
+    // physics still knows which ground it was asking about.
+    TestTrue(TEXT("and the capture still names the region it was asked for"),
+        Snapshot._Region.IsValid != 0);
+
+    TestEqual(TEXT("while nothing was baked"), Snapshot._Cells.Num(), 0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Snapshot_RegionWithNoGeometryIsNoGeometryInRegion,
+    "CkTests.UnitTests.CkGroundNav.Bake.Snapshot_RegionWithNoGeometryIsNoGeometryInRegion",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Snapshot_RegionWithNoGeometryIsNoGeometryInRegion::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_snapshot;
+
+    // A usable backend holding nothing. This is the distinction the whole status vocabulary exists
+    // for: the bake RAN and found no world here, which is not the same as a bake that could not run.
+    const auto Backend = FCk_GroundNav_GeometryBackend_Stub{TArray<FBox>{}};
+
+    const auto Snapshot = Make_DebugSnapshotFromBackend(Backend, Make_RegionBakeParams());
+
+    Do_AssertFailureStatusIsReadable(*this, Snapshot, EDebugSnapshotStatus::NoGeometryInRegion);
+
+    TestEqual(TEXT("and no triangle was found to bake from"), Snapshot._SourceTriangleCount, 0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Snapshot_RefusedStageIsFailed,
+    "CkTests.UnitTests.CkGroundNav.Bake.Snapshot_RefusedStageIsFailed",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Snapshot_RefusedStageIsFailed::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_snapshot;
+
+    // Real geometry, so the bake gets past the empty-region answer and into the stages.
+    const auto Backend = FCk_GroundNav_GeometryBackend_Stub{
+        TArray<FBox>{FBox{FVector{-300.0, -300.0, -10.0}, FVector{300.0, 300.0, 0.0}}}};
+
+    auto Params = Make_RegionBakeParams();
+
+    // Half-unit cells over a 400uu square region is 800 columns per side, so 640,000 columns - past
+    // FCk_GroundNav_BakeConfig's own MaxColumnsPerTile ceiling of 262,144, which the rasterizer
+    // refuses with LimitExceeded (CkGroundNav_Rasterize.cpp:218-222) BEFORE it allocates anything. A
+    // stage that refused its inputs is what Failed means.
+    Params._Config = FCk_GroundNav_BakeConfig{0.5f, kCellHeight};
+
+    const auto Snapshot = Make_DebugSnapshotFromBackend(Backend, Params);
+
+    Do_AssertFailureStatusIsReadable(*this, Snapshot, EDebugSnapshotStatus::Failed);
+
+    // The triangles the backend DID hand over are still reported: a refused stage is not a refusal to
+    // say what reached it.
+    TestTrue(TEXT("and the geometry that reached the refused stage is still counted"),
+        Snapshot._SourceTriangleCount > 0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Snapshot_CompletedBakeIsCurrent,
+    "CkTests.UnitTests.CkGroundNav.Bake.Snapshot_CompletedBakeIsCurrent",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Snapshot_CompletedBakeIsCurrent::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_snapshot;
+
+    // The same derivation, the same backend seam, with a scene it can actually bake. Without this the
+    // three failure pins above would pass equally well against a derivation that never succeeds.
+    const auto Backend = FCk_GroundNav_GeometryBackend_Stub{
+        TArray<FBox>{FBox{FVector{-300.0, -300.0, -10.0}, FVector{300.0, 300.0, 0.0}}}};
+
+    const auto Snapshot = Make_DebugSnapshotFromBackend(Backend, Make_RegionBakeParams());
+
+    TestEqual(TEXT("a bake that ran to the end is Current"),
+        Snapshot._Status, EDebugSnapshotStatus::Current);
+
+    TestTrue(TEXT("and drawable"), Snapshot.Get_IsDrawable());
+
+    TestTrue(TEXT("and it walked over something"), Snapshot._Cells.Num() > 0);
 
     return true;
 }
