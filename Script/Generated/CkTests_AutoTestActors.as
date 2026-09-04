@@ -3737,6 +3737,32 @@ class ACk_AutoTest_GroundNav_Markup_PaintThenRepathDoesNotCross_Actor : ACk_Auto
     }
 }
 
+class ACk_AutoTest_GroundNav_Rebuild_AdjacentPaintDoesNotReplan_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 120.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Rebuild_AdjacentPaintDoesNotReplan");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GroundNav_Rebuild_InvalidatesWalkingRouteExactlyOnce_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 120.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Rebuild_InvalidatesWalkingRouteExactlyOnce");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_GroundNav_RequestCancelledOnTeardown_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 20.0f;
