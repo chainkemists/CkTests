@@ -179,6 +179,24 @@ namespace ck_test_jolt_bake_dynamicmesh
 
         return 1000.0 - 2000.0 * Hit.mFraction;
     }
+
+    static auto HaveSameTriangleIndices(
+        const JPH::IndexedTriangleList& InLeft,
+        const JPH::IndexedTriangleList& InRight) -> bool
+    {
+        if (InLeft.size() != InRight.size())
+        { return false; }
+
+        for (size_t Index = 0; Index < InLeft.size(); ++Index)
+        {
+            for (int32 Corner = 0; Corner < 3; ++Corner)
+            {
+                if (InLeft[Index].mIdx[Corner] != InRight[Index].mIdx[Corner])
+                { return false; }
+            }
+        }
+        return true;
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -606,6 +624,102 @@ bool FCkTest_JoltBake_TriMesh_WindingRatioIsSignedAndNormalized::RunTest(const F
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltBake_TriMesh_WindingNormalization,
+    "Ck.Jolt.Bake.TriMesh.WindingNormalization",
+    ck_test_jolt_bake_dynamicmesh::kTestFlags)
+
+bool FCkTest_JoltBake_TriMesh_WindingNormalization::RunTest(const FString& Parameters)
+{
+    using namespace ck::jolt::bake;
+    using namespace ck_test_jolt_bake_dynamicmesh;
+
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
+    auto Vertices = JPH::VertexList{};
+    auto Triangles = JPH::IndexedTriangleList{};
+
+    Fill_CubeLists(Vertices, Triangles, 0.0, false);
+    const auto OutwardBefore = Triangles;
+    const auto Outward = NormalizeInsideOutClosedMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("outward closed cube stays unchanged"), Outward._Status,
+        ECk_Jolt_WindingNormalizationStatus::Unchanged);
+    TestEqual(TEXT("outward closed cube needs no repair"), Outward._NumRepairedComponents, 0);
+    TestTrue(TEXT("outward closed cube indices remain unchanged"),
+        HaveSameTriangleIndices(Triangles, OutwardBefore));
+
+    Fill_CubeLists(Vertices, Triangles, 10000.0, true);
+    const auto Inverted = NormalizeInsideOutClosedMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("translated inverted closed cube is repaired"), Inverted._Status,
+        ECk_Jolt_WindingNormalizationStatus::Normalized);
+    TestEqual(TEXT("one translated closed component is repaired"), Inverted._NumRepairedComponents, 1);
+    TestTrue(TEXT("repaired translated cube has positive winding"),
+        ComputeMeshWindingRatio(Vertices, Triangles) > 0.9);
+
+    Vertices.clear();
+    Triangles.clear();
+    Vertices.push_back(JPH::Float3(0, 0, 0));
+    Vertices.push_back(JPH::Float3(1, 0, 0));
+    Vertices.push_back(JPH::Float3(0, 1, 0));
+    Triangles.push_back(JPH::IndexedTriangle(0, 1, 2));
+    const auto OpenBefore = Triangles;
+    const auto Open = NormalizeInsideOutClosedMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("open mesh has no normalization verdict"), Open._Status,
+        ECk_Jolt_WindingNormalizationStatus::NoVerdict);
+    TestEqual(TEXT("open mesh is reported"), Open._NumOpenComponents, 1);
+    TestTrue(TEXT("open mesh remains unchanged"), HaveSameTriangleIndices(Triangles, OpenBefore));
+
+    Triangles[0] = JPH::IndexedTriangle(0, 1, 99);
+    const auto MalformedBefore = Triangles;
+    const auto Malformed = NormalizeInsideOutClosedMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("malformed indices have no normalization verdict"), Malformed._Status,
+        ECk_Jolt_WindingNormalizationStatus::NoVerdict);
+    TestEqual(TEXT("malformed component is reported"), Malformed._NumMalformedComponents, 1);
+    TestTrue(TEXT("malformed triangles remain unchanged"), HaveSameTriangleIndices(Triangles, MalformedBefore));
+
+    Fill_CubeLists(Vertices, Triangles, 0.0, true);
+    const auto DuplicateTriangle = Triangles[0];
+    Triangles.push_back(DuplicateTriangle);
+    const auto NonManifoldBefore = Triangles;
+    const auto NonManifold = NormalizeInsideOutClosedMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("non-manifold negative component is ambiguous"), NonManifold._Status,
+        ECk_Jolt_WindingNormalizationStatus::AmbiguousNegative);
+    TestEqual(TEXT("non-manifold component is reported"), NonManifold._NumNonManifoldComponents, 1);
+    TestTrue(TEXT("non-manifold negative component is not repaired"), NonManifold.Get_HasAmbiguousNegative());
+    TestTrue(TEXT("non-manifold indices remain unchanged"), HaveSameTriangleIndices(Triangles, NonManifoldBefore));
+
+    Fill_CubeLists(Vertices, Triangles, 0.0, true);
+    Swap(Triangles[0].mIdx[1], Triangles[0].mIdx[2]);
+    const auto InconsistentBefore = Triangles;
+    const auto Inconsistent = NormalizeInsideOutClosedMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("inconsistent negative component is ambiguous"), Inconsistent._Status,
+        ECk_Jolt_WindingNormalizationStatus::AmbiguousNegative);
+    TestEqual(TEXT("inconsistent component is reported"), Inconsistent._NumInconsistentComponents, 1);
+    TestTrue(TEXT("inconsistent negative component is not repaired"), Inconsistent.Get_HasAmbiguousNegative());
+    TestTrue(TEXT("inconsistent indices remain unchanged"), HaveSameTriangleIndices(Triangles, InconsistentBefore));
+
+    Fill_CubeLists(Vertices, Triangles, 0.0, false);
+    auto InvertedVertices = JPH::VertexList{};
+    auto InvertedTriangles = JPH::IndexedTriangleList{};
+    Fill_CubeLists(InvertedVertices, InvertedTriangles, 1000.0, true);
+    for (const auto& Vertex : InvertedVertices)
+    { Vertices.push_back(Vertex); }
+    for (const auto& Triangle : InvertedTriangles)
+    {
+        Triangles.push_back(JPH::IndexedTriangle(
+            Triangle.mIdx[0] + 8, Triangle.mIdx[1] + 8, Triangle.mIdx[2] + 8));
+    }
+    const auto Mixed = NormalizeInsideOutClosedMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("mixed disconnected components normalize"), Mixed._Status,
+        ECk_Jolt_WindingNormalizationStatus::Normalized);
+    TestEqual(TEXT("mixed disconnected components preserve healthy component"), Mixed._NumHealthyComponents, 1);
+    TestEqual(TEXT("mixed disconnected components repair only inverted component"), Mixed._NumRepairedComponents, 1);
+    TestTrue(TEXT("mixed disconnected components finish outward"),
+        ComputeMeshWindingRatio(Vertices, Triangles) > 0.0);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_JoltBake_DynamicMesh_OutwardClosedMeshBakesQuietly,
     "Ck.Jolt.Bake.DynamicMesh.OutwardClosedMeshBakesQuietly",
     ck_test_jolt_bake_dynamicmesh::kTestFlags)
@@ -671,23 +785,17 @@ bool FCkTest_JoltBake_DynamicMesh_OutwardClosedMeshBakesQuietly::RunTest(const F
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_JoltBake_DynamicMesh_InsideOutClosedMeshEnsuresLoudly,
-    "Ck.Jolt.Bake.DynamicMesh.InsideOutClosedMeshEnsuresLoudly",
+    FCkTest_JoltBake_DynamicMesh_InsideOutClosedMeshRepairsQuietly,
+    "Ck.Jolt.Bake.DynamicMesh.InsideOutClosedMeshRepairsQuietly",
     ck_test_jolt_bake_dynamicmesh::kTestFlags)
 
-bool FCkTest_JoltBake_DynamicMesh_InsideOutClosedMeshEnsuresLoudly::RunTest(const FString& Parameters)
+bool FCkTest_JoltBake_DynamicMesh_InsideOutClosedMeshRepairsQuietly::RunTest(const FString& Parameters)
 {
     using namespace ck::jolt::bake;
     using namespace ck_test_jolt_bake_dynamicmesh;
 
-    // Inside-out source geometry previously baked in total silence — collision that items pass
-    // through from outside, drawn as a hollow shell in the debugger. The bake must name the mesh
-    // LOUDLY and still bake the shape: refusing would downgrade wrong-sided collision to no
-    // collision at all.
-    // The culled down-ray pins the symptom itself: the ray passes the (inward-facing) top and hits
-    // the BOTTOM face from inside — exactly the "goes through one side, collides inside" report.
-    AddExpectedError(TEXT("baked INSIDE-OUT"),
-        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/-1);
+    // A fully inverted closed component is now normalized before the shape is created. No expected
+    // error is registered: repair is intentional and must stay quiet.
 
     const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
 
@@ -708,7 +816,7 @@ bool FCkTest_JoltBake_DynamicMesh_InsideOutClosedMeshEnsuresLoudly::RunTest(cons
     const auto NumExtracted = ExtractComponent(*Actor->GetDynamicMeshComponent(), Cache, Bodies, {},
         ECk_Jolt_ExtractionPolicy::ExplicitActor);
 
-    TestEqual(TEXT("the inside-out cube still bakes a body (loud, not absent)"), NumExtracted, 1);
+    TestEqual(TEXT("the inside-out cube repairs and bakes one body"), NumExtracted, 1);
 
     if (NOT TestEqual(TEXT("one extracted body is appended"), Bodies.Num(), 1))
     { return false; }
@@ -721,17 +829,17 @@ bool FCkTest_JoltBake_DynamicMesh_InsideOutClosedMeshEnsuresLoudly::RunTest(cons
     const auto DownFraction = CastRay_FrontFacesOnly(
         *Bodies[0]._Shape, DownStart, JPH::Vec3{0.0f, 0.0f, -2000.0f});
 
-    if (TestTrue(TEXT("culled down-ray still hits SOMETHING inside the inverted cube"), DownFraction.IsSet()))
+    if (TestTrue(TEXT("culled down-ray hits repaired top face from above"), DownFraction.IsSet()))
     {
         const auto HitZ = 1000.0 - 2000.0 * *DownFraction;
-        TestTrue(ck::Format_UE(TEXT("the hit is the BOTTOM face from inside at ~0 (got {})"), HitZ),
-            FMath::Abs(HitZ) <= 1.0);
+        TestTrue(ck::Format_UE(TEXT("the hit is the TOP face at ~{} (got {})"), CubeExtent, HitZ),
+            FMath::Abs(HitZ - CubeExtent) <= 1.0);
     }
 
     {
         const auto ShapeRatio = ComputeShapeWindingRatio(*Bodies[0]._Shape);
-        TestTrue(ck::Format_UE(TEXT("shape-walk ratio of the inside-out cube is ~-1 (got {})"), ShapeRatio),
-            FMath::Abs(ShapeRatio + 1.0) <= 0.05);
+        TestTrue(ck::Format_UE(TEXT("shape-walk ratio of repaired cube is positive (got {})"), ShapeRatio),
+            ShapeRatio > 0.9);
     }
 
     return true;

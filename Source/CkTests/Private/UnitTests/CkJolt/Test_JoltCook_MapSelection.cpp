@@ -98,7 +98,7 @@ bool FCkTest_JoltCook_PackagingMapSelection::RunTest(const FString& Parameters)
     // validation, exclusions, and authored-order dedupe remain exactly the same.
     {
         auto Input = Make_Input();
-        Input._bIncludeAlwaysCookDirectories = false;
+        Input._IncludeAlwaysCookDirectories = false;
         Input._AuthoredMapsToCook = {
             TEXT("/Game/Maps/Main"), TEXT("/Game/Maps/Menu"), TEXT("/Game/Maps/Main"),
             TEXT("/Game/Maps/AutoTests/Excluded")};
@@ -117,7 +117,7 @@ bool FCkTest_JoltCook_PackagingMapSelection::RunTest(const FString& Parameters)
     // must not depend on asset-registry enumeration; overlaps must not cook the same map twice.
     {
         auto Input = Make_Input();
-        Input._bIncludeAlwaysCookDirectories = true;
+        Input._IncludeAlwaysCookDirectories = true;
         Input._DirectoriesToAlwaysCook = {TEXT("/Game/Always/"), TEXT("/Game/Always/Nested"), TEXT("/Game/Maps")};
         Input._DiscoveredAlwaysCookMapCandidates = {
             TEXT("/Game/Always/ZWorld"), TEXT("/Game/Maps/Main"), TEXT("/Game/Always/Nested/AWorld"),
