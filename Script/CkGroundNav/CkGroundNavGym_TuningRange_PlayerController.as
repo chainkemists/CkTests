@@ -1711,12 +1711,12 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
             const auto Resolution = utils_ground_nav_volume::Get_LinkResolution(_LinksVolume, LinkId);
 
             // Authoring order, which is the batch's order and the order the ids were handed out in.
-            auto Name = f"Link {LinkId}";
+            auto RowName = f"Link {LinkId}";
 
             if (Index == 0)
-            { Name = f"Link {LinkId} (drop)"; }
+            { RowName = f"Link {LinkId} (drop)"; }
             else if (Index == 1)
-            { Name = f"Link {LinkId} (ladder)"; }
+            { RowName = f"Link {LinkId} (ladder)"; }
 
             const auto StartStatus = Resolution.Get_StartStatus();
             const auto EndStatus = Resolution.Get_EndStatus();
@@ -1725,7 +1725,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
             const auto Resolved = Resolution.Get_Resolved();
             const auto Live = Resolution.Get_Live();
 
-            OutRows.Add(CkGym_Control::Status(Name,
+            OutRows.Add(CkGym_Control::Status(RowName,
                 f"start {StartStatus} (plate {StartPlate}) - end {EndStatus} (plate {EndPlate}) - resolved: {Resolved} - live: {Live}",
                 Resolved == false));
         }
