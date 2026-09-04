@@ -184,7 +184,7 @@ namespace ck_test_groundnav_pathplanmode
         if (ck::Is_NOT_Valid(InOutFixture.World))
         { return false; }
 
-        ck::groundnav::world_fields::Publish(InOutFixture.World, FCk_Handle{}, InOutFixture.Field);
+        ck::groundnav::world_fields::Publish(InOutFixture.World, FCk_Handle{}, InOutFixture.Field, {});
 
         auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(
             InOutFixture.EcsWorld.Get_Registry());

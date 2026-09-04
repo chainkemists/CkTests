@@ -253,8 +253,8 @@ bool FCkTest_GroundNav_Revision_WorldRevisionDoesNotFallWhenAVolumeIsTornDown::R
         return false;
     }
 
-    world_fields::Publish(Fixture._World, FirstVolume, FirstField);
-    world_fields::Publish(Fixture._World, SecondVolume, SecondField);
+    world_fields::Publish(Fixture._World, FirstVolume, FirstField, {});
+    world_fields::Publish(Fixture._World, SecondVolume, SecondField, {});
 
     if (NOT TestEqual(TEXT("the world holds one field per volume"),
         world_fields::Get_FieldCount(Fixture._World), 2))

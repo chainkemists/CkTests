@@ -291,7 +291,7 @@ namespace ck_test_groundnav_pathinvalidation
         InOutFixture._WorldEntity.AddOrGet<ck::FFragment_NavSurface_RevisionWatch>();
         InOutFixture._WorldEntity.AddOrGet<ck::FFragment_NavSurface_PendingRebuilds>();
 
-        world_fields::Publish(InOutFixture._World, FCk_Handle{}, InOutFixture._Field);
+        world_fields::Publish(InOutFixture._World, FCk_Handle{}, InOutFixture._Field, {});
 
         UCk_Utils_NavSurface_UE::Request_SetProvider(InOutFixture._World, InProvider);
 
@@ -518,7 +518,7 @@ namespace ck_test_groundnav_pathinvalidation
 
         InOutFixture._Field = Rebuilt;
 
-        world_fields::Publish(InOutFixture._World, FCk_Handle{}, InOutFixture._Field);
+        world_fields::Publish(InOutFixture._World, FCk_Handle{}, InOutFixture._Field, {});
     }
 
     auto Do_NotifyRebuilt(
@@ -547,7 +547,7 @@ namespace ck_test_groundnav_pathinvalidation
         OutChangedLinkIds = Derived._ChangedLinkIds;
 
         world_fields::Publish(
-            InOutFixture._World, FCk_Handle{}, InOutFixture._Field, Derived._ChangedLinkIds);
+            InOutFixture._World, FCk_Handle{}, InOutFixture._Field, {}, Derived._ChangedLinkIds);
 
         const auto Bounds = Get_ChangedTileBounds(*InOutFixture._Field, InOutFixture._Field->_Epoch);
 
@@ -572,7 +572,7 @@ namespace ck_test_groundnav_pathinvalidation
         InOutFixture._Field = Rebuilt;
 
         world_fields::Publish(
-            InOutFixture._World, FCk_Handle{}, InOutFixture._Field, TArray<int32>{});
+            InOutFixture._World, FCk_Handle{}, InOutFixture._Field, {}, TArray<int32>{});
     }
 
     auto Do_RunInvalidator(
