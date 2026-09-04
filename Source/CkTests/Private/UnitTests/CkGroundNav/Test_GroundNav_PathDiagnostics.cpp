@@ -512,3 +512,56 @@ bool FCkTest_GroundNav_PathDiagnostics_RepathFlagMirrorsTheTagInBothDirections::
 }
 
 // --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_PathDiagnostics_DoCastAnswersTheHandle,
+    "CkTests.UnitTests.CkGroundNav.PathDiagnostics.DoCastAnswersTheHandle",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_PathDiagnostics_DoCastAnswersTheHandle::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathdiagnostics;
+
+    auto Fixture = FDiagnosticsFixture{};
+
+    if (NOT TestTrue(TEXT("the two-route scene bakes, publishes and takes an agent"), Do_Setup(Fixture)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    // What a viewer holding a BARE handle has to do before it can ask for diagnostics at all. The
+    // gate is Has, and every cast on this class - the two C++ templates and the two reflected
+    // UFUNCTIONs beside them - answers through it, so this is the one behaviour a wrong answer could
+    // come from.
+    const auto Bare = FCk_Handle{Fixture.Path};
+
+    TestTrue(TEXT("a bare handle on a planner entity casts to a planner"),
+        ck::IsValid(UCk_Utils_GroundNavPath_UE::Cast(Bare)));
+
+    TestEqual(TEXT("and to the SAME entity rather than to some other planner"),
+        static_cast<int32>(UCk_Utils_GroundNavPath_UE::Cast(Bare).Get_Entity().Get_EntityNumber()),
+        static_cast<int32>(Fixture.Path.Get_Entity().Get_EntityNumber()));
+
+    auto NoPlanner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Fixture.EcsWorld.Get_Registry());
+
+    TestFalse(TEXT("an entity with no path feature casts to nothing"),
+        ck::IsValid(UCk_Utils_GroundNavPath_UE::Cast(NoPlanner)));
+
+    // The reflected pair, which is what Blueprint and AngelScript actually reach - neither can call
+    // the C++ templates above, and a rename here would break the GroundNav debug submenu at load with
+    // no C++ caller to fail first.
+    const auto* UtilsClass = UCk_Utils_GroundNavPath_UE::StaticClass();
+
+    TestNotNull(TEXT("the reflected DoCastChecked exists, which is the name a script resolves"),
+        UtilsClass->FindFunctionByName(FName{TEXT("DoCastChecked")}));
+
+    TestNotNull(TEXT("and the reflected DoCast beside it"),
+        UtilsClass->FindFunctionByName(FName{TEXT("DoCast")}));
+
+    Do_Teardown(Fixture);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
