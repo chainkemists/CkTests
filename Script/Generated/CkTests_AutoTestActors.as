@@ -3737,6 +3737,32 @@ class ACk_AutoTest_GroundNav_Link_AuthoredLinkIsLiveAndRoutesAcross_Actor : ACk_
     }
 }
 
+class ACk_AutoTest_GroundNav_Link_DisableReplansOnlyTheAgentsUsingIt_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 300.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Link_DisableReplansOnlyTheAgentsUsingIt");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GroundNav_Link_TraversalHandshakeFiresExactlyOnce_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 300.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Link_TraversalHandshakeFiresExactlyOnce");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_GroundNav_Link_UnresolvableEndIsAStatusNotAWarning_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 240.0f;
@@ -3744,6 +3770,19 @@ class ACk_AutoTest_GroundNav_Link_UnresolvableEndIsAStatusNotAWarning_Actor : AC
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Link_UnresolvableEndIsAStatusNotAWarning");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GroundNav_Link_VetoRoutesAroundForThatAgentOnly_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 300.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Link_VetoRoutesAroundForThatAgentOnly");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
