@@ -4,6 +4,8 @@
 
 #include "CkJolt/CkJolt_Utils.h"
 #include "CkJolt/StaticWorld/CkJoltBakeExtraction.h"
+#include "CkJolt/StaticWorld/CkJoltMeshShape_Utils.h"
+#include "CkJoltEditor/Cook/CkJoltCook_MeshShapeAudit.h"
 
 #include <Components/DynamicMeshComponent.h>
 #include <Components/SphereComponent.h>
@@ -20,7 +22,9 @@
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
+#include <Jolt/Physics/Collision/Shape/MeshShape.h>
 #include <Jolt/Physics/Collision/Shape/Shape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
 
 // --------------------------------------------------------------------------------------------------------------------
 // Locks the runtime-generated-geometry bake and the END of the extraction dispatch chain:
@@ -879,6 +883,184 @@ bool FCkTest_JoltBake_TriMesh_WindingNormalization::RunTest(const FString& Param
     TestTrue(TEXT("mixed fragmented cube reverses inward components"), InvertedFragmentsAreReversed);
     TestTrue(TEXT("mixed fragmented cube finishes strongly outward"),
         ComputeMeshWindingRatio(Vertices, Triangles) > 0.9);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltBake_TriMesh_WindingNormalizationIsAtomic,
+    "Ck.Jolt.Bake.TriMesh.WindingNormalizationIsAtomic",
+    ck_test_jolt_bake_dynamicmesh::kTestFlags)
+
+bool FCkTest_JoltBake_TriMesh_WindingNormalizationIsAtomic::RunTest(const FString& Parameters)
+{
+    using namespace ck::jolt::bake;
+    using namespace ck_test_jolt_bake_dynamicmesh;
+
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
+    auto Vertices = JPH::VertexList{};
+    auto Triangles = JPH::IndexedTriangleList{};
+
+    // The closed cube is safely repairable by itself. A separate degenerate triangle makes the
+    // complete input malformed: the preflight must reject before it reverses the valid component.
+    Fill_CubeLists(Vertices, Triangles, 0.0, true);
+    Vertices.push_back(JPH::Float3(1000.0f, 0.0f, 0.0f));
+    Vertices.push_back(JPH::Float3(1001.0f, 0.0f, 0.0f));
+    Vertices.push_back(JPH::Float3(1000.0f, 1.0f, 0.0f));
+    Triangles.push_back(JPH::IndexedTriangle(8, 9, 8));
+    const auto Before = Triangles;
+
+    const auto Result = NormalizeInsideOutMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("one malformed disconnected component rejects the full input"), Result._Status,
+        ECk_Jolt_WindingNormalizationStatus::Malformed);
+    TestEqual(TEXT("one malformed index component is reported"), Result._NumMalformedIndexComponents, 1);
+    TestEqual(TEXT("atomic preflight reports no individual repair"), Result._NumRepairedComponents, 0);
+    TestEqual(TEXT("atomic preflight reports no aggregate repair"),
+        Result._NumAggregateNoVerdictComponentsRepaired, 0);
+    TestTrue(TEXT("atomic malformed input preserves every triangle index"),
+        HaveSameTriangleIndices(Triangles, Before));
+
+    // A collinear face has distinct, in-range indices, but remains geometrically malformed. It must
+    // reject before normalizing the unrelated cube just like an invalid index does.
+    Fill_CubeLists(Vertices, Triangles, 0.0, true);
+    Vertices.push_back(JPH::Float3(1000.0f, 0.0f, 0.0f));
+    Vertices.push_back(JPH::Float3(1001.0f, 0.0f, 0.0f));
+    Vertices.push_back(JPH::Float3(1002.0f, 0.0f, 0.0f));
+    Triangles.push_back(JPH::IndexedTriangle(8, 9, 10));
+    const auto GeometricBefore = Triangles;
+
+    const auto GeometricResult = NormalizeInsideOutMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("a collinear component rejects the full input"), GeometricResult._Status,
+        ECk_Jolt_WindingNormalizationStatus::Malformed);
+    TestEqual(TEXT("a collinear component is not an index failure"),
+        GeometricResult._NumMalformedIndexComponents, 0);
+    TestTrue(TEXT("a collinear component is malformed geometry"), GeometricResult.Get_HasMalformedGeometry());
+    TestEqual(TEXT("geometric malformed preflight reports no individual repair"),
+        GeometricResult._NumRepairedComponents, 0);
+    TestEqual(TEXT("geometric malformed preflight reports no aggregate repair"),
+        GeometricResult._NumAggregateNoVerdictComponentsRepaired, 0);
+    TestTrue(TEXT("geometric malformed input preserves every triangle index"),
+        HaveSameTriangleIndices(Triangles, GeometricBefore));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltCook_MeshShapeAudit_PureHelpers,
+    "Ck.Jolt.Cook.MeshShapeAudit.PureHelpers",
+    ck_test_jolt_bake_dynamicmesh::kTestFlags)
+
+bool FCkTest_JoltCook_MeshShapeAudit_PureHelpers::RunTest(const FString& Parameters)
+{
+    using namespace ck::jolt::cook;
+
+    const auto EmptyRestore = ck::jolt::bake::mesh_shape_utils::Restore_ShapeBlobForAnalysis({});
+    TestFalse(TEXT("empty shape blob is rejected without entering Jolt restore"), EmptyRestore._Success);
+    TestTrue(TEXT("empty shape blob reports a useful reason"), EmptyRestore._Failure.Contains(TEXT("empty")));
+
+    TestEqual(TEXT("ratio above the positive boundary is outward"),
+        Get_MeshShapeAuditWindingVerdict(0.0500001),
+        ECk_Jolt_MeshShapeAuditWindingVerdict::Outward);
+    TestEqual(TEXT("positive boundary itself is intentionally ambiguous"),
+        Get_MeshShapeAuditWindingVerdict(0.05),
+        ECk_Jolt_MeshShapeAuditWindingVerdict::NoVerdict);
+    TestEqual(TEXT("small positive ratio is intentionally ambiguous"),
+        Get_MeshShapeAuditWindingVerdict(0.02),
+        ECk_Jolt_MeshShapeAuditWindingVerdict::NoVerdict);
+    TestEqual(TEXT("zero is intentionally ambiguous"),
+        Get_MeshShapeAuditWindingVerdict(0.0),
+        ECk_Jolt_MeshShapeAuditWindingVerdict::NoVerdict);
+    TestEqual(TEXT("small negative ratio is intentionally ambiguous"),
+        Get_MeshShapeAuditWindingVerdict(-0.02),
+        ECk_Jolt_MeshShapeAuditWindingVerdict::NoVerdict);
+    TestEqual(TEXT("negative boundary itself is intentionally ambiguous"),
+        Get_MeshShapeAuditWindingVerdict(-0.05),
+        ECk_Jolt_MeshShapeAuditWindingVerdict::NoVerdict);
+    TestEqual(TEXT("ratio below the negative boundary is inside-out"),
+        Get_MeshShapeAuditWindingVerdict(-0.0500001),
+        ECk_Jolt_MeshShapeAuditWindingVerdict::InsideOut);
+
+    TestEqual(TEXT("a corrupt current blob rebuilds from source"),
+        Get_MeshShapeCurrentBlobFreshness({false, false, 0.0}),
+        ECk_Jolt_MeshShapeCurrentBlobFreshness::RebuildFromSource);
+    TestEqual(TEXT("a strongly inside-out current tri-mesh rebuilds from source"),
+        Get_MeshShapeCurrentBlobFreshness({true, true, -0.0500001}),
+        ECk_Jolt_MeshShapeCurrentBlobFreshness::RebuildFromSource);
+    TestEqual(TEXT("a current convex blob stays up to date"),
+        Get_MeshShapeCurrentBlobFreshness({true, false, -1.0}),
+        ECk_Jolt_MeshShapeCurrentBlobFreshness::UpToDate);
+    TestEqual(TEXT("a current no-verdict tri-mesh stays up to date"),
+        Get_MeshShapeCurrentBlobFreshness({true, true, -0.02}),
+        ECk_Jolt_MeshShapeCurrentBlobFreshness::UpToDate);
+
+    // JPH's containers use Jolt's allocator even though the preview helper only copies values.
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
+    auto Vertices = JPH::VertexList{};
+    Vertices.push_back(JPH::Float3(1.0f, 2.0f, 3.0f));
+    Vertices.push_back(JPH::Float3(4.0f, 5.0f, 6.0f));
+    Vertices.push_back(JPH::Float3(7.0f, 8.0f, 9.0f));
+    Vertices.push_back(JPH::Float3(10.0f, 11.0f, 12.0f));
+
+    auto Triangles = JPH::IndexedTriangleList{};
+    Triangles.push_back(JPH::IndexedTriangle(0, 1, 2));
+    Triangles.push_back(JPH::IndexedTriangle(1, 3, 2));
+
+    const auto OneTriangle = Build_MeshShapeAuditPreview(Vertices, Triangles, 1);
+    if (NOT TestEqual(TEXT("preview honors the positive triangle cap"), OneTriangle._Triangles.Num(), 1))
+    { return false; }
+    TestTrue(TEXT("preview reports omitted triangles"), OneTriangle._bTruncated);
+    TestTrue(TEXT("preview copies first vertex by value"),
+        OneTriangle._Triangles[0]._A.Equals(FVector(1.0, 2.0, 3.0)));
+    TestTrue(TEXT("preview copies second vertex by value"),
+        OneTriangle._Triangles[0]._B.Equals(FVector(4.0, 5.0, 6.0)));
+    TestTrue(TEXT("preview copies third vertex by value"),
+        OneTriangle._Triangles[0]._C.Equals(FVector(7.0, 8.0, 9.0)));
+
+    Vertices[0] = JPH::Float3(100.0f, 200.0f, 300.0f);
+    Triangles[0] = JPH::IndexedTriangle(3, 2, 1);
+    TestTrue(TEXT("preview retains no source vertex reference"),
+        OneTriangle._Triangles[0]._A.Equals(FVector(1.0, 2.0, 3.0)));
+    TestTrue(TEXT("preview retains no source triangle reference"),
+        OneTriangle._Triangles[0]._B.Equals(FVector(4.0, 5.0, 6.0)));
+
+    const auto FullPreview = Build_MeshShapeAuditPreview(Vertices, Triangles, 2);
+    TestEqual(TEXT("preview includes every triangle at its exact cap"), FullPreview._Triangles.Num(), 2);
+    TestFalse(TEXT("exact preview cap is not truncated"), FullPreview._bTruncated);
+
+    const auto ZeroPreview = Build_MeshShapeAuditPreview(Vertices, Triangles, 0);
+    TestEqual(TEXT("zero preview cap copies no triangles"), ZeroPreview._Triangles.Num(), 0);
+    TestTrue(TEXT("zero preview cap reports omission"), ZeroPreview._bTruncated);
+
+    const auto NegativePreview = Build_MeshShapeAuditPreview(Vertices, Triangles, -1);
+    TestEqual(TEXT("negative preview cap clamps to zero"), NegativePreview._Triangles.Num(), 0);
+    TestTrue(TEXT("negative preview cap reports omission"), NegativePreview._bTruncated);
+
+    Triangles[0] = JPH::IndexedTriangle(99, 1, 2);
+    const auto InvalidIndexPreview = Build_MeshShapeAuditPreview(Vertices, Triangles, 2);
+    TestEqual(TEXT("preview omits invalid triangle indices"), InvalidIndexPreview._Triangles.Num(), 1);
+    TestFalse(TEXT("invalid indices do not alter source-list truncation"), InvalidIndexPreview._bTruncated);
+
+    ck_test_jolt_bake_dynamicmesh::Fill_CubeLists(Vertices, Triangles, 0.0, false);
+    const auto MeshResult = JPH::MeshShapeSettings{Vertices, Triangles}.Create();
+    if (NOT TestTrue(TEXT("test cube creates a Jolt mesh shape"), MeshResult.IsValid()))
+    { return false; }
+
+    const auto CookedMeshPreview = Build_MeshShapeAuditPreview(*MeshResult.Get(), 1);
+    TestFalse(TEXT("restored Jolt mesh preview is available"), CookedMeshPreview._bUnavailable);
+    TestEqual(TEXT("restored Jolt mesh preview honors its cap"), CookedMeshPreview._Triangles.Num(), 1);
+    TestTrue(TEXT("restored Jolt mesh preview reports truncation"), CookedMeshPreview._bTruncated);
+
+    const auto SphereResult = JPH::SphereShapeSettings{1.0f}.Create();
+    if (NOT TestTrue(TEXT("test sphere creates a Jolt convex shape"), SphereResult.IsValid()))
+    { return false; }
+
+    const auto UnsupportedPreview = Build_MeshShapeAuditPreview(*SphereResult.Get(), 1);
+    TestTrue(TEXT("non-mesh Jolt shapes report preview unavailable"), UnsupportedPreview._bUnavailable);
+    TestTrue(TEXT("non-mesh Jolt shapes return no misleading mesh triangles"), UnsupportedPreview._Triangles.IsEmpty());
+
     return true;
 }
 

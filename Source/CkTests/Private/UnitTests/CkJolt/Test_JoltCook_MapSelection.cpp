@@ -48,6 +48,15 @@ bool FCkTest_JoltCook_PackagingMapSelection::RunTest(const FString& Parameters)
         }
     }
 
+    {
+        auto Input = Make_Input();
+        Input._AuthoredMapsToCook = {TEXT("/Game/Maps/Main"), TEXT("/game/maps/main")};
+        const auto Result = Select_PackagingMaps(Input);
+        TestTrue(TEXT("case-variant package entries are accepted"), Result._Success);
+        TestTrue(TEXT("case-variant package entries select once in first-authored spelling"),
+            Result._MapPackageNames == TArray<FString>{TEXT("/Game/Maps/Main")});
+    }
+
     // A valid prefix must never leak a partial cook plan when a later entry is rejected.
     const auto RejectedMaps = TArray<FString>{
         TEXT(""), TEXT("Main"), TEXT("/Game/Maps/Main.Main"), TEXT("/Game/Maps/Main.umap")};
@@ -91,6 +100,18 @@ bool FCkTest_JoltCook_PackagingMapSelection::RunTest(const FString& Parameters)
         const auto Result = Select_PackagingMaps(Input);
         TestTrue(TEXT("directory exclusion respects path component boundaries"), Result._Failure.IsEmpty());
         TestEqual(TEXT("similarly named directories remain eligible"), Result._MapPackageNames.Num(), 2);
+    }
+
+    {
+        const auto IncludedPaths = TArray<FString>{TEXT("/game/cKjOlTdAtA/")};
+        TestTrue(TEXT("package inclusion is case-insensitive and normalizes trailing separators"),
+            Get_IsPackageIncludedByDirectory(TEXT("/Game/CkJoltData/Meshes/Shape"), IncludedPaths));
+        TestFalse(TEXT("package inclusion respects path component boundaries"),
+            Get_IsPackageIncludedByDirectory(TEXT("/Game/CkJoltDataExtra/Meshes/Shape"), IncludedPaths));
+        TestTrue(TEXT("a parent AlwaysCook root packages the generated-data root"),
+            Get_IsPackageIncludedByDirectory(TEXT("/Game/CkJoltData"), {TEXT("/game")}));
+        TestFalse(TEXT("an empty AlwaysCook entry never packages the generated-data root"),
+            Get_IsPackageIncludedByDirectory(TEXT("/Game/CkJoltData"), {TEXT("")}));
     }
 
     // Incremental package updates only need packaging entry maps. Always-cook directories are a
@@ -183,6 +204,8 @@ bool FCkTest_JoltCook_PackagingMapSelection::RunTest(const FString& Parameters)
             Get_IsPackageExcluded(TEXT("/Game/Maps/LevelDesign/Metrics"), ExcludedPaths));
         TestTrue(TEXT("NeverCook streaming child cannot contribute baked actors"),
             Get_IsPackageExcluded(TEXT("/Game/Maps/GYMs/Metrics/Geometry"), ExcludedPaths));
+        TestTrue(TEXT("package exclusion is case-insensitive"),
+            Get_IsPackageExcluded(TEXT("/game/maps/gyms/Metrics/Geometry"), ExcludedPaths));
         TestFalse(TEXT("similarly named eligible sublevel remains required"),
             Get_IsPackageExcluded(TEXT("/Game/Maps/GYMsExtra/Geometry"), ExcludedPaths));
         TestTrue(TEXT("generated output cannot contribute baked actors"),
