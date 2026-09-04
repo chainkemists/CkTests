@@ -109,6 +109,102 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     // and says so in its own status row rather than hanging silently.
     private const int32 k_LinksSettlePollCeiling = 600;
 
+    // ---- Range stations ---------------------------------------------------------------------------
+    //
+    // Five stations on ONE slab south of the floor, each in its own 600uu Y band, and all served by a
+    // second volume this controller mints for them. They are on a volume for the same reason the links
+    // deck is: a repair, a paint and a walked route are all asked OF a volume, and the R/Y bake is a
+    // debug picture that no volume holds.
+    //
+    // The slab is 200uu clear of the floor in Y rather than joined to it. That gap is deliberate: the
+    // range is its own ground, so a walker released on it can never wander into the tuning scene, and
+    // a bake aimed at one never picks up the other.
+
+    // Top face at Z=0, flush with the floor. X -1600..1600, Y -3800..-1400.
+    private const FVector k_RangeSlabCentre = FVector(0.0, -2600.0, -100.0);
+    private const FVector k_RangeSlabScale  = FVector(32.0, 24.0, 2.0);
+
+    // The RAMP band. Two planks in series, 200uu along the slope and 400uu wide, pitched either side
+    // of the default profile's 45-degree slope limit: the lower one at 40 degrees is walkable and the
+    // upper one at 50 is not, so the ramp stops being ground half way up rather than at its foot.
+    //
+    // Each centre is the plank's foot plus half its length along (cos(pitch), 0, sin(pitch)):
+    //   lower foot (-1400, 0)       + 100 * (0.766, 0.643) -> (-1323.4,  64.3), head (-1246.8, 128.6)
+    //   upper foot (-1246.8, 128.6) + 100 * (0.643, 0.766) -> (-1182.5, 205.2), head (-1118.2, 281.8)
+    //
+    // The whole ramp tops out under 300uu on purpose: the panel's own bake region is 400uu tall around
+    // Z 120, so a debug bake aimed at this band shows the ramp whole rather than clipping its head and
+    // leaving the reader unable to tell a rejected plank from one outside the region.
+    private const float k_RampLowerPitchDegrees = 40.0f;
+    private const float k_RampUpperPitchDegrees = 50.0f;
+    private const FVector k_RampLowerCentre = FVector(-1323.4, -1700.0, 64.3);
+    private const FVector k_RampUpperCentre = FVector(-1182.5, -1700.0, 205.2);
+    private const FVector k_RampPlankScale  = FVector(2.0, 4.0, 0.4);
+
+    // The MOVED OBSTACLE band. 400uu square, 300uu tall, standing on the slab; the nudge row swaps it
+    // between the two positions, which are one 800uu tile apart.
+    private const FVector k_ObstacleHomeCentre  = FVector(-400.0, -2300.0, 150.0);
+    private const FVector k_ObstacleMovedCentre = FVector(400.0, -2300.0, 150.0);
+    private const FVector k_ObstacleScale       = FVector(4.0, 4.0, 3.0);
+
+    // The ground a nudge leaves untrustworthy: the UNION of both footprints, grown by 100uu on every
+    // side so the repair opens clear of the body's own edge rather than exactly along it.
+    private const FVector k_ObstacleDirtyMin = FVector(-700.0, -2600.0, -100.0);
+    private const FVector k_ObstacleDirtyMax = FVector(700.0, -2000.0, 400.0);
+
+    // The PAINTED MARKUP band, which is also the crowd walkers' corridor: the paint lands across the
+    // middle of the route the walkers are already on, so what it does to them is visible without
+    // having to go and look for it.
+    private const FVector k_MarkupCentre      = FVector(0.0, -2900.0, 100.0);
+    private const FVector k_MarkupHalfExtents = FVector(250.0, 250.0, 200.0);
+
+    private const FVector k_WalkerWestPoint = FVector(-1400.0, -2900.0, 100.0);
+    private const FVector k_WalkerEastPoint = FVector(1400.0, -2900.0, 100.0);
+    private const float   k_WalkerRadiusUu  = 34.0f;
+    private const float   k_WalkerHeightUu  = 180.0f;
+
+    // Spread across the corridor rather than stacked on one point: eight bodies born inside each other
+    // spend their first seconds pushing apart, which is avoidance and says nothing about routing.
+    private const float k_WalkerSpacingUu = 90.0f;
+
+    // The MULTI-TILE CROSSING band. 2800uu end to end over 800uu tiles, so four tiles lie under one
+    // corridor and a route that disagreed with itself across a seam would show here.
+    private const FVector k_CrossingWestPoint  = FVector(-1400.0, -3500.0, 20.0);
+    private const FVector k_CrossingEastPoint  = FVector(1400.0, -3500.0, 20.0);
+    private const FVector k_CrossingBakeCentre = FVector(0.0, -3500.0, 120.0);
+
+    // The NO-ROUTE POCKET. 600uu square with 300uu of nothing between it and the slab's south edge: no
+    // seam can span a gap with no ground in it, and nothing authors a link across it, so the island is
+    // baked ground that no route can reach.
+    private const FVector k_PocketCentre     = FVector(0.0, -4400.0, -100.0);
+    private const FVector k_PocketScale      = FVector(6.0, 6.0, 2.0);
+    private const FVector k_PocketProbeStart = FVector(0.0, -3600.0, 100.0);
+    private const FVector k_PocketProbeGoal  = FVector(0.0, -4400.0, 100.0);
+
+    // The slab, everything standing on it, and the pocket beside it - and nothing from the tuning
+    // scene, whose nearest ground stops at Y -1200.
+    private const FVector k_RangeVolumeMin = FVector(-1800.0, -4900.0, -300.0);
+    private const FVector k_RangeVolumeMax = FVector(1800.0, -1300.0, 500.0);
+
+    // The same 25uu lattice the links deck bakes on, so the two volumes are directly comparable, and
+    // fine enough that the ramp's shorter plank is still several cells of slope rather than one. The
+    // 800uu tiles are what put four tiles under the crossing station's route. The agent is the default
+    // 34uu body at 180uu standing height.
+    private const float k_RangeCellSizeUu        = 25.0f;
+    private const float k_RangeCellHeightUu      = 10.0f;
+    private const float k_RangeTileSizeUu        = 800.0f;
+    private const float k_RangeAgentRadiusUu     = 34.0f;
+    private const float k_RangeAgentHalfHeightUu = 90.0f;
+
+    // 0.05s a poll, and the range carries several times the tiles the links deck does, so it is given
+    // a minute on the same NAMED condition before it reports that it gave up.
+    private const int32 k_RangeSettlePollCeiling = 1200;
+
+    // What the crowd row offers. Zero is a state worth having: it is how the corridor reads with
+    // nothing standing on it.
+    private const int32 k_WalkerCountLow  = 1;
+    private const int32 k_WalkerCountHigh = 8;
+
     // ---- Control row indices ---------------------------------------------------------------------
     //
     // Header and Status rows never reach Request_ControlActivated but they DO occupy an index. These
@@ -134,6 +230,17 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     // Appended after every existing row on purpose: a section inserted higher up would renumber
     // every constant above it, and the panel dispatches on the index.
     private const int32 k_Row_LinksToggle = 28;
+
+    // The RANGE section sits between the links toggle and the link RESOLUTION rows, and that is not a
+    // preference either: the resolution rows vary in number with what the volume holds, so any keyed
+    // row placed after them would move between frames.
+    private const int32 k_Row_Provider      = 32;
+    private const int32 k_Row_PaintMarkup   = 34;
+    private const int32 k_Row_NudgeObstacle = 35;
+    private const int32 k_Row_Repair        = 37;
+    private const int32 k_Row_Walkers       = 38;
+    private const int32 k_Row_PathDraw      = 40;
+    private const int32 k_Row_PocketProbe   = 41;
 
     // ---- State -----------------------------------------------------------------------------------
 
@@ -175,6 +282,10 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     // replace the field and mode 5 would then have no tiles to draw.
     private bool _LastBakeWasField = false;
 
+    // Where the last bake was aimed. R keeps it on the scene; the crossing row aims a field bake at
+    // its own band instead, and the region row would otherwise go on naming a box that had moved.
+    private FVector _LastBakeCentre = FVector(200.0, 0.0, 120.0);
+
     private int32 _ModeIndex = 0;
     private int32 _PlaneFitIndex = 1;
     private int32 _NormalConeIndex = 2;
@@ -184,11 +295,52 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     private int32 _AgentRadiusIndex = 1;
     private int32 _CellSizeIndex = 1;
 
+    // ---- Range station state ----------------------------------------------------------------------
+
+    private FCk_Handle _RangeVolumeEntity;
+    private FCk_Handle_GroundNavVolume _RangeVolume;
+    private FCk_Handle_Timer _RangeSettleTimer;
+
+    private bool _RangeArmed = false;
+    private int32 _RangeSettlePolls = 0;
+
+    // The one thing about the range with no readback: what it is waiting on. Everything else the
+    // section reports - epoch, tiles, walkable cells, seams, health, revision - is asked for as the
+    // row is built.
+    private FString _RangeStage = "not started";
+
+    // The actor IS the obstacle's position, so the row reads it off the actor rather than mirroring
+    // it. What is NOT readable is whether a nudge is still owed a repair: the volume's own
+    // pending-dirty answer is C++ only, so the owing is remembered here and cleared by the repair's
+    // own completion rather than by a guess.
+    private AStaticMeshActor _ObstacleActor = nullptr;
+    private bool _ObstacleIsMoved = false;
+    private bool _ObstacleRepairOwed = false;
+
+    private int32 _RepairsRun = 0;
+    private ECk_Request_OperationResult _LastRepairResult = ECk_Request_OperationResult::Failed;
+
+    private FCk_Handle_NavSurfaceMarkup _RangeMarkup;
+
+    private TArray<FCk_Handle> _WalkerEntities;
+    private TArray<FCk_Handle_CrowdAgent> _Walkers;
+    private int32 _WalkerCountIndex = 0;
+
+    // Nothing outside this gym holds this. ck.GroundNav.PathAt is a COMMAND, not a cvar, so there is
+    // no console state saying whether a crossing route is on screen - only the fact that every other
+    // bake clears the drawing, which is what puts this back to false.
+    private bool _PathDrawEnabled = false;
+
+    private FCk_Handle _PocketProbeEntity;
+    private int32 _PocketProbesRun = 0;
+
     // ---- Tunable value tables --------------------------------------------------------------------
     //
-    // The gym owns these values and pushes them to the cvars; it never reads them back. Typing a
-    // value straight into the console still works and still takes effect - the panel just will not
-    // know about it until the next keypress pushes the gym value over the top.
+    // The gym owns these values and pushes them to the cvars; it never reads them back, because there
+    // is nothing to read them back with: AngelScript is bound no console-variable READER at all - the
+    // CVar utility exposes Make_CVarRef and IsRegistered and no getter of any type. Typing a value
+    // straight into the console still works and still takes effect; the panel just will not know
+    // about it until the next keypress pushes the gym value over the top.
 
     private TArray<float> Get_PlaneFitValues()
     {
@@ -401,6 +553,81 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
 
         Stations.Add(LinksStation);
 
+        // The range stations. Each board stands at X 2000, east of the range slab and clear of the
+        // volume, on the Y of the band it names and turned to face back across it - so reading a
+        // board and looking at what it describes is one move rather than two.
+
+        auto RampStation = FCkGym_Station_SpawnParams_Payload();
+        RampStation.Tags.Add(n"GroundNavRamp");
+        RampStation.AutoSize = true;
+        RampStation.Transform = FTransform(FRotator(0.0, 180.0, 0.0), FVector(2000.0, -1700.0, 0.0), FVector::OneVector);
+        RampStation.Title = FText::FromString("GroundNav - Ramp");
+
+        auto RampDescription = TArray<FText>();
+        RampDescription.Add(FText::FromString("Two planks in series climbing west to east: the lower at 40 degrees, the upper at 50. The range volume's agent profile keeps the default 45-degree slope limit, so the join between them is where the ramp stops being ground."));
+        RampDescription.Add(FText::FromString("Type ck.GroundNav.Debug.Mode 3 and then ck.GroundNav.BakeFieldAt -1250 -1700 120 to see it as the filters do: the lower plank survives, the upper one is red. The debug bake's own slope limit defaults to the same 45 degrees the volume's profile carries, so the two agree until you move one."));
+        RampDescription.Add(FText::FromString("The panel's F/G/N/J/M/L/K keys move the DEBUG bake's tunables and not this volume's profile. The volume was authored once, at startup, and only a repair or a rebuild changes what it published."));
+        RampStation.Description = RampDescription;
+
+        Stations.Add(RampStation);
+
+        auto ObstacleStation = FCkGym_Station_SpawnParams_Payload();
+        ObstacleStation.Tags.Add(n"GroundNavMovedObstacle");
+        ObstacleStation.AutoSize = true;
+        ObstacleStation.Transform = FTransform(FRotator(0.0, 180.0, 0.0), FVector(2000.0, -2300.0, 0.0), FVector::OneVector);
+        ObstacleStation.Title = FText::FromString("GroundNav - Moved Obstacle");
+
+        auto ObstacleDescription = TArray<FText>();
+        ObstacleDescription.Add(FText::FromString("A 400uu box standing on the range slab. Press 3 and it jumps one 800uu tile east, out of the Jolt static world and back into it at the new place - which is the only way the published field goes stale."));
+        ObstacleDescription.Add(FText::FromString("Nothing repairs it for you. The OBSTACLE row turns amber and says the ground the body LEFT is still blocked; press 4 and the repair opens over the UNION of both footprints, which is the only box that reopens the old half and closes the new one in one pass."));
+        ObstacleDescription.Add(FText::FromString("A repair aimed only at where the body arrived would leave its old footprint blocked for the rest of the field's life, because nothing else will ever revisit that ground."));
+        ObstacleStation.Description = ObstacleDescription;
+
+        Stations.Add(ObstacleStation);
+
+        auto MarkupStation = FCkGym_Station_SpawnParams_Payload();
+        MarkupStation.Tags.Add(n"GroundNavPaintedMarkup");
+        MarkupStation.AutoSize = true;
+        MarkupStation.Transform = FTransform(FRotator(0.0, 180.0, 0.0), FVector(2000.0, -2900.0, 0.0), FVector::OneVector);
+        MarkupStation.Title = FText::FromString("GroundNav - Painted Markup");
+
+        auto MarkupDescription = TArray<FText>();
+        MarkupDescription.Add(FText::FromString("A 500uu impassable box dropped across the middle of this band. Press 2 to paint it and again to release it; the row reads the markup handle back, so it reports the paint the surface holds rather than the one this panel last asked for."));
+        MarkupDescription.Add(FText::FromString("The request is the provider-NEUTRAL one, the same call the crowd goes through: it names a shape and a place and nothing about which backend answers it, so the same keypress carves Recast and GroundNav alike."));
+        MarkupDescription.Add(FText::FromString("Press 5 first to put crowd walkers on this corridor. They cross it end to end and turn round, so a paint dropped in front of them is answered by a replan you can watch rather than by a number."));
+        MarkupDescription.Add(FText::FromString("ck.GroundNav.Debug.DrawMarkup 1 draws the paint over a bake: impassable in red, a cost area in amber with its multiplier."));
+        MarkupStation.Description = MarkupDescription;
+
+        Stations.Add(MarkupStation);
+
+        auto CrossingStation = FCkGym_Station_SpawnParams_Payload();
+        CrossingStation.Tags.Add(n"GroundNavMultiTileCrossing");
+        CrossingStation.AutoSize = true;
+        CrossingStation.Transform = FTransform(FRotator(0.0, 180.0, 0.0), FVector(2000.0, -3500.0, 0.0), FVector::OneVector);
+        CrossingStation.Title = FText::FromString("GroundNav - Multi-Tile Crossing");
+
+        auto CrossingDescription = TArray<FText>();
+        CrossingDescription.Add(FText::FromString("A 2800uu route over 800uu tiles, so four tiles lie under one corridor. Press 6 to draw it: the corridor the search walked, and over it the string-pulled route the agent would actually take."));
+        CrossingDescription.Add(FText::FromString("The row bakes a FIELD over this band before it asks, and that is not incidental. ck.GroundNav.PathAt reads the DEBUG field, not a volume's published one, and a region bake produces no field to path through at all."));
+        CrossingDescription.Add(FText::FromString("Draw mode 5 over the same bake shows the tiles and the seams between them, which is what makes it worth seeing a route that crosses three of them: a tiled bake that disagreed with itself would show as a kink at a seam and nowhere else."));
+        CrossingStation.Description = CrossingDescription;
+
+        Stations.Add(CrossingStation);
+
+        auto PocketStation = FCkGym_Station_SpawnParams_Payload();
+        PocketStation.Tags.Add(n"GroundNavNoRoutePocket");
+        PocketStation.AutoSize = true;
+        PocketStation.Transform = FTransform(FRotator(0.0, 180.0, 0.0), FVector(2000.0, -4400.0, 0.0), FVector::OneVector);
+        PocketStation.Title = FText::FromString("GroundNav - No-Route Pocket");
+
+        auto PocketDescription = TArray<FText>();
+        PocketDescription.Add(FText::FromString("A 600uu island with 300uu of nothing between it and the slab's south edge. It is inside the range volume and it bakes to real walkable ground - no seam can span a gap with no ground in it, and nothing authors a link across it, so there is no way to reach it."));
+        PocketDescription.Add(FText::FromString("Press 7 to ask for a path onto it. The request is made with partial paths OFF, and that is the whole station: with them on, a route that cannot reach the island answers with the closest point it COULD reach and reads as a success."));
+        PocketDescription.Add(FText::FromString("The POCKET row reports the status the probe was last given. Failed is the right answer here; Ready or Partial would mean something joined the island to the slab."));
+        PocketStation.Description = PocketDescription;
+
+        Stations.Add(PocketStation);
+
         return Stations;
     }
 
@@ -431,6 +658,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         DoWaitOneFrame(n"OnViewpointSettle");
 
         DoArm_LinksStation();
+        DoArm_RangeStation();
 
         ck::groundnav::Log("GroundNav gym: scene built - press R to bake");
     }
@@ -626,6 +854,388 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         return Records[0].Get_Enable() == ECk_EnableDisable::Enable;
     }
 
+    // ---- Range station -----------------------------------------------------------------------------
+    //
+    // Mints ONE volume over the range slab and the pocket beside it, bakes it, and probes the pocket
+    // once the surface has gone quiet. Guarded so Ck_Gym_Restart re-running the gym does not stack a
+    // second volume over the same ground.
+    //
+    // The provider is not set here. The links station ahead of it already put this world on GroundNav,
+    // and the provider is a per-WORLD selection - asking for it twice would say something this station
+    // does not decide.
+
+    private void DoArm_RangeStation()
+    {
+        if (_RangeArmed)
+        { return; }
+
+        if (_GeometryIsBuilt == false)
+        {
+            _RangeStage = "the scene is not in the Jolt static world - nothing to bake over";
+            return;
+        }
+
+        _RangeArmed = true;
+
+        _RangeVolumeEntity = utils_entity_lifetime::Request_CreateEntity(_PcEntity);
+        _RangeVolumeEntity.Request_OverrideToSelf();
+        _RangeVolumeEntity.Set_DebugName(n"GroundNavGym_RangeField");
+
+        auto Config = FCk_GroundNav_BakeConfig(k_RangeCellSizeUu, k_RangeCellHeightUu);
+        Config.Set_TileSizeUu(k_RangeTileSizeUu);
+
+        auto Profile = FCk_GroundNav_AgentProfile(
+            utils_shapes::Make_Capsule(
+                FCk_ShapeCapsule_Dimensions(k_RangeAgentHalfHeightUu, k_RangeAgentRadiusUu)));
+
+        // The slab and the pocket both END inside the volume, so at the default sensitivity the ledge
+        // filter would demote their whole perimeter - and the pocket, 600uu square, would lose its top
+        // outright and fail its probe for a reason that has nothing to do with reachability.
+        //
+        // The slope limit is deliberately left at the profile default of 45 degrees: that number is
+        // what the ramp station is built around, and moving it would make the ramp say nothing.
+        Profile.Set_LedgeSensitivity(0.0f);
+
+        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(
+            FBox(k_RangeVolumeMin, k_RangeVolumeMax), Config, Profile);
+
+        // The bake waited on must be the one asked for, not one that happened to run at setup.
+        VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
+
+        _RangeVolume = utils_ground_nav_volume::Add(_RangeVolumeEntity, VolumeParams);
+
+        if (ck::Is_NOT_Valid(_RangeVolume))
+        {
+            _RangeStage = "Add() returned an invalid volume handle";
+            return;
+        }
+
+        utils_ground_nav_volume::Request_Build(_RangeVolume, FCk_Request_GroundNavVolume_Build());
+
+        _RangeStage = "baking, then waiting for the surface to settle";
+        _RangeSettlePolls = 0;
+
+        auto PollParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        PollParams.Set_StartingState(ECk_Timer_State::Running)
+                  .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+
+        auto PollTimer = utils_timer::Add(_PcEntity, PollParams);
+        PollTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnRangeSettlePoll"));
+
+        _RangeSettleTimer = PollTimer;
+    }
+
+    // Same named condition the links station waits on, and for the same reason: the pocket probe is
+    // only worth firing once the field every query answers from is the published one.
+    UFUNCTION()
+    private void OnRangeSettlePoll(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        _RangeSettlePolls += 1;
+
+        if (utils_nav_surface::Get_IsSurfaceSettled())
+        {
+            DoStop_RangeSettlePoll();
+            _RangeStage = f"settled after {_RangeSettlePolls} polls";
+            DoProbe_Pocket();
+            return;
+        }
+
+        if (_RangeSettlePolls >= k_RangeSettlePollCeiling)
+        {
+            DoStop_RangeSettlePoll();
+            _RangeStage = "the surface never settled - the pocket was never probed";
+            ck::groundnav::Log("GroundNav gym: the range field never settled - the no-route pocket was not probed");
+        }
+    }
+
+    private void DoStop_RangeSettlePoll()
+    {
+        if (ck::Is_NOT_Valid(_RangeSettleTimer))
+        { return; }
+
+        utils_timer::Request_Stop(_RangeSettleTimer);
+        _RangeSettleTimer = FCk_Handle_Timer();
+    }
+
+    // ---- Range station: the provider row ------------------------------------------------------------
+
+    private void DoCycle_Provider()
+    {
+        ECk_NavSurface_Provider Next = ECk_NavSurface_Provider::GroundNav;
+
+        if (utils_nav_surface::Get_Provider() == ECk_NavSurface_Provider::GroundNav)
+        { Next = ECk_NavSurface_Provider::Recast; }
+
+        utils_nav_surface::Request_SetProvider(Next);
+
+        ck::groundnav::Log("GroundNav gym: provider switched - the volumes stay baked either way, and the SURFACE row says which backend is answering now");
+    }
+
+    // ---- Range station: the paint row ---------------------------------------------------------------
+    //
+    // The PROVIDER-NEUTRAL request, which is the one the crowd goes through: it names a shape and a
+    // place and nothing about which backend answers it, so one keypress carves Recast and GroundNav
+    // alike. Releasing it is destroying the markup entity - the handle IS the paint's lifetime.
+
+    private void DoToggle_Paint()
+    {
+        if (ck::IsValid(_RangeMarkup))
+        {
+            utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_RangeMarkup));
+            _RangeMarkup = FCk_Handle_NavSurfaceMarkup();
+
+            ck::groundnav::Log("GroundNav gym: the paint is released - the corridor reopens once the surface settles again");
+            return;
+        }
+
+        auto Request = FCk_Request_NavSurface_AreaMarkup(
+            utils_shapes::Make_Box(FCk_ShapeBox_Dimensions(k_MarkupHalfExtents)),
+            FGameplayTag());
+        Request.Set_WorldTransform(
+            FTransform(FRotator::ZeroRotator, k_MarkupCentre, FVector::OneVector));
+
+        _RangeMarkup = utils_nav_surface::Request_ImpassableBox(Request);
+
+        if (ck::Is_NOT_Valid(_RangeMarkup))
+        {
+            ck::groundnav::Warning("GroundNav gym: the paint request handed back no markup handle - nothing was carved");
+            return;
+        }
+
+        ck::groundnav::Log("GroundNav gym: the corridor is painted impassable - the walkers on it replan around the hole");
+    }
+
+    // ---- Range station: the obstacle and its repair ---------------------------------------------------
+
+    private void DoNudge_Obstacle()
+    {
+        if (ck::Is_NOT_Valid(_ObstacleActor))
+        { return; }
+
+        // OUT of the static world before the move and back in after it. The static world holds its own
+        // copy of the shape at the position it was baked at, so a body moved without that round trip
+        // is still standing where it was as far as every bake is concerned.
+        utils_jolt_static_world::Request_RemoveActor(_ObstacleActor);
+
+        _ObstacleIsMoved = !_ObstacleIsMoved;
+
+        FVector Destination = k_ObstacleHomeCentre;
+
+        if (_ObstacleIsMoved)
+        { Destination = k_ObstacleMovedCentre; }
+
+        _ObstacleActor.SetActorLocation(Destination);
+
+        const auto NumBaked = utils_jolt_static_world::Request_BakeActor(_ObstacleActor);
+
+        if (NumBaked == 0)
+        {
+            ck::groundnav::Warning("GroundNav gym: the moved obstacle re-baked 0 Jolt bodies - the ground under it can no longer change");
+            return;
+        }
+
+        _ObstacleRepairOwed = true;
+
+        ck::groundnav::Log("GroundNav gym: the obstacle moved one tile - the published field still carries the ground it left, until a repair opens over BOTH footprints");
+    }
+
+    private void DoRepair_ObstacleGround()
+    {
+        if (ck::Is_NOT_Valid(_RangeVolume))
+        { return; }
+
+        // The UNION of both footprints, never just the one the body arrived on: the half it LEFT is
+        // ground nothing else will ever revisit, so a repair aimed only at the new position leaves the
+        // old footprint blocked for the rest of the field's life.
+        const auto DirtyBounds = FBox(k_ObstacleDirtyMin, k_ObstacleDirtyMax);
+
+        utils_ground_nav_volume::Request_Repair(_RangeVolume,
+            FCk_Request_GroundNavVolume_Repair(DirtyBounds),
+            FCk_Delegate_Request_OnCompleted(this, n"OnRangeRepairCompleted"));
+    }
+
+    UFUNCTION()
+    private void OnRangeRepairCompleted(FCk_Handle InRequestOwner, ECk_Request_OperationResult InResult)
+    {
+        _RepairsRun += 1;
+        _LastRepairResult = InResult;
+
+        // Cleared by the repair the volume actually ran, and by nothing else: a refused request leaves
+        // the ground exactly as stale as it was, and the row must go on saying so.
+        if (InResult == ECk_Request_OperationResult::Succeeded)
+        { _ObstacleRepairOwed = false; }
+    }
+
+    // ---- Range station: the crowd walkers -------------------------------------------------------------
+
+    private TArray<int32> Get_WalkerCounts()
+    {
+        auto Counts = TArray<int32>();
+        Counts.Add(0);
+        Counts.Add(k_WalkerCountLow);
+        Counts.Add(k_WalkerCountHigh);
+        return Counts;
+    }
+
+    private void DoCycle_Walkers()
+    {
+        _WalkerCountIndex = (_WalkerCountIndex + 1) % Get_WalkerCounts().Num();
+
+        DoDespawn_Walkers();
+
+        const auto Wanted = Get_WalkerCounts()[_WalkerCountIndex];
+
+        for (int32 Index = 0; Index < Wanted; Index++)
+        { DoSpawn_Walker(Index, Wanted); }
+    }
+
+    private void DoSpawn_Walker(int32 InIndex, int32 InTotal)
+    {
+        const auto Offset = (float(InIndex) - (float(InTotal - 1) * 0.5f)) * k_WalkerSpacingUu;
+
+        const auto Spawn = k_WalkerWestPoint + FVector(0.0, Offset, 0.0);
+        const auto Goal = k_WalkerEastPoint + FVector(0.0, Offset, 0.0);
+
+        auto WalkerEntity = utils_entity_lifetime::Request_CreateEntity(_PcEntity);
+        WalkerEntity.Set_DebugName(n"GroundNavGym_RangeWalker");
+
+        const auto Facing = (Goal - Spawn).Rotation();
+
+        auto WalkerTransform = utils_transform::Add(WalkerEntity,
+            FTransform(Facing, Spawn, FVector::OneVector), ECk_Replication::DoesNotReplicate);
+
+        auto Walker = utils_crowd_agent::Add(WalkerTransform,
+            FCk_Fragment_CrowdAgent_ParamsData(k_WalkerRadiusUu, k_WalkerHeightUu));
+
+        if (ck::Is_NOT_Valid(Walker))
+        {
+            ck::groundnav::Warning("GroundNav gym: a range walker got no crowd agent handle");
+            utils_entity_lifetime::Request_DestroyEntity(WalkerEntity);
+            return;
+        }
+
+        utils_velocity::Add(WalkerEntity,
+            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            ECk_Replication::DoesNotReplicate);
+        utils_acceleration::Add(WalkerEntity,
+            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            ECk_Replication::DoesNotReplicate);
+        utils_euler_integrator::Request_Start(WalkerEntity);
+
+        // Composed here with the radius the crowd's own GroundNav dispatch would have used. The
+        // dispatch adds the feature only when it is missing, so what runs is identical either way.
+        utils_ground_nav_path::Add(WalkerEntity,
+            FCk_Fragment_GroundNavPath_ParamsData(k_WalkerRadiusUu));
+
+        utils_crowd_agent::BindTo_OnGoalReached(Walker,
+            FCk_Delegate_CrowdAgent_OnGoalReached(this, n"OnWalkerGoalReached"),
+            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
+            ECk_Signal_PostFireBehavior::DoNothing);
+
+        utils_crowd_agent::Request_MoveTo(Walker, FCk_Request_CrowdAgent_MoveTo(Goal));
+
+        _WalkerEntities.Add(WalkerEntity);
+        _Walkers.Add(Walker);
+    }
+
+    // The walkers ping-pong rather than parking at the far end: a corridor whose bodies all stopped
+    // after one crossing shows nothing about a paint dropped onto it a minute later.
+    UFUNCTION()
+    private void OnWalkerGoalReached(FCk_Handle_CrowdAgent InAgent)
+    {
+        auto WalkerEntity = FCk_Handle(InAgent);
+
+        if (ck::Is_NOT_Valid(WalkerEntity))
+        { return; }
+
+        const auto Here = utils_transform::Get_EntityCurrentLocation(
+            utils_transform::DoCastChecked(WalkerEntity));
+
+        FVector Destination = k_WalkerEastPoint;
+
+        if (Here.X > 0.0)
+        { Destination = k_WalkerWestPoint; }
+
+        // Its own lane, not the lane the row spawned it in: the walker keeps the Y it is standing on,
+        // so eight bodies turning round at once do not all aim at one point.
+        utils_crowd_agent::Request_MoveTo(InAgent,
+            FCk_Request_CrowdAgent_MoveTo(FVector(Destination.X, Here.Y, Destination.Z)));
+    }
+
+    private void DoDespawn_Walkers()
+    {
+        for (int32 Index = 0; Index < _WalkerEntities.Num(); Index++)
+        {
+            auto WalkerEntity = _WalkerEntities[Index];
+
+            if (ck::Is_NOT_Valid(WalkerEntity))
+            { continue; }
+
+            utils_entity_lifetime::Request_DestroyEntity(WalkerEntity);
+        }
+
+        _WalkerEntities.Empty();
+        _Walkers.Empty();
+    }
+
+    // ---- Range station: the crossing route and the pocket ---------------------------------------------
+
+    // ck.GroundNav.PathAt reads the DEBUG field and not a volume's published one, so the row bakes a
+    // field over the crossing band before it asks: a region bake produces no field to path through,
+    // and a field baked at the tuning scene has no ground at all under this route.
+    private void DoDraw_CrossingPath()
+    {
+        DoBakeFieldAt(k_CrossingBakeCentre);
+
+        const auto Start = k_CrossingWestPoint;
+        const auto Goal = k_CrossingEastPoint;
+
+        System::ExecuteConsoleCommand(
+            f"ck.GroundNav.PathAt {Start.X} {Start.Y} {Start.Z} {Goal.X} {Goal.Y} {Goal.Z}");
+
+        _PathDrawEnabled = true;
+    }
+
+    private void DoToggle_CrossingPath()
+    {
+        if (_PathDrawEnabled)
+        {
+            System::ExecuteConsoleCommand("ck.GroundNav.Clear");
+            _PathDrawEnabled = false;
+            return;
+        }
+
+        DoDraw_CrossingPath();
+    }
+
+    // One probe entity, re-asked rather than re-minted: a fresh entity per press would leave one
+    // behind for every press, and the status row reads the LAST answer this one was given.
+    private void DoProbe_Pocket()
+    {
+        if (ck::Is_NOT_Valid(_PocketProbeEntity))
+        {
+            _PocketProbeEntity = utils_entity_lifetime::Request_CreateEntity(_PcEntity);
+            _PocketProbeEntity.Set_DebugName(n"GroundNavGym_PocketProbe");
+
+            utils_transform::Add(_PocketProbeEntity,
+                FTransform(FRotator::ZeroRotator, k_PocketProbeStart, FVector::OneVector),
+                ECk_Replication::DoesNotReplicate);
+
+            utils_ground_nav_path::Add(_PocketProbeEntity,
+                FCk_Fragment_GroundNavPath_ParamsData(k_RangeAgentRadiusUu));
+        }
+
+        // Partial paths OFF, and that is the whole station: with them on, a route that cannot reach the
+        // island answers with the closest point it COULD reach and reads as a success. The question
+        // being asked is whether the island is reachable at all.
+        auto Request = FCk_Request_Nav_FindPath(k_PocketProbeGoal);
+        Request.Set_AllowPartialPath(false);
+
+        utils_nav::Request_FindPath(_PocketProbeEntity, Request);
+
+        _PocketProbesRun += 1;
+    }
+
     // ---- Scene construction ----------------------------------------------------------------------
 
     private bool DoBuildScene()
@@ -665,6 +1275,46 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         if (DoSpawnBox(k_LinksDeckCentre, k_LinksDeckScale) == false)
         { return false; }
 
+        // The range slab and the four stations standing on it, then the pocket island beyond its
+        // south edge. All of it goes into the Jolt static world through the same call the rest of the
+        // scene does - the range volume bakes from that world and from nothing else.
+        if (DoSpawnBox(k_RangeSlabCentre, k_RangeSlabScale) == false)
+        { return false; }
+
+        if (DoSpawnBoxRotated(k_RampLowerCentre,
+                FRotator(k_RampLowerPitchDegrees, 0.0, 0.0), k_RampPlankScale) == false)
+        { return false; }
+
+        if (DoSpawnBoxRotated(k_RampUpperCentre,
+                FRotator(k_RampUpperPitchDegrees, 0.0, 0.0), k_RampPlankScale) == false)
+        { return false; }
+
+        if (DoSpawnBox(k_PocketCentre, k_PocketScale) == false)
+        { return false; }
+
+        if (DoSpawnObstacle() == false)
+        { return false; }
+
+        return true;
+    }
+
+    // The obstacle is the one scene box kept as an actor: the nudge row moves this body and re-bakes
+    // it, which is the only way ground in this scene goes stale in the first place. Held across a
+    // restart rather than re-spawned, so Ck_Gym_Restart cannot leave the old one standing in the
+    // static world with nothing holding it.
+    private bool DoSpawnObstacle()
+    {
+        if (ck::IsValid(_ObstacleActor))
+        { return true; }
+
+        auto Obstacle = DoSpawnBoxActor(k_ObstacleHomeCentre, FRotator::ZeroRotator, k_ObstacleScale);
+
+        if (Obstacle == nullptr)
+        { return false; }
+
+        _ObstacleActor = Obstacle;
+        _ObstacleIsMoved = false;
+
         return true;
     }
 
@@ -695,11 +1345,23 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
 
     private bool DoSpawnBox(FVector InCentre, FVector InScale)
     {
-        auto BoxActor = Cast<AStaticMeshActor>(SpawnActor(AStaticMeshActor, InCentre));
+        return DoSpawnBoxRotated(InCentre, FRotator::ZeroRotator, InScale);
+    }
+
+    private bool DoSpawnBoxRotated(FVector InCentre, FRotator InRotation, FVector InScale)
+    {
+        return DoSpawnBoxActor(InCentre, InRotation, InScale) != nullptr;
+    }
+
+    // Hands the actor back rather than a verdict, for the one box the panel has to keep hold of. Every
+    // other caller only wants to know whether the scene is still whole.
+    private AStaticMeshActor DoSpawnBoxActor(FVector InCentre, FRotator InRotation, FVector InScale)
+    {
+        auto BoxActor = Cast<AStaticMeshActor>(SpawnActor(AStaticMeshActor, InCentre, InRotation));
         if (ck::Is_NOT_Valid(BoxActor))
         {
             ck::groundnav::Warning("GroundNav gym: failed to spawn a scene box");
-            return false;
+            return nullptr;
         }
 
         // A runtime-spawned AStaticMeshActor must be Movable BEFORE it will accept a mesh.
@@ -709,7 +1371,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         if (CubeMesh == nullptr)
         {
             ck::groundnav::Warning("GroundNav gym: failed to load /Engine/BasicShapes/Cube.Cube");
-            return false;
+            return nullptr;
         }
         BoxActor.StaticMeshComponent.SetStaticMesh(CubeMesh);
 
@@ -724,10 +1386,10 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         if (NumBaked == 0)
         {
             ck::groundnav::Warning("GroundNav gym: a scene box baked 0 Jolt bodies - the bake would read it as free space");
-            return false;
+            return nullptr;
         }
 
-        return true;
+        return BoxActor;
     }
 
     // Scaled from the asset's own bounds rather than a hardcoded number: the mesh is an engine sheet
@@ -852,8 +1514,10 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     // agree from the first keypress even if something else wrote them earlier in the session.
     private void DoPushAllTunables()
     {
-        // Sized to the scene rather than to the viewer: the scene spans X -1200..1400 and Y +/-1200,
-        // and everything walkable in it sits between Z=0 and Z=240.
+        // Sized to the tuning scene rather than to the viewer: it spans X -1200..1400 and Y +/-1200,
+        // and everything walkable in it sits between Z=0 and Z=240. The range bands south of it are
+        // reached by aiming a bake AT one, not by widening this - an extent that swallowed the whole
+        // world would truncate the drawing long before it got there.
         DoSetTunable("ExtentUu", 1500.0f);
         DoSetTunable("HeightUu", 400.0f);
         DoSetTunable("MaxCells", 40000.0f);
@@ -870,12 +1534,21 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
 
     private void DoBake()
     {
+        DoBakeAt(k_BakeCentre);
+    }
+
+    private void DoBakeAt(FVector InCentre)
+    {
         DoPushAllTunables();
         System::ExecuteConsoleCommand("ck.GroundNav.Clear");
         System::ExecuteConsoleCommand(
-            f"ck.GroundNav.BakeAt {k_BakeCentre.X} {k_BakeCentre.Y} {k_BakeCentre.Z}");
+            f"ck.GroundNav.BakeAt {InCentre.X} {InCentre.Y} {InCentre.Z}");
         _BakeCount += 1;
         _LastBakeWasField = false;
+        _LastBakeCentre = InCentre;
+
+        // Clear wiped the drawing, so whatever route was on screen no longer is.
+        _PathDrawEnabled = false;
     }
 
     // The same scene baked as several tiles instead of one region. Everything else is identical, so
@@ -883,24 +1556,37 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     // whole one would show up here as a seam, and nowhere else.
     private void DoBakeField()
     {
-        DoPushAllTunables();
-        DoSetTunable("TileSizeUu", 800.0f);
-        System::ExecuteConsoleCommand("ck.GroundNav.Clear");
-        System::ExecuteConsoleCommand(
-            f"ck.GroundNav.BakeFieldAt {k_BakeCentre.X} {k_BakeCentre.Y} {k_BakeCentre.Z}");
-        _BakeCount += 1;
-        _LastBakeWasField = true;
+        DoBakeFieldAt(k_BakeCentre);
     }
 
+    private void DoBakeFieldAt(FVector InCentre)
+    {
+        DoPushAllTunables();
+
+        // The same tile size the range volume bakes on, deliberately: the crossing station's claim
+        // that four tiles lie under one corridor is only true of a bake that tiles the same way.
+        DoSetTunable("TileSizeUu", k_RangeTileSizeUu);
+        System::ExecuteConsoleCommand("ck.GroundNav.Clear");
+        System::ExecuteConsoleCommand(
+            f"ck.GroundNav.BakeFieldAt {InCentre.X} {InCentre.Y} {InCentre.Z}");
+        _BakeCount += 1;
+        _LastBakeWasField = true;
+        _LastBakeCentre = InCentre;
+        _PathDrawEnabled = false;
+    }
+
+    // Re-runs the KIND of bake that last ran and re-aims it WHERE that one was aimed. Both halves
+    // matter: a region bake would replace the field mode 5 draws from, and a re-bake that snapped back
+    // to the scene would erase the range station a tunable key was being turned against.
     private void DoRebake()
     {
         if (_LastBakeWasField)
         {
-            DoBakeField();
+            DoBakeFieldAt(_LastBakeCentre);
             return;
         }
 
-        DoBake();
+        DoBakeAt(_LastBakeCentre);
     }
 
     // ---- Control panel ---------------------------------------------------------------------------
@@ -910,17 +1596,20 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         return "GROUNDNAV: TUNING RANGE";
     }
 
+    // Readback: every value column below is asked for as the row is built, except where there is
+    // nothing to ask. Four columns are remembered rather than read, and each says so where it stands:
+    // the tunable cycles (no AngelScript console-variable reader exists - see the value tables above),
+    // how many bakes have run and where the last one was aimed (the gym is the only thing that
+    // counts them), whether the crossing route is on screen (PathAt is a command, not a cvar), and
+    // whether a nudge is still owed a repair (the volume's pending-dirty answer is C++ only).
     TArray<FCkGym_ControlRow> Get_ControlRows() override
     {
         auto Rows = TArray<FCkGym_ControlRow>();
 
         Rows.Add(CkGym_Control::Header("SCENE"));
-        Rows.Add(CkGym_Control::Status("Geometry",
-            _GeometryIsBuilt ? "floor + 12 steps (20uu risers) + platform + 75uu catwalk + 160uu pinch"
-                             : "NOT BAKED INTO JOLT - every bake will find nothing",
-            _GeometryIsBuilt == false));
+        Rows.Add(CkGym_Control::Status("Geometry", Get_GeometryStatus(), _GeometryIsBuilt == false));
         Rows.Add(CkGym_Control::Status("Bake region",
-        f"white box, pinned to ({k_BakeCentre.X}, {k_BakeCentre.Y}, {k_BakeCentre.Z}), +/-1500uu wide, 400uu tall - it does not follow you"));
+        f"white box around ({_LastBakeCentre.X}, {_LastBakeCentre.Y}, {_LastBakeCentre.Z}), +/-1500uu wide, 400uu tall - it is pinned where the bake was aimed and does not follow you"));
         Rows.Add(CkGym_Control::Status("Bakes run", f"{_BakeCount}"));
 
         Rows.Add(CkGym_Control::Header("BAKE"));
@@ -961,9 +1650,41 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
             "Links (ck.GroundNav.LinksAt 0 0 0 lists them; ck.GroundNav.Debug.Mode 7 draws them over a bake)",
             Get_LinksAreEnabled(), "enabled", "disabled"));
 
-        // AFTER the toggle, and that is not a preference. How many resolution rows there are depends
-        // on how many records the volume holds, so a section of them placed ABOVE a keyed row would
-        // move that row's index between frames, and the panel dispatches on the index.
+        // Every value in this section is read where it is shown: the field's own counts off the volume,
+        // the provider and its health off the facade, the obstacle off the actor, the walkers off
+        // their agents, the pocket off the probe's last answer.
+        Rows.Add(CkGym_Control::Header("RANGE - five stations south of the floor, on a volume of their own"));
+        Rows.Add(CkGym_Control::Status("Field", Get_RangeFieldStatus(),
+            utils_ground_nav_volume::Get_IsBuilt(_RangeVolume) == false));
+        Rows.Add(CkGym_Control::Status("Surface", Get_RangeSurfaceStatus()));
+        Rows.Add(CkGym_Control::Cycle(EKeys::One, "1",
+            "Provider (a per-WORLD choice - the volumes here only answer on GroundNav)",
+            Get_ProviderLabel()));
+        Rows.Add(CkGym_Control::Status("Ramp (Y -1700)",
+            "two planks in series at 40 then 50 degrees - the lower clears the profile's 45-degree slope limit and the upper does not, so the ramp stops being ground half way up"));
+        Rows.Add(CkGym_Control::ToggleNamed(EKeys::Two, "2",
+            "Markup paint (Y -2900, straddling the walkers' corridor)",
+            ck::IsValid(_RangeMarkup), "painted", "clear"));
+        Rows.Add(CkGym_Control::Action(EKeys::Three, "3",
+            "Nudge the obstacle one tile (Y -2300) - moves the body, leaves the ground behind it stale"));
+        Rows.Add(CkGym_Control::Status("Obstacle", Get_ObstacleStatus(), _ObstacleRepairOwed));
+        Rows.Add(CkGym_Control::Action(EKeys::Four, "4",
+            "Repair over BOTH obstacle footprints", _ObstacleRepairOwed));
+        Rows.Add(CkGym_Control::Cycle(EKeys::Five, "5", "Crowd walkers on the corridor",
+            Get_WalkerCountLabel()));
+        Rows.Add(CkGym_Control::Status("Walkers", Get_WalkerStatus()));
+        Rows.Add(CkGym_Control::Toggle(EKeys::Six, "6",
+            "Draw the crossing route (Y -3500; bakes a FIELD over that band first - R, Y and every tunable key replace the drawing)",
+            _PathDrawEnabled));
+        Rows.Add(CkGym_Control::Action(EKeys::Seven, "7",
+            "Probe the no-route pocket (Y -4400) with partial paths OFF"));
+        Rows.Add(CkGym_Control::Status("Pocket", Get_PocketStatus()));
+
+        // LAST, and that is not a preference. How many resolution rows there are depends on how many
+        // records the links volume holds, so a section of them placed ABOVE a keyed row would move
+        // that row's index between frames, and the panel dispatches on the index.
+        Rows.Add(CkGym_Control::Header("LINK RESOLUTION - one row per record the links volume holds"));
+
         auto ResolutionRows = Get_LinkResolutionRows();
 
         for (int32 Index = 0; Index < ResolutionRows.Num(); Index++)
@@ -1010,6 +1731,108 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         }
 
         return OutRows;
+    }
+
+    // The static-body count is read off the world as the row is built rather than remembered: the
+    // open-collision toggle and the obstacle nudge both add and remove bodies, and a number captured
+    // at startup would go on reporting the scene as it was first spawned.
+    private FString Get_GeometryStatus()
+    {
+        const auto Bodies = utils_jolt_static_world::Get_NumStaticBodies();
+
+        if (_GeometryIsBuilt == false)
+        { return f"NOT BAKED INTO JOLT ({Bodies} static bodies) - every bake will find nothing"; }
+
+        return f"{Bodies} static bodies - floor + 12 steps (20uu risers) + platform + 75uu catwalk + 160uu pinch, plus the range slab south of it";
+    }
+
+    private FString Get_RangeFieldStatus()
+    {
+        if (utils_ground_nav_volume::Get_IsBuilt(_RangeVolume) == false)
+        { return _RangeStage; }
+
+        const auto Epoch = utils_ground_nav_volume::Get_BuildEpoch(_RangeVolume);
+        const auto TilesBuilt = utils_ground_nav_volume::Get_BuiltTileCount(_RangeVolume);
+        const auto TilesTotal = utils_ground_nav_volume::Get_TileCount(_RangeVolume);
+        const auto Cells = utils_ground_nav_volume::Get_WalkableCellCount(_RangeVolume);
+        const auto Seams = utils_ground_nav_volume::Get_SeamPortalCount(_RangeVolume);
+
+        // PLATES are deliberately absent. They are not among the volume's reflected counts - the only
+        // place a plate total is printed is ck.GroundNav.Print, over the DEBUG field, which is a
+        // different field from this one. Walkable cells and seam portals are what the volume itself
+        // will answer, so they are what this row says.
+        return f"epoch {Epoch} - {TilesBuilt} of {TilesTotal} tiles built - {Cells} walkable cells - {Seams} seam portals";
+    }
+
+    private FString Get_RangeSurfaceStatus()
+    {
+        const auto Provider = utils_nav_surface::Get_Provider();
+        const auto Health = utils_nav_surface::Get_ProviderHealth();
+        const auto Revision = utils_nav_surface::Get_SurfaceRevision();
+        const auto Settled = utils_nav_surface::Get_IsSurfaceSettled();
+
+        return f"{Provider} - health {Health} - revision {Revision} - settled: {Settled}";
+    }
+
+    private FString Get_ProviderLabel()
+    {
+        const auto Provider = utils_nav_surface::Get_Provider();
+
+        if (Provider == ECk_NavSurface_Provider::GroundNav)
+        { return "GroundNav (this gym's volumes answer)"; }
+
+        return "Recast (the volumes stay baked, but nothing routes through them)";
+    }
+
+    private FString Get_ObstacleStatus()
+    {
+        if (ck::Is_NOT_Valid(_ObstacleActor))
+        { return "the obstacle never spawned"; }
+
+        const auto Where = _ObstacleActor.GetActorLocation();
+
+        FString RepairText = f"{_RepairsRun} repairs run (last {_LastRepairResult})";
+
+        if (_ObstacleRepairOwed)
+        { RepairText = "the ground it LEFT is still blocked - press 4"; }
+
+        return f"standing at x {Where.X} - {RepairText}";
+    }
+
+    private FString Get_WalkerCountLabel()
+    {
+        const auto Wanted = Get_WalkerCounts()[_WalkerCountIndex];
+        const auto Live = _Walkers.Num();
+
+        return f"{Wanted} asked for - {Live} on the corridor";
+    }
+
+    private FString Get_WalkerStatus()
+    {
+        if (_Walkers.Num() == 0)
+        { return "none spawned"; }
+
+        int32 Walking = 0;
+
+        for (int32 Index = 0; Index < _Walkers.Num(); Index++)
+        {
+            if (utils_crowd_agent::Get_MovementState(_Walkers[Index]) == ECk_CrowdAgent_MovementState::Walking)
+            { Walking += 1; }
+        }
+
+        const auto Total = _Walkers.Num();
+
+        return f"{Walking} of {Total} walking between the two ends of the corridor";
+    }
+
+    private FString Get_PocketStatus()
+    {
+        if (_PocketProbesRun == 0)
+        { return "not probed yet"; }
+
+        const auto Status = utils_nav::Get_PathStatus(_PocketProbeEntity);
+
+        return f"{_PocketProbesRun} probes - last status {Status} (Failed is what an island with no seam and no link is supposed to answer)";
     }
 
     private FString Get_LinksFieldStatus()
@@ -1144,6 +1967,48 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         if (InRowIndex == k_Row_LinksToggle)
         {
             DoToggle_Links();
+            return;
+        }
+
+        if (InRowIndex == k_Row_Provider)
+        {
+            DoCycle_Provider();
+            return;
+        }
+
+        if (InRowIndex == k_Row_PaintMarkup)
+        {
+            DoToggle_Paint();
+            return;
+        }
+
+        if (InRowIndex == k_Row_NudgeObstacle)
+        {
+            DoNudge_Obstacle();
+            return;
+        }
+
+        if (InRowIndex == k_Row_Repair)
+        {
+            DoRepair_ObstacleGround();
+            return;
+        }
+
+        if (InRowIndex == k_Row_Walkers)
+        {
+            DoCycle_Walkers();
+            return;
+        }
+
+        if (InRowIndex == k_Row_PathDraw)
+        {
+            DoToggle_CrossingPath();
+            return;
+        }
+
+        if (InRowIndex == k_Row_PocketProbe)
+        {
+            DoProbe_Pocket();
             return;
         }
     }
