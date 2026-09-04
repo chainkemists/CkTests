@@ -46,11 +46,16 @@
 // SHARED-WORLD HYGIENE: a leftover nav-null slab would split the navmesh for
 // every later crowd test. Both slabs come down before the test reports, the run
 // waits for the tiles to return, and DoEndPlay unpaints them as a backstop.
+//
+// Every nav query and rebuild kick goes to the neutral nav surface, and on CkGroundNav the fixture
+// stages its own field over the origin floor, so it runs unchanged on any provider.
 //============================================================================
 
 class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 40.0f;
+
+    private FCkAutoTest_GroundNavFixture _Field;
 
     // ---- fixture geometry -------------------------------------------------
     private const float WalkerSpawnX = -500.0;
@@ -204,7 +209,16 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
 
         // Kick the navmesh first thing: AutoTests_CkTests_Level ships the
         // fixture but the bake is lazy, and every probe below is synchronous.
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        // On CkGroundNav nothing in the shared level carries a field, so the fixture stages one over
+        // the origin floor; on Recast the level's own navmesh is the surface and nothing is staged.
+        if (utils_nav_surface::Get_Provider() == ECk_NavSurface_Provider::GroundNav &&
+            _Field.Request_StageOriginField(InHandle) == false)
+        {
+            FinishFailure(_Field.Get_StagingError());
+            return;
+        }
+
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
@@ -216,6 +230,9 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoEndPlay(FCk_Handle InHandle)
     {
+        _Field.Do_ReportCrossover("Crowd_Facing_CalmWhilePressingBlockedGap", IsFinished() ? "finished" : "unfinished");
+        _Field.Request_ReleaseOriginField();
+
         Destroy_Slabs();
     }
 
@@ -304,15 +321,17 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
 
     private void Tick_FindMesh(FCk_Handle& InSelf)
     {
-        FVector Projected;
-        if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector::ZeroVector, 100.0f, Projected, ProbeVerticalExtentUu) == false)
+        const auto CorridorProbeExtents = FVector(100.0, 100.0, ProbeVerticalExtentUu);
+
+        const auto Projected = Do_ProjectOntoSurface(FVector::ZeroVector, CorridorProbeExtents);
+        if (Projected.Get_Status() != ECk_NavSurface_QueryStatus::Success)
         { return; }   // bake not done yet - keep polling
 
-        _FloorZ = float(Projected.Z);
+        _FloorZ = float(Projected.Get_Location().Z);
 
-        if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector(WalkerSpawnX, 0.0, _FloorZ), 100.0f, Projected, ProbeVerticalExtentUu) == false)
+        if (Do_ProjectOntoSurface(FVector(WalkerSpawnX, 0.0, _FloorZ), CorridorProbeExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
         { return; }
-        if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector(GoalX, 0.0, _FloorZ), 100.0f, Projected, ProbeVerticalExtentUu) == false)
+        if (Do_ProjectOntoSurface(FVector(GoalX, 0.0, _FloorZ), CorridorProbeExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
         { return; }
 
         // The slabs are sized from the mesh's OWN extent rather than a hardcoded
@@ -370,18 +389,18 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
     // hole in the mesh, and the gap must actually still be walkable.
     private void Tick_WaitForSeal(FCk_Handle& InSelf)
     {
-        FVector Unused;
+        const auto SlabProbeExtents = FVector(SlabProbeHalfExtentUu, SlabProbeHalfExtentUu, ProbeVerticalExtentUu);
 
         if (_SlabsSealed == false)
         {
-            const auto StillWalkable = utils_nav::Try_ProjectOntoNavmesh(InSelf,
-                FVector(0.0, _SlabProbeY, _FloorZ), SlabProbeHalfExtentUu, Unused, ProbeVerticalExtentUu);
+            const auto StillWalkable = Do_ProjectOntoSurface(
+                FVector(0.0, _SlabProbeY, _FloorZ), SlabProbeExtents).Get_Status() == ECk_NavSurface_QueryStatus::Success;
             if (StillWalkable) { return; }
             _SlabsSealed = true;
         }
 
-        _GapOpen = utils_nav::Try_ProjectOntoNavmesh(InSelf,
-            FVector(0.0, 0.0, _FloorZ), SlabProbeHalfExtentUu, Unused, ProbeVerticalExtentUu);
+        _GapOpen = Do_ProjectOntoSurface(
+            FVector(0.0, 0.0, _FloorZ), SlabProbeExtents).Get_Status() == ECk_NavSurface_QueryStatus::Success;
     }
 
     private void Spawn_Agents(FCk_Handle& InOwner)
@@ -595,9 +614,9 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
         auto MeshRestored = true;
         if (_MeshFound)
         {
-            FVector Restored;
-            MeshRestored = utils_nav::Try_ProjectOntoNavmesh(InSelf,
-                FVector(0.0, _SlabProbeY, _FloorZ), SlabProbeHalfExtentUu, Restored, ProbeVerticalExtentUu);
+            MeshRestored = Do_ProjectOntoSurface(
+                FVector(0.0, _SlabProbeY, _FloorZ),
+                FVector(SlabProbeHalfExtentUu, SlabProbeHalfExtentUu, ProbeVerticalExtentUu)).Get_Status() == ECk_NavSurface_QueryStatus::Success;
         }
 
         if (MeshRestored == false && _TeardownPolls < MaxTeardownPolls)
@@ -628,7 +647,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
     // Crowd_Avoidance_WallSegmentsKeepAgentOnMesh uses for the -X edge.
     private bool DoFind_MeshEdgeAlongY(FCk_Handle& InSelf, float InSign)
     {
-        FVector Unused;
+        const auto EdgeProbeExtents = FVector(ProbeExtentUu, ProbeExtentUu, ProbeVerticalExtentUu);
 
         float LastGoodAbsY = 0.0;
         float CoarseFailAbsY = 0.0;
@@ -636,7 +655,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
 
         for (float AbsY = CoarseStepUu; AbsY <= MaxProbeUu; AbsY += CoarseStepUu)
         {
-            if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector(0.0, InSign * AbsY, _FloorZ), ProbeExtentUu, Unused, ProbeVerticalExtentUu) == false)
+            if (Do_ProjectOntoSurface(FVector(0.0, InSign * AbsY, _FloorZ), EdgeProbeExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             {
                 CoarseFailAbsY = AbsY;
                 CoarseFailed = true;
@@ -650,13 +669,22 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
 
         for (float AbsY = LastGoodAbsY + RefineStepUu; AbsY < CoarseFailAbsY; AbsY += RefineStepUu)
         {
-            if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector(0.0, InSign * AbsY, _FloorZ), ProbeExtentUu, Unused, ProbeVerticalExtentUu) == false)
+            if (Do_ProjectOntoSurface(FVector(0.0, InSign * AbsY, _FloorZ), EdgeProbeExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { break; }
             LastGoodAbsY = AbsY;
         }
 
         _ProbedEdgeAbsY = float(LastGoodAbsY);
         return true;
+    }
+
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
     }
 
     private float DoGet_BodyYaw()

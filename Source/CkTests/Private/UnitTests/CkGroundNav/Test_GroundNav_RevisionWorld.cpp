@@ -2,11 +2,10 @@
 //
 // Test_GroundNav_Revision owns the epoch arithmetic over a single field. This file asks the question
 // one level up, where the number a consumer actually watches is assembled: the provider table's
-// _SurfaceRevision folds every field the world-field registry currently holds, and that registry has
-// no per-volume unpublish — an entry leaves only when the OnWorldCleanup hook drops the whole world's
-// list. A destroyed volume's tiles therefore keep contributing until the world ends, and that
-// retention is the entire reason the number is monotone. A consumer reads any move as "the surface
-// changed", so a FALL would announce a rebuild that never happened.
+// _SurfaceRevision folds every field the world-field registry currently holds PLUS the epoch sums of
+// the fields it has unpublished. A volume torn down mid-session leaves the registry, and that
+// retained sum is the entire reason the number is monotone. A consumer reads any move as "the
+// surface changed", so a FALL would announce a rebuild that never happened.
 //
 // A real UWorld is created for this rather than a bare ck::FEcsWorld, because the registry is keyed by
 // world and the revision is reached through the provider table with a UWorld* and nothing else.
@@ -14,8 +13,8 @@
 // The teardown is stamped rather than completed: Request_DestroyEntity adds FTag_DestroyEntity_Initiate
 // synchronously and the destruction pipeline that retires the entity is the scheduler's, which a
 // headless world does not have. That is the same teardown shape Test_GroundNav_MarkupAdmission drives,
-// and it is enough here — the registry is never told about a destroyed volume under either shape,
-// which is the property under test.
+// and it is enough here — the volume's own end-play unpublish is driven alongside the cancel drains,
+// standing in the FGroup_EndPlay slot the scheduler would run it in, which is the property under test.
 
 #include "CkCore/Time/CkTime.h"
 
@@ -196,6 +195,11 @@ namespace ck_test_groundnav_revision_world
             FCk_Time{kSixtyHertz},
             InVolume,
             InVolume.Get<ck::FFragment_GroundNavVolume_MarkupRequests>());
+
+        ck::FProcessor_GroundNavVolume_Unpublish::ForEachEntity(
+            FCk_Time{kSixtyHertz},
+            InVolume,
+            InVolume.Get<ck::FFragment_GroundNavVolume_BuiltField>());
     }
 }
 
@@ -279,13 +283,20 @@ bool FCkTest_GroundNav_Revision_WorldRevisionDoesNotFallWhenAVolumeIsTornDown::R
     TestEqual(TEXT("it does not move it at all: a teardown publishes nothing"),
         RevisionAfter, RevisionBefore);
 
-    // The mechanism behind that, stated on its own so a future per-volume unpublish cannot be added
-    // without this failing: the registry still holds the torn-down volume's last published field.
-    TestTrue(TEXT("because the registry still lists the torn-down volume"),
+    // The mechanism behind that, stated on its own: the torn-down volume is GONE from the registry -
+    // its field answers no query on this world any more - and what it had published is carried as
+    // retired revision, so the sum reads exactly as it did. Both halves matter: a registry that kept
+    // the dead volume would keep answering from its ground, and one that dropped its epochs would
+    // hand a consumer a number it had already seen.
+    TestFalse(TEXT("because the registry no longer lists the torn-down volume"),
         Get_WorldListsVolume(Fixture._World, SecondVolume.ConvertToHandle()));
 
-    TestEqual(TEXT("and still holds both fields"),
-        world_fields::Get_FieldCount(Fixture._World), 2);
+    TestEqual(TEXT("and holds only the live volume's field"),
+        world_fields::Get_FieldCount(Fixture._World), 1);
+
+    TestEqual(TEXT("with the torn-down field's epochs carried as retired revision"),
+        world_fields::Get_RetiredRevision(Fixture._World),
+        SecondField->Get_AggregatedTileEpochSum());
 
     Destroy_Fixture(Fixture);
     return true;

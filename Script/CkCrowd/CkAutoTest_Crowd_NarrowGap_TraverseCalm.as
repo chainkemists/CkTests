@@ -11,11 +11,16 @@
 // Shape: three walkers funnel through the gap to mirrored goals. The contract
 // is arrival WITHOUT direction churn: every walker reaches, and no walker's
 // actual-velocity heading reverses more than twice across the whole transit.
+//
+// Every nav query and rebuild kick goes to the neutral nav surface, and on CkGroundNav the fixture
+// stages its own field over the origin floor, so it runs unchanged on any provider.
 //============================================================================
 
 class UCk_AutoTest_Crowd_NarrowGap_TraverseCalm : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 25.0f;
+
+    private FCkAutoTest_GroundNavFixture _Field;
 
     private const float GapHalfWidthUu = 55.0;     // 110cm gap
     private const float WallHalfX = 50.0;
@@ -48,7 +53,16 @@ class UCk_AutoTest_Crowd_NarrowGap_TraverseCalm : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, FVector(-ApproachX, 0.0, 100.0), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        // On CkGroundNav nothing in the shared level carries a field, so the fixture stages one over
+        // the origin floor; on Recast the level's own navmesh is the surface and nothing is staged.
+        if (utils_nav_surface::Get_Provider() == ECk_NavSurface_Provider::GroundNav &&
+            _Field.Request_StageOriginField(InHandle) == false)
+        {
+            FinishFailure(_Field.Get_StagingError());
+            return;
+        }
+
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
@@ -66,14 +80,14 @@ class UCk_AutoTest_Crowd_NarrowGap_TraverseCalm : UCk_AutoTest_Base
 
         if (_MeshFound == false)
         {
-            FVector OriginOnMesh;
-            if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, FVector::ZeroVector, 100.0f, OriginOnMesh, 300.0f) == false)
+            const auto OriginOnMesh = Do_ProjectOntoSurface(FVector::ZeroVector, FVector(100.0, 100.0, 300.0));
+            if (OriginOnMesh.Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { return; }
 
             _MeshFound = true;
-            _FloorZ = float(OriginOnMesh.Z);
+            _FloorZ = float(OriginOnMesh.Get_Location().Z);
             Paint_Slabs();
-            utils_nav::Request_NavigationRebuild_ForTesting(SelfHandle);
+            utils_nav_surface::Request_SurfaceRebuild_ForTesting();
             return;
         }
 
@@ -110,6 +124,9 @@ class UCk_AutoTest_Crowd_NarrowGap_TraverseCalm : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoEndPlay(FCk_Handle InHandle)
     {
+        _Field.Do_ReportCrossover("Crowd_NarrowGap_TraverseCalm", IsFinished() ? "finished" : "unfinished");
+        _Field.Request_ReleaseOriginField();
+
         Destroy_Slabs();
     }
 
@@ -144,17 +161,24 @@ class UCk_AutoTest_Crowd_NarrowGap_TraverseCalm : UCk_AutoTest_Base
         return utils_nav_surface::Request_ImpassableBox(Request);
     }
 
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
+    }
+
     private bool Slabs_AreSealed(FCk_Handle& InSelf)
     {
         const auto CentreY = GapHalfWidthUu + WallHalfY;
-        FVector Unused;
+        const auto ProbeExtents = FVector(SlabProbeHalfExtentUu, SlabProbeHalfExtentUu, ProbeVerticalExtentUu);
 
-        if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector(0.0, CentreY, _FloorZ),
-                SlabProbeHalfExtentUu, Unused, ProbeVerticalExtentUu))
+        if (Do_ProjectOntoSurface(FVector(0.0, CentreY, _FloorZ), ProbeExtents).Get_Status() == ECk_NavSurface_QueryStatus::Success)
         { return false; }
 
-        return utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector(0.0, -CentreY, _FloorZ),
-            SlabProbeHalfExtentUu, Unused, ProbeVerticalExtentUu) == false;
+        return Do_ProjectOntoSurface(FVector(0.0, -CentreY, _FloorZ), ProbeExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success;
     }
 
     private void Spawn_Walkers(FCk_Handle& InOwner)

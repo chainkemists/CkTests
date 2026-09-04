@@ -19,6 +19,7 @@
 
 #include "CkNavigation/NavSurface/CkNavSurface_Fragment.h"
 #include "CkNavigation/NavSurface/CkNavSurface_Processor.h"
+#include "CkNavigation/NavSurface/CkNavSurface_ProviderTable.h"
 #include "CkNavigation/NavSurface/CkNavSurface_Utils.h"
 
 #include "CkTest_RebuiltListener.h"
@@ -267,6 +268,91 @@ bool FCkTest_NavSurface_FallbackFiresOnceWithUnknownBoundsWhenOnlyTheRevisionMov
 
     TestEqual(TEXT("so re-reading the same counter says nothing more"),
         Fixture._Listener->_ObservedBounds.Num(), 1);
+
+    Destroy_Fixture(Fixture);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_NavSurface_ProviderSwitchResyncsWithoutBroadcasting,
+    "CkTests.UnitTests.CkNavigation.NavSurface.ProviderSwitchResyncsWithoutBroadcasting",
+    kCkUnitTestFlags)
+
+bool FCkTest_NavSurface_ProviderSwitchResyncsWithoutBroadcasting::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_nav_surface_rebuild_signal;
+
+    constexpr auto SeededRevision = int64{7};
+
+    auto Fixture = Make_Fixture(TEXT("CkNavSurfaceProviderSwitchResync"));
+
+    if (NOT TestTrue(TEXT("the probe world has an ECS transient entity to watch"),
+        ck::IsValid(Fixture._WorldEntity)))
+    {
+        Destroy_Fixture(Fixture);
+        return false;
+    }
+
+    // Asserted rather than assumed: a provider with no registered table makes the watch read back its
+    // own last broadcast, and the switch this test exists to see would be invisible either way.
+    const auto* GroundNavTable = ck::nav_surface::TryGet_ProviderTable(ECk_NavSurface_Provider::GroundNav);
+
+    if (NOT TestTrue(TEXT("CkGroundNav published a capability table to switch to"),
+        GroundNavTable != nullptr))
+    {
+        Destroy_Fixture(Fixture);
+        return false;
+    }
+
+    Run_Watch(Fixture);
+
+    auto& Watch = Fixture._WorldEntity.Get<ck::FFragment_NavSurface_RevisionWatch>();
+
+    TestTrue(TEXT("the first pass records whose counter it is watching"),
+        Watch.Get_LastProvider().IsSet() &&
+        Watch.Get_LastProvider().GetValue() == ECk_NavSurface_Provider::Recast);
+
+    // Stands in for the watched provider having rebuilt. Recast's counter advances only on the engine's
+    // navigation-generation-finished event and this world has no navmesh to raise one, so the poll is fed
+    // the number instead - the same seam the bounds-unknown fallback test uses.
+    ck::FProcessor_NavSurface_RevisionWatch::DoBroadcast_RevisionPoll(
+        Fixture._WorldEntity, Watch, SeededRevision);
+
+    const auto BroadcastsBeforeSwitch = Fixture._Listener->_ObservedBounds.Num();
+
+    if (NOT TestEqual(TEXT("leaving the watch caught up to a number that means something only to provider A"),
+        BroadcastsBeforeSwitch, 1))
+    {
+        Destroy_Fixture(Fixture);
+        return false;
+    }
+
+    // The switch a caller performs: it writes the world entity's provider fragment AND the per-world
+    // mirror, which is what makes the next pass ask a different provider.
+    UCk_Utils_NavSurface_UE::Request_SetProvider(Fixture._World, ECk_NavSurface_Provider::GroundNav);
+
+    Run_Watch(Fixture);
+
+    // The whole point. GroundNav counts from 0 here and the watch carried 7, so an un-resynced poll would
+    // read that gap as a rebuild and hand every consumer an invalid box, which they read as "all of it".
+    TestEqual(TEXT("a provider switch broadcasts nothing at all"),
+        Fixture._Listener->_ObservedBounds.Num(), BroadcastsBeforeSwitch);
+
+    TestTrue(TEXT("the watch now records the provider it switched to"),
+        Watch.Get_LastProvider().IsSet() &&
+        Watch.Get_LastProvider().GetValue() == ECk_NavSurface_Provider::GroundNav);
+
+    TestTrue(TEXT("and is caught up to THAT provider's counter, not the one it carried over"),
+        Watch.Get_LastBroadcastRevision() == GroundNavTable->_SurfaceRevision(Fixture._World));
+
+    // Nothing has moved since the resync, so the poll behind it has nothing to report either - the switch
+    // is absorbed once, not deferred by a tick.
+    Run_Watch(Fixture);
+
+    TestEqual(TEXT("and the pass after the switch stays silent too"),
+        Fixture._Listener->_ObservedBounds.Num(), BroadcastsBeforeSwitch);
 
     Destroy_Fixture(Fixture);
     return true;

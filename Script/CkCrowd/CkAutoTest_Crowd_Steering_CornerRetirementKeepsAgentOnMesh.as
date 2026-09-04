@@ -77,11 +77,16 @@
 // again as a backstop for the timeout path.
 //
 // REQUIREMENT: AutoTests_CkTests_Level's NavMeshBoundsVolume + floor.
+//
+// Every nav query and rebuild kick goes to the neutral nav surface, and on CkGroundNav the fixture
+// stages its own field over the origin floor, so it runs unchanged on any provider.
 //============================================================================
 
 class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 40.0f;
+
+    private FCkAutoTest_GroundNavFixture _Field;
 
     // ---- navmesh probing ----
     private const float32 EdgeProbeExtentUu = 5.0f;
@@ -176,7 +181,16 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
 
         // AutoTests_CkTests_Level has the fixture but the bake is lazy, and the edge probe below
         // is synchronous.
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        // On CkGroundNav nothing in the shared level carries a field, so the fixture stages one over
+        // the origin floor; on Recast the level's own navmesh is the surface and nothing is staged.
+        if (utils_nav_surface::Get_Provider() == ECk_NavSurface_Provider::GroundNav &&
+            _Field.Request_StageOriginField(InHandle) == false)
+        {
+            FinishFailure(_Field.Get_StagingError());
+            return;
+        }
+
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
@@ -191,6 +205,9 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
     UFUNCTION(BlueprintOverride)
     void DoEndPlay(FCk_Handle InHandle)
     {
+        _Field.Do_ReportCrossover("Crowd_Steering_CornerRetirementKeepsAgentOnMesh", IsFinished() ? "finished" : "unfinished");
+        _Field.Request_ReleaseOriginField();
+
         Destroy_Wall();
     }
 
@@ -260,11 +277,12 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
 
     private void Tick_WaitForMesh(FCk_Handle& InSelf)
     {
-        FVector OriginOnMesh;
-        if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector::ZeroVector, 100.0f, OriginOnMesh, ProbeVerticalExtentUu) == false)
+        const auto OriginOnMesh = Do_ProjectOntoSurface(
+            FVector::ZeroVector, FVector(100.0, 100.0, ProbeVerticalExtentUu));
+        if (OriginOnMesh.Get_Status() != ECk_NavSurface_QueryStatus::Success)
         { return; }   // bake not done yet - keep polling
 
-        _FloorZ = float(OriginOnMesh.Z);
+        _FloorZ = float(OriginOnMesh.Get_Location().Z);
 
         if (FindMeshEdgeTowardsNegativeY(InSelf) == false)
         {
@@ -281,9 +299,9 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
     // walker's first path go STRAIGHT to the goal, and the corner under test would never exist.
     private void Tick_WaitForHole(FCk_Handle& InSelf)
     {
-        FVector Unused;
         const auto HoleCentre = FVector(0.5 * (WallMinX + WallMaxX), 0.0, _FloorZ);
-        if (utils_nav::Try_ProjectOntoNavmesh(InSelf, HoleCentre, HoleProbeHalfExtentUu, Unused, ProbeVerticalExtentUu))
+        if (Do_ProjectOntoSurface(HoleCentre,
+                FVector(HoleProbeHalfExtentUu, HoleProbeHalfExtentUu, ProbeVerticalExtentUu)).Get_Status() == ECk_NavSurface_QueryStatus::Success)
         { return; }   // mesh still there - the rebuild has not landed
 
         _HoleConfirmed = true;
@@ -483,10 +501,9 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
         auto MeshRestored = true;
         if (_WallPainted)
         {
-            FVector Restored;
             const auto HoleCentre = FVector(0.5 * (WallMinX + WallMaxX), 0.0, _FloorZ);
-            MeshRestored = utils_nav::Try_ProjectOntoNavmesh(InSelf,
-                HoleCentre, HoleProbeHalfExtentUu, Restored, ProbeVerticalExtentUu);
+            MeshRestored = Do_ProjectOntoSurface(HoleCentre,
+                FVector(HoleProbeHalfExtentUu, HoleProbeHalfExtentUu, ProbeVerticalExtentUu)).Get_Status() == ECk_NavSurface_QueryStatus::Success;
         }
 
         if (MeshRestored == false && _TeardownPolls < MaxTeardownPolls)
@@ -496,11 +513,19 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
         else { FinishFailure(_TeardownMessage); }
     }
 
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
+    }
+
     private void AssertOnMesh(FCk_Handle& InSelf, FVector InAgentLoc)
     {
-        FVector OnMesh;
-        const auto Projected = utils_nav::Try_ProjectOntoNavmesh(
-            InSelf, InAgentLoc, OnMeshAssertExtentUu, OnMesh, ProbeVerticalExtentUu);
+        const auto Projected = Do_ProjectOntoSurface(InAgentLoc,
+            FVector(OnMeshAssertExtentUu, OnMeshAssertExtentUu, ProbeVerticalExtentUu)).Get_Status() == ECk_NavSurface_QueryStatus::Success;
 
         const auto AgentX = float(InAgentLoc.X);
         const auto AgentY = float(InAgentLoc.Y);
@@ -512,14 +537,14 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
     // projection fails, then a fine sweep back for the last on-mesh sample.
     private bool FindMeshEdgeTowardsNegativeY(FCk_Handle& InSelf)
     {
-        FVector Unused;
+        const auto EdgeProbeExtents = FVector(EdgeProbeExtentUu, EdgeProbeExtentUu, ProbeVerticalExtentUu);
 
         float LastGoodY = 0.0;
         float CoarseFailY = 1.0;
         bool CoarseFailed = false;
         for (float Y = -CoarseStepUu; Y >= -MaxProbeUu; Y -= CoarseStepUu)
         {
-            if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector(0.0, Y, _FloorZ), EdgeProbeExtentUu, Unused, ProbeVerticalExtentUu) == false)
+            if (Do_ProjectOntoSurface(FVector(0.0, Y, _FloorZ), EdgeProbeExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             {
                 CoarseFailY = Y;
                 CoarseFailed = true;
@@ -533,7 +558,7 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
 
         for (float Y = LastGoodY - RefineStepUu; Y > CoarseFailY; Y -= RefineStepUu)
         {
-            if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector(0.0, Y, _FloorZ), EdgeProbeExtentUu, Unused, ProbeVerticalExtentUu) == false)
+            if (Do_ProjectOntoSurface(FVector(0.0, Y, _FloorZ), EdgeProbeExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { break; }
             LastGoodY = Y;
         }
