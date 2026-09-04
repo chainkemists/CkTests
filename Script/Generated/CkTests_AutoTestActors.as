@@ -3775,6 +3775,32 @@ class ACk_AutoTest_GroundNav_Rebuild_InvalidatesWalkingRouteExactlyOnce_Actor : 
     }
 }
 
+class ACk_AutoTest_GroundNav_Repair_DoorToggleRepairsLocally_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 240.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Repair_DoorToggleRepairsLocally");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GroundNav_Repair_MovedMarkupBoxChangesOnlyWhereItMoved_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 240.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Repair_MovedMarkupBoxChangesOnlyWhereItMoved");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_GroundNav_RequestCancelledOnTeardown_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 20.0f;
