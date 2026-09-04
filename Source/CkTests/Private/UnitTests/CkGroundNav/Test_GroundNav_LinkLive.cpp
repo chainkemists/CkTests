@@ -158,15 +158,15 @@ bool FCkTest_GroundNav_LinkLive_LinkIsNotLiveUntilBothEndpointTilesRepublish::Ru
         *Published, TArray<FCk_GroundNav_LinkRecord>{Record}, FCk_GroundNav_Epoch{kRepublishedEpoch});
 
     if (NOT TestTrue(TEXT("the derive completes and yields a field"),
-        Derived.Value.Get_IsCompleted() && Derived.Key.IsValid()))
+        Derived._Result.Get_IsCompleted() && Derived._Field.IsValid()))
     { return false; }
 
     if (NOT TestEqual(TEXT("with the link resolved at both ends"),
-        Derived.Key->Get_UnresolvedLinkCount(), 0))
+        Derived._Field->Get_UnresolvedLinkCount(), 0))
     { return false; }
 
-    const auto StartTileIndex = Get_TileIndexAt(*Derived.Key, kLinkStart);
-    const auto EndTileIndex = Get_TileIndexAt(*Derived.Key, kLinkEnd);
+    const auto StartTileIndex = Get_TileIndexAt(*Derived._Field, kLinkStart);
+    const auto EndTileIndex = Get_TileIndexAt(*Derived._Field, kLinkEnd);
 
     if (NOT TestTrue(TEXT("the two endpoints stand on two different tiles of the field"),
         StartTileIndex != INDEX_NONE && EndTileIndex != INDEX_NONE &&
@@ -174,7 +174,7 @@ bool FCkTest_GroundNav_LinkLive_LinkIsNotLiveUntilBothEndpointTilesRepublish::Ru
     { return false; }
 
     TestTrue(TEXT("a link both of whose endpoint tiles republished past its stamp is live"),
-        UCk_Utils_GroundNavVolume_UE::Get_IsLinkLiveOnField(*Derived.Key, Record));
+        UCk_Utils_GroundNavVolume_UE::Get_IsLinkLiveOnField(*Derived._Field, Record));
 
     // A derive copies and the caller swaps, so what a reader is already holding is never touched - and
     // the link is still not live against it.
@@ -183,13 +183,13 @@ bool FCkTest_GroundNav_LinkLive_LinkIsNotLiveUntilBothEndpointTilesRepublish::Ru
 
     // BOTH ends, one at a time: a link is only as live as its laggard, so putting either endpoint tile
     // back to the epoch the record was stamped against is enough to take it out of live.
-    auto StartBehind = FCk_GroundNav_Field{*Derived.Key};
+    auto StartBehind = FCk_GroundNav_Field{*Derived._Field};
     StartBehind._Tiles[StartTileIndex]._Epoch = FCk_GroundNav_Epoch{kBakedEpoch};
 
     TestFalse(TEXT("a link whose START tile has not republished past its stamp is not live"),
         UCk_Utils_GroundNavVolume_UE::Get_IsLinkLiveOnField(StartBehind, Record));
 
-    auto EndBehind = FCk_GroundNav_Field{*Derived.Key};
+    auto EndBehind = FCk_GroundNav_Field{*Derived._Field};
     EndBehind._Tiles[EndTileIndex]._Epoch = FCk_GroundNav_Epoch{kBakedEpoch};
 
     TestFalse(TEXT("and neither is one whose END tile has not"),
@@ -197,7 +197,7 @@ bool FCkTest_GroundNav_LinkLive_LinkIsNotLiveUntilBothEndpointTilesRepublish::Ru
 
     // Equal, not merely older: _RequestedAtEpoch is stamped with the epoch the field was ALREADY
     // published at, so a tile AT that epoch is the very publish the record was submitted against.
-    auto EndAtTheStamp = FCk_GroundNav_Field{*Derived.Key};
+    auto EndAtTheStamp = FCk_GroundNav_Field{*Derived._Field};
     EndAtTheStamp._Tiles[EndTileIndex]._Epoch = FCk_GroundNav_Epoch{Record.Get_RequestedAtEpoch()};
 
     TestFalse(TEXT("a tile AT the stamped epoch is the publish that knew nothing of the link"),
@@ -205,7 +205,7 @@ bool FCkTest_GroundNav_LinkLive_LinkIsNotLiveUntilBothEndpointTilesRepublish::Ru
 
     // The clause with no markup analogue: an end that found no ground leaves the entry present but
     // UNRESOLVED, and an unresolved link is not there however far its tiles have republished.
-    auto Unresolved = FCk_GroundNav_Field{*Derived.Key};
+    auto Unresolved = FCk_GroundNav_Field{*Derived._Field};
     Unresolved._ResolvedLinks[0]._EndStatus = ECk_NavSurface_QueryStatus::NoSurface;
 
     TestFalse(TEXT("a link that did not resolve is not live even with both tiles ahead of its stamp"),
@@ -243,23 +243,23 @@ bool FCkTest_GroundNav_LinkLive_ReleasedLinkIsNotLive::RunTest(const FString& Pa
         *Published, TArray<FCk_GroundNav_LinkRecord>{Record}, FCk_GroundNav_Epoch{kRepublishedEpoch});
 
     if (NOT TestTrue(TEXT("the link is live once a publish has resolved it"),
-        WithLink.Value.Get_IsCompleted() && WithLink.Key.IsValid() &&
-        UCk_Utils_GroundNavVolume_UE::Get_IsLinkLiveOnField(*WithLink.Key, Record)))
+        WithLink._Result.Get_IsCompleted() && WithLink._Field.IsValid() &&
+        UCk_Utils_GroundNavVolume_UE::Get_IsLinkLiveOnField(*WithLink._Field, Record)))
     { return false; }
 
     // The release, as the derive sees it: the same field re-resolved from a list that no longer holds
     // the record.
     const auto WithoutLink = Get_FieldWithLinks(
-        *WithLink.Key, TArray<FCk_GroundNav_LinkRecord>{}, FCk_GroundNav_Epoch{kRepublishedEpoch + 1});
+        *WithLink._Field, TArray<FCk_GroundNav_LinkRecord>{}, FCk_GroundNav_Epoch{kRepublishedEpoch + 1});
 
     if (NOT TestTrue(TEXT("re-deriving from an empty list completes and yields a field"),
-        WithoutLink.Value.Get_IsCompleted() && WithoutLink.Key.IsValid()))
+        WithoutLink._Result.Get_IsCompleted() && WithoutLink._Field.IsValid()))
     { return false; }
 
     TestEqual(TEXT("the released link leaves no entry behind"),
-        WithoutLink.Key->Get_ResolvedLinkCount(), 0);
+        WithoutLink._Field->Get_ResolvedLinkCount(), 0);
     TestFalse(TEXT("and is not live"),
-        UCk_Utils_GroundNavVolume_UE::Get_IsLinkLiveOnField(*WithoutLink.Key, Record));
+        UCk_Utils_GroundNavVolume_UE::Get_IsLinkLiveOnField(*WithoutLink._Field, Record));
 
     // The entity shape of the same question. The volume publishes nothing here, so this is the guard
     // half of the rule: no back-pointer means no link to be live, before and after the release.

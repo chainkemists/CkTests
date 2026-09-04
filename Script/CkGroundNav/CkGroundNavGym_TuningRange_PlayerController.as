@@ -155,6 +155,12 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     private bool _LinksArmed = false;
     private int32 _LinksSettlePolls = 0;
 
+    // The batch's own completion. ONE delegate for both links, which is the only thing the batch
+    // adds over two single requests - the drain takes the whole queue in a pass and the derive tag
+    // is idempotent, so two singles landing in one tick already cost exactly one derive.
+    private int32 _LinksBatchCompletions = 0;
+    private ECk_Request_OperationResult _LastLinksBatchResult = ECk_Request_OperationResult::Failed;
+
     // The one thing about the links station with no readback: what it is waiting on. Everything else
     // the panel reports - whether the field is built, whether each link is live, how many did not
     // resolve, whether they are enabled - is read off the volume every frame.
@@ -388,6 +394,8 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         LinksDescription.Add(FText::FromString("Type ck.GroundNav.LinksAt 0 0 0 to draw both links and print what each end resolved to. It reads the PUBLISHED field, so it needs no bake at all: green means traversable, grey disabled, orange an end over ground nobody has baked, red an end with no ground under it."));
         LinksDescription.Add(FText::FromString("Type ck.GroundNav.Debug.Mode 7 and then press R or Y to see the same links over the dimmed plates they join. Note that R, Y and every tunable key push this gym's own draw mode back over the top, so set the mode again after a bake - or stay on ck.GroundNav.LinksAt, which does not care."));
         LinksDescription.Add(FText::FromString("Press U to disable both links and again to re-enable them. A disabled link is invisible to search and to reachability, and the LINKS panel rows below report each one's live state, read off the volume rather than remembered."));
+        LinksDescription.Add(FText::FromString("Under the toggle there is one RESOLUTION row per link, straight from Get_LinkResolution: what each end projected onto, the flat plate it landed in, and whether the record resolved and is live. Every index in it is valid only against the field currently published, which is why the row is rebuilt each frame rather than remembered."));
+        LinksDescription.Add(FText::FromString("The per-agent VETO - a body that may not take a link by id, or may not take ladders by the link's user-type tag - has no toggle here: this station owns no crowd agent to carry the params, and a veto with nobody to apply it to would show nothing. It is exercised by the autotest CkAutoTest_GroundNav_Link_VetoRoutesAroundForThatAgentOnly instead."));
         LinksDescription.Add(FText::FromString("The ladder is priced at twice its own straight-line span and narrowed to 40uu of clearance; the drop is priced at its span and admits any agent. A link never costs less than its own length - that is what keeps the search's Euclidean heuristic admissible."));
         LinksStation.Description = LinksDescription;
 
@@ -544,6 +552,11 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     // Both links, every time, from one place: the toggle re-requests them with the enable flag flipped
     // and nothing else changed, so the two forms cannot drift apart. Naming the SAME entities is what
     // keeps each record's id - an update keeps the id the entity was first admitted under.
+    //
+    // ONE BATCH, not two requests. A batch is ATOMIC: every entry is judged before any is applied, so
+    // a drop the volume refused could never leave the ladder authored on its own and this station's
+    // rows half-populated. It also completes ONCE, which is the only thing the station can act on -
+    // "the deck is joined to the floor" is the state it wants, and two completions cannot say it.
     private void DoRequest_Links(ECk_EnableDisable InEnable)
     {
         if (ck::Is_NOT_Valid(_LinksVolume))
@@ -555,9 +568,6 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         DropRecord.Set_Direction(ECk_GroundNav_LinkDirection::Forward)
                   .Set_Enable(InEnable);
 
-        utils_ground_nav_volume::Request_Link(_LinksVolume,
-            FCk_Request_GroundNavVolume_Link(_LinksDropEntity, DropRecord));
-
         auto LadderRecord = FCk_GroundNav_LinkRecord(-1, k_LinksLadderStart, k_LinksLadderEnd);
 
         LadderRecord.Set_Direction(ECk_GroundNav_LinkDirection::Forward)
@@ -565,8 +575,28 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
                     .Set_ClearanceUu(k_LinksLadderClearanceUu)
                     .Set_Enable(InEnable);
 
-        utils_ground_nav_volume::Request_Link(_LinksVolume,
-            FCk_Request_GroundNavVolume_Link(_LinksLadderEntity, LadderRecord));
+        // Built imperatively: AngelScript takes no brace initialiser for a TArray. The drop goes in
+        // first, and ids are handed out monotonically, so the resolution rows below can name the
+        // first record the drop and the second the ladder.
+        auto Entries = TArray<FCk_Request_GroundNavVolume_Link>();
+        Entries.Add(FCk_Request_GroundNavVolume_Link(_LinksDropEntity, DropRecord));
+        Entries.Add(FCk_Request_GroundNavVolume_Link(_LinksLadderEntity, LadderRecord));
+
+        utils_ground_nav_volume::Request_LinkBatch(_LinksVolume,
+            FCk_Request_GroundNavVolume_LinkBatch(Entries),
+            FCk_Delegate_Request_OnCompleted(this, n"OnLinksBatchCompleted"));
+    }
+
+    UFUNCTION()
+    private void OnLinksBatchCompleted(FCk_Handle InRequestOwner, ECk_Request_OperationResult InResult)
+    {
+        _LinksBatchCompletions += 1;
+        _LastLinksBatchResult = InResult;
+
+        if (InResult != ECk_Request_OperationResult::Succeeded)
+        {
+            ck::groundnav::Log("GroundNav gym: the link batch was REFUSED - a batch is atomic, so neither the drop nor the ladder was applied");
+        }
     }
 
     private void DoToggle_Links()
@@ -931,7 +961,55 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
             "Links (ck.GroundNav.LinksAt 0 0 0 lists them; ck.GroundNav.Debug.Mode 7 draws them over a bake)",
             Get_LinksAreEnabled(), "enabled", "disabled"));
 
+        // AFTER the toggle, and that is not a preference. How many resolution rows there are depends
+        // on how many records the volume holds, so a section of them placed ABOVE a keyed row would
+        // move that row's index between frames, and the panel dispatches on the index.
+        auto ResolutionRows = Get_LinkResolutionRows();
+
+        for (int32 Index = 0; Index < ResolutionRows.Num(); Index++)
+        { Rows.Add(ResolutionRows[Index]); }
+
         return Rows;
+    }
+
+    // One row per authored link, straight off the published field. Every index in a resolution - the
+    // plates above all - is valid only against the publish that answered it, so this is read where it
+    // is displayed and never held: the panel rebuilds its rows each frame, which is a stricter
+    // refresh than the settle poll that authored the links in the first place.
+    private TArray<FCkGym_ControlRow> Get_LinkResolutionRows()
+    {
+        auto OutRows = TArray<FCkGym_ControlRow>();
+
+        auto Records = utils_ground_nav_volume::Get_LinkRecords(_LinksVolume);
+
+        for (int32 Index = 0; Index < Records.Num(); Index++)
+        {
+            auto Record = Records[Index];
+
+            const auto LinkId = Record.Get_Id();
+            const auto Resolution = utils_ground_nav_volume::Get_LinkResolution(_LinksVolume, LinkId);
+
+            // Authoring order, which is the batch's order and the order the ids were handed out in.
+            auto Name = f"Link {LinkId}";
+
+            if (Index == 0)
+            { Name = f"Link {LinkId} (drop)"; }
+            else if (Index == 1)
+            { Name = f"Link {LinkId} (ladder)"; }
+
+            const auto StartStatus = Resolution.Get_StartStatus();
+            const auto EndStatus = Resolution.Get_EndStatus();
+            const auto StartPlate = Resolution.Get_StartFlatPlate();
+            const auto EndPlate = Resolution.Get_EndFlatPlate();
+            const auto Resolved = Resolution.Get_Resolved();
+            const auto Live = Resolution.Get_Live();
+
+            OutRows.Add(CkGym_Control::Status(Name,
+                f"start {StartStatus} (plate {StartPlate}) - end {EndStatus} (plate {EndPlate}) - resolved: {Resolved} - live: {Live}",
+                Resolved == false));
+        }
+
+        return OutRows;
     }
 
     private FString Get_LinksFieldStatus()
@@ -940,8 +1018,10 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         { return _LinksStage; }
 
         const auto Tiles = utils_ground_nav_volume::Get_BuiltTileCount(_LinksVolume);
+        const auto Batches = _LinksBatchCompletions;
+        const auto LastResult = _LastLinksBatchResult;
 
-        return f"published - {Tiles} tiles - {_LinksStage}";
+        return f"published - {Tiles} tiles - {_LinksStage} - batches: {Batches} (last {LastResult})";
     }
 
     private FString Get_LinksLiveStatus()
