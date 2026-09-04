@@ -17,6 +17,8 @@
 #include <HAL/IConsoleManager.h>
 #include <PhysicsEngine/BodySetup.h>
 #include <Tests/AutomationCommon.h>
+#include <UObject/Package.h>
+#include <UObject/StrongObjectPtr.h>
 
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Collision/RayCast.h>
@@ -1060,6 +1062,64 @@ bool FCkTest_JoltCook_MeshShapeAudit_PureHelpers::RunTest(const FString& Paramet
     const auto UnsupportedPreview = Build_MeshShapeAuditPreview(*SphereResult.Get(), 1);
     TestTrue(TEXT("non-mesh Jolt shapes report preview unavailable"), UnsupportedPreview._bUnavailable);
     TestTrue(TEXT("non-mesh Jolt shapes return no misleading mesh triangles"), UnsupportedPreview._Triangles.IsEmpty());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltCook_MeshShapeAudit_StandaloneTriMeshExtraction,
+    "Ck.Jolt.Cook.MeshShapeAudit.StandaloneTriMeshExtraction",
+    ck_test_jolt_bake_dynamicmesh::kTestFlags)
+
+bool FCkTest_JoltCook_MeshShapeAudit_StandaloneTriMeshExtraction::RunTest(const FString& Parameters)
+{
+    using namespace ck::jolt::cook;
+
+    // This deliberately has NO outer FCk_Jolt_ScopedGlobalInit lease. The inspector invokes the
+    // public audit one selected row at a time, and this representative UStaticMesh/BodySetup path
+    // reaches Extract_TriMeshGeometry's Jolt-owned vertex/triangle allocations. A caller-owned
+    // lease used to hide the click-path crash when that allocation happened before Jolt init.
+    auto SourceMesh = TStrongObjectPtr<UStaticMesh>{LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"))};
+    if (NOT TestNotNull(TEXT("stock cube source mesh loads"), SourceMesh.Get()))
+    { return false; }
+
+    const auto PackageName = FString::Printf(TEXT("/Game/__CkJoltAudit_%s"),
+        *FGuid::NewGuid().ToString(EGuidFormats::Digits));
+    auto Package = TStrongObjectPtr<UPackage>{CreatePackage(*PackageName)};
+    if (NOT TestNotNull(TEXT("unsaved game package is created"), Package.Get()))
+    { return false; }
+
+    const auto ObjectName = MakeUniqueObjectName(Package.Get(), UStaticMesh::StaticClass(), TEXT("SM_AuditCube"));
+    auto Mesh = TStrongObjectPtr<UStaticMesh>{DuplicateObject<UStaticMesh>(SourceMesh.Get(), Package.Get(), ObjectName)};
+    if (NOT TestNotNull(TEXT("stock cube duplicate is created under a supported game package"), Mesh.Get()))
+    { return false; }
+
+    auto BodySetup = TObjectPtr<UBodySetup>{Mesh->GetBodySetup()};
+    if (NOT TestNotNull(TEXT("duplicated cube has a BodySetup"), BodySetup.Get()))
+    { return false; }
+
+    const auto RestoreTraceFlag = BodySetup->CollisionTraceFlag;
+    BodySetup->CollisionTraceFlag = CTF_UseComplexAsSimple;
+    ON_SCOPE_EXIT { BodySetup->CollisionTraceFlag = RestoreTraceFlag; };
+
+    if (BodySetup->TriMeshGeometries.IsEmpty())
+    {
+        BodySetup->InvalidatePhysicsData();
+        BodySetup->CreatePhysicsMeshes();
+    }
+
+    if (NOT TestTrue(TEXT("duplicated cube provides cooked Chaos tri-mesh input"),
+        BodySetup->TriMeshGeometries.Num() > 0))
+    { return false; }
+
+    const auto Audit = Analyze_MeshShape(*Mesh, 1);
+    TestEqual(TEXT("audit reaches the extracted tri-mesh source state"), Audit._SourceState,
+        ECk_Jolt_MeshShapeAuditSourceState::Ready);
+    TestFalse(TEXT("audit does not report a source bake failure"), Audit._bWouldFailBake);
+    TestTrue(TEXT("audit extracted source triangles through the public call"), Audit._SourceTriangleCount > 0);
+    TestEqual(TEXT("audit copies the requested capped source preview"), Audit._SourcePreviewTriangles.Num(), 1);
 
     return true;
 }
