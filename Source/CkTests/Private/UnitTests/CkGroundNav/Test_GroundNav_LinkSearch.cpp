@@ -19,6 +19,8 @@
 
 #include "CkGroundNav/Bake/CkGroundNav_LinkTypes.h"
 #include "CkGroundNav/Field/CkGroundNav_Field.h"
+#include "CkGroundNav/Path/CkGroundNavPath_Fragment_Data.h"
+#include "CkGroundNav/Path/CkGroundNavPath_Utils.h"
 #include "CkGroundNav/Query/CkGroundNav_Funnel.h"
 #include "CkGroundNav/Search/CkGroundNav_PathPostProcess.h"
 #include "CkGroundNav/Search/CkGroundNav_PathSearch.h"
@@ -37,21 +39,27 @@ using ck::tests::kCkUnitTestFlags;
 
 namespace ck_test_groundnav_linksearch
 {
+    using ck::groundnav::ECk_GroundNav_LinkWaypointRole;
     using ck::groundnav::FCk_GroundNav_Crossing;
     using ck::groundnav::FCk_GroundNav_CrossingKey;
     using ck::groundnav::FCk_GroundNav_Field;
     using ck::groundnav::FCk_GroundNav_FieldParams;
     using ck::groundnav::FCk_GroundNav_FieldPtr;
+    using ck::groundnav::FCk_GroundNav_PathPlan;
+    using ck::groundnav::FCk_GroundNav_PathPostParams;
     using ck::groundnav::FCk_GroundNav_PathQuery;
     using ck::groundnav::FCk_GroundNav_PathResult;
     using ck::groundnav::FCk_GroundNav_PathSearch;
     using ck::groundnav::FCk_GroundNav_PathSharedData;
     using ck::groundnav::FCk_GroundNav_PathSliceParams;
+    using ck::groundnav::FCk_GroundNav_PathWaypoint;
     using ck::groundnav::FCk_GroundNav_PlatePortalGraph;
     using ck::groundnav::FCk_GroundNav_QueryAgent;
     using ck::groundnav::Get_CornerOffset;
     using ck::groundnav::Get_Funnelled;
+    using ck::groundnav::Get_LinksOnPath;
     using ck::groundnav::Get_Path;
+    using ck::groundnav::Get_PathPlan;
     using ck::groundnav::kPathSourceNode;
     using ck::groundnav::Make_CrossingKey;
 
@@ -148,6 +156,15 @@ namespace ck_test_groundnav_linksearch
     constexpr auto kOffsetAgentRadiusUu = 10.0f;
 
     constexpr auto kStraightThroughALinkIsFourWaypoints = 4;
+
+    // What a funnel alone answers for a link it bends at neither end: the two resolved ends of the
+    // route and nothing between them.
+    constexpr auto kFunnelAloneEmitsOnlyTheTwoEnds = 2;
+
+    constexpr auto kOneLinkSpan = 1;
+
+    // Far enough that no skip-first threshold reaches it, so every waypoint the passes made is kept.
+    const auto kDistantAgentLocation = FVector{-5000.0, -5000.0, kGroundZ};
 
     // The route a case asks this of crosses no link, so no waypoint of one is exempt from the offset.
     const auto kNothingPinned = TArray<FVector>{};
@@ -408,6 +425,108 @@ namespace ck_test_groundnav_linksearch
         TArray<FVector>&                OutWaypoints) -> double
     {
         return Get_Funnelled(InResult, kNoRadius, OutWaypoints);
+    }
+
+    /**
+     * The post-process for a body of no size, which is what every endpoint claim below is stated
+     * against: a zero radius switches the corner offset and the skip-first BOTH off, so a plan's
+     * locations are the funnel's own points with only the endpoint pass between them.
+     */
+    auto Make_PostParams(
+        const FVector& InAgentLocation) -> FCk_GroundNav_PathPostParams
+    {
+        auto Params = FCk_GroundNav_PathPostParams{};
+
+        Params._Agent = Make_Agent(kNoRadius);
+        Params._VerticalToleranceUu = kStepHeight;
+        Params._AgentLocation = InAgentLocation;
+
+        return Params;
+    }
+
+    auto Get_PlanLocations(
+        const FCk_GroundNav_PathPlan& InPlan) -> TArray<FVector>
+    {
+        auto Locations = TArray<FVector>{};
+        Locations.Reserve(InPlan._Waypoints.Num());
+
+        for (const auto& Waypoint : InPlan._Waypoints)
+        { Locations.Emplace(Waypoint._Location); }
+
+        return Locations;
+    }
+
+    /**
+     * The plan flattened the way the publish flattens it: the locations, and one metadata entry per
+     * waypoint an authored link stamped.
+     *
+     * Stated here rather than reached for, because the flatten lives inside the path processor and a
+     * unit test holds no entity to run it on. Everything the query below reads is in these two arrays.
+     */
+    auto Make_PublishedResult(
+        const FCk_GroundNav_PathPlan& InPlan) -> FCk_GroundNavPath_Result
+    {
+        auto LinkWaypoints = TArray<FCk_GroundNavPath_LinkWaypoint>{};
+
+        for (auto Index = 0; Index < InPlan._Waypoints.Num(); ++Index)
+        {
+            const auto& Waypoint = InPlan._Waypoints[Index];
+
+            if (Waypoint._LinkRole == ECk_GroundNav_LinkWaypointRole::None)
+            { continue; }
+
+            const auto Role = Waypoint._LinkRole == ECk_GroundNav_LinkWaypointRole::Entry
+                ? ECk_GroundNavPath_LinkWaypointRole::Entry
+                : ECk_GroundNavPath_LinkWaypointRole::Exit;
+
+            LinkWaypoints.Emplace(FCk_GroundNavPath_LinkWaypoint{
+                Index,
+                Waypoint._LinkId,
+                Role,
+                Waypoint._LinkEntryDirection,
+                static_cast<float>(Waypoint._DistanceFromStart)});
+        }
+
+        auto Result = FCk_GroundNavPath_Result{};
+
+        Result.Set_Status(InPlan._Status)
+            .Set_Waypoints(Get_PlanLocations(InPlan))
+            .Set_LinkWaypoints(LinkWaypoints);
+
+        return Result;
+    }
+
+    /** Every field the fill and the stamp put on a waypoint, so a plan the pass left alone is the
+     *  whole waypoint and not only where it stands. */
+    auto Get_IsSameWaypoint(
+        const FCk_GroundNav_PathWaypoint& InLeft,
+        const FCk_GroundNav_PathWaypoint& InRight) -> bool
+    {
+        return InLeft._Location == InRight._Location &&
+            InLeft._DirectionToNext == InRight._DirectionToNext &&
+            InLeft._DistanceFromStart == InRight._DistanceFromStart &&
+            InLeft._CostFromStart == InRight._CostFromStart &&
+            InLeft._SurfaceNormal == InRight._SurfaceNormal &&
+            InLeft._AreaTags == InRight._AreaTags &&
+            InLeft._LinkId == InRight._LinkId &&
+            InLeft._LinkRole == InRight._LinkRole &&
+            InLeft._LinkEntryDirection == InRight._LinkEntryDirection;
+    }
+
+    auto Get_IsSamePlan(
+        const FCk_GroundNav_PathPlan& InLeft,
+        const FCk_GroundNav_PathPlan& InRight) -> bool
+    {
+        if (InLeft._Waypoints.Num() != InRight._Waypoints.Num())
+        { return false; }
+
+        for (auto Index = 0; Index < InLeft._Waypoints.Num(); ++Index)
+        {
+            if (NOT Get_IsSameWaypoint(InLeft._Waypoints[Index], InRight._Waypoints[Index]))
+            { return false; }
+        }
+
+        return true;
     }
 
     // --------------------------------------------------------------------------------------------------
@@ -1192,6 +1311,122 @@ bool FCkTest_GroundNav_LinkSearch_CrossingKeyDistinguishesALinkFromAPortalWithTh
 
     TestTrue(TEXT("one per authored record"),
         LinkIndices.Contains(kFirstLinkIndex) && LinkIndices.Contains(kSecondLinkIndex));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_LinkSearch_CollinearLinkStillEmitsBothEndpoints,
+    "CkTests.UnitTests.CkGroundNav.LinkSearch.CollinearLinkStillEmitsBothEndpoints",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_LinkSearch_CollinearLinkStillEmitsBothEndpoints::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_linksearch;
+
+    auto Crossover = FCrossover{};
+
+    if (NOT TestTrue(TEXT("the barrier scene answers both with and without the link"),
+        Do_MeasureCrossover(Crossover)))
+    { return false; }
+
+    const auto CheapMultiplier = 1.0f + (kUnderTheCrossover * (Crossover._Multiplier - 1.0f));
+
+    auto Field = FCk_GroundNav_FieldPtr{};
+
+    if (NOT TestTrue(TEXT("the same scene bakes with the collinear link priced under the crossover"),
+        Bake_Barrier({Make_LinkRecord(1, kLinkEntry, kLinkExit, CheapMultiplier)}, Field)))
+    { return false; }
+
+    const auto Result = Get_Path(Field, Make_BarrierQuery(kNoRadius));
+
+    if (NOT TestTrue(TEXT("and the search answers a route over it"),
+        Result._Status == ECk_GroundNav_PathStatus::Ready))
+    { return false; }
+
+    if (NOT TestEqual(TEXT("crossing the link exactly once"),
+        Get_LinkCrossingCount(Result), kOneCrossing))
+    { return false; }
+
+    TestEqual(TEXT("and carrying its two degenerate portals"),
+        Get_LinkPortalCount(Result), kTwoPortalsPerLink);
+
+    // The whole reason this case exists: both endpoints lie ON the start-to-goal line, so the string
+    // bends at neither and a funnel that emits an apex only where it bends emits neither of them.
+    auto Funnelled = TArray<FVector>{};
+    Get_FunnelledLengthUu(Result, Funnelled);
+
+    TestEqual(TEXT("the funnel alone answers the two ends and nothing between them"),
+        Funnelled.Num(), kFunnelAloneEmitsOnlyTheTwoEnds);
+
+    const auto Plan = Get_PathPlan(Result, *Field, Make_PostParams(kDistantAgentLocation));
+
+    const auto Locations = Get_PlanLocations(Plan);
+
+    TestEqual(TEXT("while the plan walks through both of them"),
+        Locations.Num(), kStraightThroughALinkIsFourWaypoints);
+
+    const auto EntryIndex = Get_WaypointIndex(Locations, kLinkEntry);
+
+    if (NOT TestTrue(TEXT("the entry the record authored is a waypoint"), EntryIndex != INDEX_NONE))
+    { return false; }
+
+    if (NOT TestTrue(TEXT("and its exit is the very next one"),
+        Locations.IsValidIndex(EntryIndex + 1) && Locations[EntryIndex + 1] == kLinkExit))
+    { return false; }
+
+    TestEqual(TEXT("the entry is walked through once"),
+        Get_WaypointOccurrences(Locations, kLinkEntry), kOnce);
+
+    TestEqual(TEXT("and so is the exit"),
+        Get_WaypointOccurrences(Locations, kLinkExit), kOnce);
+
+    // The stamp recognises a link endpoint by its exact position, so the published metadata is where
+    // the emission and the stamp are read as one answer rather than as two.
+    const auto Spans = Get_LinksOnPath(Make_PublishedResult(Plan));
+
+    if (NOT TestEqual(TEXT("the published route reports one link span"), Spans.Num(), kOneLinkSpan))
+    { return false; }
+
+    TestEqual(TEXT("opened by the waypoint the pass put there"),
+        Spans[0].Get_EntryWaypointIndex(), EntryIndex);
+
+    TestEqual(TEXT("and closed by the one after it"),
+        Spans[0].Get_ExitWaypointIndex(), EntryIndex + 1);
+
+    // A route that crossed no link has to come out of the pass the array it went in as. Measured
+    // against the field baked with no record at all, which is the only thing that can tell a plan
+    // the pass left alone apart from one it happened to reproduce.
+    auto Disabled = Make_LinkRecord(1, kLinkEntry, kLinkExit, CheapMultiplier);
+    Disabled.Set_Enable(ECk_EnableDisable::Disable);
+
+    auto DisabledField = FCk_GroundNav_FieldPtr{};
+    auto PlainField = FCk_GroundNav_FieldPtr{};
+
+    if (NOT TestTrue(TEXT("the same scene bakes with the link switched off, and with no record at all"),
+        Bake_Barrier({Disabled}, DisabledField) && Bake_Barrier({}, PlainField)))
+    { return false; }
+
+    const auto DisabledPlan = Get_PathPlan(
+        Get_Path(DisabledField, Make_BarrierQuery(kNoRadius)),
+        *DisabledField,
+        Make_PostParams(kDistantAgentLocation));
+
+    const auto PlainPlan = Get_PathPlan(
+        Get_Path(PlainField, Make_BarrierQuery(kNoRadius)),
+        *PlainField,
+        Make_PostParams(kDistantAgentLocation));
+
+    if (NOT TestTrue(TEXT("both answer the route the way round"),
+        DisabledPlan._Status == ECk_GroundNav_PathStatus::Ready &&
+        PlainPlan._Status == ECk_GroundNav_PathStatus::Ready &&
+        DisabledPlan._Waypoints.Num() > kFunnelAloneEmitsOnlyTheTwoEnds))
+    { return false; }
+
+    TestTrue(TEXT("and the pass left the plan that crossed nothing waypoint for waypoint alone"),
+        Get_IsSamePlan(DisabledPlan, PlainPlan));
 
     return true;
 }
