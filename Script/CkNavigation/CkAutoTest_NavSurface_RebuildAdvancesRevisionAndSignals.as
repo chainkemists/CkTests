@@ -92,7 +92,7 @@ class UCk_AutoTest_NavSurface_RebuildAdvancesRevisionAndSignals : UCk_AutoTest_B
     }
 
     UFUNCTION()
-    private void OnSurfaceRebuilt(FCk_Handle InHandle)
+    private void OnSurfaceRebuilt(FCk_Handle InWorldEntity, FBox InChangedBounds)
     {
         _RebuiltCount += 1;
     }
