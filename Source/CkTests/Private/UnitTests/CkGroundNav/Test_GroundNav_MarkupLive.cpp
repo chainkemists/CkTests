@@ -211,6 +211,7 @@ namespace ck_test_groundnav_markuplive
             FCk_Time{kSixtyHertz},
             InVolume,
             InVolume.Get<ck::FFragment_GroundNavVolume_BuiltField>(),
+            InVolume.Get<ck::FFragment_GroundNavVolume_RepairState>(),
             InVolume.Get<ck::FFragment_GroundNavVolume_Markup>(),
             InVolume.Get<ck::FFragment_GroundNavVolume_MarkupRequests>());
     }
