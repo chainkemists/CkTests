@@ -1,15 +1,22 @@
 // Admitting area markup onto a ground-nav volume.
 //
-// This is ADMISSION only — what the drain accepts, what it
-// rejects, what the volume then holds, and which dirty tag it raises. What the bake does with an
-// admitted record is the bake's contract and is verified against the reduction in
-// Test_GroundNav_MarkupMask. The drains are invoked directly, as the VoxelNav volume tests do: a
-// headless registry has no scheduler, so the view's TExclude filters are the header's claim rather
-// than this file's.
+// This is ADMISSION only — what the drain accepts, what it rejects, what the volume then holds, and
+// what it hands the stage its kind owes. What the bake does with an admitted record is the bake's
+// contract and is verified against the reduction in Test_GroundNav_MarkupMask. The drains are invoked
+// directly, as the VoxelNav volume tests do: a headless registry has no scheduler, so the view's
+// TExclude filters are the header's claim rather than this file's.
+//
+// A volume here never PUBLISHES a field: that needs a physics world for the geometry backend, and the
+// published field is writable only by the build, the repair and the cost derive. So the walkability
+// hand-off is pinned here in its nothing-published form, which is a rule of its own - nothing is
+// marked, because the first build bakes the record in through the volume's records. The
+// published-field form, where a walkability change marks its record's ground and arms a repair, is
+// pinned by the PIE repair tests, CkAutoTest_GroundNav_Repair_*.
 
 #include "CkCore/Time/CkTime.h"
 
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Fragment.h"
+#include "CkEcs/EntityLifetime/CkEntityLifetime_Processor.h"
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
 #include "CkEcs/Request/CkRequest_Completion.h"
 #include "CkEcs/World/CkEcsWorld.h"
@@ -87,6 +94,28 @@ namespace ck_test_groundnav_markup
         return Delegate;
     }
 
+    // The whole destruction chain, driven by hand. Request_DestroyEntity only STAMPS
+    // FTag_DestroyEntity_Initiate; the scheduler that walks an entity from there to retired is what a
+    // headless registry does not have, so each phase processor is called in the order its tag gates
+    // demand and the last one destroys the entity for real. The teardown test below stops at the first
+    // stamp because the tag is all its drain reads - here the handle must actually read invalid.
+    auto DoDestroy_Entity(
+        ck::FEcsWorld& InWorld,
+        FCk_Handle&    InEntity) -> void
+    {
+        const auto DeltaT = FCk_Time{kSixtyHertz};
+
+        UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(InEntity);
+
+        ck::FProcessor_EntityLifetime_DestructionPhase_Endplay::ForEachEntity(DeltaT, InEntity);
+        ck::FProcessor_EntityLifetime_DestructionPhase_Teardown::ForEachEntity(DeltaT, InEntity);
+        ck::FProcessor_EntityLifetime_DestructionPhase_Await::ForEachEntity(DeltaT, InEntity);
+        ck::FProcessor_EntityLifetime_DestructionPhase_Finalize::ForEachEntity(DeltaT, InEntity);
+
+        auto DestroyEntities = ck::FProcessor_EntityLifetime_DestroyEntity{InWorld.Get_Registry()};
+        DestroyEntities.DoTick(DeltaT);
+    }
+
     auto DoDrain_MarkupRequests(
         ck::FEcsWorld&              InWorld,
         FCk_Handle_GroundNavVolume& InVolume) -> void
@@ -95,6 +124,7 @@ namespace ck_test_groundnav_markup
             FCk_Time{kSixtyHertz},
             InVolume,
             InVolume.Get<ck::FFragment_GroundNavVolume_BuiltField>(),
+            InVolume.Get<ck::FFragment_GroundNavVolume_RepairState>(),
             InVolume.Get<ck::FFragment_GroundNavVolume_Markup>(),
             InVolume.Get<ck::FFragment_GroundNavVolume_MarkupRequests>());
     }
@@ -165,9 +195,14 @@ bool FCkTest_GroundNav_Markup_AdmitsAWalkabilityRecord::RunTest(const FString& P
         MarkupRef.Get_VolumeEntity() == Volume.ConvertToHandle());
     TestEqual(TEXT("and the record's id"), MarkupRef.Get_RecordId(), 0);
 
-    TestTrue(TEXT("a walkability record raises the walkability dirty tag"),
-        Volume.Has<ck::FTag_GroundNavVolume_MarkupWalkabilityDirty>());
-    TestFalse(TEXT("and not the cost one - the two are answered by different stages"),
+    // Nothing is published, so the walkability hand-off marks nothing: there is no field for a repair
+    // to carry its untouched tiles over from, and the record is already on the volume for the first
+    // build to bake in.
+    TestFalse(TEXT("a walkability record on a volume with nothing published arms no repair"),
+        Volume.Has<ck::FTag_GroundNavVolume_NeedsRepair>());
+    TestFalse(TEXT("and marks no dirty ground"),
+        UCk_Utils_GroundNavVolume_UE::Get_PendingDirtyBounds(Volume).IsValid != 0);
+    TestFalse(TEXT("and raises no cost tag - the two kinds are answered by different stages"),
         Volume.Has<ck::FTag_GroundNavVolume_MarkupCostDirty>());
 
     TestEqual(TEXT("the request completes exactly once"), Listener->_TimesRequestCompleted, 1);
@@ -231,8 +266,10 @@ bool FCkTest_GroundNav_Markup_AdmitsACostRecord::RunTest(const FString& Paramete
 
     TestTrue(TEXT("a cost record raises the cost dirty tag"),
         Volume.Has<ck::FTag_GroundNavVolume_MarkupCostDirty>());
-    TestFalse(TEXT("and not the walkability one - a retint owes no re-bake"),
-        Volume.Has<ck::FTag_GroundNavVolume_MarkupWalkabilityDirty>());
+    TestFalse(TEXT("and arms no repair - a retint owes no re-bake"),
+        Volume.Has<ck::FTag_GroundNavVolume_NeedsRepair>());
+    TestFalse(TEXT("and marks no ground dirty, published field or not"),
+        UCk_Utils_GroundNavVolume_UE::Get_PendingDirtyBounds(Volume).IsValid != 0);
 
     TestEqual(TEXT("the request completes exactly once"), Listener->_TimesRequestCompleted, 1);
     TestTrue(TEXT("reporting Succeeded"),
@@ -287,8 +324,8 @@ bool FCkTest_GroundNav_Markup_RejectsAnUnpublishedAreaTag::RunTest(const FString
     TestFalse(TEXT("and leaves no back-pointer behind"),
         MarkupEntity.Has<ck::FFragment_GroundNav_MarkupRef>());
 
-    TestFalse(TEXT("no walkability dirty tag is raised"),
-        Volume.Has<ck::FTag_GroundNavVolume_MarkupWalkabilityDirty>());
+    TestFalse(TEXT("no repair is armed"),
+        Volume.Has<ck::FTag_GroundNavVolume_NeedsRepair>());
     TestFalse(TEXT("and no cost dirty tag either"),
         Volume.Has<ck::FTag_GroundNavVolume_MarkupCostDirty>());
 
@@ -341,8 +378,8 @@ bool FCkTest_GroundNav_Markup_RejectsADegenerateShape::RunTest(const FString& Pa
         UCk_Utils_GroundNavVolume_UE::Get_MarkupRecords(Volume).IsEmpty());
     TestFalse(TEXT("and leaves no back-pointer behind"),
         MarkupEntity.Has<ck::FFragment_GroundNav_MarkupRef>());
-    TestFalse(TEXT("and raises no dirty tag"),
-        Volume.Has<ck::FTag_GroundNavVolume_MarkupWalkabilityDirty>());
+    TestFalse(TEXT("and arms no repair"),
+        Volume.Has<ck::FTag_GroundNavVolume_NeedsRepair>());
 
     TestEqual(TEXT("the rejected request still completes exactly once"),
         Listener->_TimesRequestCompleted, 1);
@@ -461,10 +498,6 @@ bool FCkTest_GroundNav_Markup_ReleaseRemovesTheRecord::RunTest(const FString& Pa
         UCk_Utils_GroundNavVolume_UE::Get_MarkupRecords(Volume).Num(), 1))
     { return false; }
 
-    // Standing in for the bake having consumed the tag: without clearing it first, the release's own
-    // raise would be indistinguishable from the admission's.
-    Volume.Try_Remove<ck::FTag_GroundNavVolume_MarkupWalkabilityDirty>();
-
     UCk_Utils_GroundNavVolume_UE::Request_ReleaseAreaMarkup(Volume,
         FCk_Request_GroundNavVolume_ReleaseAreaMarkup{MarkupEntity},
         Make_Delegate(Listener.Get()));
@@ -478,8 +511,14 @@ bool FCkTest_GroundNav_Markup_ReleaseRemovesTheRecord::RunTest(const FString& Pa
     TestFalse(TEXT("so the id no longer resolves"),
         UCk_Utils_GroundNavVolume_UE::TryGet_MarkupRecord(Volume, 0).IsSet());
 
-    TestTrue(TEXT("a removed walkability record is a walkability change"),
-        Volume.Has<ck::FTag_GroundNavVolume_MarkupWalkabilityDirty>());
+    // A release marks the released record's ground for the same reason painting it marked it - but on
+    // a volume with nothing published there is no field to repair, so a release marks nothing either.
+    // That a release DOES re-raise the record's own footprint once a field exists is pinned by the PIE
+    // repair tests, CkAutoTest_GroundNav_Repair_*.
+    TestFalse(TEXT("releasing a walkability record on a volume with nothing published arms no repair"),
+        Volume.Has<ck::FTag_GroundNavVolume_NeedsRepair>());
+    TestFalse(TEXT("and marks no dirty ground"),
+        UCk_Utils_GroundNavVolume_UE::Get_PendingDirtyBounds(Volume).IsValid != 0);
 
     TestEqual(TEXT("both requests completed"), Listener->_TimesRequestCompleted, 2);
     TestTrue(TEXT("the release reporting Succeeded"),
@@ -503,6 +542,159 @@ bool FCkTest_GroundNav_Markup_ReleaseRemovesTheRecord::RunTest(const FString& Pa
 
     TestEqual(TEXT("carrying a new id rather than the retired one"),
         Records[0].Get_Record().Get_Id(), 1);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// The rule the walkability paths above share, stated by name: a walkability record marks NO ground
+// while the volume has published nothing. A repair carries its untouched tiles over from a published
+// field and there is none, and the record is already on the volume, so the first build bakes it in -
+// which is why a paint made before the first bake is never lost. Painting, moving and releasing are
+// each asked, because each is a separate call into the hand-off. The published-field form of all
+// three is pinned by the PIE repair tests, CkAutoTest_GroundNav_Repair_*.
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Markup_WalkabilityRecordMarksNothingUntilAFieldIsPublished,
+    "CkTests.UnitTests.CkGroundNav.Volume.Markup_WalkabilityRecordMarksNothingUntilAFieldIsPublished",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Markup_WalkabilityRecordMarksNothingUntilAFieldIsPublished::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_markup;
+
+    DoRegister_TestAreaPolicies();
+
+    auto World = ck::FEcsWorld{};
+
+    auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(World.Get_Registry());
+    auto Volume = UCk_Utils_GroundNavVolume_UE::Add(Owner, Make_Params());
+    auto MarkupEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(World.Get_Registry());
+
+    if (NOT TestTrue(TEXT("the volume has published no field for a repair to carry tiles over from"),
+        ck::Is_NOT_Valid(UCk_Utils_GroundNavVolume_UE::Get_Field(Volume))))
+    { return false; }
+
+    UCk_Utils_GroundNavVolume_UE::Request_AreaMarkup(Volume,
+        FCk_Request_GroundNavVolume_AreaMarkup{
+            MarkupEntity,
+            Make_Box(FVector{100.0}),
+            FTransform{FVector{200.0, 200.0, 0.0}},
+            TAG_Test_GroundNav_Markup_Blocked.GetTag()},
+        {});
+
+    DoDrain_MarkupRequests(World, Volume);
+
+    if (NOT TestEqual(TEXT("the paint is admitted - what it MARKS is the separate question"),
+        UCk_Utils_GroundNavVolume_UE::Get_MarkupRecords(Volume).Num(), 1))
+    { return false; }
+
+    TestFalse(TEXT("a paint arms no repair"),
+        Volume.Has<ck::FTag_GroundNavVolume_NeedsRepair>());
+    TestFalse(TEXT("and marks no dirty ground"),
+        UCk_Utils_GroundNavVolume_UE::Get_PendingDirtyBounds(Volume).IsValid != 0);
+
+    // An update marks the OLD record's ground as well as the new one's, so it is the path most likely
+    // to mark something by accident: here it is the same nothing, twice.
+    UCk_Utils_GroundNavVolume_UE::Request_AreaMarkup(Volume,
+        FCk_Request_GroundNavVolume_AreaMarkup{
+            MarkupEntity,
+            Make_Box(FVector{250.0}),
+            FTransform{FVector{600.0, 600.0, 0.0}},
+            TAG_Test_GroundNav_Markup_Blocked.GetTag()},
+        {});
+
+    DoDrain_MarkupRequests(World, Volume);
+
+    TestFalse(TEXT("moving the record arms no repair"),
+        Volume.Has<ck::FTag_GroundNavVolume_NeedsRepair>());
+    TestFalse(TEXT("and marks neither the ground it left nor the ground it arrived on"),
+        UCk_Utils_GroundNavVolume_UE::Get_PendingDirtyBounds(Volume).IsValid != 0);
+
+    UCk_Utils_GroundNavVolume_UE::Request_ReleaseAreaMarkup(Volume,
+        FCk_Request_GroundNavVolume_ReleaseAreaMarkup{MarkupEntity},
+        {});
+
+    DoDrain_MarkupRequests(World, Volume);
+
+    if (NOT TestTrue(TEXT("the release drops the record"),
+        UCk_Utils_GroundNavVolume_UE::Get_MarkupRecords(Volume).IsEmpty()))
+    { return false; }
+
+    TestFalse(TEXT("releasing it arms no repair"),
+        Volume.Has<ck::FTag_GroundNavVolume_NeedsRepair>());
+    TestFalse(TEXT("and marks no dirty ground - no published field ever knew the record"),
+        UCk_Utils_GroundNavVolume_UE::Get_PendingDirtyBounds(Volume).IsValid != 0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// The ORDINARY release, not an edge case: a markup's release is issued by the markup entity's own
+// teardown, so by the time the volume drains it the entity it names is already gone. Refusing one
+// would refuse every release the neutral NavSurface EndPlay path ever makes, leaving the record on the
+// volume for the life of the world and the ground it covers decided by a markup nothing holds.
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Markup_ReleaseNamingADestroyedEntityStillRemovesTheRecord,
+    "CkTests.UnitTests.CkGroundNav.Volume.Markup_ReleaseNamingADestroyedEntityStillRemovesTheRecord",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Markup_ReleaseNamingADestroyedEntityStillRemovesTheRecord::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_markup;
+
+    DoRegister_TestAreaPolicies();
+
+    auto World = ck::FEcsWorld{};
+
+    auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(World.Get_Registry());
+    auto Volume = UCk_Utils_GroundNavVolume_UE::Add(Owner, Make_Params());
+    auto MarkupEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(World.Get_Registry());
+
+    const auto Listener = Make_Listener();
+
+    UCk_Utils_GroundNavVolume_UE::Request_AreaMarkup(Volume,
+        FCk_Request_GroundNavVolume_AreaMarkup{
+            MarkupEntity,
+            Make_Box(FVector{100.0}),
+            FTransform{FVector{200.0, 200.0, 0.0}},
+            TAG_Test_GroundNav_Markup_Blocked.GetTag()},
+        Make_Delegate(Listener.Get()));
+
+    DoDrain_MarkupRequests(World, Volume);
+
+    const auto AdmittedRecords = UCk_Utils_GroundNavVolume_UE::Get_MarkupRecords(Volume);
+
+    if (NOT TestEqual(TEXT("the record is admitted first"), AdmittedRecords.Num(), 1))
+    { return false; }
+
+    const auto AdmittedRecordId = AdmittedRecords[0].Get_Record().Get_Id();
+
+    // Retired BEFORE the release is even enqueued: a request made while the entity was still alive
+    // would leave the drain reading a live handle, which is not the case under test.
+    DoDestroy_Entity(World, MarkupEntity);
+
+    if (NOT TestTrue(TEXT("the markup entity is really gone, not merely stamped for destruction"),
+        ck::Is_NOT_Valid(MarkupEntity)))
+    { return false; }
+
+    UCk_Utils_GroundNavVolume_UE::Request_ReleaseAreaMarkup(Volume,
+        FCk_Request_GroundNavVolume_ReleaseAreaMarkup{MarkupEntity},
+        Make_Delegate(Listener.Get()));
+
+    DoDrain_MarkupRequests(World, Volume);
+
+    TestTrue(TEXT("a release naming a destroyed entity still drops the record it was keyed on"),
+        UCk_Utils_GroundNavVolume_UE::Get_MarkupRecords(Volume).IsEmpty());
+    TestFalse(TEXT("so the id no longer resolves"),
+        UCk_Utils_GroundNavVolume_UE::TryGet_MarkupRecord(Volume, AdmittedRecordId).IsSet());
+
+    TestEqual(TEXT("both requests completed"), Listener->_TimesRequestCompleted, 2);
+    TestTrue(TEXT("the release reporting Succeeded rather than refusing the entity that owned it"),
+        Listener->_LastRequestResult == ECk_Request_OperationResult::Succeeded);
 
     return true;
 }
