@@ -609,6 +609,291 @@ namespace ck_test_groundnav_field_equality
         return Get_FirstTileDifference(0, InLhs, InRhs, InPolicy, EEpochComparison::Exclude).IsEmpty();
     }
 
+    // ---- Params equality ------------------------------------------------------------------------------------
+    //
+    // The AUTHORED half of a field, which a round trip has to carry as faithfully as the bake product:
+    // a field whose tiles match and whose params do not is a field that would bake differently next
+    // time. Read through the getters because these are reflected types whose members are private, and
+    // every tag is compared AS A TAG rather than through a hash - an FName's hash is an index into a
+    // per-process table, so two hashes agreeing says nothing across a write and a read.
+
+    inline auto Get_FirstShapeDifference(
+        const FCk_AnyShape& InLhs,
+        const FCk_AnyShape& InRhs) -> FString
+    {
+        if (InLhs.Get_ShapeType() != InRhs.Get_ShapeType())
+        { return TEXT("._ShapeType differs"); }
+
+        // Only the dimensions the type SELECTS. The other three are the shape's unused slots, and
+        // nothing that reads the shape through its type can see them.
+        switch (InLhs.Get_ShapeType())
+        {
+            case ECk_Shape_Type::Box:
+            {
+                if (InLhs.Get_Box().Get_HalfExtents() != InRhs.Get_Box().Get_HalfExtents())
+                { return TEXT("._Box._HalfExtents differs"); }
+
+                if (InLhs.Get_Box().Get_ConvexRadius() != InRhs.Get_Box().Get_ConvexRadius())
+                { return TEXT("._Box._ConvexRadius differs"); }
+
+                break;
+            }
+            case ECk_Shape_Type::Capsule:
+            {
+                if (InLhs.Get_Capsule().Get_HalfHeight() != InRhs.Get_Capsule().Get_HalfHeight())
+                { return TEXT("._Capsule._HalfHeight differs"); }
+
+                if (InLhs.Get_Capsule().Get_Radius() != InRhs.Get_Capsule().Get_Radius())
+                { return TEXT("._Capsule._Radius differs"); }
+
+                break;
+            }
+            case ECk_Shape_Type::Cylinder:
+            {
+                if (InLhs.Get_Cylinder().Get_HalfHeight() != InRhs.Get_Cylinder().Get_HalfHeight())
+                { return TEXT("._Cylinder._HalfHeight differs"); }
+
+                if (InLhs.Get_Cylinder().Get_Radius() != InRhs.Get_Cylinder().Get_Radius())
+                { return TEXT("._Cylinder._Radius differs"); }
+
+                if (InLhs.Get_Cylinder().Get_ConvexRadius() != InRhs.Get_Cylinder().Get_ConvexRadius())
+                { return TEXT("._Cylinder._ConvexRadius differs"); }
+
+                break;
+            }
+            case ECk_Shape_Type::Sphere:
+            {
+                if (InLhs.Get_Sphere().Get_Radius() != InRhs.Get_Sphere().Get_Radius())
+                { return TEXT("._Sphere._Radius differs"); }
+
+                break;
+            }
+            case ECk_Shape_Type::None:
+            default:
+            {
+                break;
+            }
+        }
+
+        return {};
+    }
+
+    inline auto Get_FirstTransformDifference(
+        const FTransform& InLhs,
+        const FTransform& InRhs) -> FString
+    {
+        constexpr auto ExactTolerance = 0.0;
+
+        if (NOT InLhs.GetRotation().Equals(InRhs.GetRotation(), ExactTolerance))
+        { return TEXT(".Rotation differs"); }
+
+        if (InLhs.GetTranslation() != InRhs.GetTranslation())
+        { return TEXT(".Translation differs"); }
+
+        if (InLhs.GetScale3D() != InRhs.GetScale3D())
+        { return TEXT(".Scale3D differs"); }
+
+        return {};
+    }
+
+    inline auto Get_FirstBakeConfigDifference(
+        const FCk_GroundNav_BakeConfig& InLhs,
+        const FCk_GroundNav_BakeConfig& InRhs) -> FString
+    {
+        if (InLhs.Get_CellSizeUu() != InRhs.Get_CellSizeUu())
+        { return TEXT("._CellSizeUu differs"); }
+
+        if (InLhs.Get_CellHeightUu() != InRhs.Get_CellHeightUu())
+        { return TEXT("._CellHeightUu differs"); }
+
+        if (InLhs.Get_TileSizeUu() != InRhs.Get_TileSizeUu())
+        { return TEXT("._TileSizeUu differs"); }
+
+        if (InLhs.Get_MaxColumnsPerTile() != InRhs.Get_MaxColumnsPerTile())
+        { return TEXT("._MaxColumnsPerTile differs"); }
+
+        return {};
+    }
+
+    inline auto Get_FirstAgentProfileDifference(
+        const FCk_GroundNav_AgentProfile& InLhs,
+        const FCk_GroundNav_AgentProfile& InRhs) -> FString
+    {
+        const auto ExtentsDiff = Get_FirstShapeDifference(InLhs.Get_StandingExtents(), InRhs.Get_StandingExtents());
+
+        if (NOT ExtentsDiff.IsEmpty())
+        { return FString::Printf(TEXT("._StandingExtents%s"), *ExtentsDiff); }
+
+        if (InLhs.Get_MaxSlopeDegrees() != InRhs.Get_MaxSlopeDegrees())
+        { return TEXT("._MaxSlopeDegrees differs"); }
+
+        if (InLhs.Get_MaxSlopeChangeDegrees() != InRhs.Get_MaxSlopeChangeDegrees())
+        { return TEXT("._MaxSlopeChangeDegrees differs"); }
+
+        if (InLhs.Get_StepHeightUu() != InRhs.Get_StepHeightUu())
+        { return TEXT("._StepHeightUu differs"); }
+
+        if (InLhs.Get_LedgeSensitivity() != InRhs.Get_LedgeSensitivity())
+        { return TEXT("._LedgeSensitivity differs"); }
+
+        if (InLhs.Get_RoughPerchToleranceUu() != InRhs.Get_RoughPerchToleranceUu())
+        { return TEXT("._RoughPerchToleranceUu differs"); }
+
+        return {};
+    }
+
+    inline auto Get_FirstMergeTunablesDifference(
+        const FCk_GroundNav_MergeTunables& InLhs,
+        const FCk_GroundNav_MergeTunables& InRhs) -> FString
+    {
+        if (InLhs.Get_PlaneFitToleranceUu() != InRhs.Get_PlaneFitToleranceUu())
+        { return TEXT("._PlaneFitToleranceUu differs"); }
+
+        if (InLhs.Get_NormalConeDegrees() != InRhs.Get_NormalConeDegrees())
+        { return TEXT("._NormalConeDegrees differs"); }
+
+        return {};
+    }
+
+    inline auto Get_FirstMarkupRecordDifference(
+        const FCk_GroundNav_MarkupRecord& InLhs,
+        const FCk_GroundNav_MarkupRecord& InRhs) -> FString
+    {
+        if (InLhs.Get_Id() != InRhs.Get_Id())
+        { return TEXT("._Id differs"); }
+
+        const auto ShapeDiff = Get_FirstShapeDifference(InLhs.Get_Shape(), InRhs.Get_Shape());
+
+        if (NOT ShapeDiff.IsEmpty())
+        { return FString::Printf(TEXT("._Shape%s"), *ShapeDiff); }
+
+        const auto TransformDiff = Get_FirstTransformDifference(InLhs.Get_WorldTransform(), InRhs.Get_WorldTransform());
+
+        if (NOT TransformDiff.IsEmpty())
+        { return FString::Printf(TEXT("._WorldTransform%s"), *TransformDiff); }
+
+        if (InLhs.Get_AreaTag() != InRhs.Get_AreaTag())
+        { return TEXT("._AreaTag differs"); }
+
+        if (InLhs.Get_Enable() != InRhs.Get_Enable())
+        { return TEXT("._Enable differs"); }
+
+        if (InLhs.Get_Kind() != InRhs.Get_Kind())
+        { return TEXT("._Kind differs"); }
+
+        if (InLhs.Get_CostMultiplier() != InRhs.Get_CostMultiplier())
+        { return TEXT("._CostMultiplier differs"); }
+
+        if (InLhs.Get_RequestedAtEpoch() != InRhs.Get_RequestedAtEpoch())
+        { return TEXT("._RequestedAtEpoch differs"); }
+
+        return {};
+    }
+
+    inline auto Get_FirstLinkRecordDifference(
+        const FCk_GroundNav_LinkRecord& InLhs,
+        const FCk_GroundNav_LinkRecord& InRhs) -> FString
+    {
+        if (InLhs.Get_Id() != InRhs.Get_Id())
+        { return TEXT("._Id differs"); }
+
+        if (InLhs.Get_Start() != InRhs.Get_Start())
+        { return TEXT("._Start differs"); }
+
+        if (InLhs.Get_End() != InRhs.Get_End())
+        { return TEXT("._End differs"); }
+
+        if (InLhs.Get_Direction() != InRhs.Get_Direction())
+        { return TEXT("._Direction differs"); }
+
+        if (InLhs.Get_CostMultiplierForward() != InRhs.Get_CostMultiplierForward())
+        { return TEXT("._CostMultiplierForward differs"); }
+
+        if (InLhs.Get_CostMultiplierBackward() != InRhs.Get_CostMultiplierBackward())
+        { return TEXT("._CostMultiplierBackward differs"); }
+
+        if (InLhs.Get_ClearanceUu() != InRhs.Get_ClearanceUu())
+        { return TEXT("._ClearanceUu differs"); }
+
+        if (InLhs.Get_AreaTag() != InRhs.Get_AreaTag())
+        { return TEXT("._AreaTag differs"); }
+
+        if (InLhs.Get_UserTypeTag() != InRhs.Get_UserTypeTag())
+        { return TEXT("._UserTypeTag differs"); }
+
+        if (InLhs.Get_Enable() != InRhs.Get_Enable())
+        { return TEXT("._Enable differs"); }
+
+        if (InLhs.Get_ProjectionMode() != InRhs.Get_ProjectionMode())
+        { return TEXT("._ProjectionMode differs"); }
+
+        if (InLhs.Get_ProjectionHorizontalExtentUu() != InRhs.Get_ProjectionHorizontalExtentUu())
+        { return TEXT("._ProjectionHorizontalExtentUu differs"); }
+
+        if (InLhs.Get_ProjectionVerticalExtentUu() != InRhs.Get_ProjectionVerticalExtentUu())
+        { return TEXT("._ProjectionVerticalExtentUu differs"); }
+
+        if (InLhs.Get_RequestedAtEpoch() != InRhs.Get_RequestedAtEpoch())
+        { return TEXT("._RequestedAtEpoch differs"); }
+
+        return {};
+    }
+
+    inline auto Get_FirstParamsDifference(
+        const ck::groundnav::FCk_GroundNav_FieldParams& InLhs,
+        const ck::groundnav::FCk_GroundNav_FieldParams& InRhs) -> FString
+    {
+        if (InLhs._OriginXY != InRhs._OriginXY)
+        { return TEXT("_Params._OriginXY differs"); }
+
+        if (InLhs._Divisions != InRhs._Divisions)
+        { return TEXT("_Params._Divisions differs"); }
+
+        if (InLhs._MinZUu != InRhs._MinZUu)
+        { return TEXT("_Params._MinZUu differs"); }
+
+        if (InLhs._MaxZUu != InRhs._MaxZUu)
+        { return TEXT("_Params._MaxZUu differs"); }
+
+        if (InLhs._MaxClearanceUu != InRhs._MaxClearanceUu)
+        { return TEXT("_Params._MaxClearanceUu differs"); }
+
+        const auto ConfigDiff = Get_FirstBakeConfigDifference(InLhs._Config, InRhs._Config);
+
+        if (NOT ConfigDiff.IsEmpty())
+        { return FString::Printf(TEXT("_Params._Config%s"), *ConfigDiff); }
+
+        const auto ProfileDiff = Get_FirstAgentProfileDifference(InLhs._Profile, InRhs._Profile);
+
+        if (NOT ProfileDiff.IsEmpty())
+        { return FString::Printf(TEXT("_Params._Profile%s"), *ProfileDiff); }
+
+        const auto TunablesDiff = Get_FirstMergeTunablesDifference(InLhs._MergeTunables, InRhs._MergeTunables);
+
+        if (NOT TunablesDiff.IsEmpty())
+        { return FString::Printf(TEXT("_Params._MergeTunables%s"), *TunablesDiff); }
+
+        const auto MarkupDiff = Get_FirstArrayDifference(
+            InLhs._MarkupRecords, InRhs._MarkupRecords, &Get_FirstMarkupRecordDifference);
+
+        if (NOT MarkupDiff.IsEmpty())
+        { return FString::Printf(TEXT("_Params._MarkupRecords%s"), *MarkupDiff); }
+
+        const auto LinksDiff = Get_FirstArrayDifference(InLhs._Links, InRhs._Links, &Get_FirstLinkRecordDifference);
+
+        if (NOT LinksDiff.IsEmpty())
+        { return FString::Printf(TEXT("_Params._Links%s"), *LinksDiff); }
+
+        return {};
+    }
+
+    inline auto Get_ParamsEqual(
+        const ck::groundnav::FCk_GroundNav_FieldParams& InLhs,
+        const ck::groundnav::FCk_GroundNav_FieldParams& InRhs) -> bool
+    {
+        return Get_FirstParamsDifference(InLhs, InRhs).IsEmpty();
+    }
+
     // ---- Field equality -------------------------------------------------------------------------------------
 
     inline auto Get_FirstFieldDifference(

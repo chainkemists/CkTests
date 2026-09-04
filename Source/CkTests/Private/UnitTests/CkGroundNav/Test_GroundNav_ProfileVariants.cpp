@@ -183,11 +183,16 @@ namespace ck_test_groundnav_profilevariants
         return Count;
     }
 
+    // Every enumerated input the FIELD params carry, the merge tunables and the clearance cap
+    // included: an argument left off here is an input the pin would report as not perturbing anything.
+    // Item 9 is absent because it has nothing to read - a profile variant is a VOLUME's authored list,
+    // and what reaches a build as field params is one already-selected profile per field.
     auto Get_Fingerprint(
         const FCk_GroundNav_FieldParams& InParams) -> ck::groundnav::FCk_GroundNav_ContentFingerprint
     {
         return Get_ContentFingerprint(Make_StepGeometryBatch(), InParams.Get_Bounds(),
-            InParams._Config, InParams._Profile, InParams._MarkupRecords, InParams._Links);
+            InParams._Config, InParams._Profile, InParams._MarkupRecords, InParams._Links,
+            InParams._MergeTunables, InParams._MaxClearanceUu);
     }
 
     /**
@@ -529,8 +534,10 @@ bool FCkTest_GroundNav_ProfileVariants_EachProfileFieldFingerprintsItsOwnProfile
     const auto HighPrint = Get_Fingerprint(State._Params[1]);
 
     // Item 4 of the frozen enumeration hashes the profile's own values, so two variants over one world
-    // are two bake identities already — a profile INDEX would only ever say which of N fields is which,
-    // and there is no seventh item to add for it.
+    // are two bake identities already: each field's params carry the profile it was baked under, and
+    // that alone separates them. Item 9 is the volume-level counterpart and answers a different
+    // question - whether the authored variant SET a volume publishes has moved - so neither stands in
+    // for the other, and a profile INDEX would say only which of N fields is which.
     TestFalse(TEXT("the two profiles fingerprint differently over the same world"),
         LowPrint == HighPrint);
 
