@@ -11,6 +11,7 @@
 // here in the same change.
 
 #include "CkGroundNav/Bake/CkGroundNav_Fingerprint.h"
+#include "CkGroundNav/Bake/CkGroundNav_LinkTypes.h"
 #include "CkGroundNav/Bake/CkGroundNav_MarkupTypes.h"
 
 #include "CkShapes/Box/CkShapeBox_Fragment_Data.h"
@@ -88,6 +89,42 @@ namespace ck_test_groundnav_fingerprint
     auto Get_MarkupBaseline() -> ck::groundnav::FCk_GroundNav_ContentFingerprint
     {
         return Get_Print(Make_Markups());
+    }
+
+    // Two links over the fixture's ground, so a perturbation of any field of either is visible.
+    auto Make_Link(
+        int32 InId) -> FCk_GroundNav_LinkRecord
+    {
+        auto Record = FCk_GroundNav_LinkRecord{
+            InId,
+            FVector{100.0 * static_cast<double>(InId), 100.0, 10.0},
+            FVector{100.0 * static_cast<double>(InId), 300.0, 10.0}};
+
+        Record.Set_AreaTag(TAG_CkTests_GroundNav_Fingerprint_AreaA);
+        Record.Set_UserTypeTag(TAG_CkTests_GroundNav_Fingerprint_AreaA);
+        Record.Set_CostMultiplierForward(2.0f);
+        Record.Set_CostMultiplierBackward(3.0f);
+        Record.Set_ClearanceUu(60.0f);
+
+        return Record;
+    }
+
+    auto Make_Links() -> TArray<FCk_GroundNav_LinkRecord>
+    {
+        return TArray<FCk_GroundNav_LinkRecord>{Make_Link(1), Make_Link(2)};
+    }
+
+    auto Get_LinkPrint(
+        TConstArrayView<FCk_GroundNav_LinkRecord> InLinks)
+        -> ck::groundnav::FCk_GroundNav_ContentFingerprint
+    {
+        return Get_ContentFingerprint(Make_Geometry(), Make_Region(),
+            FCk_GroundNav_BakeConfig{}, FCk_GroundNav_AgentProfile{}, {}, InLinks);
+    }
+
+    auto Get_LinkBaseline() -> ck::groundnav::FCk_GroundNav_ContentFingerprint
+    {
+        return Get_LinkPrint(Make_Links());
     }
 }
 
@@ -385,6 +422,173 @@ bool FCkTest_GroundNav_Fingerprint_MarkupOrderAndDisabledRecordsDoNotCount::RunT
 
         TestTrue(TEXT("a disabled record does not change the fingerprint"),
             Get_Print(WithDisabled) == Baseline);
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Fingerprint_EveryLinkFieldPerturbsIt,
+    "CkTests.UnitTests.CkGroundNav.Bake.Fingerprint_EveryLinkFieldPerturbsIt",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Fingerprint_EveryLinkFieldPerturbsIt::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_fingerprint;
+
+    const auto Baseline = Get_LinkBaseline();
+
+    TestFalse(TEXT("submitting links at all changes the fingerprint"), Baseline == Get_Baseline());
+
+    const auto CheckDiffers = [&](
+        const TCHAR*                            InWhat,
+        const TArray<FCk_GroundNav_LinkRecord>& InPerturbed) -> void
+    {
+        TestFalse(FString::Printf(TEXT("perturbing a link's %s changes the fingerprint"), InWhat),
+            Get_LinkPrint(InPerturbed) == Baseline);
+    };
+
+    // The identity and the endpoints are read-only on the record, so a perturbation of any of the three
+    // is a fresh record carrying every other authored value forward unchanged.
+    const auto Rebuild = [](
+        const FCk_GroundNav_LinkRecord& InFrom,
+        int32                           InId,
+        const FVector&                  InStart,
+        const FVector&                  InEnd) -> FCk_GroundNav_LinkRecord
+    {
+        auto Record = FCk_GroundNav_LinkRecord{InId, InStart, InEnd};
+
+        Record.Set_Direction(InFrom.Get_Direction());
+        Record.Set_CostMultiplierForward(InFrom.Get_CostMultiplierForward());
+        Record.Set_CostMultiplierBackward(InFrom.Get_CostMultiplierBackward());
+        Record.Set_ClearanceUu(InFrom.Get_ClearanceUu());
+        Record.Set_AreaTag(InFrom.Get_AreaTag());
+        Record.Set_UserTypeTag(InFrom.Get_UserTypeTag());
+        Record.Set_ProjectionMode(InFrom.Get_ProjectionMode());
+        Record.Set_ProjectionHorizontalExtentUu(InFrom.Get_ProjectionHorizontalExtentUu());
+        Record.Set_ProjectionVerticalExtentUu(InFrom.Get_ProjectionVerticalExtentUu());
+
+        return Record;
+    };
+
+    {
+        auto Links = Make_Links();
+        Links[0] = Rebuild(Links[0], 7, Links[0].Get_Start(), Links[0].Get_End());
+
+        CheckDiffers(TEXT("id"), Links);
+    }
+    {
+        auto Links = Make_Links();
+        Links[0] = Rebuild(Links[0], Links[0].Get_Id(),
+            Links[0].Get_Start() + FVector{1.0, 0.0, 0.0}, Links[0].Get_End());
+
+        CheckDiffers(TEXT("start point"), Links);
+    }
+    {
+        auto Links = Make_Links();
+        Links[0] = Rebuild(Links[0], Links[0].Get_Id(),
+            Links[0].Get_Start(), Links[0].Get_End() + FVector{0.0, 1.0, 0.0});
+
+        CheckDiffers(TEXT("end point"), Links);
+    }
+    {
+        // The two ends SWAPPED: the same pair of points, and a different link, because the direction
+        // and the two multipliers are stated relative to which end is the start.
+        auto Links = Make_Links();
+        Links[0] = Rebuild(Links[0], Links[0].Get_Id(), Links[0].Get_End(), Links[0].Get_Start());
+
+        CheckDiffers(TEXT("endpoint order"), Links);
+    }
+    {
+        auto Links = Make_Links();
+        Links[0].Set_Direction(ECk_GroundNav_LinkDirection::Forward);
+
+        CheckDiffers(TEXT("direction"), Links);
+    }
+    {
+        auto Links = Make_Links();
+        Links[0].Set_CostMultiplierForward(5.0f);
+
+        CheckDiffers(TEXT("forward cost multiplier"), Links);
+    }
+    {
+        auto Links = Make_Links();
+        Links[0].Set_CostMultiplierBackward(5.0f);
+
+        CheckDiffers(TEXT("backward cost multiplier"), Links);
+    }
+    {
+        auto Links = Make_Links();
+        Links[0].Set_ClearanceUu(30.0f);
+
+        CheckDiffers(TEXT("clearance"), Links);
+    }
+    {
+        auto Links = Make_Links();
+        Links[0].Set_AreaTag(TAG_CkTests_GroundNav_Fingerprint_AreaB);
+
+        CheckDiffers(TEXT("area tag"), Links);
+    }
+    {
+        auto Links = Make_Links();
+        Links[0].Set_UserTypeTag(TAG_CkTests_GroundNav_Fingerprint_AreaB);
+
+        CheckDiffers(TEXT("user type tag"), Links);
+    }
+    {
+        auto Links = Make_Links();
+        Links[0].Set_ProjectionMode(ECk_NavSurface_ProjectionMode::Down);
+
+        CheckDiffers(TEXT("projection mode"), Links);
+    }
+    {
+        auto Links = Make_Links();
+        Links[0].Set_ProjectionHorizontalExtentUu(75.0f);
+
+        CheckDiffers(TEXT("projection horizontal extent"), Links);
+    }
+    {
+        auto Links = Make_Links();
+        Links[0].Set_ProjectionVerticalExtentUu(150.0f);
+
+        CheckDiffers(TEXT("projection vertical extent"), Links);
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Fingerprint_DisabledLinksDoNotCount,
+    "CkTests.UnitTests.CkGroundNav.Bake.Fingerprint_DisabledLinksDoNotCount",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Fingerprint_DisabledLinksDoNotCount::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_fingerprint;
+
+    {
+        // A disabled link decides nothing about the field, so a list holding only disabled links must
+        // fingerprint exactly as no links at all - otherwise switching one off would force a rebake.
+        auto AllDisabled = Make_Links();
+
+        for (auto& Link : AllDisabled)
+        { Link.Set_Enable(ECk_EnableDisable::Disable); }
+
+        TestTrue(TEXT("links that are all disabled fingerprint as no links at all"),
+            Get_LinkPrint(AllDisabled) == Get_Baseline());
+    }
+
+    {
+        auto WithDisabled = Make_Links();
+        WithDisabled.Emplace(Make_Link(3));
+        WithDisabled.Last().Set_Enable(ECk_EnableDisable::Disable);
+
+        TestTrue(TEXT("a disabled link does not change the fingerprint"),
+            Get_LinkPrint(WithDisabled) == Get_LinkBaseline());
     }
 
     return true;
