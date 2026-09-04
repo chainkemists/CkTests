@@ -607,19 +607,19 @@ bool FCkTest_GroundNav_Links_DeriveMovesOnlyTheEndpointTilesOfAChangedLink::RunT
     const auto Added = Get_FieldWithLinks(*Published, Links, AddedEpoch);
 
     if (NOT TestTrue(TEXT("the derive completes and yields a field"),
-        Added.Value.Get_IsCompleted() && Added.Key.IsValid()))
+        Added._Result.Get_IsCompleted() && Added._Field.IsValid()))
     { return false; }
 
-    TestEqual(TEXT("a link derive spends no probes"), Added.Value.Get_ProbesSpent(), 0);
+    TestEqual(TEXT("a link derive spends no probes"), Added._Result.Get_ProbesSpent(), 0);
 
     TestTrue(TEXT("the published field a reader is holding is untouched"),
         Published->Get_ResolvedLinkCount() == 0);
 
     if (NOT TestTrue(TEXT("the added link resolves on both ends"),
-        Added.Key->Get_ResolvedLinkCount() == 1 && Added.Key->_ResolvedLinks[0].Get_IsResolved()))
+        Added._Field->Get_ResolvedLinkCount() == 1 && Added._Field->_ResolvedLinks[0].Get_IsResolved()))
     { return false; }
 
-    for (auto TileIndex = 0; TileIndex < Added.Key->_Tiles.Num(); ++TileIndex)
+    for (auto TileIndex = 0; TileIndex < Added._Field->_Tiles.Num(); ++TileIndex)
     {
         const auto HoldsAnEnd = TileIndex == kGroundTileIndex || TileIndex == kFarTileIndex;
         const auto Expected = HoldsAnEnd ? AddedEpoch : SourceEpoch;
@@ -627,55 +627,55 @@ bool FCkTest_GroundNav_Links_DeriveMovesOnlyTheEndpointTilesOfAChangedLink::RunT
         TestTrue(FString::Printf(
             TEXT("tile %d %s the added link's ends and carries epoch %lld"),
             TileIndex, HoldsAnEnd ? TEXT("holds one of") : TEXT("holds neither of"),
-            Added.Key->_Tiles[TileIndex]._Epoch._Value),
-            Added.Key->_Tiles[TileIndex]._Epoch == Expected);
+            Added._Field->_Tiles[TileIndex]._Epoch._Value),
+            Added._Field->_Tiles[TileIndex]._Epoch == Expected);
     }
 
-    TestTrue(TEXT("and the field follows the tiles that moved"), Added.Key->_Epoch == AddedEpoch);
+    TestTrue(TEXT("and the field follows the tiles that moved"), Added._Field->_Epoch == AddedEpoch);
 
     // The same list again. Every record resolves to what it already resolved to, so there is nothing
     // for a reader to notice and nothing that may be stamped.
     const auto UnchangedEpoch = AddedEpoch.Get_Next();
-    const auto Unchanged = Get_FieldWithLinks(*Added.Key, Links, UnchangedEpoch);
+    const auto Unchanged = Get_FieldWithLinks(*Added._Field, Links, UnchangedEpoch);
 
     if (NOT TestTrue(TEXT("the second derive completes and yields a field"),
-        Unchanged.Value.Get_IsCompleted() && Unchanged.Key.IsValid()))
+        Unchanged._Result.Get_IsCompleted() && Unchanged._Field.IsValid()))
     { return false; }
 
     TestTrue(TEXT("a derive that changed no link moves no field epoch"),
-        Unchanged.Key->_Epoch == AddedEpoch);
+        Unchanged._Field->_Epoch == AddedEpoch);
 
-    for (auto TileIndex = 0; TileIndex < Unchanged.Key->_Tiles.Num(); ++TileIndex)
+    for (auto TileIndex = 0; TileIndex < Unchanged._Field->_Tiles.Num(); ++TileIndex)
     {
         TestTrue(FString::Printf(TEXT("and leaves tile %d's epoch where it was"), TileIndex),
-            Unchanged.Key->_Tiles[TileIndex]._Epoch == Added.Key->_Tiles[TileIndex]._Epoch);
+            Unchanged._Field->_Tiles[TileIndex]._Epoch == Added._Field->_Tiles[TileIndex]._Epoch);
     }
 
     auto Disabled = Links;
     Disabled[0].Set_Enable(ECk_EnableDisable::Disable);
 
     const auto DisabledEpoch = UnchangedEpoch.Get_Next();
-    const auto Switched = Get_FieldWithLinks(*Unchanged.Key, Disabled, DisabledEpoch);
+    const auto Switched = Get_FieldWithLinks(*Unchanged._Field, Disabled, DisabledEpoch);
 
     if (NOT TestTrue(TEXT("the derive after the switch-off completes and yields a field"),
-        Switched.Value.Get_IsCompleted() && Switched.Key.IsValid()))
+        Switched._Result.Get_IsCompleted() && Switched._Field.IsValid()))
     { return false; }
 
     TestFalse(TEXT("the link is no longer traversable"),
-        Switched.Key->_ResolvedLinks[0].Get_IsTraversable());
+        Switched._Field->_ResolvedLinks[0].Get_IsTraversable());
 
-    for (auto TileIndex = 0; TileIndex < Switched.Key->_Tiles.Num(); ++TileIndex)
+    for (auto TileIndex = 0; TileIndex < Switched._Field->_Tiles.Num(); ++TileIndex)
     {
         const auto HoldsAnEnd = TileIndex == kGroundTileIndex || TileIndex == kFarTileIndex;
-        const auto Expected = HoldsAnEnd ? DisabledEpoch : Unchanged.Key->_Tiles[TileIndex]._Epoch;
+        const auto Expected = HoldsAnEnd ? DisabledEpoch : Unchanged._Field->_Tiles[TileIndex]._Epoch;
 
         TestTrue(FString::Printf(
             TEXT("switching the link off moves tile %d to epoch %lld"),
-            TileIndex, Switched.Key->_Tiles[TileIndex]._Epoch._Value),
-            Switched.Key->_Tiles[TileIndex]._Epoch == Expected);
+            TileIndex, Switched._Field->_Tiles[TileIndex]._Epoch._Value),
+            Switched._Field->_Tiles[TileIndex]._Epoch == Expected);
     }
 
-    TestTrue(TEXT("with the field following it"), Switched.Key->_Epoch == DisabledEpoch);
+    TestTrue(TEXT("with the field following it"), Switched._Field->_Epoch == DisabledEpoch);
 
     return true;
 }
