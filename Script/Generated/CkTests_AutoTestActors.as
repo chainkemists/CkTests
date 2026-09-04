@@ -6713,6 +6713,19 @@ class ACk_AutoTest_Probe_Request_EnableDisable_StateFlips_Actor : ACk_AutoTestRu
     }
 }
 
+class ACk_AutoTest_Probe_RigidBodyContactDoesNotMasqueradeAsProbe_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 12.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Probe_RigidBodyContactDoesNotMasqueradeAsProbe");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_ProbeTrace_Blocking_SingleReturnsNearestOfProbeAndWorld_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 8.0f;
