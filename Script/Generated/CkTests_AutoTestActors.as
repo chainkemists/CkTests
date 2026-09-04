@@ -3814,6 +3814,19 @@ class ACk_AutoTest_GroundNav_Markup_PaintThenRepathDoesNotCross_Actor : ACk_Auto
     }
 }
 
+class ACk_AutoTest_GroundNav_PathDiagnostics_ReadsAsValues_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 300.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_PathDiagnostics_ReadsAsValues");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_GroundNav_ProfileVariant_QuerySelectsTheProfilesField_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 420.0f;
