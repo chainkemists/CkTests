@@ -639,7 +639,7 @@ bool FCkTest_JoltBake_TriMesh_WindingNormalization::RunTest(const FString& Param
 
     Fill_CubeLists(Vertices, Triangles, 0.0, false);
     const auto OutwardBefore = Triangles;
-    const auto Outward = NormalizeInsideOutClosedMeshComponents(Vertices, Triangles);
+    const auto Outward = NormalizeInsideOutMeshComponents(Vertices, Triangles);
     TestEqual(TEXT("outward closed cube stays unchanged"), Outward._Status,
         ECk_Jolt_WindingNormalizationStatus::Unchanged);
     TestEqual(TEXT("outward closed cube needs no repair"), Outward._NumRepairedComponents, 0);
@@ -647,7 +647,7 @@ bool FCkTest_JoltBake_TriMesh_WindingNormalization::RunTest(const FString& Param
         HaveSameTriangleIndices(Triangles, OutwardBefore));
 
     Fill_CubeLists(Vertices, Triangles, 10000.0, true);
-    const auto Inverted = NormalizeInsideOutClosedMeshComponents(Vertices, Triangles);
+    const auto Inverted = NormalizeInsideOutMeshComponents(Vertices, Triangles);
     TestEqual(TEXT("translated inverted closed cube is repaired"), Inverted._Status,
         ECk_Jolt_WindingNormalizationStatus::Normalized);
     TestEqual(TEXT("one translated closed component is repaired"), Inverted._NumRepairedComponents, 1);
@@ -661,7 +661,7 @@ bool FCkTest_JoltBake_TriMesh_WindingNormalization::RunTest(const FString& Param
     Vertices.push_back(JPH::Float3(0, 1, 0));
     Triangles.push_back(JPH::IndexedTriangle(0, 1, 2));
     const auto OpenBefore = Triangles;
-    const auto Open = NormalizeInsideOutClosedMeshComponents(Vertices, Triangles);
+    const auto Open = NormalizeInsideOutMeshComponents(Vertices, Triangles);
     TestEqual(TEXT("open mesh has no normalization verdict"), Open._Status,
         ECk_Jolt_WindingNormalizationStatus::NoVerdict);
     TestEqual(TEXT("open mesh is reported"), Open._NumOpenComponents, 1);
@@ -669,32 +669,68 @@ bool FCkTest_JoltBake_TriMesh_WindingNormalization::RunTest(const FString& Param
 
     Triangles[0] = JPH::IndexedTriangle(0, 1, 99);
     const auto MalformedBefore = Triangles;
-    const auto Malformed = NormalizeInsideOutClosedMeshComponents(Vertices, Triangles);
-    TestEqual(TEXT("malformed indices have no normalization verdict"), Malformed._Status,
-        ECk_Jolt_WindingNormalizationStatus::NoVerdict);
+    const auto Malformed = NormalizeInsideOutMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("malformed indices fail closed"), Malformed._Status,
+        ECk_Jolt_WindingNormalizationStatus::Malformed);
     TestEqual(TEXT("malformed component is reported"), Malformed._NumMalformedComponents, 1);
+    TestTrue(TEXT("malformed index failure is explicit"), Malformed.Get_HasMalformedIndices());
     TestTrue(TEXT("malformed triangles remain unchanged"), HaveSameTriangleIndices(Triangles, MalformedBefore));
+
+    Fill_CubeLists(Vertices, Triangles, 0.0, true);
+    Triangles.push_back(JPH::IndexedTriangle(0, 0, 1));
+    const auto RepeatedIndexBefore = Triangles;
+    const auto RepeatedIndex = NormalizeInsideOutMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("repeated indices fail closed"), RepeatedIndex._Status,
+        ECk_Jolt_WindingNormalizationStatus::Malformed);
+    TestEqual(TEXT("repeated index component is reported"), RepeatedIndex._NumMalformedIndexComponents, 1);
+    TestTrue(TEXT("malformed preflight prevents partial repair"),
+        HaveSameTriangleIndices(Triangles, RepeatedIndexBefore));
+
+    Fill_CubeLists(Vertices, Triangles, 0.0, true);
+    Triangles.erase(Triangles.end() - 2, Triangles.end());
+    const auto OpenNegativeBefore = Triangles;
+    const auto OpenNegative = NormalizeInsideOutMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("open negative component repairs"), OpenNegative._Status,
+        ECk_Jolt_WindingNormalizationStatus::Normalized);
+    TestEqual(TEXT("open negative component is reported"), OpenNegative._NumOpenComponents, 1);
+    TestEqual(TEXT("open negative component repairs once"), OpenNegative._NumRepairedComponents, 1);
+    TestFalse(TEXT("open negative indices are reversed"),
+        HaveSameTriangleIndices(Triangles, OpenNegativeBefore));
+    TestTrue(TEXT("repaired open component has positive winding"),
+        ComputeMeshWindingRatio(Vertices, Triangles) > 0.05);
 
     Fill_CubeLists(Vertices, Triangles, 0.0, true);
     const auto DuplicateTriangle = Triangles[0];
     Triangles.push_back(DuplicateTriangle);
     const auto NonManifoldBefore = Triangles;
-    const auto NonManifold = NormalizeInsideOutClosedMeshComponents(Vertices, Triangles);
-    TestEqual(TEXT("non-manifold negative component is ambiguous"), NonManifold._Status,
-        ECk_Jolt_WindingNormalizationStatus::AmbiguousNegative);
+    const auto NonManifold = NormalizeInsideOutMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("non-manifold negative component repairs"), NonManifold._Status,
+        ECk_Jolt_WindingNormalizationStatus::Normalized);
     TestEqual(TEXT("non-manifold component is reported"), NonManifold._NumNonManifoldComponents, 1);
-    TestTrue(TEXT("non-manifold negative component is not repaired"), NonManifold.Get_HasAmbiguousNegative());
-    TestTrue(TEXT("non-manifold indices remain unchanged"), HaveSameTriangleIndices(Triangles, NonManifoldBefore));
+    TestEqual(TEXT("non-manifold negative component repairs once"), NonManifold._NumRepairedComponents, 1);
+    TestFalse(TEXT("non-manifold indices are reversed"), HaveSameTriangleIndices(Triangles, NonManifoldBefore));
+
+    Fill_CubeLists(Vertices, Triangles, 0.0, false);
+    const auto OutwardDuplicateTriangle = Triangles[0];
+    Triangles.push_back(OutwardDuplicateTriangle);
+    const auto NonManifoldPositiveBefore = Triangles;
+    const auto NonManifoldPositive = NormalizeInsideOutMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("positive non-manifold component stays unchanged"), NonManifoldPositive._Status,
+        ECk_Jolt_WindingNormalizationStatus::Unchanged);
+    TestEqual(TEXT("positive non-manifold component is reported"),
+        NonManifoldPositive._NumNonManifoldComponents, 1);
+    TestTrue(TEXT("positive non-manifold indices remain unchanged"),
+        HaveSameTriangleIndices(Triangles, NonManifoldPositiveBefore));
 
     Fill_CubeLists(Vertices, Triangles, 0.0, true);
     Swap(Triangles[0].mIdx[1], Triangles[0].mIdx[2]);
     const auto InconsistentBefore = Triangles;
-    const auto Inconsistent = NormalizeInsideOutClosedMeshComponents(Vertices, Triangles);
-    TestEqual(TEXT("inconsistent negative component is ambiguous"), Inconsistent._Status,
-        ECk_Jolt_WindingNormalizationStatus::AmbiguousNegative);
+    const auto Inconsistent = NormalizeInsideOutMeshComponents(Vertices, Triangles);
+    TestEqual(TEXT("inconsistent negative component repairs"), Inconsistent._Status,
+        ECk_Jolt_WindingNormalizationStatus::Normalized);
     TestEqual(TEXT("inconsistent component is reported"), Inconsistent._NumInconsistentComponents, 1);
-    TestTrue(TEXT("inconsistent negative component is not repaired"), Inconsistent.Get_HasAmbiguousNegative());
-    TestTrue(TEXT("inconsistent indices remain unchanged"), HaveSameTriangleIndices(Triangles, InconsistentBefore));
+    TestEqual(TEXT("inconsistent negative component repairs once"), Inconsistent._NumRepairedComponents, 1);
+    TestFalse(TEXT("inconsistent indices are reversed"), HaveSameTriangleIndices(Triangles, InconsistentBefore));
 
     Fill_CubeLists(Vertices, Triangles, 0.0, false);
     auto InvertedVertices = JPH::VertexList{};
@@ -707,7 +743,7 @@ bool FCkTest_JoltBake_TriMesh_WindingNormalization::RunTest(const FString& Param
         Triangles.push_back(JPH::IndexedTriangle(
             Triangle.mIdx[0] + 8, Triangle.mIdx[1] + 8, Triangle.mIdx[2] + 8));
     }
-    const auto Mixed = NormalizeInsideOutClosedMeshComponents(Vertices, Triangles);
+    const auto Mixed = NormalizeInsideOutMeshComponents(Vertices, Triangles);
     TestEqual(TEXT("mixed disconnected components normalize"), Mixed._Status,
         ECk_Jolt_WindingNormalizationStatus::Normalized);
     TestEqual(TEXT("mixed disconnected components preserve healthy component"), Mixed._NumHealthyComponents, 1);
