@@ -168,8 +168,6 @@ auto
         FileManager.DirectoryExists(*_ProgressDir);
 
     CK_ENSURE_IF_NOT(DirsExist, TEXT("[Server] could not create protocol dirs under [{}]"), _Root)
-    {}
-    if (NOT DirsExist)
     { return false; }
 
     if (InStaleRequestPolicy == ECk_TestBridge_StaleRequestPolicy::WipeStale)

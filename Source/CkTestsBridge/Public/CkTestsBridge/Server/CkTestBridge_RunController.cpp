@@ -121,8 +121,6 @@ auto
     auto* ControllerModule = FModuleManager::LoadModulePtr<IAutomationControllerModule>(TEXT("AutomationController"));
     const auto ModuleIsValid = ControllerModule != nullptr;
     CK_ENSURE_IF_NOT(ModuleIsValid, TEXT("[RunController] AutomationController module unavailable"))
-    {}
-    if (NOT ModuleIsValid)
     {
         Do_TransitionToComplete(false);
         return;
@@ -131,8 +129,6 @@ auto
     _Controller = ControllerModule->GetAutomationController();
     const auto ControllerIsValid = _Controller.IsValid();
     CK_ENSURE_IF_NOT(ControllerIsValid, TEXT("[RunController] AutomationController manager is null"))
-    {}
-    if (NOT ControllerIsValid)
     {
         Do_TransitionToComplete(false);
         return;
