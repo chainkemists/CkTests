@@ -10,11 +10,18 @@
 // The frozen input enumeration lives in CkGroundNav_Fingerprint.h. A new bake input means a new case
 // here in the same change.
 
+#include "CkCore/Algorithms/CkAlgorithms.h"
+
+#include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
+#include "CkEcs/World/CkEcsWorld.h"
+
 #include "CkGroundNav/Bake/CkGroundNav_Fingerprint.h"
 #include "CkGroundNav/Bake/CkGroundNav_LinkTypes.h"
 #include "CkGroundNav/Bake/CkGroundNav_MarkupTypes.h"
+#include "CkGroundNav/Volume/CkGroundNavVolume_Utils.h"
 
 #include "CkShapes/Box/CkShapeBox_Fragment_Data.h"
+#include "CkShapes/Capsule/CkShapeCapsule_Fragment_Data.h"
 #include "CkShapes/Sphere/CkShapeSphere_Fragment_Data.h"
 
 #include "../CkUnitTest_Common.h"
@@ -31,6 +38,7 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_CkTests_GroundNav_Fingerprint_AreaB, "CkTests.
 namespace ck_test_groundnav_fingerprint
 {
     using ck::groundnav::Get_ContentFingerprint;
+    using ck::groundnav::Get_InputFingerprint;
 
     auto Make_Region() -> FBox
     {
@@ -126,6 +134,72 @@ namespace ck_test_groundnav_fingerprint
     {
         return Get_LinkPrint(Make_Links());
     }
+
+    // The authored variant list in the shape the fingerprint takes it: a tag NAME beside its profile.
+    // A name rather than the tag itself because a tag is an index this process alone agrees on, and
+    // because the bake layer holds no volume concepts to take the authored type through.
+    auto Make_Variant(
+        const FName& InTagName,
+        float        InStepHeightUu) -> TPair<FName, FCk_GroundNav_AgentProfile>
+    {
+        auto Profile = FCk_GroundNav_AgentProfile{};
+        Profile.Set_StepHeightUu(InStepHeightUu);
+
+        return TPair<FName, FCk_GroundNav_AgentProfile>{InTagName, Profile};
+    }
+
+    auto Make_Variants() -> TArray<TPair<FName, FCk_GroundNav_AgentProfile>>
+    {
+        return TArray<TPair<FName, FCk_GroundNav_AgentProfile>>{
+            Make_Variant(TEXT("CkTests.GroundNav.Fingerprint.Crawler"), 30.0f),
+            Make_Variant(TEXT("CkTests.GroundNav.Fingerprint.Strider"), 60.0f)};
+    }
+
+    auto Get_VariantPrint(
+        TConstArrayView<TPair<FName, FCk_GroundNav_AgentProfile>> InVariants)
+        -> ck::groundnav::FCk_GroundNav_ContentFingerprint
+    {
+        return Get_ContentFingerprint(Make_Geometry(), Make_Region(),
+            FCk_GroundNav_BakeConfig{}, FCk_GroundNav_AgentProfile{}, {}, {},
+            FCk_GroundNav_MergeTunables{}, 0.0f, InVariants);
+    }
+
+    auto Get_AuthoredInputPrint(
+        float                                                     InMaxClearanceUu,
+        TConstArrayView<TPair<FName, FCk_GroundNav_AgentProfile>> InVariants)
+        -> ck::groundnav::FCk_GroundNav_ContentFingerprint
+    {
+        return Get_InputFingerprint(Make_Region(), FCk_GroundNav_BakeConfig{},
+            FCk_GroundNav_AgentProfile{}, Make_Markups(), Make_Links(),
+            FCk_GroundNav_MergeTunables{}, InMaxClearanceUu, InVariants);
+    }
+
+    auto Get_ContentPrintOverWorld(
+        uint64                                                    InGeometryHash,
+        float                                                     InMaxClearanceUu,
+        TConstArrayView<TPair<FName, FCk_GroundNav_AgentProfile>> InVariants)
+        -> ck::groundnav::FCk_GroundNav_ContentFingerprint
+    {
+        return Get_ContentFingerprint(InGeometryHash, Make_Region(), FCk_GroundNav_BakeConfig{},
+            FCk_GroundNav_AgentProfile{}, Make_Markups(), Make_Links(),
+            FCk_GroundNav_MergeTunables{}, InMaxClearanceUu, InVariants);
+    }
+
+    // A volume for the two reads below and nothing else. It never bakes - the geometry backend needs a
+    // physics world, which a headless registry has none of - so what is pinned here is the shape of the
+    // answers before any build has published, which is exactly the state a caller polls in.
+    auto Make_VolumeParams() -> FCk_Fragment_GroundNavVolume_ParamsData
+    {
+        auto Config = FCk_GroundNav_BakeConfig{25.0f, 10.0f};
+        Config.Set_TileSizeUu(400.0f);
+
+        const auto Profile = FCk_GroundNav_AgentProfile{
+            FCk_AnyShape{FCk_ShapeCapsule_Dimensions{70.0f, 20.0f}}};
+
+        const auto Bounds = FBox{FVector{0.0, 0.0, -50.0}, FVector{800.0, 800.0, 300.0}};
+
+        return FCk_Fragment_GroundNavVolume_ParamsData{Bounds, Config, Profile};
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -152,6 +226,19 @@ bool FCkTest_GroundNav_Fingerprint_IsStableAndOrderIndependent::RunTest(const FS
 
     TestTrue(TEXT("submission ORDER does not change the fingerprint"),
         ReorderedPrint == Get_Baseline());
+
+    // The batch-taking form is the hash-taking one with item 1 reduced by Get_GeometryHash, and a
+    // caller that reduces its own geometry has to land on the identical print - otherwise a tiled
+    // build, which never holds a whole region's triangles, could not be compared against one that did.
+    TestTrue(TEXT("reducing the geometry first fingerprints identically to handing over the batch"),
+        Get_ContentFingerprint(ck::groundnav::Get_GeometryHash(Make_Geometry()), Make_Region(),
+            FCk_GroundNav_BakeConfig{}, FCk_GroundNav_AgentProfile{}) == Get_Baseline());
+
+    // And the reduction carries the order independence with it, rather than the caller above having
+    // happened to reduce two batches that were already equal.
+    TestTrue(TEXT("and the reduction is itself order-independent"),
+        ck::groundnav::Get_GeometryHash(Reordered) ==
+        ck::groundnav::Get_GeometryHash(Make_Geometry()));
 
     return true;
 }
@@ -287,6 +374,35 @@ bool FCkTest_GroundNav_Fingerprint_EveryEnumeratedInputPerturbsIt::RunTest(const
         CheckDiffers(TEXT("rough-perch tolerance"),
             Get_ContentFingerprint(Make_Geometry(), Make_Region(), FCk_GroundNav_BakeConfig{}, Profile));
     }
+
+    // ---- 7. Merge tunables ---------------------------------------------------------------------------
+    // The struct is read-only past construction, so each case is a fresh one differing from the
+    // defaults in exactly one member.
+    {
+        CheckDiffers(TEXT("the plane-fit tolerance"),
+            Get_ContentFingerprint(Make_Geometry(), Make_Region(), FCk_GroundNav_BakeConfig{},
+                FCk_GroundNav_AgentProfile{}, {}, {}, FCk_GroundNav_MergeTunables{25.0f, 10.0f}));
+    }
+    {
+        CheckDiffers(TEXT("the normal cone"),
+            Get_ContentFingerprint(Make_Geometry(), Make_Region(), FCk_GroundNav_BakeConfig{},
+                FCk_GroundNav_AgentProfile{}, {}, {}, FCk_GroundNav_MergeTunables{10.0f, 25.0f}));
+    }
+
+    // ---- 8. Clearance cap ----------------------------------------------------------------------------
+    {
+        CheckDiffers(TEXT("the clearance cap"),
+            Get_ContentFingerprint(Make_Geometry(), Make_Region(), FCk_GroundNav_BakeConfig{},
+                FCk_GroundNav_AgentProfile{}, {}, {}, FCk_GroundNav_MergeTunables{}, 200.0f));
+    }
+
+    // The other half of a perturbation case, and the one that catches a hash that folds in something
+    // besides its arguments: the two trailing inputs spelled out AT THEIR DEFAULTS must fingerprint
+    // exactly as omitting them does, or a caller could not compare two prints at all.
+    TestTrue(TEXT("the trailing inputs spelled out at their defaults fingerprint as omitting them"),
+        Get_ContentFingerprint(Make_Geometry(), Make_Region(), FCk_GroundNav_BakeConfig{},
+            FCk_GroundNav_AgentProfile{}, {}, {}, FCk_GroundNav_MergeTunables{10.0f, 10.0f}, 0.0f) ==
+        Get_Baseline());
 
     return true;
 }
@@ -590,6 +706,204 @@ bool FCkTest_GroundNav_Fingerprint_DisabledLinksDoNotCount::RunTest(const FStrin
         TestTrue(TEXT("a disabled link does not change the fingerprint"),
             Get_LinkPrint(WithDisabled) == Get_LinkBaseline());
     }
+
+    return true;
+}
+
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Fingerprint_ProfileVariantsPerturbIt,
+    "CkTests.UnitTests.CkGroundNav.Bake.Fingerprint_ProfileVariantsPerturbIt",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Fingerprint_ProfileVariantsPerturbIt::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_fingerprint;
+
+    const auto Baseline = Get_VariantPrint(Make_Variants());
+
+    TestTrue(TEXT("the same variant list fingerprints identically"),
+        Get_VariantPrint(Make_Variants()) == Baseline);
+
+    TestFalse(TEXT("a volume authoring no variant at all fingerprints differently"),
+        Get_VariantPrint({}) == Baseline);
+
+    {
+        auto Added = Make_Variants();
+        Added.Emplace(Make_Variant(TEXT("CkTests.GroundNav.Fingerprint.Wader"), 90.0f));
+
+        TestFalse(TEXT("adding a variant changes the fingerprint"), Get_VariantPrint(Added) == Baseline);
+    }
+
+    {
+        auto Edited = Make_Variants();
+        Edited[0].Value.Set_StepHeightUu(45.0f);
+
+        TestFalse(TEXT("editing a variant's profile changes the fingerprint"),
+            Get_VariantPrint(Edited) == Baseline);
+    }
+
+    {
+        auto Renamed = Make_Variants();
+        Renamed[0].Key = TEXT("CkTests.GroundNav.Fingerprint.Renamed");
+
+        TestFalse(TEXT("renaming a variant's tag changes the fingerprint"),
+            Get_VariantPrint(Renamed) == Baseline);
+    }
+
+    {
+        // Authored ORDER is part of the item: a volume bakes its variants in the order it lists them,
+        // so the same pairs listed the other way round are a different set of publishes.
+        auto Swapped = Make_Variants();
+        Swap(Swapped[0], Swapped[1]);
+
+        TestFalse(TEXT("swapping two variants' order changes the fingerprint"),
+            Get_VariantPrint(Swapped) == Baseline);
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Fingerprint_InputPrintIsTheContentPrintWithoutTheGeometry,
+    "CkTests.UnitTests.CkGroundNav.Bake.Fingerprint_InputPrintIsTheContentPrintWithoutTheGeometry",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Fingerprint_InputPrintIsTheContentPrintWithoutTheGeometry::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_fingerprint;
+
+    constexpr auto ClearanceCapUu = 200.0f;
+    constexpr auto MovedClearanceCapUu = 240.0f;
+
+    // Two callers over one set of authored inputs and two different worlds.
+    constexpr auto FirstWorld = uint64{0x0000000000001111};
+    constexpr auto SecondWorld = uint64{0x0000000000002222};
+
+    const auto Variants = Make_Variants();
+
+    const auto FirstContent = Get_ContentPrintOverWorld(FirstWorld, ClearanceCapUu, Variants);
+    const auto SecondContent = Get_ContentPrintOverWorld(SecondWorld, ClearanceCapUu, Variants);
+
+    TestFalse(TEXT("two worlds under the same authored inputs are two content fingerprints"),
+        FirstContent == SecondContent);
+
+    const auto InputPrint = Get_AuthoredInputPrint(ClearanceCapUu, Variants);
+
+    TestTrue(TEXT("but one input fingerprint, which is the same enumeration with item 1 left out"),
+        InputPrint == Get_AuthoredInputPrint(ClearanceCapUu, Variants));
+
+    // And it is not merely constant: every authored item still reaches it, which is what makes the two
+    // questions - has the world moved, have the inputs moved - separately answerable.
+    TestFalse(TEXT("moving an authored input moves the input fingerprint"),
+        Get_AuthoredInputPrint(MovedClearanceCapUu, Variants) == InputPrint);
+
+    TestFalse(TEXT("and so does moving the variant list"),
+        Get_AuthoredInputPrint(ClearanceCapUu, {}) == InputPrint);
+
+    TestFalse(TEXT("an authored input that moved also moves the content fingerprint"),
+        Get_ContentPrintOverWorld(FirstWorld, MovedClearanceCapUu, Variants) == FirstContent);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Fingerprint_PublishedIdentityMovesWhenARecordIsAdded,
+    "CkTests.UnitTests.CkGroundNav.Bake.Fingerprint_PublishedIdentityMovesWhenARecordIsAdded",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Fingerprint_PublishedIdentityMovesWhenARecordIsAdded::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_fingerprint;
+
+    auto World = ck::FEcsWorld{};
+
+    auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(World.Get_Registry());
+    auto Volume = UCk_Utils_GroundNavVolume_UE::Add(Owner, Make_VolumeParams());
+
+    if (NOT TestTrue(TEXT("the volume composes"), ck::IsValid(Volume)))
+    { return false; }
+
+    // The authored half of the identity every publish stamps, assembled from the volume's own params
+    // the way the publishers assemble it. A published field cannot be staged headless - the geometry
+    // backend needs a physics world, and the built-field fragment is writable only by the processors
+    // that publish - so what is pinned is the input half, which is the half that moves when a record
+    // does.
+    const auto& Params = Volume.Get<ck::FFragment_GroundNavVolume_Params>();
+
+    const auto Get_Identity =
+        [&Params](TConstArrayView<FCk_GroundNav_MarkupRecord> InRecords)
+        -> ck::groundnav::FCk_GroundNav_ContentFingerprint
+        {
+            const auto Variants = ck::algo::Transform<TArray<TPair<FName, FCk_GroundNav_AgentProfile>>>(
+                Params.Get_ProfileVariants(),
+                [](const FCk_GroundNav_ProfileVariant& InVariant) -> TPair<FName, FCk_GroundNav_AgentProfile>
+                {
+                    return TPair<FName, FCk_GroundNav_AgentProfile>{
+                        InVariant.Get_ProfileTag().GetTagName(), InVariant.Get_Profile()};
+                });
+
+            return Get_InputFingerprint(Params.Get_VolumeBounds(), Params.Get_Config(),
+                Params.Get_Profile(), InRecords, {}, Params.Get_MergeTunables(),
+                Params.Get_MaxClearanceUu(), Variants);
+        };
+
+    const auto Unpainted = Get_Identity({});
+
+    TestTrue(TEXT("recomputing the identity over the same records answers the same value"),
+        Get_Identity({}) == Unpainted);
+
+    const auto Painted = Get_Identity(Make_Markups());
+
+    TestFalse(TEXT("adding records moves it"), Painted == Unpainted);
+
+    TestTrue(TEXT("and it recomputes to the same value while those records stand"),
+        Get_Identity(Make_Markups()) == Painted);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Fingerprint_AnUnbuiltVolumeHasNoBakeIdentity,
+    "CkTests.UnitTests.CkGroundNav.Bake.Fingerprint_AnUnbuiltVolumeHasNoBakeIdentity",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Fingerprint_AnUnbuiltVolumeHasNoBakeIdentity::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_fingerprint;
+
+    auto World = ck::FEcsWorld{};
+
+    auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(World.Get_Registry());
+    auto Volume = UCk_Utils_GroundNavVolume_UE::Add(Owner, Make_VolumeParams());
+
+    if (NOT TestTrue(TEXT("the volume composes"), ck::IsValid(Volume)))
+    { return false; }
+
+    // A volume that has published nothing has no bake for an identity to be OF. Zero rather than the
+    // print of its own params, which would name a bake that never ran.
+    TestEqual(TEXT("an unbuilt volume reports no bake fingerprint"),
+        UCk_Utils_GroundNavVolume_UE::Get_BuildFingerprint(Volume), static_cast<int64>(0));
+
+    TestFalse(TEXT("and is not build-current, because there is no build for its inputs to be current with"),
+        UCk_Utils_GroundNavVolume_UE::Get_IsBuildCurrent(Volume));
+
+    // A caller that cannot name a volume is asking about no ground, so both reads answer it the way
+    // they answer an unbuilt one rather than ensuring.
+    TestEqual(TEXT("an invalid volume handle reports no bake fingerprint"),
+        UCk_Utils_GroundNavVolume_UE::Get_BuildFingerprint(FCk_Handle_GroundNavVolume{}),
+        static_cast<int64>(0));
+
+    TestFalse(TEXT("and is not build-current"),
+        UCk_Utils_GroundNavVolume_UE::Get_IsBuildCurrent(FCk_Handle_GroundNavVolume{}));
 
     return true;
 }
