@@ -3724,6 +3724,32 @@ class ACk_AutoTest_GroundNav_FacadeAnswersThroughGroundNav_Actor : ACk_AutoTestR
     }
 }
 
+class ACk_AutoTest_GroundNav_Link_AuthoredLinkIsLiveAndRoutesAcross_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 300.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Link_AuthoredLinkIsLiveAndRoutesAcross");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GroundNav_Link_UnresolvableEndIsAStatusNotAWarning_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 240.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Link_UnresolvableEndIsAStatusNotAWarning");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_GroundNav_Markup_PaintThenRepathDoesNotCross_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 180.0f;
