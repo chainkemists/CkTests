@@ -10,11 +10,21 @@
 //      record as the current one is the failure the version exists to prevent, and it is silent.
 
 #include "CkGroundNav/Cook/CkGroundNav_CookedFieldIndex.h"
+#include "CkGroundNav/Cook/CkGroundNav_CookedFieldLoad.h"
 #include "CkGroundNav/Cook/CkGroundNav_CookedTile.h"
+#include "CkGroundNav/Field/CkGroundNav_Field.h"
+#include "CkGroundNav/Field/CkGroundNav_FieldSerialize.h"
+#include "CkGroundNav/Field/CkGroundNav_FieldTypes.h"
 
 #include "CkCore/Validation/CkIsValid.h"
 
 #include "../CkUnitTest_Common.h"
+
+#include "Test_GroundNav_FieldEquality.h"
+#include "Test_GroundNav_QueryFixtures.h"
+
+#include <UObject/Class.h>
+#include <UObject/Package.h>
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -45,6 +55,92 @@ namespace ck_test_groundnav_cookedassets
         Key.Set_CellHeightUu(10.0f);
 
         return Key;
+    }
+
+    // ----------------------------------------------------------------------------------------------------
+    //
+    // The load side. Every fixture below builds its cooked assets in the TRANSIENT package out of a
+    // field the stub backend baked, so the whole cooked/runtime decision is exercised without a world,
+    // without a cook and without a single asset on disk — which is the property the pure load path was
+    // split out to have.
+
+    using ck::groundnav::FCk_GroundNav_Field;
+    using ck::groundnav::Get_CookedLatticeKey;
+    using ck::groundnav::Read_Field;
+    using ck::groundnav::Try_LoadCookedField;
+    using ck::groundnav::Write_Field;
+    using ck::groundnav::Write_Tile;
+    using ck::groundnav::kFieldBlobFormatVersion;
+
+    using ck_test_groundnav_field_equality::EEpochComparison;
+    using ck_test_groundnav_field_equality::EPolicyComparison;
+    using ck_test_groundnav_field_equality::Get_FirstFieldDifference;
+    using ck_test_groundnav_field_equality::Get_FirstParamsDifference;
+
+    using ck_test_groundnav_queryfixtures::Bake;
+    using ck_test_groundnav_queryfixtures::Make_QueryParams;
+    using ck_test_groundnav_queryfixtures::Make_QueryScene;
+
+    // The bake this fixture's index claims to have come out of. An arbitrary value on purpose: what is
+    // under test is that the number is COMPARED, and pinning it to whatever the params currently hash
+    // to would make the fixture agree with itself for a reason the code under test does not supply.
+    constexpr auto kFixtureInputFingerprint = uint64{0x0F1E2D3C4B5A6978ull};
+
+    auto Get_CookStatusName(ECk_GroundNav_CookStatus InStatus) -> FString
+    {
+        return StaticEnum<ECk_GroundNav_CookStatus>()->GetNameStringByValue(static_cast<int64>(InStatus));
+    }
+
+    /** Every tile of InField written to its own transient cooked asset, in tile-index order. */
+    auto Make_CookedTilesFor(
+        const FCk_GroundNav_Field& InField) -> TArray<TSoftObjectPtr<UCk_GroundNav_CookedTile_UE>>
+    {
+        const auto Lattice = Get_CookedLatticeKey(InField._Params);
+
+        auto Tiles = TArray<TSoftObjectPtr<UCk_GroundNav_CookedTile_UE>>{};
+        Tiles.Reserve(InField._Tiles.Num());
+
+        for (const auto& Tile : InField._Tiles)
+        {
+            auto Blob = TArray<uint8>{};
+            Write_Tile(InField, Tile._Coord, Blob);
+
+            auto* CookedTile = NewObject<UCk_GroundNav_CookedTile_UE>(GetTransientPackage());
+
+            if (ck::Is_NOT_Valid(CookedTile))
+            { return {}; }
+
+            CookedTile->Set_FormatVersion(kFieldBlobFormatVersion);
+            CookedTile->Set_TileCoord(FIntPoint{Tile._Coord._X, Tile._Coord._Y});
+            CookedTile->Set_Fingerprint(kFixtureInputFingerprint);
+            CookedTile->Set_LatticeKey(Lattice);
+            CookedTile->Set_Blob(Blob);
+
+            Tiles.Emplace(TSoftObjectPtr<UCk_GroundNav_CookedTile_UE>{CookedTile});
+        }
+
+        return Tiles;
+    }
+
+    /** An index over those tiles that a reader speaking the current format would accept. */
+    auto Make_CookedIndexFor(
+        const FCk_GroundNav_Field&                                 InField,
+        const TArray<TSoftObjectPtr<UCk_GroundNav_CookedTile_UE>>& InTiles)
+        -> UCk_GroundNav_CookedFieldIndex_UE*
+    {
+        auto* Index = NewObject<UCk_GroundNav_CookedFieldIndex_UE>(GetTransientPackage());
+
+        if (ck::Is_NOT_Valid(Index))
+        { return nullptr; }
+
+        Index->Set_LevelPackage(kFixtureLevelPackage);
+        Index->Set_CookKey(kFixtureCookKey);
+        Index->Set_Fingerprint(kFixtureInputFingerprint);
+        Index->Set_FormatVersion(kFieldBlobFormatVersion);
+        Index->Set_LatticeKey(Get_CookedLatticeKey(InField._Params));
+        Index->Set_Tiles(InTiles);
+
+        return Index;
     }
 }
 
@@ -247,6 +343,467 @@ bool FCkTest_GroundNav_CookedAssets_IndexPathConventionIsStable::RunTest(const F
 
     TestTrue(TEXT("and an unprefixed one is left exactly as it was"),
         CookKey == FName{*Level});
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_CookedAssets_LoadingACookedFieldComposesItFromItsTiles,
+    "CkTests.UnitTests.CkGroundNav.CookedAssets.LoadingACookedFieldComposesItFromItsTiles",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_CookedAssets_LoadingACookedFieldComposesItFromItsTiles::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_cookedassets;
+
+    auto Baked = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
+    { return false; }
+
+    const auto Tiles = Make_CookedTilesFor(Baked);
+
+    if (NOT TestEqual(TEXT("every tile of the baked field was cooked"), Tiles.Num(), Baked._Tiles.Num()))
+    { return false; }
+
+    auto* Index = Make_CookedIndexFor(Baked, Tiles);
+
+    if (NOT TestTrue(TEXT("the cooked index asset was created"), ck::IsValid(Index)))
+    { return false; }
+
+    auto Loaded = FCk_GroundNav_Field{};
+
+    const auto Status = Try_LoadCookedField(
+        *Index, kFixtureLevelPackage, kFixtureCookKey, Baked._Params, kFixtureInputFingerprint, Loaded);
+
+    if (NOT TestTrue(FString::Printf(TEXT("an index whose identity matches loads [%s]"),
+        *Get_CookStatusName(Status)), Status == ECk_GroundNav_CookStatus::Cooked))
+    { return false; }
+
+    // _Params is not part of what the field comparator walks, and it is the half a tile blob carries
+    // none of: the loader writes the params it was HANDED onto the field it composes, so a loader
+    // that dropped or reshaped one of them would produce a field every index in it still agreed with.
+    const auto ParamsDifference = Get_FirstParamsDifference(Baked._Params, Loaded._Params);
+
+    TestTrue(FString::Printf(TEXT("the loaded field carries the params it was loaded for [%s]"),
+        *ParamsDifference), ParamsDifference.IsEmpty());
+
+    // A cooked field carries no open body: the per-tile form has none, and the closure diagnostics
+    // belong to the run that read the meshes. Asserted on the loaded field DIRECTLY as well as
+    // through the comparison below, so the claim survives the fixture gaining an open panel.
+    TestTrue(TEXT("a loaded cooked field reports no open body"), Loaded._OpenBodies.IsEmpty());
+
+    auto BakedWithoutOpenBodies = Baked;
+    BakedWithoutOpenBodies._OpenBodies.Reset();
+
+    // Epochs excluded - the cook carries the bake's own tile epochs and the field it is loaded into is
+    // stamped by whoever publishes it, so they are the one thing a load is not obliged to reproduce.
+    // Every cell, every plate and every array the load RE-DERIVED rather than read is compared member
+    // for member. _Params is asserted separately above: the comparator does not reach it.
+    const auto Difference = Get_FirstFieldDifference(
+        BakedWithoutOpenBodies, Loaded, EPolicyComparison::Include, EEpochComparison::Exclude);
+
+    TestTrue(FString::Printf(TEXT("the loaded field equals the baked one [%s]"), *Difference),
+        Difference.IsEmpty());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_CookedAssets_AStaleFingerprintIsStaleCook,
+    "CkTests.UnitTests.CkGroundNav.CookedAssets.AStaleFingerprintIsStaleCook",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_CookedAssets_AStaleFingerprintIsStaleCook::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_cookedassets;
+
+    auto Baked = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
+    { return false; }
+
+    auto* Index = Make_CookedIndexFor(Baked, Make_CookedTilesFor(Baked));
+
+    if (NOT TestTrue(TEXT("the cooked index asset was created"), ck::IsValid(Index)))
+    { return false; }
+
+    auto Loaded = FCk_GroundNav_Field{};
+    Loaded._Params._MinZUu = -12345.0f;
+
+    // The volume's inputs have moved since the cook: the tiles describe ground baked under something
+    // else, and reading them would answer about a world that is no longer there.
+    const auto Status = Try_LoadCookedField(
+        *Index, kFixtureLevelPackage, kFixtureCookKey, Baked._Params, kFixtureInputFingerprint + 1, Loaded);
+
+    TestTrue(FString::Printf(TEXT("an index whose fingerprint names other inputs is stale [%s]"),
+        *Get_CookStatusName(Status)), Status == ECk_GroundNav_CookStatus::StaleCook);
+
+    TestTrue(TEXT("and the caller's field is left exactly as it was, so a fallback has something to fall back to"),
+        Loaded._Params._MinZUu == -12345.0f && Loaded._Tiles.IsEmpty());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_CookedAssets_AnIncompatibleFormatIsStaleCook,
+    "CkTests.UnitTests.CkGroundNav.CookedAssets.AnIncompatibleFormatIsStaleCook",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_CookedAssets_AnIncompatibleFormatIsStaleCook::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_cookedassets;
+
+    auto Baked = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
+    { return false; }
+
+    auto* Index = Make_CookedIndexFor(Baked, Make_CookedTilesFor(Baked));
+
+    if (NOT TestTrue(TEXT("the cooked index asset was created"), ck::IsValid(Index)))
+    { return false; }
+
+    // Refused on the INDEX alone, before a tile is resolved: a whole cooked field written under a
+    // format this reader does not speak is judged without paying to load the assets it names.
+    Index->Set_FormatVersion(kFieldBlobFormatVersion + 1);
+
+    auto Loaded = FCk_GroundNav_Field{};
+
+    const auto Status = Try_LoadCookedField(
+        *Index, kFixtureLevelPackage, kFixtureCookKey, Baked._Params, kFixtureInputFingerprint, Loaded);
+
+    TestTrue(FString::Printf(TEXT("an index written under another format version is stale [%s]"),
+        *Get_CookStatusName(Status)), Status == ECk_GroundNav_CookStatus::StaleCook);
+
+    TestTrue(TEXT("and nothing was composed"), Loaded._Tiles.IsEmpty());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_CookedAssets_AMissingTileIsStaleCook,
+    "CkTests.UnitTests.CkGroundNav.CookedAssets.AMissingTileIsStaleCook",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_CookedAssets_AMissingTileIsStaleCook::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_cookedassets;
+
+    auto Baked = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
+    { return false; }
+
+    auto Tiles = Make_CookedTilesFor(Baked);
+
+    if (NOT TestTrue(TEXT("the fixture cooked at least one tile"), NOT Tiles.IsEmpty()))
+    { return false; }
+
+    // A tile the cook wrote and something has since deleted or renamed. The index is describing a
+    // field that is not there, and a partial field is not a smaller field — it is ground reported as
+    // unbuilt that the cook says is walkable.
+    Tiles[0] = TSoftObjectPtr<UCk_GroundNav_CookedTile_UE>{};
+
+    auto* Index = Make_CookedIndexFor(Baked, Tiles);
+
+    if (NOT TestTrue(TEXT("the cooked index asset was created"), ck::IsValid(Index)))
+    { return false; }
+
+    auto Loaded = FCk_GroundNav_Field{};
+
+    const auto Status = Try_LoadCookedField(
+        *Index, kFixtureLevelPackage, kFixtureCookKey, Baked._Params, kFixtureInputFingerprint, Loaded);
+
+    TestTrue(FString::Printf(TEXT("an index naming a tile that resolves to nothing is stale [%s]"),
+        *Get_CookStatusName(Status)), Status == ECk_GroundNav_CookStatus::StaleCook);
+
+    TestTrue(TEXT("and no partially composed field reaches the caller"), Loaded._Tiles.IsEmpty());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_CookedAssets_ATruncatedTileBlobIsStaleCook,
+    "CkTests.UnitTests.CkGroundNav.CookedAssets.ATruncatedTileBlobIsStaleCook",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_CookedAssets_ATruncatedTileBlobIsStaleCook::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_cookedassets;
+
+    auto Baked = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
+    { return false; }
+
+    const auto Tiles = Make_CookedTilesFor(Baked);
+
+    if (NOT TestTrue(TEXT("the fixture cooked at least one tile"), NOT Tiles.IsEmpty()))
+    { return false; }
+
+    auto* FirstTile = Tiles[0].Get();
+
+    if (NOT TestTrue(TEXT("the first cooked tile resolves"), ck::IsValid(FirstTile)))
+    { return false; }
+
+    auto TruncatedBlob = FirstTile->Get_Blob();
+
+    if (NOT TestTrue(TEXT("the cooked blob is long enough to truncate"), TruncatedBlob.Num() > 2))
+    { return false; }
+
+    TruncatedBlob.SetNum(TruncatedBlob.Num() / 2);
+    FirstTile->Set_Blob(TruncatedBlob);
+
+    auto* Index = Make_CookedIndexFor(Baked, Tiles);
+
+    if (NOT TestTrue(TEXT("the cooked index asset was created"), ck::IsValid(Index)))
+    { return false; }
+
+    auto Loaded = FCk_GroundNav_Field{};
+
+    // The serializer's own refusal, reported as the one thing it means to a caller about to fall back.
+    // A blob that ends before its tile does cannot be half-read: the members after the cut would come
+    // out of whatever bytes followed.
+    const auto Status = Try_LoadCookedField(
+        *Index, kFixtureLevelPackage, kFixtureCookKey, Baked._Params, kFixtureInputFingerprint, Loaded);
+
+    TestTrue(FString::Printf(TEXT("a tile whose blob ends early is stale [%s]"),
+        *Get_CookStatusName(Status)), Status == ECk_GroundNav_CookStatus::StaleCook);
+
+    TestTrue(TEXT("and no partially composed field reaches the caller"), Loaded._Tiles.IsEmpty());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_CookedAssets_ATileAssetFromAnotherBakeIsStaleCook,
+    "CkTests.UnitTests.CkGroundNav.CookedAssets.ATileAssetFromAnotherBakeIsStaleCook",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_CookedAssets_ATileAssetFromAnotherBakeIsStaleCook::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_cookedassets;
+
+    auto Baked = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
+    { return false; }
+
+    const auto Tiles = Make_CookedTilesFor(Baked);
+
+    if (NOT TestTrue(TEXT("the fixture cooked at least one tile"), NOT Tiles.IsEmpty()))
+    { return false; }
+
+    auto* FirstTile = Tiles[0].Get();
+
+    if (NOT TestTrue(TEXT("the first cooked tile resolves"), ck::IsValid(FirstTile)))
+    { return false; }
+
+    // The INDEX still names the bake the caller asked for, so nothing the index carries is wrong; one
+    // tile beside it came out of another one. Its blob reads perfectly - the format, the lattice and
+    // the coord all agree - and its cells describe ground baked under inputs that have since moved.
+    // Nothing but this comparison can tell.
+    FirstTile->Set_Fingerprint(kFixtureInputFingerprint + 1);
+
+    auto* Index = Make_CookedIndexFor(Baked, Tiles);
+
+    if (NOT TestTrue(TEXT("the cooked index asset was created"), ck::IsValid(Index)))
+    { return false; }
+
+    auto Loaded = FCk_GroundNav_Field{};
+
+    const auto Status = Try_LoadCookedField(
+        *Index, kFixtureLevelPackage, kFixtureCookKey, Baked._Params, kFixtureInputFingerprint, Loaded);
+
+    TestTrue(FString::Printf(TEXT("a tile cooked from another bake than the index it is listed in is stale [%s]"),
+        *Get_CookStatusName(Status)), Status == ECk_GroundNav_CookStatus::StaleCook);
+
+    TestTrue(TEXT("and no partially composed field reaches the caller"), Loaded._Tiles.IsEmpty());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_CookedAssets_ATileAssetOfAnotherLatticeIsStaleCook,
+    "CkTests.UnitTests.CkGroundNav.CookedAssets.ATileAssetOfAnotherLatticeIsStaleCook",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_CookedAssets_ATileAssetOfAnotherLatticeIsStaleCook::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_cookedassets;
+
+    auto Baked = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
+    { return false; }
+
+    const auto Tiles = Make_CookedTilesFor(Baked);
+
+    if (NOT TestTrue(TEXT("the fixture cooked at least one tile"), NOT Tiles.IsEmpty()))
+    { return false; }
+
+    auto* FirstTile = Tiles[0].Get();
+
+    if (NOT TestTrue(TEXT("the first cooked tile resolves"), ck::IsValid(FirstTile)))
+    { return false; }
+
+    // A lattice the index does not share. The asset's own claim, judged against the collection that
+    // lists it: a tile produced on another division carries tile-local indices that name other cells,
+    // and the blob would place them over ground it was never baked from.
+    FirstTile->Set_LatticeKey(Make_LatticeKey());
+
+    if (NOT TestTrue(TEXT("the fixture lattice differs from the baked field's, or this pins nothing"),
+        NOT (Make_LatticeKey() == Get_CookedLatticeKey(Baked._Params))))
+    { return false; }
+
+    auto* Index = Make_CookedIndexFor(Baked, Tiles);
+
+    if (NOT TestTrue(TEXT("the cooked index asset was created"), ck::IsValid(Index)))
+    { return false; }
+
+    auto Loaded = FCk_GroundNav_Field{};
+
+    const auto Status = Try_LoadCookedField(
+        *Index, kFixtureLevelPackage, kFixtureCookKey, Baked._Params, kFixtureInputFingerprint, Loaded);
+
+    TestTrue(FString::Printf(TEXT("a tile claiming another lattice than the index it is listed in is stale [%s]"),
+        *Get_CookStatusName(Status)), Status == ECk_GroundNav_CookStatus::StaleCook);
+
+    TestTrue(TEXT("and no partially composed field reaches the caller"), Loaded._Tiles.IsEmpty());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_CookedAssets_AnIndexForAnotherKeyIsStaleCook,
+    "CkTests.UnitTests.CkGroundNav.CookedAssets.AnIndexForAnotherKeyIsStaleCook",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_CookedAssets_AnIndexForAnotherKeyIsStaleCook::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_cookedassets;
+
+    auto Baked = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
+    { return false; }
+
+    auto* Index = Make_CookedIndexFor(Baked, Make_CookedTilesFor(Baked));
+
+    if (NOT TestTrue(TEXT("the cooked index asset was created"), ck::IsValid(Index)))
+    { return false; }
+
+    // A cooked asset is reached by PATH and by nothing else, so the asset that answers a lookup is not
+    // necessarily the one that path names: an index moved, renamed or copied from another level would
+    // load, and every check below it would pass, because it is internally consistent about a volume
+    // nobody asked about. It says which level and which volume it was written for.
+    auto LoadedForAnotherVolume = FCk_GroundNav_Field{};
+
+    const auto OtherKeyStatus = Try_LoadCookedField(
+        *Index, kFixtureLevelPackage, FName{TEXT("SecondVolume")}, Baked._Params,
+        kFixtureInputFingerprint, LoadedForAnotherVolume);
+
+    TestTrue(FString::Printf(TEXT("an index written for another volume's cook key is stale [%s]"),
+        *Get_CookStatusName(OtherKeyStatus)), OtherKeyStatus == ECk_GroundNav_CookStatus::StaleCook);
+
+    TestTrue(TEXT("and nothing was composed for the volume that asked"), LoadedForAnotherVolume._Tiles.IsEmpty());
+
+    auto LoadedForAnotherLevel = FCk_GroundNav_Field{};
+
+    const auto OtherLevelStatus = Try_LoadCookedField(
+        *Index, FName{TEXT("/Game/Maps/OtherMap")}, kFixtureCookKey, Baked._Params,
+        kFixtureInputFingerprint, LoadedForAnotherLevel);
+
+    TestTrue(FString::Printf(TEXT("an index cooked from another level package is stale [%s]"),
+        *Get_CookStatusName(OtherLevelStatus)), OtherLevelStatus == ECk_GroundNav_CookStatus::StaleCook);
+
+    TestTrue(TEXT("and nothing was composed for the level that asked"), LoadedForAnotherLevel._Tiles.IsEmpty());
+
+    auto Loaded = FCk_GroundNav_Field{};
+
+    const auto MatchingStatus = Try_LoadCookedField(
+        *Index, kFixtureLevelPackage, kFixtureCookKey, Baked._Params, kFixtureInputFingerprint, Loaded);
+
+    TestTrue(FString::Printf(TEXT("and the identity it WAS written for still loads [%s]"),
+        *Get_CookStatusName(MatchingStatus)), MatchingStatus == ECk_GroundNav_CookStatus::Cooked);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_CookedAssets_ALoadComposesOnce,
+    "CkTests.UnitTests.CkGroundNav.CookedAssets.ALoadComposesOnce",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_CookedAssets_ALoadComposesOnce::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_cookedassets;
+
+    auto Baked = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
+    { return false; }
+
+    auto* Index = Make_CookedIndexFor(Baked, Make_CookedTilesFor(Baked));
+
+    if (NOT TestTrue(TEXT("the cooked index asset was created"), ck::IsValid(Index)))
+    { return false; }
+
+    auto Loaded = FCk_GroundNav_Field{};
+
+    const auto Status = Try_LoadCookedField(
+        *Index, kFixtureLevelPackage, kFixtureCookKey, Baked._Params, kFixtureInputFingerprint, Loaded);
+
+    if (NOT TestTrue(FString::Printf(TEXT("the cooked field loads [%s]"),
+        *Get_CookStatusName(Status)), Status == ECk_GroundNav_CookStatus::Cooked))
+    { return false; }
+
+    // HOW MANY compositions ran is not observable — the serializer exposes no counter and inventing
+    // one to be asserted would be the test writing the code it is testing. What IS observable is that
+    // the ONE composition the tile-by-tile load defers to produces exactly the field a whole-field
+    // blob's single composition does: the seam portals above all, which are the derived array a
+    // per-tile composition would have rebuilt N times and kept only the last answer of.
+    auto WholeFieldBlob = TArray<uint8>{};
+    Write_Field(Baked, WholeFieldBlob);
+
+    auto ReadWhole = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the whole-field blob reads back"),
+        Read_Field(WholeFieldBlob, ReadWhole) == ECk_GroundNav_LoadStatus::Loaded))
+    { return false; }
+
+    TestEqual(TEXT("the deferred-composition load derives the same number of seam portals"),
+        Loaded._SeamPortals.Num(), ReadWhole._SeamPortals.Num());
+
+    // The open bodies are the one array the two forms legitimately differ in: a whole-field blob
+    // carries the bake's report and a per-tile one carries none.
+    ReadWhole._OpenBodies.Reset();
+
+    const auto Difference = Get_FirstFieldDifference(
+        ReadWhole, Loaded, EPolicyComparison::Include, EEpochComparison::Exclude);
+
+    TestTrue(FString::Printf(TEXT("and every other derived array with it [%s]"), *Difference),
+        Difference.IsEmpty());
 
     return true;
 }
