@@ -20,6 +20,89 @@
 // usually the layer-update gate not picking up parent's Transform_Updated.
 //============================================================================
 
+// The timer-driven assertions below establish eventual propagation. This probe
+// separately observes the leaf after Transform_Finalize in the producer's exact
+// frame, before the scheduler's global pump can repair a missed local settle.
+struct FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameResult
+{
+    bool Completed = false;
+    bool Succeeded = false;
+    int64 StimulusFrame = -1;
+    int64 ProbeFrame = -1;
+
+    FCk_Handle_Transform Root;
+    FCk_Handle_Transform Grandchild;
+    FTransform TargetRootTransform;
+    FTransform ExpectedGrandchildTransform;
+    FTransform ActualGrandchildTransform;
+}
+
+struct FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameProducerMarker {}
+struct FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameProbeMarker {}
+
+class UCk_TESTONLY_Processor_SceneNodeDeepHierarchy_ExactFrameProducer : UCk_Processor_Script_Base_UE
+{
+    default _Group = n"FGroup_Gameplay_TimeDelta";
+
+    UFUNCTION(BlueprintOverride)
+    void Configure(FCk_ScriptProcessorQuery& Query)
+    {
+        Query.Require(FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameProducerMarker);
+        Query.Require(FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameResult);
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void ForEachBatch(FCk_ScriptQueryBatch Batch, FCk_Time InDeltaT)
+    {
+        for (int32 Index = 0; Index < Batch.Num(); ++Index)
+        {
+            auto Entity = Batch.GetHandle(Index);
+            auto& Result = Entity.Get_Fragment(FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameResult);
+            if (Result.StimulusFrame >= 0)
+            { continue; }
+
+            Result.StimulusFrame = utils_time::Get_FrameCounter();
+            utils_transform::Request_SetTransform(Result.Root, Result.TargetRootTransform);
+            Entity.Request_TryRemove(FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameProducerMarker);
+        }
+    }
+}
+
+class UCk_TESTONLY_Processor_SceneNodeDeepHierarchy_ExactFrameProbe : UCk_Processor_Script_Base_UE
+{
+    default _Group = n"FGroup_Gameplay_Camera";
+    default _MarkedDirtyBy = FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameProbeMarker;
+
+    UFUNCTION(BlueprintOverride)
+    void Configure(FCk_ScriptProcessorQuery& Query)
+    {
+        Query.Require(FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameProbeMarker);
+        Query.Require(FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameResult);
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void ForEachBatch(FCk_ScriptQueryBatch Batch, FCk_Time InDeltaT)
+    {
+        for (int32 Index = 0; Index < Batch.Num(); ++Index)
+        {
+            auto Entity = Batch.GetHandle(Index);
+            auto& Result = Entity.Get_Fragment(FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameResult);
+            if (Result.Completed || Result.StimulusFrame < 0)
+            { continue; }
+
+            Result.Succeeded = ck::IsValid(Result.Root) && ck::IsValid(Result.Grandchild);
+            if (Result.Succeeded)
+            {
+                Result.ActualGrandchildTransform = utils_transform::Get_EntityCurrentTransform(Result.Grandchild);
+            }
+
+            Result.ProbeFrame = utils_time::Get_FrameCounter();
+            Result.Completed = true;
+            Entity.Request_TryRemove(FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameProbeMarker);
+        }
+    }
+}
+
 class UCk_AutoTest_SceneNode_DeepHierarchy : UCk_AutoTest_Base
 {
     private const FVector ChildLocalLocation = FVector(120.0f, 0.0f, 0.0f);
@@ -110,9 +193,76 @@ class UCk_AutoTest_SceneNode_DeepHierarchy : UCk_AutoTest_Base
         {
             // Child offset rotation must propagate to grandchild even though root hasn't moved this step.
             AssertChainComposesTo(RootRotationDelta, ChildOffsetRotation, "After child offset rotation");
-            FinishSuccess();
+            if (IsFinished())
+            { return; }
+
+            Arm_ExactFrameProbe();
+            _Step = 4;
             return;
         }
+    }
+
+    private void Arm_ExactFrameProbe()
+    {
+        auto& Result = TestEntity.AddOrGet_Fragment(
+            FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameResult);
+        Result.Completed = false;
+        Result.Succeeded = false;
+        Result.StimulusFrame = -1;
+        Result.ProbeFrame = -1;
+        Result.Root = RootTransform;
+        Result.Grandchild = GrandchildTransform;
+        Result.TargetRootTransform = FTransform(
+            FRotator(0.0f, -45.0f, 0.0f),
+            FVector(725.0f, -330.0f, 45.0f),
+            FVector::OneVector);
+
+        const auto ChildLocal = FTransform(
+            ChildOffsetRotation, ChildLocalLocation, FVector::OneVector);
+        const auto GrandchildLocal = FTransform(
+            FRotator::ZeroRotator, GrandchildLocalLocation, FVector::OneVector);
+        Result.ExpectedGrandchildTransform = GrandchildLocal * (ChildLocal * Result.TargetRootTransform);
+
+        TestEntity.AddOrGet_Fragment(
+            FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameProducerMarker);
+        TestEntity.AddOrGet_Fragment(
+            FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameProbeMarker);
+        WaitUntil(n"Check_ExactFrameProbe", n"OnExactFrameProbe");
+    }
+
+    UFUNCTION()
+    private void Check_ExactFrameProbe(
+        FCk_Handle InHandle,
+        FCk_SharedBool OutResult,
+        FInstancedStruct InPayload)
+    {
+        auto Result = OutResult;
+        if (TestEntity.Has_Fragment(FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameResult) == false)
+        { Result.Set(false); return; }
+
+        Result.Set(TestEntity.Get_Fragment(
+            FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameResult).Completed);
+    }
+
+    UFUNCTION()
+    private void OnExactFrameProbe(
+        FCk_Handle_Timer InTimer,
+        FCk_Chrono InChrono,
+        FCk_Time InDeltaT)
+    {
+        if (IsFinished())
+        { return; }
+
+        const auto& Result = TestEntity.Get_Fragment(
+            FCk_Fragment_TESTONLY_SceneNodeDeepHierarchy_ExactFrameResult);
+        Assert_True(Result.Succeeded,
+            "Exact-frame SceneNode probe must resolve the root and grandchild handles");
+        Assert_True(Result.ProbeFrame == Result.StimulusFrame,
+            f"Grandchild must settle before the global pump in the stimulus frame; stimulus [{Result.StimulusFrame}], probe [{Result.ProbeFrame}]");
+        Assert_True(Result.ActualGrandchildTransform.Equals(
+            Result.ExpectedGrandchildTransform, PositionToleranceCm),
+            f"Grandchild must equal the composed target root in the stimulus frame; expected [{Result.ExpectedGrandchildTransform}], actual [{Result.ActualGrandchildTransform}]");
+        FinishSuccess();
     }
 
     private void AssertChainComposesTo(
