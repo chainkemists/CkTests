@@ -21,12 +21,16 @@
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Processor.h"
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
 #include "CkEcs/Request/CkRequest_Completion.h"
+#include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
 #include "CkEcs/World/CkEcsWorld.h"
 
 #include "CkGroundNav/Volume/CkGroundNavVolume_Processor.h"
 #include "CkGroundNav/Volume/CkGroundNavVolume_Utils.h"
 
 #include "CkNavigation/NavSurface/CkNavSurface_AreaPolicy.h"
+#include "CkNavigation/NavSurface/CkNavSurface_Fragment.h"
+#include "CkNavigation/NavSurface/CkNavSurface_Processor.h"
+#include "CkNavigation/NavSurface/CkNavSurface_Utils.h"
 
 #include "CkShapes/Box/CkShapeBox_Fragment_Data.h"
 #include "CkShapes/Capsule/CkShapeCapsule_Fragment_Data.h"
@@ -34,6 +38,7 @@
 #include "../CkTest_CompletionListener.h"
 #include "../CkUnitTest_Common.h"
 
+#include <Engine/World.h>
 #include <NativeGameplayTags.h>
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -49,6 +54,10 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Test_GroundNav_Markup_Unpublished, "Ck.Test.Gr
 namespace ck_test_groundnav_markup
 {
     constexpr auto kSixtyHertz = 1.0f / 60.0f;
+
+    // A probe world nothing else has to know about: the engine is deliberately not told, so the world
+    // never enters a global list a later test could trip over.
+    constexpr auto kInformEngineOfWorld = false;
 
     // Distinctly not 1.0, so "the multiplier came from the policy" cannot pass on the record's default.
     constexpr auto kSlowCostMultiplier = 3.5f;
@@ -907,6 +916,77 @@ bool FCkTest_GroundNav_Repair_RegionDuringABuildWaitsForItsPublish::RunTest(cons
     TestFalse(TEXT("and marks no dirty ground"),
         UCk_Utils_GroundNavVolume_UE::Get_PendingDirtyBounds(QuietVolume).IsValid != 0);
 
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Markup_PaintOutsideEveryVolumeIsRefusedQuietly,
+    "CkTests.UnitTests.CkGroundNav.Volume.Markup_PaintOutsideEveryVolumeIsRefusedQuietly",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Markup_PaintOutsideEveryVolumeIsRefusedQuietly::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_markup;
+
+    // There is deliberately NO AddExpectedError here, and that absence is the assertion: a paint the
+    // provider has no ground for used to ensure, and the crowd raises one under every standing body,
+    // so a world whose volumes cover part of a level fired one per body per repaint. The harness
+    // escalating an ensure is what fails this test if the refusal ever becomes loud again.
+    DoRegister_TestAreaPolicies();
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, kInformEngineOfWorld, TEXT("CkGroundNavMarkupOutside"));
+
+    if (NOT TestTrue(TEXT("the probe world was created"), World != nullptr))
+    { return false; }
+
+    auto* EcsWorld = World->GetSubsystem<UCk_EcsWorld_Subsystem_UE>();
+
+    if (NOT TestTrue(TEXT("the probe world carries an ECS registry"), EcsWorld != nullptr))
+    {
+        World->DestroyWorld(kInformEngineOfWorld);
+        return false;
+    }
+
+    UCk_Utils_NavSurface_UE::Request_SetProvider(World, ECk_NavSurface_Provider::GroundNav);
+
+    const auto Listener = Make_Listener();
+
+    // Real bounds, so the shape is not what refuses it - and no ground-nav volume anywhere in this
+    // world, so no volume can be the one that holds it.
+    auto Request = FCk_Request_NavSurface_AreaMarkup{
+        Make_Box(FVector{100.0}), TAG_Test_GroundNav_Markup_Slow.GetTag()};
+    Request.Set_WorldTransform(FTransform{FVector{5000.0, 5000.0, 0.0}});
+
+    auto Markup = UCk_Utils_NavSurface_UE::Request_AreaMarkup(
+        World, Request, Make_Delegate(Listener.Get()));
+
+    if (NOT TestTrue(TEXT("the paint hands back a markup entity"), ck::IsValid(Markup)))
+    {
+        World->DestroyWorld(kInformEngineOfWorld);
+        return false;
+    }
+
+    ck::FProcessor_NavSurfaceMarkup_HandleRequests{EcsWorld->Get_Registry()}.ForEachEntity(
+        FCk_Time{kSixtyHertz},
+        Markup,
+        Markup.Get<ck::FFragment_NavSurfaceMarkup_Requests>(),
+        Markup.Get<ck::FFragment_NavSurfaceMarkup_Current>());
+
+    TestEqual(TEXT("the paint is answered exactly once"),
+        Listener->_TimesRequestCompleted, 1);
+
+    TestTrue(TEXT("with the provider's no-surface answer - there is no ground here to record it on"),
+        Listener->_LastRequestResult == ECk_Request_OperationResult::Failed);
+
+    TestTrue(TEXT("the markup handle is still valid - a refusal destroys nothing the caller holds"),
+        ck::IsValid(Markup));
+
+    TestFalse(TEXT("and it is not live, which is the whole of what a consumer reads"),
+        UCk_Utils_NavSurface_UE::Get_IsMarkupLive(Markup));
+
+    World->DestroyWorld(kInformEngineOfWorld);
     return true;
 }
 
