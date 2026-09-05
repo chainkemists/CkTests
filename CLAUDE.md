@@ -194,6 +194,10 @@ BusterBlock (one known host) drives builds and runs through its UnrealToolbox; o
 their own. Full runbooks, test anatomy, and evidence rules: the **`ck-tests-authoring-and-running`
 skill** (this plugin's `.claude/skills/` - authored in campaign Phase 2).
 
+Offline log tooling lives in `Tools/`: `shadow_report.py` folds a run's `[SHADOW-CMP]` lines
+into an offline shadow table (`offline-aggregate=1` — NOT the in-world `schema=1` table), and
+`--check` re-derives that table and byte-compares it.
+
 ### Running tests INSIDE an already-open editor (the CkTestsBridge live path)
 
 Since 2026-07-25 a host driver can run automation **in a resident editor instead of booting a fresh
