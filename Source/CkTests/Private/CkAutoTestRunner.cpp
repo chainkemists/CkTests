@@ -218,6 +218,34 @@ auto
 
 auto
     ACk_AutoTestRunner::
+    IsReady_Implementation()
+    -> bool
+{
+    // AFunctionalTest::Tick zeroes TotalTime in StartTest, and StartTest fires on the first tick
+    // where this returns true. The base returns true unconditionally, which for THIS runner is
+    // wrong twice over:
+    //
+    //   1. PrepareTest only REQUESTS the AS test entity - Request_SpawnEntity is deferred and the
+    //      handle arrives later via OnRunnerConstructed. Starting the clock before then charges the
+    //      spawn latency to the test's declared _TimeoutSeconds, silently shortening every test's
+    //      real runway by an amount nobody declared and nobody can see.
+    //   2. It makes the skew between the engine's clock and the AS base's own deadline unbounded.
+    //      UCk_AutoTest_Base arms that deadline in DoConstruct at 0.9 * _TimeoutSeconds precisely so
+    //      it fires FIRST and the failure routes through the AS finish path (which drains
+    //      Track_ForCleanup's out-of-subtree owners and restores the test's CVar overrides - the
+    //      engine timeout path does neither). A 10% margin is only a margin if the two clocks start
+    //      together; gate the engine's on the same event the AS one is armed by and they do.
+    //
+    // A spawn that never completes is covered by PreparationTimeLimit (engine default 15s) and
+    // reports as "Test preparation timed out", which is a strictly better diagnosis than the test
+    // timeout it used to arrive as.
+    return ck::IsValid(_RunnerEntity);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    ACk_AutoTestRunner::
     OnRunnerConstructed(
         FCk_Handle_EntityScript InEntityScriptHandle)
     -> void
