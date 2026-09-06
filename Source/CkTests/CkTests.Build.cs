@@ -9,6 +9,13 @@ public class CkTests : CkModuleRules
             // ... add other private include paths required here ...
         });
 
+        PrivateDependencyModuleNames.AddRange(new string[]
+        {
+            // The layout lifecycle fixture creates and activates CommonUI widgets directly.
+            "UMG",
+            "CommonUI",
+        });
+
         PublicDependencyModuleNames.AddRange(new string[]
         {
             "Core",
@@ -108,6 +115,7 @@ public class CkTests : CkModuleRules
             "CkTargeting",
             "CkTimer",
             "CkWidgets",
+            "CkUI",
             "CkUICore",
             "CkUnrealComponent",
             "CkUsf",
