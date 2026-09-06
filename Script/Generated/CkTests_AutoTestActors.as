@@ -3711,18 +3711,6 @@ class ACk_AutoTest_Grid_TagFilterForbidden_Actor : ACk_AutoTestRunner
     }
 }
 
-class ACk_AutoTest_GymControlPanel_NumberedShiftShortcuts_Actor : ACk_AutoTestRunner
-{
-    UFUNCTION(BlueprintOverride)
-    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
-    {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GymControlPanel_NumberedShiftShortcuts");
-        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
-        ResolvedClass = Path.TryLoadClass();
-        return ResolvedClass;
-    }
-}
-
 class ACk_AutoTest_GroundNav_Cook_MissingCookBakesAtRuntime_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 120.0f;
@@ -4029,6 +4017,18 @@ class ACk_AutoTest_GroundNav_VolumeBakesThroughARequest_Actor : ACk_AutoTestRunn
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_VolumeBakesThroughARequest");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GymControlPanel_NumberedShiftShortcuts_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GymControlPanel_NumberedShiftShortcuts");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
