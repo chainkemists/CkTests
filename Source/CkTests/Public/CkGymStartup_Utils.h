@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 
+#include "CkGym_ControlPanelTypes.h"
 #include "CkGym_StartupSettings.h"
 
 #include <Kismet/BlueprintFunctionLibrary.h>
@@ -36,6 +37,17 @@ public:
     static void
     Request_Set_StartupMode(
         ECkGym_StartupMode InMode);
+
+    UFUNCTION(BlueprintPure, Category = "Ck|Utils|GymStartup",
+              DisplayName = "[Ck][GymStartup] Get ControlPanelMode")
+    static ECkGym_ControlPanel_Mode
+    Get_ControlPanelMode();
+
+    UFUNCTION(BlueprintCallable, Category = "Ck|Utils|GymStartup",
+              DisplayName = "[Ck][GymStartup] Set ControlPanelMode")
+    static void
+    Request_Set_ControlPanelMode(
+        ECkGym_ControlPanel_Mode InMode);
 
     UFUNCTION(BlueprintPure, Category = "Ck|Utils|GymStartup",
               DisplayName = "[Ck][GymStartup] Get DefaultGymName")

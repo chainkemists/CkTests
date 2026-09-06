@@ -24,22 +24,35 @@ public:
 
     void Construct(const FArguments& InArgs);
 
-    // InPanelCollapsed = the user's H toggle: rows keep firing, only the drawing collapses to the
-    // reminder chip.
+    // InMode = the user's H cycle: rows keep firing in every mode, only the drawing changes.
+    // InMaxWidth bounds the card, so a long value wraps or clips instead of growing the panel
+    // across the viewport. InRows arrives already filtered for the mode.
     void Refresh(
         const FString& InTitle,
         const TArray<FCkGym_ControlRow>& InRows,
         FVector2D InOffset,
-        bool InPanelCollapsed);
+        float InMaxWidth,
+        ECkGym_ControlPanel_Mode InMode);
 
 private:
+    // The text widths one Refresh derives from the bounded card, handed down so every row wraps
+    // against the same geometry instead of each one re-deriving it.
+    struct FRowWidths
+    {
+        float Content = 0.0f;
+        float Label = 0.0f;
+        float Value = 0.0f;
+    };
+
     // Refresh rebuilds the panel tree, so the outlined brush must outlive the SBorder that paints
     // it. It separates the translucent fill from the opaque outline without a second solid border.
     TOptional<FSlateRoundedBoxBrush> _PanelBackgroundBrush;
 
     auto
     DoBuild_Row(
-        const FCkGym_ControlRow& InRow) -> TSharedRef<SWidget>;
+        const FCkGym_ControlRow& InRow,
+        bool InCompact,
+        const FRowWidths& InWidths) -> TSharedRef<SWidget>;
 
     auto
     DoBuild_KeyChip(

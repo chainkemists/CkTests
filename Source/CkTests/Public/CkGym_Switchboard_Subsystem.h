@@ -115,9 +115,10 @@ public:
     Get_IsOpen() const;
 
     // The gym HUD pushes the control panel's state here every frame; the Slate panel re-renders
-    // only when something changed. InPanelCollapsed = the H toggle (rows keep firing, drawing
-    // collapses to the reminder chip); InFullyHidden = the startup-suppression window (nothing
-    // draws at all).
+    // only when something changed. InMaxWidth bounds the card (the HUD clamps it against the
+    // viewport); InMode is the H cycle (rows keep firing in every mode, only the drawing changes);
+    // InFullyHidden is the startup-suppression window, which is NOT a mode - nothing draws at all
+    // and the user's choice must survive it.
     UFUNCTION(BlueprintCallable, Category = "Ck|Gym|Switchboard",
               DisplayName = "[Ck][GymSwitchboard] Set ControlPanel")
     void
@@ -125,7 +126,8 @@ public:
         const FString& InTitle,
         const TArray<FCkGym_ControlRow>& InRows,
         FVector2D InOffset,
-        bool InPanelCollapsed,
+        float InMaxWidth,
+        ECkGym_ControlPanel_Mode InMode,
         bool InFullyHidden);
 
     auto
@@ -157,6 +159,14 @@ public:
     Build_FilteredRows(
         const TArray<FCkGym_Switchboard_Group>& InGroups,
         const FString& InFilter) -> TArray<FCkGym_Switchboard_Row>;
+
+    // The control panel's Compact mode, as a pure row filter: every Header, every row that carries
+    // a key, and the Status rows that carry a verdict or a warning survive, in declaration order.
+    // What is dropped is the running commentary - a Compact panel answers "what can I press" and
+    // "is anything wrong", nothing else.
+    static auto
+    Build_CompactRows(
+        const TArray<FCkGym_ControlRow>& InRows) -> TArray<FCkGym_ControlRow>;
 
     static auto
     Get_CategoryHue(
@@ -226,7 +236,8 @@ private:
     FString _PanelTitle;
     TArray<FCkGym_ControlRow> _PanelRows;
     FVector2D _PanelOffset = FVector2D::ZeroVector;
-    bool _PanelCollapsed = false;
+    float _PanelMaxWidth = 0.0f;
+    ECkGym_ControlPanel_Mode _PanelMode = ECkGym_ControlPanel_Mode::Full;
     bool _PanelFullyHidden = true;
 
     FCk_Handle_InputLayer _MenuLayer;
