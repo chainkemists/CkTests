@@ -682,6 +682,132 @@ namespace ck_test_groundnav_queryfixtures
         return (2.0 * FMath::Sqrt((ReachX * ReachX) + (ClimbY * ClimbY))) +
             (kTwoDoorDividerMaxX - kTwoDoorDividerMinX);
     }
+
+    // ----------------------------------------------------------------------------------------------------------------
+
+    // The Walk gym's crossing scene, restated as stub geometry.
+    //
+    // Every number below is the gym's own: the 3600 x 2400 slab and the four 150 x 150 x 300 pillars of
+    // Script/CkGroundNav/CkGroundNavGym_Walk_PlayerController.as:16-28, W0's two posts at :65-66, and
+    // the 25 / 10 lattice under the 34 uu / 180 uu body at :85-89. Restated rather than referenced
+    // because the gym spawns actors into a world and this bakes boxes through the stub backend - two
+    // ways of authoring one scene, which is only worth having when the numbers are the same numbers.
+    //
+    // The four pillars straddle the west-east lane at Y 0 by different amounts, so a crossing has to
+    // weave past all of them. Four staggered rectangles on open floor is the shape whose plate
+    // decomposition offers the most rectangle corners that are not obstacle corners.
+
+    // The gym spawns unit boxes scaled 36 x 24 x 2 about a centre at Z -100, so the slab's top face is
+    // the scene's Z 0 and it reaches X +/-1800 and Y +/-1200.
+    inline constexpr auto kFourPillarSlabHalfXUu = 1800.0;
+    inline constexpr auto kFourPillarSlabHalfYUu = 1200.0;
+    inline constexpr auto kFourPillarSlabBottomZ = -200.0;
+
+    // 1.5 x 1.5 x 3.0 unit boxes standing on the slab: 150 wide and 300 tall.
+    inline constexpr auto kFourPillarHalfWidthUu = 75.0;
+    inline constexpr auto kFourPillarTopZ = 300.0;
+
+    // The gym's body. The radius is a QUERY property and never bakes - one field answers every size -
+    // so only the standing height reaches the profile, and the radius is what a query is asked for.
+    inline constexpr auto kFourPillarAgentRadiusUu = 34.0f;
+    inline constexpr auto kFourPillarAgentHalfHeightUu = 90.0f;
+
+    // W0's two posts. The gym stands them at ground + 100, which is where a 180 uu body's CENTRE sits;
+    // a query resolves its ends onto the surface under them within a vertical tolerance, so the route
+    // is stated here at the ground the body stands on rather than at the height its middle occupies.
+    inline constexpr auto kFourPillarPostXUu = 1650.0;
+
+    inline const auto kFourPillarWestPost = FVector{-kFourPillarPostXUu, 0.0, kGroundZ};
+    inline const auto kFourPillarEastPost = FVector{kFourPillarPostXUu, 0.0, kGroundZ};
+
+    /** The four pillar centres in XY, west to east, in the order the gym authors them. */
+    inline auto Get_FourPillarCentresXY() -> TArray<FVector2D>
+    {
+        return TArray<FVector2D>{
+            FVector2D{-900.0, -60.0},
+            FVector2D{-300.0, 120.0},
+            FVector2D{300.0, -100.0},
+            FVector2D{900.0, 80.0}};
+    }
+
+    /**
+     * A field that covers the slab with margin on every side.
+     *
+     * The divisions are not the slab's own footprint on purpose: the slab ENDS inside the field, so its
+     * rim is a boundary run like any other wall and no border cell is answering about the edge of the
+     * fixture instead of the edge of the field. The vertical slab starts at the slab's underside so a
+     * box 200 uu thick is rasterized whole rather than clipped.
+     *
+     * The ledge filter is off for the reason the gym switches it off: at the conservative default a
+     * slab that ends inside the volume loses its entire perimeter.
+     */
+    inline auto Make_FourPillarParams() -> FCk_GroundNav_FieldParams
+    {
+        auto Config = FCk_GroundNav_BakeConfig{kCellSize, kCellHeight};
+        Config.Set_TileSizeUu(kTileSize);
+
+        auto Profile = FCk_GroundNav_AgentProfile{
+            FCk_AnyShape{FCk_ShapeCapsule_Dimensions{
+                kFourPillarAgentHalfHeightUu, kFourPillarAgentRadiusUu}}};
+        Profile.Set_LedgeSensitivity(0.0f);
+        Profile.Set_StepHeightUu(kStepHeight);
+
+        auto Params = FCk_GroundNav_FieldParams{};
+
+        Params._OriginXY = FVector2D{-2000.0, -1600.0};
+        Params._Divisions = FIntPoint{5, 4};
+        Params._MinZUu = static_cast<float>(kFourPillarSlabBottomZ);
+        Params._MaxZUu = kMaxZ;
+        Params._Config = Config;
+        Params._Profile = Profile;
+        Params._MaxClearanceUu = kMaxClearance;
+
+        return Params;
+    }
+
+    inline auto Make_FourPillarSlabScene() -> TArray<FBox>
+    {
+        auto Boxes = TArray<FBox>{};
+
+        Boxes.Emplace(FBox{
+            FVector{-kFourPillarSlabHalfXUu, -kFourPillarSlabHalfYUu, kFourPillarSlabBottomZ},
+            FVector{kFourPillarSlabHalfXUu, kFourPillarSlabHalfYUu, kGroundZ}});
+
+        for (const auto& Centre : Get_FourPillarCentresXY())
+        {
+            Boxes.Emplace(FBox{
+                FVector{
+                    Centre.X - kFourPillarHalfWidthUu,
+                    Centre.Y - kFourPillarHalfWidthUu,
+                    kGroundZ},
+                FVector{
+                    Centre.X + kFourPillarHalfWidthUu,
+                    Centre.Y + kFourPillarHalfWidthUu,
+                    kFourPillarTopZ}});
+        }
+
+        return Boxes;
+    }
+
+    inline auto Bake_FourPillarSlabScene(
+        FCk_GroundNav_Field& OutField) -> bool
+    {
+        return Bake(Make_FourPillarSlabScene(), Make_FourPillarParams(), OutField);
+    }
+
+    /** The same scene held the way a search takes one: by shared pointer, so nothing can take it away. */
+    inline auto Bake_SharedFourPillarSlabScene(
+        ck::groundnav::FCk_GroundNav_FieldPtr& OutField) -> bool
+    {
+        auto Baked = MakeShared<FCk_GroundNav_Field>();
+
+        if (NOT Bake_FourPillarSlabScene(*Baked))
+        { return false; }
+
+        OutField = Baked;
+
+        return true;
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
