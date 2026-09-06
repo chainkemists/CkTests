@@ -99,9 +99,13 @@ graphs - one `UCk_Gym_StepState` subclass per step, dwell gated by `UCk_Gym_Dwel
 displayed sequence cannot drift from what is running. `gym_auto`'s `AutoStep % TotalSteps`
 if-else dispatch is the superseded shape, retained while stations migrate one at a time - its
 `FCk_Message_Gym_AutoSet` is still the shared transport for the `Ck_Gym*_Auto` console toggle. Canonical gym list =
-`Script/Common/CkTests_GymRegistry.as` — **85** `RegisterProjectGym` calls (verified 2026-09-05).
+`Script/Common/CkTests_GymRegistry.as` — **87** `RegisterProjectGym` calls (verified 2026-09-06).
 Multi-station features ship one gym per station on the base grid (CkCrowd, CkJolt, and since
-2026-09-05 CkGroundNav's four), each opening with a live Verdict row.
+2026-09-06 CkGroundNav's six), each opening with a live Verdict row. Five of the GroundNav gyms are
+DEMO gyms on the frame in `Script/CkGroundNav/CkGroundNavGym_Demo.as`: a scene, a volume that builds
+itself, the field drawn under it, walkers patrolling between labelled posts with their routes drawn,
+and a panel of a caption, a Verdict, the gym's one to three keys and T for the picture. The Tuning
+Range is the one dial-the-bake gym.
 Gym scripts are co-located per feature in `Script/<FeatureModule>/` — there is **no**
 `Script/CkGyms/` directory (stale spec claim). Level: `Content/TestGyms/TestGyms_CkTests_Level.umap`.
 In-PIE exec commands (`Script/Common/CkGym_Base_PlayerController.as`): `Ck_Gym_Restart`,
