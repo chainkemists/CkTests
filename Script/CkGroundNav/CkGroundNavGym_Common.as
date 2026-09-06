@@ -465,6 +465,43 @@ namespace CkGroundNavGym
 
         return Text;
     }
+
+    //------------------------------------------------------------------------
+    // The debug picture's draw modes - ck.GroundNav.Debug.Mode 0-7, in the
+    // order Make_DrawSelection maps them. The demo frame's T row reads these.
+    //------------------------------------------------------------------------
+
+    int32 Get_DrawModeCount()
+    { return 8; }
+
+    // ck.GroundNav.Debug.Mode 0-7, in the order Make_DrawSelection maps them.
+    TArray<FString> Get_DrawModeLabels()
+    {
+        auto Labels = TArray<FString>();
+        Labels.Add("0 Plates");
+        Labels.Add("1 Clearance");
+        Labels.Add("2 Layers");
+        Labels.Add("3 Rejected (what the filters threw away)");
+        Labels.Add("4 Portals (the crossings between plates)");
+        Labels.Add("5 Tiles");
+        Labels.Add("6 Boundary (the walkable edge)");
+        Labels.Add("7 Links");
+        return Labels;
+    }
+
+    TArray<FString> Get_DrawModeLegends()
+    {
+        auto Legends = TArray<FString>();
+        Legends.Add("one wireframe box per plate - green = layer 0, blue = layer 1");
+        Legends.Add("one point per cell - BLUE = least room, RED = most (scaled to this bake)");
+        Legends.Add("one point per cell - green = layer 0 (ground), blue = layer 1 (a deck above it)");
+        Legends.Add("RED = cut by the filters, dim grey = what survived");
+        Legends.Add("one line per crossing - BLUE = tightest, RED = widest; a mast marks one that changes floor");
+        Legends.Add("BLUE box per tile, RED = a tile that did not build; thick lines = the seams between tiles");
+        Legends.Add("one run per walkable edge, drawn where the ground stops");
+        Legends.Add("plates plus every link - green traversable, grey disabled, orange an end over unbaked ground, red an end with no ground");
+        return Legends;
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
