@@ -662,3 +662,42 @@ bool FCkTest_GroundNav_Path_MaxMergedTakesTheMaximum::RunTest(const FString& Par
 }
 
 // --------------------------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// The over-shortcut guard, through the PLAN. LCorridor_ThreeWaypointsAllClearOfBoundary above reads
+// Get_Funnelled directly, so a stage inside Get_PathPlan can never fail it; this one runs the same
+// corridor through the whole chain with the shortcut at its default (unbounded) and pins that the
+// route STILL bends exactly once. The L's one corner is a real corner - the chord across it crosses
+// the barrier - and a shortcut that straightened it would be cutting through a wall.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Path_LCorridorPlanStillBendsOnceAfterTheShortcut,
+    "CkTests.UnitTests.CkGroundNav.Path.LCorridor_PlanStillBendsOnceAfterTheShortcut",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Path_LCorridorPlanStillBendsOnceAfterTheShortcut::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathpostprocess;
+
+    auto Field = FCk_GroundNav_FieldPtr{};
+
+    if (NOT TestTrue(TEXT("the L corridor scene bakes"), Bake_SharedLCorridor(Field)))
+    { return false; }
+
+    const auto Bent = Get_Path(Field, Make_PathQuery(kLCorridorStart, kLCorridorGoal, kCorridorRadiusUu));
+
+    if (NOT TestEqual(TEXT("the L corridor answers a route around its corner"),
+        Bent._Status, ECk_GroundNav_PathStatus::Ready))
+    { return false; }
+
+    // Corner offset off and a distant agent, so the only stage with anything to do is the shortcut:
+    // the count that comes out is the funnel's three unless the shortcut removed the real corner.
+    auto Params = Make_PostParams(kCorridorRadiusUu, 0.0f, kDistantAgentLocation);
+
+    const auto Plan = Get_PathPlan(Bent, *Field, Params);
+
+    TestEqual(TEXT("the plan still bends exactly once - the L's corner is a wall, not a plate seam"),
+        Plan._Waypoints.Num(), kBentOnceIsThreeWaypoints);
+
+    return true;
+}
