@@ -1025,6 +1025,20 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //   test you never touched starts failing an assertion that has nothing to do
 //   with your feature. Register every out-of-subtree root with
 //   Track_ForCleanup (see §6) — and NEVER register the channel entity itself.
+//
+//   SINCE 2026-09 THE HARNESS DETECTS THIS AND NAMES YOU. ACk_AutoTestRunner
+//   baselines every owned entity in PrepareTest and diffs at FinishTest; anything
+//   still alive, not already pending-destroy, and not rooted under your runner is
+//   reported by debug name against YOUR test:
+//
+//     LogCkAutoTest_EntityLeaks: [<YourTest>] finished with N entities alive
+//     outside its own lifetime subtree: ...
+//
+//   It WARNS by default and does not destroy anything (auto-destroying would have
+//   to guess about pooled ActorRelay channels, and destroying one of those kills
+//   ActorRelay for every later test in the lane). Set ck.AutoTest.StrictEntityLeaks
+//   to make it FAIL the test instead. If you see your test named there, the fix is
+//   Track_ForCleanup on the root you created — not silencing the report.
 
 // GOTCHA 12 — There is NO working logging channel inside a headless autotest.
 //   Do not waste a run trying to print your way to a diagnosis:
