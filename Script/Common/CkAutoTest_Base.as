@@ -120,6 +120,24 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     UPROPERTY()
     int32 _DefaultWaitFrameBudget = 240;
 
+    // Wall-clock floor a predicate wait cannot fail faster than, however many polls it burned.
+    //
+    // The budget above is a FRAME count and much of what tests wait on is a WALL-CLOCK cadence - a
+    // once-a-second rescan, a settle timer, a day-cycle pulse. At 60 fps the two agree and 240 polls
+    // is the 4 seconds the comment above intends. Headless suites run at 170-250 fps and packaged
+    // ones higher, where 240 polls is under a second, so a step waiting on a 1.0s cadence is declared
+    // stuck before the thing it waits for can fire even once - and it gets WORSE as machines get
+    // faster. Measured: Bb_AutoTest_EmployeeOrders_UnloadLifecycle_ManagerReadopts step 6 waits on
+    // BB_NpcAI_Processor_TaskStationArrival's 1.0s TruckRescanElapsed and is red in every full-suite
+    // log on disk, always with "240 polls (0.4-0.6s)".
+    //
+    // The floor only ever makes a wait MORE patient, never less, and it stays bounded above by the
+    // global _TimeoutSeconds deadline, so the worst case is that a genuinely wedged condition is
+    // reported by that deadline instead - which still names the pending step through
+    // Get_CurrentContextLabel. Raise it per test if a cadence is slower than this.
+    UPROPERTY()
+    float _DefaultWaitMinSeconds = 2.0f;
+
     // ----- Internal state -----
     private FCk_Handle SelfEntity;
     private bool _Finished = false;
@@ -144,6 +162,9 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     private TArray<FCk_AutoTest_Step> _Steps;
     private int32 _CurrentStep = 0;
     private int32 _PollsInStep = 0;
+    // Per-STEP elapsed. _StepsElapsedSeconds below is cumulative across the whole sequence and
+    // drives the global deadline, so it cannot double as the per-step floor.
+    private float _SecondsInStep = 0.0f;
     private bool _StepsRunning = false;
     private float _StepsElapsedSeconds = 0.0f;
     private FCk_Handle_Timer _StepTickTimer;
@@ -232,6 +253,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         _StepsRunning = true;
         _CurrentStep = 0;
         _PollsInStep = 0;
+        _SecondsInStep = 0.0f;
         _StepsElapsedSeconds = 0.0f;
         _StepTickTimer = Do_MakePerFrameTimer(n"INTERNAL__AutoTest_StepTick");
     }
@@ -274,6 +296,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         if (_Finished || _StepsRunning == false) { return; }
 
         _StepsElapsedSeconds += float(InDeltaT.Get_Seconds());
+        _SecondsInStep += float(InDeltaT.Get_Seconds());
 
         if (_CurrentStep >= _Steps.Num())
         {
@@ -316,12 +339,13 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         }
 
         _PollsInStep++;
-        if (_PollsInStep >= Step._FrameBudget)
+        if (_PollsInStep >= Step._FrameBudget && _SecondsInStep >= _DefaultWaitMinSeconds)
         {
             auto Cond = Step._FuncName;
             auto Budget = Step._FrameBudget;
-            auto Elapsed = _StepsElapsedSeconds;
-            FinishFailure(f"condition '{Cond}' never became true within {Budget} polls ({Elapsed :.2}s)");
+            auto Elapsed = _SecondsInStep;
+            auto Floor = _DefaultWaitMinSeconds;
+            FinishFailure(f"condition '{Cond}' never became true within {Budget} polls / {Elapsed :.2}s (floor {Floor :.2}s)");
         }
     }
 
@@ -329,6 +353,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     {
         _CurrentStep++;
         _PollsInStep = 0;
+        _SecondsInStep = 0.0f;
     }
 
     private void Do_InvokeStepAction(const FCk_AutoTest_Step& InStep)
@@ -474,11 +499,13 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         }
 
         _WaitPolls++;
-        if (_WaitPolls >= _WaitBudget)
+        if (_WaitPolls >= _WaitBudget && _WaitElapsedSeconds >= _DefaultWaitMinSeconds)
         {
             auto Cond = _WaitPredicateName;
             auto Budget = _WaitBudget;
-            FinishFailure(f"condition '{Cond}' never became true within {Budget} polls");
+            auto Elapsed = _WaitElapsedSeconds;
+            auto Floor = _DefaultWaitMinSeconds;
+            FinishFailure(f"condition '{Cond}' never became true within {Budget} polls / {Elapsed :.2}s (floor {Floor :.2}s)");
         }
     }
 
