@@ -246,8 +246,10 @@ class UCk_AutoTest_GroundNav_Shadow_ContainmentEscapeIsCounted : UCk_AutoTest_Ba
         // Half the window rather than all of it: the agent is composed on the frame the step runs and
         // the constrain pass only sees it once its own setup has landed, so the first frames belong
         // to the fixture rather than to the producer.
-        Assert_True(_EscapesAfterOutside >= int64(EscapeFrames / 2),
-            f"an agent standing on Recast ground the GroundNav field does not cover is a split verdict every frame, so {EscapeFrames} frames must bank at least {EscapeFrames / 2} escapes (got {_EscapesAfterOutside})");
+        const auto HalfWindow = Math::IntegerDivisionTrunc(EscapeFrames, 2);
+
+        Assert_True(_EscapesAfterOutside >= int64(HalfWindow),
+            f"an agent standing on Recast ground the GroundNav field does not cover is a split verdict every frame, so {EscapeFrames} frames must bank at least {HalfWindow} escapes (got {_EscapesAfterOutside})");
     }
 
     //------------------------------------------------------------------------
