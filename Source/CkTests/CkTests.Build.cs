@@ -14,6 +14,8 @@ public class CkTests : CkModuleRules
             // The layout lifecycle fixture creates and activates CommonUI widgets directly.
             "UMG",
             "CommonUI",
+            "Text3D",
+            "PhysicsCore",
         });
 
         PublicDependencyModuleNames.AddRange(new string[]
