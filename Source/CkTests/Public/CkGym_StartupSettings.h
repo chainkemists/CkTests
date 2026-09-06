@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 
+#include "CkGym_ControlPanelTypes.h"
+
 #include <Engine/DeveloperSettings.h>
 
 #include "CkGym_StartupSettings.generated.h"
@@ -62,6 +64,13 @@ public:
               meta = (DisplayName = "Last Gym Name",
                       Tooltip = "Auto-updated by the cycler on every successful travel. Used when StartupMode = Last."))
     FString LastGymName;
+
+    // The H cycle's last position, so the panel comes back the way the dev left it across PIE
+    // sessions and travels rather than resetting to Full every time a gym loads.
+    UPROPERTY(Config, EditAnywhere, Category = "Gym HUD",
+              meta = (DisplayName = "Control Panel Mode",
+                      Tooltip = "The gym control panel's draw mode, cycled in-game with H."))
+    ECkGym_ControlPanel_Mode ControlPanelMode = ECkGym_ControlPanel_Mode::Full;
 
     UPROPERTY(Config, VisibleAnywhere, Category = "Startup",
               meta = (DisplayName = "Recent Gym Names",

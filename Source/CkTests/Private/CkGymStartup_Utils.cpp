@@ -29,6 +29,29 @@ auto
 
 auto
     UCk_Utils_GymStartup_UE::
+    Get_ControlPanelMode()
+    -> ECkGym_ControlPanel_Mode
+{
+    const auto* Settings = GetDefault<UCkGym_StartupSettings>();
+    return Settings->ControlPanelMode;
+}
+
+auto
+    UCk_Utils_GymStartup_UE::
+    Request_Set_ControlPanelMode(
+        ECkGym_ControlPanel_Mode InMode)
+    -> void
+{
+    auto* Settings = GetMutableDefault<UCkGym_StartupSettings>();
+    if (Settings->ControlPanelMode == InMode)
+    { return; }
+
+    Settings->ControlPanelMode = InMode;
+    Settings->SaveConfig();
+}
+
+auto
+    UCk_Utils_GymStartup_UE::
     Get_DefaultGymName()
     -> FString
 {

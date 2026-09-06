@@ -26,7 +26,7 @@
 //
 // Reserved keys the panel itself owns, which a gym must therefore NOT bind in a row:
 //   Tab - the gym switchboard (UCkGym_Switchboard_Subsystem)
-//   H   - hide/show this panel
+//   H   - cycle this panel: full -> compact -> hidden
 //   LeftShift/RightShift - modifier observation (passed through to movement)
 //
 // Adopting it, in full:

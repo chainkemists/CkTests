@@ -2,6 +2,7 @@
 
 #include "CkEditorTools/Style/CkStyle.h"
 
+#include <Framework/Text/TextLayout.h>
 #include <Widgets/Layout/SBorder.h>
 #include <Widgets/Layout/SBox.h>
 #include <Widgets/SBoxPanel.h>
@@ -14,6 +15,24 @@ namespace ck_gym_control_panel_widget
     // Rows keep their declared order and stable indices, so a disabled row dims rather than
     // disappears - matching the Canvas panel's contract.
     constexpr float DisabledAlpha = 0.45f;
+
+    // The card's own padding, named once so the wrap widths and the SBorder that produces them
+    // cannot drift apart.
+    constexpr float OuterPaddingH = CkStyle::SpaceM + 1.0f;
+    constexpr float OuterPaddingV = CkStyle::SpaceS + 1.0f;
+
+    // A row's fixed furniture, subtracted from the content width to leave the two text columns
+    // their share: the key-chip column, its gutter, the value gutter, and the row's own padding.
+    constexpr float KeyChipWidth = 34.0f;
+    constexpr float RowPaddingH = 2.0f;
+
+    // Compact clips rather than wraps, so its value column needs a ceiling of its own - a wrap
+    // width would let the row grow tall again, which is the thing the mode exists to avoid.
+    constexpr float CompactValueWidth = 420.0f;
+
+    // Floors, so a narrow viewport degrades to a cramped panel instead of a zero-width column.
+    constexpr float MinValueWrapWidth = 140.0f;
+    constexpr float MinLabelWrapWidth = 80.0f;
 
     auto Get_Dimmed(const FLinearColor& InColor, bool InEnabled) -> FLinearColor
     {
@@ -43,13 +62,24 @@ auto
         const FString& InTitle,
         const TArray<FCkGym_ControlRow>& InRows,
         FVector2D InOffset,
-        bool InPanelCollapsed)
+        float InMaxWidth,
+        ECkGym_ControlPanel_Mode InMode)
     -> void
 {
-    if (InPanelCollapsed || InRows.Num() == 0)
+    using namespace ck_gym_control_panel_widget;
+
+    const auto IsHidden = InMode == ECkGym_ControlPanel_Mode::Hidden;
+
+    if (IsHidden || InRows.Num() == 0)
     {
         // Just the reminder chips - either the user hid the panel (rows still fire) or the gym
         // declared no rows (only Tab matters).
+        //
+        // [H] is offered whenever the mode is not Full, which covers the third way to land here:
+        // Compact filtering every row out. Without it the chip would say only [Tab] gyms, and the
+        // way back to a panel the gym does have rows for would be unreachable from the screen.
+        const auto ShowControlsHint = InMode != ECkGym_ControlPanel_Mode::Full;
+
         ChildSlot
         [
             SNew(SBox)
@@ -62,12 +92,23 @@ auto
                 .BorderBackgroundColor(CkStyle::OverlayOf(CkStyle::BgRoot(), 0.85f))
                 .Padding(FMargin{CkStyle::SpaceS, 2.0f})
                 [
-                    DoBuild_HintLine(InPanelCollapsed)
+                    DoBuild_HintLine(ShowControlsHint)
                 ]
             ]
         ];
         return;
     }
+
+    const auto IsCompact = InMode == ECkGym_ControlPanel_Mode::Compact;
+
+    // Every text column wraps at an EXPLICIT width. AutoWrapText is wrong here: the value sits in
+    // an AutoWidth slot under a MaxDesiredWidth box, which has no bounded geometry on the first
+    // layout pass, and auto-wrap oscillates between passes as a result.
+    auto Widths = FRowWidths{};
+    Widths.Content = InMaxWidth - 2.0f * OuterPaddingH;
+    Widths.Value = FMath::Max(MinValueWrapWidth, Widths.Content * 0.45f);
+    Widths.Label = FMath::Max(MinLabelWrapWidth,
+        Widths.Content - KeyChipWidth - CkStyle::SpaceS - CkStyle::SpaceM - Widths.Value - 2.0f * RowPaddingH);
 
     auto Rows = SNew(SVerticalBox);
 
@@ -82,6 +123,7 @@ auto
             [
                 SNew(STextBlock)
                 .Text(FText::FromString(InTitle))
+                .WrapTextAt(Widths.Content)
                 .Font(CkStyle::BoldFont(CkStyle::FontSizeSmall()))
                 .ColorAndOpacity(CkStyle::Text())
             ]
@@ -91,7 +133,7 @@ auto
             .Padding(FMargin{CkStyle::SpaceM, 0.0f, 0.0f, 0.0f})
             [
                 SNew(STextBlock)
-                .Text(FText::FromString(TEXT("[H] hide")))
+                .Text(FText::FromString(IsCompact ? TEXT("[H] hide") : TEXT("[H] compact")))
                 .Font(CkStyle::MonoFont(CkStyle::FontSizeMicro()))
                 .ColorAndOpacity(CkStyle::TextMute())
             ]
@@ -103,7 +145,7 @@ auto
             .AutoHeight()
             .Padding(FMargin{0.0f, Row.Kind == ECkGym_ControlKind::Header ? CkStyle::SpaceS : 1.0f, 0.0f, 1.0f})
             [
-                DoBuild_Row(Row)
+                DoBuild_Row(Row, IsCompact, Widths)
             ];
     }
 
@@ -129,10 +171,14 @@ auto
         [
             SNew(SBorder)
             .BorderImage(&(_PanelBackgroundBrush.GetValue()))
-            .Padding(FMargin{CkStyle::SpaceM + 1.0f, CkStyle::SpaceS + 1.0f})
+            .Padding(FMargin{OuterPaddingH, OuterPaddingV})
             [
+                // The content width, not InMaxWidth: this box sits INSIDE the border's padding, so
+                // ceiling it at InMaxWidth would let the card reach InMaxWidth + 2 * OuterPaddingH -
+                // and it is the same number the text columns wrap at, which is why they agree.
                 SNew(SBox)
                 .MinDesiredWidth(280.0f)
+                .MaxDesiredWidth(Widths.Content)
                 [
                     Rows
                 ]
@@ -146,7 +192,9 @@ auto
 auto
     SCkGym_ControlPanel::
     DoBuild_Row(
-        const FCkGym_ControlRow& InRow)
+        const FCkGym_ControlRow& InRow,
+        bool InCompact,
+        const FRowWidths& InWidths)
     -> TSharedRef<SWidget>
 {
     using namespace ck_gym_control_panel_widget;
@@ -155,6 +203,7 @@ auto
     {
         return SNew(STextBlock)
             .Text(FText::FromString(InRow.Label))
+            .WrapTextAt(InWidths.Content)
             .Font(CkStyle::BoldFont(CkStyle::FontSizeMicro()))
             .ColorAndOpacity(CkStyle::AccentDim());
     }
@@ -168,7 +217,7 @@ auto
         .Padding(FMargin{0.0f, 0.0f, CkStyle::SpaceS, 0.0f})
         [
             SNew(SBox)
-            .MinDesiredWidth(34.0f)
+            .MinDesiredWidth(KeyChipWidth)
             .HAlign(HAlign_Left)
             [
                 DoBuild_KeyChip(InRow)
@@ -183,6 +232,7 @@ auto
         [
             SNew(STextBlock)
             .Text(FText::FromString(InRow.Label))
+            .WrapTextAt(InWidths.Label)
             .Font(IsActiveChoice ? CkStyle::BoldFont(CkStyle::FontSizeSmall()) : CkStyle::RegularFont(CkStyle::FontSizeSmall()))
             .ColorAndOpacity(Get_Dimmed(
                 InRow.Kind == ECkGym_ControlKind::Status ? CkStyle::TextDim()
@@ -197,15 +247,40 @@ auto
             : InRow.Kind == ECkGym_ControlKind::Toggle ? (InRow.Active ? CkStyle::Ok() : CkStyle::TextMute())
             : CkStyle::Accent();
 
+        auto ValueWidget = TSharedPtr<SWidget>{};
+
+        if (InCompact)
+        {
+            // Compact is one line per row - the clipping is what makes the mode scannable - so the
+            // value ellipsizes inside a hard ceiling rather than wrapping and growing the row tall.
+            // The ceiling is the SMALLER of the mode's own cap and the column the card actually has:
+            // the cap is absolute, so on any card narrower than it the value would push the row past
+            // the panel's edge.
+            ValueWidget = SNew(SBox)
+                .MaxDesiredWidth(FMath::Min(CompactValueWidth, InWidths.Value))
+                [
+                    SNew(STextBlock)
+                    .Text(FText::FromString(InRow.Value))
+                    .OverflowPolicy(ETextOverflowPolicy::Ellipsis)
+                    .Font(CkStyle::BoldFont(CkStyle::FontSizeMicro()))
+                    .ColorAndOpacity(Get_Dimmed(ValueColor, InRow.Enabled))
+                ];
+        }
+        else
+        {
+            ValueWidget = SNew(STextBlock)
+                .Text(FText::FromString(InRow.Value))
+                .WrapTextAt(InWidths.Value)
+                .Font(CkStyle::BoldFont(CkStyle::FontSizeMicro()))
+                .ColorAndOpacity(Get_Dimmed(ValueColor, InRow.Enabled));
+        }
+
         Content->AddSlot()
             .AutoWidth()
             .VAlign(VAlign_Center)
             .Padding(FMargin{CkStyle::SpaceM, 0.0f, 0.0f, 0.0f})
             [
-                SNew(STextBlock)
-                .Text(FText::FromString(InRow.Value))
-                .Font(CkStyle::BoldFont(CkStyle::FontSizeMicro()))
-                .ColorAndOpacity(Get_Dimmed(ValueColor, InRow.Enabled))
+                ValueWidget.ToSharedRef()
             ];
     }
 
@@ -214,14 +289,14 @@ auto
         return SNew(SBorder)
             .BorderImage(CkStyle::GetRoundedBrush())
             .BorderBackgroundColor(CkStyle::OverlayOf(CkStyle::Selection(), 0.3f))
-            .Padding(FMargin{2.0f, 1.0f})
+            .Padding(FMargin{RowPaddingH, 1.0f})
             [
                 Content
             ];
     }
 
     return SNew(SBox)
-        .Padding(FMargin{2.0f, 1.0f})
+        .Padding(FMargin{RowPaddingH, 1.0f})
         [
             Content
         ];
