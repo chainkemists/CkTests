@@ -26,9 +26,11 @@
 // picture and the verdict are therefore two readings of ONE profile: turning a dial moves both, and
 // the verdict names the ledge sensitivity it evaluated so a reader can see that it did.
 //
-// Links, repairs, paints, walked routes and no-route probes are NOT here. Each is asked OF a volume
-// rather than of a debug bake, and each now has a gym of its own: GroundNav Links, GroundNav Repair,
-// GroundNav Routing.
+// Links, repairs, paints, walked routes and the provider flip are NOT here. Each is asked OF a volume
+// rather than of a debug bake, and each has a gym of its own: GroundNav Links, GroundNav Dynamic
+// Obstacle, GroundNav Markup, GroundNav Walk, and GroundNav vs Recast. A no-route probe is not a gym
+// of its own - the GroundNav Walk gym's third walker asks for an island across a gap and is refused,
+// which is what one looks like.
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_GroundNavGym_TuningRange_GameMode : ACkTests_Gym_Base_GameMode

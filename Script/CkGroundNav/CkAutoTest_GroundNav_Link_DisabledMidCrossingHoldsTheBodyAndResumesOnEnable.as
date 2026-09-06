@@ -22,8 +22,9 @@
 //----------------------------------------------------------------------------
 //
 //   1. The crossing ENDS. A body whose route was dropped out from under it is
-//      crossing nothing, so Get_IsTraversingLink answers false and the handshake
-//      REPORTS the abandoned crossing rather than dropping it.
+//      crossing nothing, so BOTH Get_IsTraversingLink reads answer false - the
+//      handshake's and the crowd's own, the latter asking after the tag itself -
+//      and the handshake REPORTS the abandoned crossing rather than dropping it.
 //   2. The body does not CLIMB. Its Z never rises above where it stood when the
 //      crossing was interrupted, sampled every frame across the hold window.
 //      FTag_CrowdAgent_TraversingLink is what licenses
@@ -184,7 +185,9 @@ class UCk_AutoTest_GroundNav_Link_DisabledMidCrossingHoldsTheBodyAndResumesOnEna
         Add_Step_WaitUntil("the walker stops",                                 n"Check_WalkerStopped",         SettleFrameBudget);
         Add_Step_WaitUntil("the hold window closes",                           n"Check_HoldWindowClosed",      SettleFrameBudget);
         Add_Step(          "the body held at a ladder end and never climbed",  n"Step_AssertHeldAndGrounded");
-        Add_Step(          "re-enable the ladder and re-ask for the deck",     n"Step_EnableAndRetry");
+        Add_Step(          "re-enable the ladder",                             n"Step_EnableLadder");
+        Add_Step_WaitUntil("the ladder is live again",                         n"Check_LadderLiveAgain",       SettleFrameBudget);
+        Add_Step(          "re-ask for the deck with ForceRepath",             n"Step_RetryToDeck");
         Add_Step_WaitUntil("the surface settles after the re-enable",          n"Check_SurfaceSettled",        SettleFrameBudget);
         Add_Step_WaitUntil("the walker is Walking again",                      n"Check_WalkingAgain",          WalkingFrameBudget);
         Add_Step_WaitUntil("the walker reaches the deck post",                 n"Check_ArrivedAfterResume",    ArrivalFrameBudget);
@@ -552,7 +555,15 @@ class UCk_AutoTest_GroundNav_Link_DisabledMidCrossingHoldsTheBodyAndResumesOnEna
         // Judged from the frame the handshake reported the crossing ENDED, not from the first held
         // frame: the ending is the grounding pass's work, and this timer can sample a frame ahead of
         // it. A tag still standing AFTER the completion fired is the defect this pins.
-        if (_CompletedCount > 0 && utils_nav_surface_link_traversal::Get_IsTraversingLink(_AgentEntity))
+        //
+        // BOTH sides are read, because they are two different facts. The handshake's own state is
+        // already None once the completion this is gated on has fired, so on its own it can only ever
+        // agree with the gate. FTag_CrowdAgent_TraversingLink is the thing that actually licenses
+        // FProcessor_CrowdAgent_ConstrainToNavmesh to stand down, it lives crowd-side, and it is the
+        // one that was left standing in the field.
+        if (_CompletedCount > 0
+            && (utils_nav_surface_link_traversal::Get_IsTraversingLink(_AgentEntity)
+                || utils_crowd_agent::Get_IsTraversingLink(_Agent)))
         { _TraversingDuringHold = true; }
     }
 
@@ -577,7 +588,7 @@ class UCk_AutoTest_GroundNav_Link_DisabledMidCrossingHoldsTheBodyAndResumesOnEna
             f"a correlator names ONE crossing, so the completion must name the crossing Begun announced (completion says {_CrossingEndCorrelator}, Begun said {_FirstBegunCorrelator})");
 
         Assert_True(_TraversingDuringHold == false,
-            "a body with no route is crossing nothing, so Get_IsTraversingLink must answer false on every held frame from the one the crossing was reported ended. FTag_CrowdAgent_TraversingLink is what licenses FProcessor_CrowdAgent_ConstrainToNavmesh to stand its surface walk down AND to report the body on the mesh - left standing on an agent that is not Walking it makes a free 3D body that nothing in the frame is grounding, and Steering, the only thing that can clear it, needs Walking to run.");
+            "a body with no route is crossing nothing, so NEITHER the handshake's Get_IsTraversingLink NOR the crowd's own may answer true on any held frame from the one the crossing was reported ended. The crowd read is the load-bearing one: it asks whether FTag_CrowdAgent_TraversingLink still stands on the agent, and that tag is what licenses FProcessor_CrowdAgent_ConstrainToNavmesh to stand its surface walk down AND to report the body on the mesh - left standing on an agent that is not Walking it makes a free 3D body that nothing in the frame is grounding, and Steering, the only thing that can clear it, needs Walking to run.");
 
         Assert_True(_MaxHoldZ <= InterruptZ + ClimbToleranceUu,
             f"the body must not CLIMB once its crossing is over: it rose to Z {_MaxHoldZ} over {_HeldFrames} held frames from the {InterruptZ} it stood at when the ladder was pulled. Steering aims at the exit waypoint in 3D, and an unconstrained body keeps whatever +Z the ladder gave it.");
@@ -598,15 +609,34 @@ class UCk_AutoTest_GroundNav_Link_DisabledMidCrossingHoldsTheBodyAndResumesOnEna
     // The re-enable
     //------------------------------------------------------------------------
 
+    // The enable and the retry are two STEPS, not two statements, and that is load-bearing. Issued in
+    // one step the MoveTo can be planned before the link derive republishes the ladder, in which case
+    // the deck is still an island, OnGoalFailed fires a second time, and the "exactly one failure"
+    // assertion goes red on processor ordering alone - a scheduling accident wearing the costume of the
+    // defect this file is about. The wait between them names the condition instead of trusting the
+    // order: the enable's own completion has landed AND the surface has settled on it.
     UFUNCTION()
-    private void Step_EnableAndRetry(FCk_Handle InHandle, FInstancedStruct InPayload)
+    private void Step_EnableLadder(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         utils_ground_nav_volume::Request_Link(_Field.Get_OriginVolume(),
             Get_LadderRequest(ECk_EnableDisable::Enable),
             FCk_Delegate_Request_OnCompleted(this, n"OnLinkCompleted"));
 
         _Field.Request_KickSettleCount();
+    }
 
+    // Three link completions - author, disable, enable - is the same threshold OnGoalReached and
+    // OnGoalFailed use to tell this side of the re-enable from the other.
+    UFUNCTION()
+    private void Check_LadderLiveAgain(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_LinkCompletions >= 3 && utils_nav_surface::Get_IsSurfaceSettled());
+    }
+
+    UFUNCTION()
+    private void Step_RetryToDeck(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
         // ForceRepath, exactly as the gym's retry key does: the walker is held on a goal that failed,
         // and the same goal restated is otherwise the deliberate no-op guarding against a noisy
         // re-issuer. This is the one override that clears the failure hold.

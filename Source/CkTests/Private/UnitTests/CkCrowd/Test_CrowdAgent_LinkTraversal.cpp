@@ -146,8 +146,11 @@ namespace ck_tests_crowd_link_traversal
         ck::FFragment_CrowdAgent_PathFollow& InPathFollow,
         int32                                InCursor) -> void
     {
+        // The fixture drives a LIVE route, never one under repair, so a crossing may begin here.
+        constexpr auto MayBeginACrossing = true;
+
         ck::FProcessor_CrowdAgent_Steering::DoDriveLinkTraversalCursor(
-            InTraverser, InPathFollow, InCursor, kWaypointCount);
+            InTraverser, InPathFollow, InCursor, kWaypointCount, MayBeginACrossing);
 
         DoDrain_TraversalRequests(InWorld, InTraverser);
     }

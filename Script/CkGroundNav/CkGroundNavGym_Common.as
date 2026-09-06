@@ -4,7 +4,7 @@
 // GROUNDNAV GYMS - THE SHARED HALF
 //============================================================================
 //
-// Four gyms stand on the same three facts: GroundNav bakes from the JOLT STATIC WORLD and from
+// Five gyms stand on the same three facts: GroundNav bakes from the JOLT STATIC WORLD and from
 // nothing else, a link / a repair / a paint / a walked route is asked OF A VOLUME, and a volume's
 // answers are only worth reading once the surface it published has gone quiet. Everything below is
 // what those three facts cost, written once.
@@ -395,42 +395,6 @@ namespace CkGroundNavGym
         System::ExecuteConsoleCommand(f"ck.GroundNav.LinksAt {Where.X} {Where.Y} {Where.Z}");
     }
 
-    // Reads the DEBUG field, so Request_BakeDebugFieldAt has to have run over the ground this route
-    // crosses: a region bake, or no bake at all, leaves it with nothing to path through.
-    void Request_DrawPathAt(FVector InStart, FVector InGoal)
-    {
-        FVector Start = InStart;
-        FVector Goal = InGoal;
-
-        System::ExecuteConsoleCommand(
-            f"ck.GroundNav.PathAt {Start.X} {Start.Y} {Start.Z} {Goal.X} {Goal.Y} {Goal.Z}");
-    }
-
-    // The console lines a reader can type for themselves, aimed at a point the gym computed. A
-    // hardcoded "0 0 0" would name the world origin, and every gym scene stands wherever
-    // Request_ApplyDefaultGridLayout put its station - so the coordinates are only known at runtime.
-    // Rounded because the line is read by a person rather than parsed back.
-    FString Get_BakeFieldAtCommandText(FVector InWhere)
-    {
-        return "ck.GroundNav.BakeFieldAt " + Get_PointCommandText(InWhere);
-    }
-
-    FString Get_LinksAtCommandText(FVector InWhere)
-    {
-        return "ck.GroundNav.LinksAt " + Get_PointCommandText(InWhere);
-    }
-
-    FString Get_PointCommandText(FVector InWhere)
-    {
-        FVector Where = InWhere;
-
-        const auto X = Math::RoundToInt(float32(Where.X));
-        const auto Y = Math::RoundToInt(float32(Where.Y));
-        const auto Z = Math::RoundToInt(float32(Where.Z));
-
-        return f"{X} {Y} {Z}";
-    }
-
     // Asks the PROVIDER-NEUTRAL facade what is under a point. The search half-extents are the whole
     // discipline of it: a generous Z reaches PAST the surface being asked about and answers with the
     // floor below, which reads as a success and says nothing. Keep the Z tight enough that only the
@@ -488,20 +452,6 @@ namespace CkGroundNavGym
         Labels.Add("7 Links");
         return Labels;
     }
-
-    TArray<FString> Get_DrawModeLegends()
-    {
-        auto Legends = TArray<FString>();
-        Legends.Add("one wireframe box per plate - green = layer 0, blue = layer 1");
-        Legends.Add("one point per cell - BLUE = least room, RED = most (scaled to this bake)");
-        Legends.Add("one point per cell - green = layer 0 (ground), blue = layer 1 (a deck above it)");
-        Legends.Add("RED = cut by the filters, dim grey = what survived");
-        Legends.Add("one line per crossing - BLUE = tightest, RED = widest; a mast marks one that changes floor");
-        Legends.Add("BLUE box per tile, RED = a tile that did not build; thick lines = the seams between tiles");
-        Legends.Add("one run per walkable edge, drawn where the ground stops");
-        Legends.Add("plates plus every link - green traversable, grey disabled, orange an end over unbaked ground, red an end with no ground");
-        return Legends;
-    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -537,7 +487,6 @@ struct FCkGroundNavGym_Field
     UPROPERTY() FString _Stage = "not started";
 
     UPROPERTY() int32 _BuildCompletions = 0;
-    UPROPERTY() bool _HasBuildResult = false;
     UPROPERTY() ECk_Request_OperationResult _LastBuildResult = ECk_Request_OperationResult::Failed;
 
     // The plate-merge tunables the next mint applies. They are not a Request_Mint parameter because
@@ -671,20 +620,6 @@ struct FCkGroundNavGym_Field
         _RoughPerchToleranceUu = Profile.Get_RoughPerchToleranceUu();
     }
 
-    // Re-asks for the build the volume was minted with and restarts the settle. The profile and the
-    // bounds are unchanged - this is "read the world again", which is what a gym owes its verdict
-    // after anything moved in the Jolt static world.
-    bool Request_Rebuild(
-        const FCk_Delegate_Request_OnCompleted&in InBuildCompleted,
-        const FCk_Delegate_Timer&in InSettlePoll)
-    {
-        if (ck::Is_NOT_Valid(_Volume))
-        { return false; }
-
-        Do_StartBuildAndSettle(InBuildCompleted, InSettlePoll);
-        return true;
-    }
-
     // Mints the volume AGAIN, from values that may have moved since the last mint.
     //
     // A volume's params are read ONCE, at Add, and no request re-authors them - so a gym whose panel
@@ -744,7 +679,6 @@ struct FCkGroundNavGym_Field
         _Armed = false;
         _SettlePolls = 0;
 
-        _HasBuildResult = false;
         _LastBuildResult = ECk_Request_OperationResult::Failed;
 
         // _BuildCompletions is NOT reset - it counts what this gym has asked of GroundNav across the
@@ -828,7 +762,6 @@ struct FCkGroundNavGym_Field
     void Notify_BuildCompleted(ECk_Request_OperationResult InResult)
     {
         _BuildCompletions += 1;
-        _HasBuildResult = true;
         _LastBuildResult = InResult;
     }
 
@@ -850,7 +783,6 @@ struct FCkGroundNavGym_Field
     int32 Get_WalkableCellCount() { return utils_ground_nav_volume::Get_WalkableCellCount(_Volume); }
     int32 Get_SeamPortalCount() { return utils_ground_nav_volume::Get_SeamPortalCount(_Volume); }
 
-    bool Get_HasBuildResult() { return _HasBuildResult; }
     ECk_Request_OperationResult Get_LastBuildResult() { return _LastBuildResult; }
     int32 Get_BuildCompletions() { return _BuildCompletions; }
     int32 Get_SettlePolls() { return _SettlePolls; }

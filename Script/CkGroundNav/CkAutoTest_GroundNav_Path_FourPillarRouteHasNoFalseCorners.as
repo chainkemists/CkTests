@@ -29,10 +29,12 @@
 // so the interior count is asserted before the corners are, or the boundary
 // claim would be about an empty set.
 //
-// "Within 5% of the straight line" claims nothing where the straight line is
-// not walkable, so it is gated on a raycast down the lane and SKIPPED loudly
-// otherwise. Pillar 0 sits on the lane, so on THIS scene the skip is expected;
-// the gate is here so the claim cannot silently go vacuous if the scene moves.
+// NOT pinned here, and deliberately: a "within 5% of the straight line" length
+// claim. It was gated on a raycast down the lane and pillar 0 stands ON that
+// lane, so the gate took its SKIPPED branch on every run of this scene and the
+// step asserted nothing. A step that cannot fail is not a weaker pin, it is a
+// line of green with no claim under it; a length budget belongs on a scene
+// whose lane is actually walkable.
 //
 // Isolated Y band: 160000 - clear of every other autotest's bodies.
 //============================================================================
@@ -74,7 +76,6 @@ class UCk_AutoTest_GroundNav_Path_FourPillarRouteHasNoFalseCorners : UCk_AutoTes
 
     // Further than any probe can reach, so it can never be mistaken for a hit.
     private const float NoBoundaryUu = 1000000.0;
-    private const float LengthSlack = 1.05;
 
     // ---- Budgets - every one a ceiling on a NAMED condition, never a settle -----------------
     private const int32 BodyFrameBudget = 600;
@@ -122,7 +123,6 @@ class UCk_AutoTest_GroundNav_Path_FourPillarRouteHasNoFalseCorners : UCk_AutoTes
         Add_Step(          "plan the west-east route down the lane",                       n"Step_PlanWestToEast");
         Add_Step_WaitUntil("the route is answered",                                        n"Check_PathAnswered",   PathFrameBudget);
         Add_Step(          "every interior waypoint stands at a real corner",              n"Step_AssertNoFalseCorners");
-        Add_Step(          "the route is near-straight where the straight line is clear",  n"Step_AssertLengthIfLaneIsClear");
         Add_Step(          "hand the world back",                                          n"Step_Cleanup");
 
         Run_Steps(InHandle);
@@ -365,34 +365,6 @@ class UCk_AutoTest_GroundNav_Path_FourPillarRouteHasNoFalseCorners : UCk_AutoTes
             f"{FalseCorners} of {InteriorCount} interior waypoints stand further than {ProbeReachUu}uu from anything - the first at {Reported}, whose nearest boundary read {WorstUu}uu (a value near {NoBoundaryUu} means no probe was Blocked at all). A waypoint with no boundary within a body radius, a corner offset and a cell is a bend around a wall that is not there.");
     }
 
-    UFUNCTION()
-    private void Step_AssertLengthIfLaneIsClear(FCk_Handle InHandle, FInstancedStruct InPayload)
-    {
-        const auto Start = Get_StartPoint();
-        const auto Goal = Get_GoalPoint();
-
-        auto LaneQuery = FCk_NavSurface_RaycastQuery(Start, Goal);
-        const auto LaneResult = utils_nav_surface::Try_SurfaceRaycast(LaneQuery);
-        const auto LaneStatus = LaneResult.Get_Status();
-
-        const auto StraightUu = Get_DistanceXY(Start, Goal);
-        const auto RouteUu = Get_PolylineLengthXY(Get_RoutePolyline(_Waypoints));
-        const auto CeilingUu = StraightUu * LengthSlack;
-
-        ck::nav::Display(f"[GROUNDNAV-SHORTCUT] length: straight={StraightUu}uu route={RouteUu}uu ceiling={CeilingUu}uu laneRaycast={LaneStatus}");
-
-        if (LaneStatus != ECk_NavSurface_QueryStatus::Success)
-        {
-            // Pillar 0 sits on the lane, so this is the EXPECTED outcome on this scene. Said out loud
-            // rather than asserted, because the claim means nothing where the line is not walkable.
-            ck::nav::Display(f"[GROUNDNAV-SHORTCUT] length: SKIPPED - the straight line from {Start} to {Goal} is not clear (the raycast answered {LaneStatus}), so a near-straight route was never owed");
-            return;
-        }
-
-        Assert_True(RouteUu <= CeilingUu,
-            f"the facade's own raycast says the straight line down the lane is walkable end to end, so the funnelled route across the same ground must stay within 5% of it - {StraightUu}uu straight, ceiling {CeilingUu}uu, and the route measured {RouteUu}uu");
-    }
-
     // ---- Geometry, answered here rather than by an engine helper so the fixture states its own
     // measure --------------------------------------------------------------------------------
 
@@ -432,16 +404,6 @@ class UCk_AutoTest_GroundNav_Path_FourPillarRouteHasNoFalseCorners : UCk_AutoTes
         { Polyline.Add(InWaypoints[Index]); }
 
         return Polyline;
-    }
-
-    private float Get_PolylineLengthXY(TArray<FVector> InPolyline)
-    {
-        auto LengthUu = 0.0;
-
-        for (int32 Index = 1; Index < InPolyline.Num(); Index++)
-        { LengthUu += Get_DistanceXY(InPolyline[Index - 1], InPolyline[Index]); }
-
-        return LengthUu;
     }
 
     private float Get_DistanceXY(FVector InFrom, FVector InTo)
