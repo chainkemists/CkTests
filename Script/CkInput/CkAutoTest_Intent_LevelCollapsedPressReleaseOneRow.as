@@ -84,7 +84,7 @@ class UCk_AutoTest_Intent_LevelCollapsedPressReleaseOneRow : UCk_AutoTest_Base
 
         Add_Step(          "tap inside one frame (press + release together)",    n"Step_CollapsedTap");
         Add_Step_WaitUntil("both transitions are broadcast",                     n"Check_BothTransitions");
-        Add_Step_WaitFrames("give a third transition a window to show up in",     30);
+        Add_Step_WaitSeconds("give a third transition a window to show up in", 0.500f);
         Add_Step(          "assert the pair opened and closed on ONE frame",     n"Step_AssertCollapsedPair");
 
         Run_Steps(InHandle);

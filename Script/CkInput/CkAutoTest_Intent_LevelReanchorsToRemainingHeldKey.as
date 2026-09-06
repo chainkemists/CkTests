@@ -118,7 +118,7 @@ class UCk_AutoTest_Intent_LevelReanchorsToRemainingHeldKey : UCk_AutoTest_Base
 
         Add_Step(          "mask the key the player already LET GO of",          n"Step_MaskOpening");
         Add_Step_WaitUntil("that capture is in force",                           n"Check_OpeningMasked");
-        Add_Step_WaitFrames("give a wrong-key close a real window to happen in",  30);
+        Add_Step_WaitSeconds("give a wrong-key close a real window to happen in", 0.500f);
         Add_Step(          "assert the state re-anchored to the held key",       n"Step_AssertStillActive");
 
         Add_Step(          "lift that mask again",                               n"Step_UnmaskOpening");

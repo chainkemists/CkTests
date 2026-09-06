@@ -92,7 +92,7 @@ class UCk_AutoTest_Intent_PhaseChangedObservesFullOrder : UCk_AutoTest_Base
         Add_Step_WaitUntil("the wait opens",                                       n"Check_PendingHeard");
         Add_Step(          "record the press frame",                               n"Step_RecordPress");
         Add_Step_WaitUntil("the whole lifecycle has been broadcast",                n"Check_ThreeTransitions");
-        Add_Step_WaitFrames("give a duplicate or a fourth transition a chance",     10);
+        Add_Step_WaitSeconds("give a duplicate or a fourth transition a chance",    0.167f);
         Add_Step(          "assert the order, the count and the timing",            n"Step_AssertLifecycle");
 
         Run_Steps(InHandle);

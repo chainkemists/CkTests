@@ -97,7 +97,7 @@ class UCk_AutoTest_Intent_LevelRequiresPressEdgeAfterMaskLifts : UCk_AutoTest_Ba
         // changed, only about who may hear them.
         Add_Step(          "close the modal while the key is still down",        n"Step_Unmask");
         Add_Step_WaitUntil("the capture is really gone",                         n"Check_Unmasked");
-        Add_Step_WaitFrames("give a self-reactivation a real window to happen in", 40);
+        Add_Step_WaitSeconds("give a self-reactivation a real window to happen in", 0.667f);
         Add_Step(          "assert the lifted mask opened nothing",              n"Step_AssertNoSelfReactivation");
 
         // The two edges are separate steps, gated on the record between them, because a release and

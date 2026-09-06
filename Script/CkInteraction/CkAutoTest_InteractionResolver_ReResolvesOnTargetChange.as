@@ -155,13 +155,13 @@ class UCk_AutoTest_InteractionResolver_ReResolvesOnTargetChange : UCk_AutoTest_B
         Add_Step(          "assert A's arrival broadcast",                    n"Step_AssertPhaseA");
         // ---- phase c: no-op churn stays silent ----
         Add_Step(          "no-op churn: re-add A, remove non-member D",      n"Step_NoOpChurn");
-        Add_Step_WaitFrames("window for a broadcast that must not come",      10);
+        Add_Step_WaitSeconds("window for a broadcast that must not come", 0.167f);
         Add_Step(          "assert no-op churn stayed silent",                n"Step_AssertNoOpSilence");
         // ---- phase d: the pin ----
         Add_Step(          "start a Timed interaction on A (source = owner)", n"Step_StartInteractionOnA");
         Add_Step_WaitUntil("interaction on A is live",                        n"Check_InteractionLiveOnA");
         Add_Step(          "add NEARER same-channel B mid-interaction",       n"Step_AddNearerB");
-        Add_Step_WaitFrames("window for the eviction that must not happen",   10);
+        Add_Step_WaitSeconds("window for the eviction that must not happen", 0.167f);
         Add_Step(          "assert the pin: A still picked, interaction alive", n"Step_AssertPin");
         // ---- phase b: remove the picked target mid-hold ----
         Add_Step(          "remove the picked target A mid-hold",             n"Step_RemoveA");

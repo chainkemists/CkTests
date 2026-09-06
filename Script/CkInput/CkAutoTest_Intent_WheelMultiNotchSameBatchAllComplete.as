@@ -91,7 +91,7 @@ class UCk_AutoTest_Intent_WheelMultiNotchSameBatchAllComplete : UCk_AutoTest_Bas
 
         Add_Step(          "spin the wheel three notches inside one batch",       n"Step_ThreeNotches");
         Add_Step_WaitUntil("three completions arrive",                            n"Check_AllCompleted");
-        Add_Step_WaitFrames("give a fourth completion a window to show up in",     30);
+        Add_Step_WaitSeconds("give a fourth completion a window to show up in", 0.500f);
         Add_Step(          "assert three notches produced three of everything",   n"Step_AssertAllThree");
 
         Run_Steps(InHandle);

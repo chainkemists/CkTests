@@ -93,7 +93,7 @@ class UCk_AutoTest_Intent_TapVsHoldResolvesAtThresholds : UCk_AutoTest_Base
         Add_Step_WaitUntil("the hold reaches its threshold",                      n"Check_HoldCompleted");
         Add_Step(          "assert it landed exactly on the threshold frame",     n"Step_AssertHold");
 
-        Add_Step_WaitFrames("keep holding well past the threshold",               20);
+        Add_Step_WaitSeconds("keep holding well past the threshold", 0.333f);
         Add_Step(          "assert holding longer changed nothing, then release", n"Step_AssertHeldPastThenRelease");
         Add_Step_WaitFrames("give a late tap a chance to fire",                   8);
         Add_Step(          "assert the release of an answered hold fires nothing", n"Step_AssertReleaseIsInert");
