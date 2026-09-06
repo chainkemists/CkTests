@@ -170,6 +170,30 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
 
     // ----- Internal state -----
     private FCk_Handle SelfEntity;
+
+    // Game time at DoConstruct. THE test clock - see Get_DeadlineExceeded.
+    //
+    // A timestamp rather than an ECS timer, and that is the whole design, arrived at after two
+    // measured failures:
+    //
+    //   1. A deadline TIMER on SelfEntity fails the tests that count timers on the entity under
+    //      test. CkAutoTest_Timer_ForEach_Timer_VisitsAll adds three and asserts ForEach_Timer
+    //      visits exactly three; it saw four. AddOrReplace_ReplacesExisting expected one, saw two.
+    //   2. Moving that timer onto a private CHILD entity fails the tests that SEARCH the test
+    //      entity's dependents. CkAutoTest_SmTask_Delay_DestroysTimerOnCompletion walks
+    //      Get_LifetimeDependents breadth-first for the first dependent carrying any timer, so it
+    //      captured the harness's timer as the Delay task's and then asserted it had been destroyed.
+    //
+    // The lesson is that ANY harness state under the entity under test is observable by something -
+    // by counting it, or by searching for it. So the clock is not state: it is a number, and the
+    // check rides on ticks the test already has.
+    //
+    // Being ABSOLUTE is what preserves the 8l guarantee. The original watchdog's bug was that its
+    // timer's DURATION restarted whenever it happened to be armed, so a late arming pushed the
+    // deadline past the engine's. A timestamp taken at construct cannot drift: a fallback tick armed
+    // at 2.4s still finds the deadline at the same absolute moment, and fires immediately if it is
+    // already past.
+    private float _StartGameSeconds = 0.0f;
     private bool _Finished = false;
     private int32 _AssertionsRun = 0;
     private int32 _AssertionsFailed = 0;
@@ -183,9 +207,9 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     // (UCk_Utils_AutoTest_UE), because restoring a CVar means restoring both.
     private TArray<FName> _CVarOverrideNames;
 
-    // The test's ONE deadline. Armed in DoConstruct, so its origin is the test itself -
-    // see Arm_TestDeadline.
-    private FCk_Handle_Timer _TestDeadlineTimer;
+    // Only ever created for a test that tracks cleanup owners and has no other tick of ours -
+    // see Arm_DeadlineFallbackTick.
+    private FCk_Handle_Timer _DeadlineFallbackTimer;
     private ECk_AutoTest_Status _PendingStatus = ECk_AutoTest_Status::Running;
     private FString _PendingMessage;
 
@@ -195,8 +219,8 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     private int32 _PollsInStep = 0;
     // Per-STEP elapsed, reset by Do_AdvanceStep. Drives the wait floor and any declared
     // per-step ceiling. There is deliberately no cumulative sequence timer beside it any more:
-    // the whole-test clock is Arm_TestDeadline's timer, and a second accumulator claiming to
-    // measure the same thing from a later origin is what 8l was.
+    // the whole-test clock is _StartGameSeconds (see Get_DeadlineExceeded), and a second
+    // accumulator claiming to measure the same thing from a later origin is what 8l was.
     private float _SecondsInStep = 0.0f;
     private bool _StepsRunning = false;
     private FCk_Handle_Timer _StepTickTimer;
@@ -228,7 +252,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         UCk_Utils_AutoTest_UE::Set_Result(
             SelfEntity, ECk_AutoTest_Status::Running, "", 0, 0);
 
-        Arm_TestDeadline();
+        _StartGameSeconds = float(System::GetGameTimeInSeconds());
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -369,9 +393,13 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
             return;
         }
 
-        // No deadline check here. The test's one deadline is Arm_TestDeadline's timer, whose
-        // origin is DoConstruct - always at or before Run_Steps, so a sequence-local check could
-        // only ever fire second. The accumulator it used to need is gone with it.
+        // The test's ONE deadline, measured from DoConstruct rather than from Run_Steps. A
+        // sequence-local clock is what 8l was: three of them, each anchored later than the engine's.
+        if (Get_DeadlineExceeded())
+        {
+            Do_FailOnDeadline();
+            return;
+        }
 
         auto Step = _Steps[_CurrentStep];
 
@@ -580,12 +608,17 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
 
         _WaitElapsedSeconds += float(InDeltaT.Get_Seconds());
 
-        // No deadline check here either, and this is the one that mattered: _WaitElapsedSeconds
-        // is reset by EVERY WaitUntil/WaitFrames call, so a callback-chain test with N sequential
-        // waits used to get N * 0.9 * _TimeoutSeconds of runway against the engine's single
-        // _TimeoutSeconds - it lost that race unconditionally, not just when it was slow.
-        // Arm_TestDeadline's timer is the bound now. _WaitElapsedSeconds stays as the per-wait
-        // floor accumulator below, which is what it is actually good for.
+        // Same single deadline. _WaitElapsedSeconds is reset by EVERY WaitUntil/WaitFrames call,
+        // so a check against IT gave a callback-chain test with N sequential waits N * 0.9 *
+        // _TimeoutSeconds of runway against the engine's single _TimeoutSeconds - it lost that race
+        // unconditionally, not just when it was slow. That was the unfiled half of 8l.
+        // _WaitElapsedSeconds stays as the per-wait floor accumulator below, which is what it is
+        // actually good for.
+        if (Get_DeadlineExceeded())
+        {
+            Do_FailOnDeadline();
+            return;
+        }
 
         // A nameless wait is a settle: the budget IS the wait, in whichever unit the author asked
         // for - passes (WaitFrames) or wall-clock (WaitSeconds). Both are enforced.
@@ -700,6 +733,14 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         }
 
         _CVarOverrideNames.AddUnique(InName);
+
+        // Moving a CVar creates a restore obligation for the finish path, exactly as
+        // Track_ForCleanup creates a destroy obligation - so it earns the same fallback tick. A test
+        // that moves a CVar and then hangs without ever using a base wait would otherwise reach only
+        // the engine's TimeLimit, which does not run Finalize, and leave the variable moved for
+        // every test after it in the lane.
+        Arm_DeadlineFallbackTick();
+
         return true;
     }
 
@@ -737,6 +778,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         // cascades anyway). Destroying it would nuke the result before it is polled.
         if (InOwner == SelfEntity) { return; }
         _CleanupOwners.AddUnique(InOwner);
+        Arm_DeadlineFallbackTick();
     }
 
     // THE test deadline. One clock, one origin, and the origin is the test.
@@ -769,24 +811,50 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     // the two drains above actually happening. If this timer itself never fires - a wedged ECS,
     // a stalled timer processor - the engine's TimeLimit is still underneath as the net, which is
     // exactly the failure mode worth leaving it for.
-    private void Arm_TestDeadline()
+    // True once the test has been running longer than its own declared budget allows.
+    // 0.9 leaves room for the result write and the C++ runner's next poll.
+    private bool Get_DeadlineExceeded() const
     {
-        if (ck::IsValid(_TestDeadlineTimer)) { return; }
+        return float(System::GetGameTimeInSeconds()) - _StartGameSeconds >= _TimeoutSeconds * 0.9f;
+    }
 
-        // 0.9 leaves room for the result write and the C++ runner's next poll.
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(_TimeoutSeconds * 0.9f));
-        Params.Set_StartingState(ECk_Timer_State::Running)
-              .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
+    // A test that never uses a base wait has no tick of ours to carry the check. Most such tests
+    // finish synchronously inside DoBeginPlay and cannot hang at all. The ones that CAN hang drive
+    // their own callback chain on their own timers - and they reach us through the calls that create
+    // a finish-path obligation, Track_ForCleanup (destroy) and Set_CVarForTest (restore), which is
+    // where this is armed from.
+    //
+    // KNOWN GAP, stated because it is real: a test that hangs on its own timers having created
+    // NEITHER obligation gets the engine's anonymous TimesUp rather than a named failure. The
+    // CkSceneNodeTween family is exactly that - it only reaches WaitUntil from an OnComplete that
+    // never fires. Nothing LEAKS there (no obligations were created), so this costs a diagnostic,
+    // not correctness, and it is the behaviour that predates this campaign. Closing it properly
+    // means enforcing the deadline from ACk_AutoTestRunner::Tick, which already runs every frame and
+    // would add no ECS state at all; that is the right next step and is written up in the campaign
+    // notes. It is NOT closed by arming a tick unconditionally here - that was tried twice, and both
+    // placements failed tests that count or search what is on the entity under test.
+    //
+    // Checked before creating one: no test in the corpus both calls Track_ForCleanup and counts the
+    // timers on its own entity, so this cannot repeat failure (1) above.
+    private void Arm_DeadlineFallbackTick()
+    {
+        if (_StepsRunning || _WaitRunning) { return; }
+        if (ck::IsValid(_DeadlineFallbackTimer)) { return; }
 
-        _TestDeadlineTimer = utils_timer::Add(SelfEntity, Params);
-        _TestDeadlineTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"INTERNAL__AutoTest_TestDeadline"));
+        _DeadlineFallbackTimer = Do_MakePerFrameTimer(n"INTERNAL__AutoTest_DeadlineTick");
     }
 
     UFUNCTION()
-    private void INTERNAL__AutoTest_TestDeadline(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void INTERNAL__AutoTest_DeadlineTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (_Finished) { return; }
+        if (Get_DeadlineExceeded() == false) { return; }
 
+        Do_FailOnDeadline();
+    }
+
+    private void Do_FailOnDeadline()
+    {
         auto Deadline = _TimeoutSeconds * 0.9f;
         auto Tracked = _CleanupOwners.Num();
 
@@ -837,6 +905,8 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         _StepsRunning = false;
         if (ck::IsValid(_StepTickTimer))
         { utils_timer::Request_Pause(_StepTickTimer); }
+        if (ck::IsValid(_DeadlineFallbackTimer))
+        { utils_timer::Request_Pause(_DeadlineFallbackTimer); }
         Do_StopWaitTick();
     }
 
@@ -852,8 +922,8 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         // the restore. Synchronous: a CVar write needs no settle frame.
         Restore_CVarOverrides();
 
-        if (ck::IsValid(_TestDeadlineTimer))
-        { utils_timer::Request_Pause(_TestDeadlineTimer); }
+        if (ck::IsValid(_DeadlineFallbackTimer))
+        { utils_timer::Request_Pause(_DeadlineFallbackTimer); }
 
         if (_CleanupOwners.IsEmpty())
         {
