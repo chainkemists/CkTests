@@ -102,6 +102,17 @@ class ACk_GroundNavGym_Routing_PlayerController : ACk_Gym_Base_PlayerController
     // route drawn over the top can be seen crossing three of them.
     private const int32 k_TileDrawMode = 5;
 
+    // ---- The debug bake the draw row runs ------------------------------------------------------------
+    //
+    // Only the REGION is stated here: the extent and height are sized to the crossing band rather than
+    // to the viewer, so flying around changes what can be seen and never what was baked. Every filter -
+    // the lattice, the 800uu tiles the four-tiles-under-one-corridor claim rests on, the agent capsule,
+    // the slope limit the ramp is built around, the ledge sensitivity the slab and the pocket need
+    // pinned off - is pushed from the volume by Request_BakeDebugFieldAt.
+    private const float k_DebugBakeExtentUu = 1500.0f;
+    private const float k_DebugBakeHeightUu = 400.0f;
+    private const int32 k_DebugBakeMaxCells = 40000;
+
     // ---- Control row indices ---------------------------------------------------------------------
     //
     // Header and Status rows never reach Request_ControlActivated but they DO occupy an index. These
@@ -167,9 +178,9 @@ class ACk_GroundNavGym_Routing_PlayerController : ACk_Gym_Base_PlayerController
 
         Description.Add(FText::FromString("THE RAMP, north-west: two planks in series climbing west to east, the lower at 40 degrees and the upper at 50. The volume's agent profile keeps the default 45-degree slope limit, so the join between them is where the ramp stops being ground. The VERDICT row projects a point onto each plank's top face through the provider-neutral facade and expects exactly one of them to answer."));
 
-        Description.Add(FText::FromString("Type ck.GroundNav.Debug.Mode 3 and then ck.GroundNav.BakeFieldAt over the ramp band to see it as the filters do: the lower plank survives, the upper one is red. The debug bake's own slope limit defaults to the same 45 degrees the volume's profile carries, so the two agree until you move one."));
+        Description.Add(FText::FromString("Type ck.GroundNav.Debug.Mode 3 and then ck.GroundNav.BakeFieldAt over the ramp band to see it as the filters do: the lower plank survives, the upper one is red. The draw row on 2 pushes every bake tunable off this gym's own volume before it bakes, so the picture it leaves behind already carries the 45-degree limit the ramp is built around - that row leaves the mode on 5, so set it back to 3 before typing your own bake and you are asking the same filters the same question."));
 
-        Description.Add(FText::FromString("THE CROSSING, across the middle: a 2800uu route over 800uu tiles, so four tiles lie under one corridor. Press 2 to draw it - the corridor the search walked, and over it the string-pulled route an agent would actually take. Draw mode 5 is already set, so the tiles and their seams are under it: a tiled bake that disagreed with itself would show as a kink at a seam and nowhere else."));
+        Description.Add(FText::FromString("THE CROSSING, across the middle: a 2800uu route over 800uu tiles, so four tiles lie under one corridor. Press 2 and the bake it runs sets draw mode 5, so the tiles and their seams are drawn under what it asks for - the corridor the search walked, and over that the string-pulled route an agent would actually take. A tiled bake that disagreed with itself would show as a kink at a seam and nowhere else."));
 
         Description.Add(FText::FromString("The draw row bakes a FIELD over the crossing band before it asks, and that is not incidental. ck.GroundNav.PathAt reads the DEBUG field, not a volume's published one, and a region bake produces no field to path through at all. The bake is pinned to the band rather than to your pawn, so flying around changes what you can see and never what was baked."));
 
@@ -301,49 +312,27 @@ class ACk_GroundNavGym_Routing_PlayerController : ACk_Gym_Base_PlayerController
     // and a field baked anywhere else has no ground under this route.
     private void DoDraw_CrossingPath()
     {
-        DoBakeFieldAt(Get_ScenePoint(k_CrossingBakeCentre));
+        CkGroundNavGym::Request_BakeDebugFieldAt(_Field, Get_ScenePoint(k_CrossingBakeCentre),
+            k_DebugBakeExtentUu, k_DebugBakeHeightUu, k_DebugBakeMaxCells, k_TileDrawMode);
 
-        const auto Start = Get_ScenePoint(k_CrossingWestPoint);
-        const auto Goal = Get_ScenePoint(k_CrossingEastPoint);
-
-        System::ExecuteConsoleCommand(
-            f"ck.GroundNav.PathAt {Start.X} {Start.Y} {Start.Z} {Goal.X} {Goal.Y} {Goal.Z}");
+        CkGroundNavGym::Request_DrawPathAt(
+            Get_ScenePoint(k_CrossingWestPoint), Get_ScenePoint(k_CrossingEastPoint));
 
         _PathDrawEnabled = true;
     }
 
+    // Turning it off is a Clear and not a re-bake: a bake replaces the FIELD group and leaves the
+    // QUERY group standing, so the route would go on being drawn over fresh tiles.
     private void DoToggle_CrossingPath()
     {
         if (_PathDrawEnabled)
         {
-            System::ExecuteConsoleCommand("ck.GroundNav.Clear");
+            CkGroundNavGym::Request_ClearDebugDraw();
             _PathDrawEnabled = false;
             return;
         }
 
         DoDraw_CrossingPath();
-    }
-
-    // The debug bake this gym drives. Its tile size is pushed to the same 800uu the volume bakes on,
-    // deliberately: the claim that four tiles lie under one corridor is only true of a bake that tiles
-    // the same way. The extent and height are sized to the crossing band, not to the viewer.
-    private void DoBakeFieldAt(FVector InCentre)
-    {
-        CkGroundNavGym::Set_DebugTunable("ExtentUu", 1500.0f);
-        CkGroundNavGym::Set_DebugTunable("HeightUu", 400.0f);
-        CkGroundNavGym::Set_DebugTunable("MaxCells", 40000.0f);
-        CkGroundNavGym::Set_DebugTunable("TileSizeUu", k_TileSizeUu);
-        CkGroundNavGym::Set_DebugTunable("Mode", float(k_TileDrawMode));
-
-        FVector Centre = InCentre;
-
-        System::ExecuteConsoleCommand("ck.GroundNav.Clear");
-        System::ExecuteConsoleCommand(
-            f"ck.GroundNav.BakeFieldAt {Centre.X} {Centre.Y} {Centre.Z}");
-
-        // Clear wiped the drawing, so whatever route was on screen no longer is. The re-draw below
-        // puts it back; nothing else does.
-        _PathDrawEnabled = false;
     }
 
     // ---- The two probes ------------------------------------------------------------------------------
