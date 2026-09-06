@@ -15,8 +15,9 @@
 //
 // Input arrives through a CkInput layer at CkGym_InputStack::Priority_ControlPanel, NOT by polling:
 // the layer's capture set is diff-synced to the enabled, keyed rows each draw, and the switchboard's
-// catch-all Consume above therefore silences the panel structurally while a menu is open. Rows keep
-// firing while the panel is hidden with H - hiding is a draw concern, the captures stay.
+// catch-all Consume above therefore silences the panel structurally while a menu is open. H cycles
+// three DRAW modes - full, compact, hidden - and the captures stay in all three, so the rows keep
+// firing no matter how little of the panel is on screen. The choice persists per user.
 //============================================================================
 
 class ACkGym_ControlPanelHUD : AHUD
@@ -32,7 +33,13 @@ class ACkGym_ControlPanelHUD : AHUD
         return ControlPanelStyle;
     }
 
-    private bool _PanelHidden = false;
+    private ECkGym_ControlPanel_Mode _PanelMode = ECkGym_ControlPanel_Mode::Full;
+
+    // The persisted mode is read once, on the first draw. Reading it per frame would fight an edit
+    // made in Editor Preferences while a gym is running, and there is nothing to reconcile: H is
+    // the only other writer.
+    private bool _ModeLoaded = false;
+
     private bool _LeftShiftDown = false;
     private bool _RightShiftDown = false;
 
@@ -73,6 +80,12 @@ class ACkGym_ControlPanelHUD : AHUD
         auto Suppressed = UCk_Utils_GymRegistry_UE::Get_SuppressHUDDuringStartup();
         auto Rows = Suppressed ? TArray<FCkGym_ControlRow>() : PC.Get_ControlRows();
 
+        if (!_ModeLoaded)
+        {
+            _ModeLoaded = true;
+            _PanelMode = UCk_Utils_GymStartup_UE::Get_ControlPanelMode();
+        }
+
         auto Switchboard = UCkGym_Switchboard_Subsystem::Get(PC);
         if (ck::IsValid(Switchboard))
         {
@@ -80,8 +93,13 @@ class ACkGym_ControlPanelHUD : AHUD
             Switchboard.Request_ArmTabOpen();
 
             auto Style = Get_ControlPanelStyle();
+
+            // Clamped against the live viewport as well as the style ceiling: a long value must
+            // wrap inside the card, never widen it across the image the gym is showing.
+            const float MaxWidth = Math::Min(Style.MaxWidth, float(SizeX) * 0.45f);
+
             Switchboard.Request_SetControlPanel(PC.Get_ControlPanelTitle(), Rows,
-                FVector2D(Style.X, Style.Y), _PanelHidden, Suppressed);
+                FVector2D(Style.X, Style.Y), MaxWidth, _PanelMode, Suppressed);
         }
 
         if (Suppressed)
@@ -198,6 +216,19 @@ class ACkGym_ControlPanelHUD : AHUD
         _SyncedKeys = Desired;
     }
 
+    // Full -> Compact -> Hidden -> Full. Each press strips a layer, and the third restores the
+    // panel, so H is never a dead end whichever mode the last session left behind.
+    private ECkGym_ControlPanel_Mode DoGet_NextPanelMode(ECkGym_ControlPanel_Mode InMode)
+    {
+        if (InMode == ECkGym_ControlPanel_Mode::Full)
+        { return ECkGym_ControlPanel_Mode::Compact; }
+
+        if (InMode == ECkGym_ControlPanel_Mode::Compact)
+        { return ECkGym_ControlPanel_Mode::Hidden; }
+
+        return ECkGym_ControlPanel_Mode::Full;
+    }
+
     // A HUD hosting its own text-input surface (VfxExamples' cloned search menu) overrides this to
     // park the panel while that surface owns the keyboard - otherwise typing a letter the panel
     // has a row on would both filter AND dispatch. Dies when such menus become input layers.
@@ -231,7 +262,8 @@ class ACkGym_ControlPanelHUD : AHUD
 
         if (Key == EKeys::H)
         {
-            _PanelHidden = !_PanelHidden;
+            _PanelMode = DoGet_NextPanelMode(_PanelMode);
+            UCk_Utils_GymStartup_UE::Request_Set_ControlPanelMode(_PanelMode);
             return;
         }
 

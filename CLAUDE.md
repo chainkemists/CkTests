@@ -122,8 +122,13 @@ Shift key works. Shift is observed through pass-through input captures, preservi
 Keyed
 rows accept an optional enabled flag; disabled rows remain visible and muted but never dispatch,
 so scenario readiness can change without reordering the panel or its activation indices.
-Reserved keys a row must never bind: **Tab** (cycler menu) and **H** (hide/show the panel - hiding
-does not disable it, the keys keep firing). Declaring no rows draws no panel, which is why this
+Reserved keys a row must never bind: **Tab** (cycler menu) and **H** (cycles the panel full ->
+compact -> hidden, persisted per user in `UCkGym_StartupSettings`; the keys keep firing in every
+mode). Compact keeps every Header, every keyed row, and the Status rows labelled `Verdict` or
+flagged `Warn`, with values clipped to one line. The card is bounded at
+`min(FCkGym_ControlPanel_Style::MaxWidth, 45% of viewport width)` and the value column wraps inside
+it, so a long value never widens the panel across the image it annotates.
+Declaring no rows draws no panel, which is why this
 costs nothing to gyms that have not adopted it. Deliberately NOT adopted: `CkInput`'s KeyBinding
 and Playground gyms and `CkVoiceChat` - the panel polls raw keys, which collides with a gym whose
 subject is pressing arbitrary keys or holding one down.

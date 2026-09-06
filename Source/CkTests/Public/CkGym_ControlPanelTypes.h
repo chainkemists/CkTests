@@ -45,6 +45,24 @@ enum class ECkGym_ControlShift : uint8
     Pressed
 };
 
+// --------------------------------------------------------------------------------------------------------------------
+
+// How much of the panel draws. H cycles it; UCkGym_StartupSettings persists the choice per user.
+// Rows keep firing in every mode - this is a drawing concern only.
+UENUM(BlueprintType)
+enum class ECkGym_ControlPanel_Mode : uint8
+{
+    // Nothing but the reminder chip.
+    Hidden,
+
+    // Headers, keyed rows, and the Status rows that carry a verdict or a warning. Values are
+    // clipped to one line, so the panel stays a strip beside the image it annotates.
+    Compact,
+
+    // Every row, values wrapped inside the bounded width.
+    Full
+};
+
 // One row of the panel. Build these through the AS CkGym_Control builders rather than by hand: the
 // builders are what keep Kind, HasAltKey and the value column consistent with how the panel draws.
 USTRUCT(BlueprintType)
@@ -107,8 +125,9 @@ struct CKTESTS_API FCkGym_ControlRow
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// Where the panel anchors, in Slate units from the viewport's top-left. The Slate card sizes
-// itself; the old Canvas geometry fields (width, row height, columns) are gone with the Canvas.
+// Where the panel anchors, in Slate units from the viewport's top-left, and how wide it may get.
+// The Slate card sizes itself inside MaxWidth; the old Canvas geometry fields (row height,
+// columns) are gone with the Canvas.
 USTRUCT(BlueprintType)
 struct CKTESTS_API FCkGym_ControlPanel_Style
 {
@@ -120,4 +139,9 @@ struct CKTESTS_API FCkGym_ControlPanel_Style
     // Below any gym readout drawn along the top edge.
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float Y = 90.0f;
+
+    // The card's ceiling: the value column wraps (Full) or clips (Compact) rather than pushing the
+    // panel across the viewport. The HUD clamps this against the live viewport before pushing it.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float MaxWidth = 720.0f;
 };

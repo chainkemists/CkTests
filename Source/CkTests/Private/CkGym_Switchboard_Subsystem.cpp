@@ -32,6 +32,10 @@ namespace ck_gym_switchboard_subsystem
 
     constexpr auto FallbackCategory = TEXT("Misc");
 
+    // The one Status label Compact mode keeps unconditionally: gyms open with a live Verdict row,
+    // and a compact panel that dropped it would hide the answer the gym exists to give.
+    constexpr auto VerdictLabel = TEXT("Verdict");
+
     // Key-repeat feel, matching the retired Canvas menu.
     constexpr float RepeatDelaySeconds = 0.35f;
     constexpr float RepeatRateSeconds = 0.08f;
@@ -216,14 +220,15 @@ auto
         const FString& InTitle,
         const TArray<FCkGym_ControlRow>& InRows,
         FVector2D InOffset,
-        bool InPanelCollapsed,
+        float InMaxWidth,
+        ECkGym_ControlPanel_Mode InMode,
         bool InFullyHidden)
     -> void
 {
     const auto Unchanged =
         _PanelWidget.IsValid() &&
         _PanelTitle == InTitle && _PanelRows == InRows && _PanelOffset == InOffset &&
-        _PanelCollapsed == InPanelCollapsed && _PanelFullyHidden == InFullyHidden;
+        _PanelMaxWidth == InMaxWidth && _PanelMode == InMode && _PanelFullyHidden == InFullyHidden;
 
     if (Unchanged)
     { return; }
@@ -231,7 +236,8 @@ auto
     _PanelTitle = InTitle;
     _PanelRows = InRows;
     _PanelOffset = InOffset;
-    _PanelCollapsed = InPanelCollapsed;
+    _PanelMaxWidth = InMaxWidth;
+    _PanelMode = InMode;
     _PanelFullyHidden = InFullyHidden;
 
     if (NOT _PanelWidget.IsValid())
@@ -267,7 +273,14 @@ auto
     }
 
     _PanelWidget->SetVisibility(EVisibility::HitTestInvisible);
-    _PanelWidget->Refresh(_PanelTitle, _PanelRows, _PanelOffset, _PanelCollapsed);
+
+    // Compact filters here rather than in the widget: the filter is pure and unit-tested, and the
+    // widget stays a renderer of whatever row list it is handed.
+    const auto Rows = _PanelMode == ECkGym_ControlPanel_Mode::Compact
+        ? Build_CompactRows(_PanelRows)
+        : _PanelRows;
+
+    _PanelWidget->Refresh(_PanelTitle, Rows, _PanelOffset, _PanelMaxWidth, _PanelMode);
 }
 
 auto
@@ -482,6 +495,30 @@ auto
 
     for (const auto& Entry : Ranked)
     { Result.Add(Entry.Row); }
+
+    return Result;
+}
+
+auto
+    UCkGym_Switchboard_Subsystem::
+    Build_CompactRows(
+        const TArray<FCkGym_ControlRow>& InRows)
+    -> TArray<FCkGym_ControlRow>
+{
+    using namespace ck_gym_switchboard_subsystem;
+
+    auto Result = TArray<FCkGym_ControlRow>{};
+    Result.Reserve(InRows.Num());
+
+    for (const auto& Row : InRows)
+    {
+        const auto IsKeyed = NOT Row.KeyLabel.IsEmpty();
+        const auto IsLoudStatus = Row.Kind == ECkGym_ControlKind::Status &&
+                                  (Row.Label == VerdictLabel || Row.Warn);
+
+        if (Row.Kind == ECkGym_ControlKind::Header || IsKeyed || IsLoudStatus)
+        { Result.Add(Row); }
+    }
 
     return Result;
 }

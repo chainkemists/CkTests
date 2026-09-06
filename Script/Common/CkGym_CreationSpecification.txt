@@ -356,8 +356,11 @@ class ACk_[GymName]Gym_Pawn : ACk_Gym_Base_Pawn
 // Standard KEYS available in ALL gyms (ACkGym_ControlPanelHUD, the base
 // GameMode's default HUDClass):
 // Tab - open the gym cycler menu (type to search, Enter to travel)
-// H   - hide / show this gym's control panel. Hiding does NOT disable it:
-//       the keys keep firing, so the image underneath can be watched clean.
+// H   - cycle this gym's control panel: full -> compact (headers, keyed rows,
+//       and Verdict/warning statuses, values clipped to one line) -> hidden.
+//       None of it disables the panel: the keys keep firing in every mode, so
+//       the image underneath can be watched clean. The card is width-bounded;
+//       long values wrap instead of widening it.
 // A gym's own rows must not bind either of those two.
 
 //============================================================================
