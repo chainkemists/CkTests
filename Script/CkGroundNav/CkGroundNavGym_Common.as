@@ -9,11 +9,15 @@
 // answers are only worth reading once the surface it published has gone quiet. Everything below is
 // what those three facts cost, written once.
 //
-// Two shapes, and the split between them is not stylistic:
+// Three shapes, and the split between them is not stylistic:
 //
 //   namespace CkGroundNavGym  - the stateless half. Scene boxes, the fly-back, the status strings.
-//   struct FCkGroundNavGym_Field - the stateful half. One minted volume, its build result, and the
-//                              settle poll every gym waits on before it reads anything.
+//   struct FCkGroundNavGym_Field - the stateful half. One minted volume, its build result, the
+//                              settle poll every gym waits on before it reads anything, and the
+//                              bake tunables it was minted with, which the debug picture needs.
+//   struct FCkGroundNavGym_OverlayRefresh - the deferred redraw. A request that changes the field is
+//                              answered a publish later, so the picture is re-run then and not at
+//                              the keypress.
 //
 // The struct is a VALUE TYPE held as a member, in the same "compose, don't inherit" spirit as
 // CkAutoTest_GroundNavFixture.as and CkAutoTest_ActorEntity_Helper.as. It is NOT a base class, and
@@ -302,6 +306,131 @@ namespace CkGroundNavGym
         System::ExecuteConsoleCommand(f"ck.GroundNav.Debug.{InName} {InValue}");
     }
 
+    //------------------------------------------------------------------------
+    // The debug-draw COMMANDS
+    //
+    // ck.GroundNav.Debug.Mode selects what a bake draws and nothing redraws on
+    // its own, so a gym that wants a picture on screen has to run the commands
+    // that make one. There are two retained groups and each command owns
+    // exactly one: a field bake replaces the FIELD group (the plates), and
+    // LinksAt / PathAt each replace the QUERY group with their own answer.
+    //
+    // Do_PublishRetainedDebugDraw destroys the group it is about to publish
+    // into BEFORE it appends, so a re-bake replaces its own picture and needs
+    // no Clear in front of it. The same fact the other way round: a bake leaves
+    // whatever stands in the QUERY group exactly where it was. A gym that wants
+    // the query half gone has to say so, which is the only thing
+    // Request_ClearDebugDraw is for.
+    //------------------------------------------------------------------------
+
+    // Drops both retained groups, drops the debug field every probe command queries, and - because
+    // ck.GroundNav.Clear ends in FlushPersistentDebugLines - flushes EVERY persistent debug line in
+    // the world, including ones no GroundNav command drew. Blunt on purpose and blunt everywhere, so
+    // a gym that only wants its own plates replaced re-bakes instead of calling this.
+    void Request_ClearDebugDraw()
+    {
+        System::ExecuteConsoleCommand("ck.GroundNav.Clear");
+    }
+
+    // The DEBUG field bake, which is a PICTURE and not a volume: nothing can be asked of it, and it is
+    // the only field ck.GroundNav.PathAt and ck.GroundNav.ProbeAt can read.
+    //
+    // EVERY cvar Make_BakeParams reads is pushed here, from the field the caller minted. That is the
+    // whole point of taking the field rather than a handful of floats: the debug bake's tunables are
+    // WORLD state, one console set apart from each other, so a gym that pushed only the two it cared
+    // about would draw a picture carrying whatever the last gym to visit this world left behind - a
+    // Tuning gym's slope limit, its cell size, its agent radius - while the rows beside it read the
+    // volume's own field. The two disagreeing is the bug this closes.
+    //
+    // AgentHeightUu inverts Make_BakeParams' own arithmetic: it rebuilds the capsule as
+    // ((height * 0.5) - radius, radius), so the height that reproduces the profile's capsule is
+    // 2 * (half-height + radius).
+    void Request_BakeDebugFieldAt(
+        const FCkGroundNavGym_Field&in InField,
+        FVector InCentre,
+        float   InExtentUu,
+        float   InHeightUu,
+        int32   InMaxCells,
+        int32   InDrawMode)
+    {
+        // A declared local of the concrete type: an AS struct parameter is implicitly const, `auto`
+        // preserves const (Script/ARCHITECTURE.md 9.2), and the field's readers are plain non-const
+        // struct methods. This is the copy that launders it.
+        FCkGroundNavGym_Field Field = InField;
+        FCk_GroundNav_MergeTunables Merge = Field.Get_MergeTunables();
+
+        Set_DebugTunable("CellSizeUu", Field.Get_CellSizeUu());
+        Set_DebugTunable("CellHeightUu", Field.Get_CellHeightUu());
+        Set_DebugTunable("TileSizeUu", Field.Get_TileSizeUu());
+
+        Set_DebugTunable("AgentHeightUu", Field.Get_AgentHeightUu());
+        Set_DebugTunable("AgentRadiusUu", Field.Get_AgentRadiusUu());
+        Set_DebugTunable("MaxSlopeDegrees", Field.Get_MaxSlopeDegrees());
+        Set_DebugTunable("MaxSlopeChangeDegrees", Field.Get_MaxSlopeChangeDegrees());
+        Set_DebugTunable("StepHeightUu", Field.Get_StepHeightUu());
+        Set_DebugTunable("LedgeSensitivity", Field.Get_LedgeSensitivity());
+        Set_DebugTunable("RoughPerchToleranceUu", Field.Get_RoughPerchToleranceUu());
+
+        Set_DebugTunable("PlaneFitToleranceUu", Merge.Get_PlaneFitToleranceUu());
+        Set_DebugTunable("NormalConeDegrees", Merge.Get_NormalConeDegrees());
+
+        Set_DebugTunable("ExtentUu", InExtentUu);
+        Set_DebugTunable("HeightUu", InHeightUu);
+        Set_DebugTunable("MaxCells", float(InMaxCells));
+        Set_DebugTunable("Mode", float(InDrawMode));
+
+        FVector Centre = InCentre;
+
+        System::ExecuteConsoleCommand(f"ck.GroundNav.BakeFieldAt {Centre.X} {Centre.Y} {Centre.Z}");
+    }
+
+    // Draws and reports every link this world's volumes hold, off their PUBLISHED fields, so it needs
+    // no bake of its own: green traversable, grey disabled, orange an end over ground nobody has baked,
+    // red an end with no ground under it. Re-run it after anything that changes a record - the colours
+    // come off the field the derive publishes, not off the record store.
+    void Request_ReportLinksAt(FVector InWhere)
+    {
+        FVector Where = InWhere;
+
+        System::ExecuteConsoleCommand(f"ck.GroundNav.LinksAt {Where.X} {Where.Y} {Where.Z}");
+    }
+
+    // Reads the DEBUG field, so Request_BakeDebugFieldAt has to have run over the ground this route
+    // crosses: a region bake, or no bake at all, leaves it with nothing to path through.
+    void Request_DrawPathAt(FVector InStart, FVector InGoal)
+    {
+        FVector Start = InStart;
+        FVector Goal = InGoal;
+
+        System::ExecuteConsoleCommand(
+            f"ck.GroundNav.PathAt {Start.X} {Start.Y} {Start.Z} {Goal.X} {Goal.Y} {Goal.Z}");
+    }
+
+    // The console lines a reader can type for themselves, aimed at a point the gym computed. A
+    // hardcoded "0 0 0" would name the world origin, and every gym scene stands wherever
+    // Request_ApplyDefaultGridLayout put its station - so the coordinates are only known at runtime.
+    // Rounded because the line is read by a person rather than parsed back.
+    FString Get_BakeFieldAtCommandText(FVector InWhere)
+    {
+        return "ck.GroundNav.BakeFieldAt " + Get_PointCommandText(InWhere);
+    }
+
+    FString Get_LinksAtCommandText(FVector InWhere)
+    {
+        return "ck.GroundNav.LinksAt " + Get_PointCommandText(InWhere);
+    }
+
+    FString Get_PointCommandText(FVector InWhere)
+    {
+        FVector Where = InWhere;
+
+        const auto X = Math::RoundToInt(float32(Where.X));
+        const auto Y = Math::RoundToInt(float32(Where.Y));
+        const auto Z = Math::RoundToInt(float32(Where.Z));
+
+        return f"{X} {Y} {Z}";
+    }
+
     // Asks the PROVIDER-NEUTRAL facade what is under a point. The search half-extents are the whole
     // discipline of it: a generous Z reaches PAST the surface being asked about and answers with the
     // floor below, which reads as a success and says nothing. Keep the Z tight enough that only the
@@ -383,6 +512,28 @@ struct FCkGroundNavGym_Field
     UPROPERTY() FCk_GroundNav_MergeTunables _MergeTunables;
 
     //------------------------------------------------------------------------
+    // What the last mint was made WITH
+    //
+    // Read off the config and the profile inside Request_Mint and kept, because the debug bake needs
+    // every one of them and a volume hands none of them back: FCk_Fragment_GroundNavVolume_ParamsData
+    // is not reflected, and the volume exposes counts and epochs rather than the params it was minted
+    // under. Without these a gym would have to state its own tunables twice - once to the volume and
+    // once to the picture - and the two would drift the first time one was edited.
+    //------------------------------------------------------------------------
+
+    UPROPERTY() float _CellSizeUu = 25.0f;
+    UPROPERTY() float _CellHeightUu = 10.0f;
+    UPROPERTY() float _TileSizeUu = 1600.0f;
+
+    UPROPERTY() float _AgentHalfHeightUu = 90.0f;
+    UPROPERTY() float _AgentRadiusUu = 34.0f;
+    UPROPERTY() float _MaxSlopeDegrees = 45.0f;
+    UPROPERTY() float _MaxSlopeChangeDegrees = 30.0f;
+    UPROPERTY() float _StepHeightUu = 40.0f;
+    UPROPERTY() float _LedgeSensitivity = 1.0f;
+    UPROPERTY() float _RoughPerchToleranceUu = 0.0f;
+
+    //------------------------------------------------------------------------
     // Minting
     //------------------------------------------------------------------------
 
@@ -431,6 +582,8 @@ struct FCkGroundNavGym_Field
         FCk_GroundNav_BakeConfig Config = InConfig;
         FCk_GroundNav_AgentProfile Profile = InProfile;
 
+        Do_RememberBakeTunables(Config, Profile);
+
         auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(Bounds, Config, Profile);
 
         // The bake waited on must be the one asked for, not one that happened to run at setup.
@@ -448,6 +601,37 @@ struct FCkGroundNavGym_Field
 
         Do_StartBuildAndSettle(InBuildCompleted, InSettlePoll);
         return true;
+    }
+
+    // Copies out of the two params structs the values the debug bake has to be told about. Done at
+    // the mint and nowhere else: these describe the field that IS standing, so a gym that re-mints
+    // with a different profile gets the new numbers and one that never re-mints keeps the old.
+    //
+    // The capsule is read back through the shape it was authored as. FCk_AnyShape carries a type tag
+    // and one struct per type, so the half-height and the radius survive the round trip - which is
+    // what lets AgentHeightUu be reconstructed rather than passed in beside the profile.
+    void Do_RememberBakeTunables(
+        const FCk_GroundNav_BakeConfig&in InConfig,
+        const FCk_GroundNav_AgentProfile&in InProfile)
+    {
+        FCk_GroundNav_BakeConfig Config = InConfig;
+        FCk_GroundNav_AgentProfile Profile = InProfile;
+
+        _CellSizeUu = Config.Get_CellSizeUu();
+        _CellHeightUu = Config.Get_CellHeightUu();
+        _TileSizeUu = Config.Get_TileSizeUu();
+
+        FCk_AnyShape Standing = Profile.Get_StandingExtents();
+        FCk_ShapeCapsule_Dimensions Capsule = Standing.Get_Capsule();
+
+        _AgentHalfHeightUu = Capsule.Get_HalfHeight();
+        _AgentRadiusUu = Capsule.Get_Radius();
+
+        _MaxSlopeDegrees = Profile.Get_MaxSlopeDegrees();
+        _MaxSlopeChangeDegrees = Profile.Get_MaxSlopeChangeDegrees();
+        _StepHeightUu = Profile.Get_StepHeightUu();
+        _LedgeSensitivity = Profile.Get_LedgeSensitivity();
+        _RoughPerchToleranceUu = Profile.Get_RoughPerchToleranceUu();
     }
 
     // Re-asks for the build the volume was minted with and restarts the settle. The profile and the
@@ -640,5 +824,133 @@ struct FCkGroundNavGym_Field
     FCk_GroundNav_MergeTunables Get_MergeTunables() { return _MergeTunables; }
     void Set_MergeTunables(FCk_GroundNav_MergeTunables InMergeTunables) { _MergeTunables = InMergeTunables; }
 
+    // What the last mint was made with, for the debug bake that has to reproduce it.
+    float Get_CellSizeUu() { return _CellSizeUu; }
+    float Get_CellHeightUu() { return _CellHeightUu; }
+    float Get_TileSizeUu() { return _TileSizeUu; }
+
+    float Get_AgentRadiusUu() { return _AgentRadiusUu; }
+
+    // The FULL standing height, which is what ck.GroundNav.Debug.AgentHeightUu takes: Make_BakeParams
+    // turns it back into a capsule as ((height * 0.5) - radius, radius), so this is the one value
+    // that reproduces the profile's own capsule on the other side.
+    float Get_AgentHeightUu() { return 2.0f * (_AgentHalfHeightUu + _AgentRadiusUu); }
+
+    float Get_MaxSlopeDegrees() { return _MaxSlopeDegrees; }
+    float Get_MaxSlopeChangeDegrees() { return _MaxSlopeChangeDegrees; }
+    float Get_StepHeightUu() { return _StepHeightUu; }
+    float Get_LedgeSensitivity() { return _LedgeSensitivity; }
+    float Get_RoughPerchToleranceUu() { return _RoughPerchToleranceUu; }
+
     FString Get_FieldStatusText() { return CkGroundNavGym::Get_FieldStatusText(_Volume, _Stage); }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// THE DEFERRED REDRAW every gym here owes its own picture.
+//
+// A request that changes what the field says - a link toggle, a paint, a nudge, a repair - is
+// DEFERRED, and the retained draw is command-driven, so the picture a gym runs at the keypress is
+// the picture of the field the keypress is about to change. Redrawing needs a NAMED condition:
+// the volume's build epoch has moved past the one read when the request went in, AND the surface
+// has gone quiet again. How many passes a derive needs is a property of processor ordering, not of
+// frame rate, so a hop count would bake a guess in.
+//
+// The ceiling is a wall-clock budget at 0.05s a poll (200 is ten seconds), after which the refresh
+// runs ANYWAY: a request the derive never answered still leaves the reader looking at what the
+// field actually holds rather than at nothing.
+//
+// A value type held as a member, for the same reason FCkGroundNavGym_Field is one, and with the
+// same consequence: an AS struct hosts no UFUNCTION, so the timer's delegate is passed IN and the
+// gym owns the poll body. The shape at the call site is:
+//
+//   _Overlay.Request_Arm(_PcEntity, _Field, 200, FCk_Delegate_Timer(this, n"OnOverlayRefreshPoll"));
+//
+//   UFUNCTION() private void OnOverlayRefreshPoll(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+//   {
+//       if (_Overlay.Do_Poll(_Field)) { ...the gym's own redraw... }
+//   }
+struct FCkGroundNavGym_OverlayRefresh
+{
+    // Kept because utils_timer::Add takes its handle BY VALUE and an AS struct parameter is
+    // implicitly const, so the owner has to be copied into storage before it can be passed on.
+    UPROPERTY() FCk_Handle _Owner;
+
+    UPROPERTY() FCk_Handle_Timer _Timer;
+    UPROPERTY() int32 _Polls = 0;
+    UPROPERTY() int32 _PollCeiling = 200;
+
+    // The epoch the request was made AGAINST. The wait is for the field to move past it.
+    UPROPERTY() int64 _EpochAtArm = 0;
+
+    // Re-arming replaces the wait rather than stacking a second one: two toggles in quick succession
+    // are one question - "what does the field say once it is quiet" - and the later arm is the one
+    // whose epoch is right.
+    void Request_Arm(
+        FCk_Handle InOwner,
+        const FCkGroundNavGym_Field&in InField,
+        int32 InPollCeiling,
+        const FCk_Delegate_Timer&in InPoll)
+    {
+        Request_Stop();
+
+        _Owner = InOwner;
+
+        if (ck::Is_NOT_Valid(_Owner))
+        { return; }
+
+        FCkGroundNavGym_Field Field = InField;
+
+        _EpochAtArm = utils_ground_nav_volume::Get_BuildEpoch(Field.Get_Volume());
+        _PollCeiling = InPollCeiling;
+        _Polls = 0;
+
+        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        Params.Set_StartingState(ECk_Timer_State::Running)
+              .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+
+        auto Timer = utils_timer::Add(_Owner, Params);
+        Timer.BindTo_OnDone(InPoll);
+
+        _Timer = Timer;
+    }
+
+    // Stopped AND destroyed, in that order. utils_timer::Add mints a CHILD ENTITY per timer under
+    // the owner, and a stop alone would leave one behind per arm for the life of the session.
+    // Idempotent - an invalid handle is the state after the first call.
+    void Request_Stop()
+    {
+        if (ck::Is_NOT_Valid(_Timer))
+        { return; }
+
+        utils_timer::Request_Stop(_Timer);
+        utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_Timer));
+
+        _Timer = FCk_Handle_Timer();
+    }
+
+    // True when the caller should redraw NOW - the field republished, or the ceiling ran out. The
+    // timer is stopped before either answer, so a caller that redraws on true is redrawing once.
+    bool Do_Poll(const FCkGroundNavGym_Field&in InField)
+    {
+        FCkGroundNavGym_Field Field = InField;
+
+        _Polls += 1;
+
+        const auto Republished = utils_ground_nav_volume::Get_BuildEpoch(Field.Get_Volume()) > _EpochAtArm
+            && utils_nav_surface::Get_IsSurfaceSettled();
+
+        if (Republished == false && _Polls < _PollCeiling)
+        { return false; }
+
+        Request_Stop();
+
+        return true;
+    }
+
+    // Whether a redraw is still owed. A gym's verdict reads this to say "pending" rather than "FAIL"
+    // while the field it is judging has not finished moving.
+    bool Get_IsWaiting() { return ck::IsValid(_Timer); }
+
+    int32 Get_Polls() { return _Polls; }
 }

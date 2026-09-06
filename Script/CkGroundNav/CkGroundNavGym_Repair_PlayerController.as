@@ -94,6 +94,33 @@ class ACk_GroundNavGym_Repair_PlayerController : ACk_Gym_Base_PlayerController
     // in another gym does not leave the paint row describing something invisible.
     private const int32 k_PlateDrawMode = 0;
 
+    // ---- The debug bake the gym runs for the reader --------------------------------------------------
+    //
+    // A draw MODE is not a draw: nothing in the retained layer redraws on its own, so plates appear
+    // only once ck.GroundNav.BakeFieldAt has run. It is run here, aimed at the middle of the slab's
+    // walkable surface, so a repair reads as what it is - reopened ground is a plate that was not
+    // there before, and there is nothing to compare against without a picture.
+    //
+    // The extent is a half-extent and 1800 covers the slab's 3200x1600 top; on the debug bake's 25uu
+    // lattice that is about twenty thousand columns, which is why the cell ceiling is pushed past its
+    // own default of twenty thousand. The height is centred 100uu over the top face, so the picture
+    // reaches from under the slab to over the obstacle's 300uu head.
+    //
+    // Only the REGION is stated here. Every filter the bake runs - the lattice, the agent capsule, the
+    // slope limits, the ledge sensitivity this slab needs pinned off because it ends inside the region -
+    // is pushed from the volume by Request_BakeDebugFieldAt, so the picture and the rows above it
+    // cannot end up describing different fields.
+    private const FVector k_SlabBakeCentre = FVector(0.0, 0.0, 100.0);
+    private const float k_DebugBakeExtentUu = 1800.0f;
+    private const float k_DebugBakeHeightUu = 400.0f;
+    private const int32 k_DebugBakeMaxCells = 40000;
+
+    // The plate picture is redrawn a publish AFTER whatever made the field stale, not at the keypress:
+    // a paint, a nudge and a repair are all deferred, and a bake run at the press draws the field the
+    // press is about to change. At 0.05s a poll this ceiling is ten seconds, after which it redraws
+    // anyway so a request the derive never answered still leaves a truthful picture.
+    private const int32 k_DrawRefreshPollCeiling = 200;
+
     // ---- Control row indices ---------------------------------------------------------------------
     //
     // Header and Status rows never reach Request_ControlActivated but they DO occupy an index. These
@@ -106,6 +133,7 @@ class ACk_GroundNavGym_Repair_PlayerController : ACk_Gym_Base_PlayerController
     private const int32 k_Row_NudgeObstacle = 8;
     private const int32 k_Row_Repair        = 10;
     private const int32 k_Row_Walkers       = 11;
+    private const int32 k_Row_PathDraw      = 13;
 
     // ---- State -----------------------------------------------------------------------------------
 
@@ -174,6 +202,14 @@ class ACk_GroundNavGym_Repair_PlayerController : ACk_Gym_Base_PlayerController
     // than trusting either alone.
     private int32 _WalkerCountIndex = 0;
 
+    // Nothing outside this gym holds this. ck.GroundNav.PathAt is a COMMAND, not a cvar, so there is
+    // no console state saying whether a route is on screen - only this controller's own record of
+    // having asked for one, and of the Clear that is the single thing which takes it down.
+    private bool _PathDrawEnabled = false;
+
+    // The deferred picture refresh every stale-making control here arms. See k_DrawRefreshPollCeiling.
+    private FCkGroundNavGym_OverlayRefresh _DrawRefresh;
+
     // ---- Station ---------------------------------------------------------------------------------
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
@@ -194,7 +230,7 @@ class ACk_GroundNavGym_Repair_PlayerController : ACk_Gym_Base_PlayerController
         Description.Add(FText::FromString("A 400uu box stands on the north band. Press 3 and it jumps one 800uu tile east, out of the Jolt static world and back into it at the new place - which is the only way the published field goes stale. Nothing repairs it for you: the OBSTACLE row turns amber and says the ground the body LEFT is still blocked."));
         Description.Add(FText::FromString("Press 4 and the repair opens over the UNION of both footprints, which is the only box that reopens the old half and closes the new one in one pass. A repair aimed only at where the body arrived would leave its old footprint blocked for the rest of the field's life, because nothing else will ever revisit that ground."));
         Description.Add(FText::FromString("Press 2 to drop a 500uu impassable box across the south band and again to release it. The request is the provider-NEUTRAL one, the same call the crowd goes through: it names a shape and a place and nothing about which backend answers it, so one keypress carves Recast and GroundNav alike. The row reads the markup handle back, so it reports the paint the surface holds rather than the one this panel last asked for."));
-        Description.Add(FText::FromString("Press 5 first to put crowd walkers on that same band. They cross it end to end and turn round, so a paint dropped in front of them is answered by a replan you can watch rather than by a number."));
+        Description.Add(FText::FromString("Press 5 first to put crowd walkers on that same band. They cross it end to end and turn round, so a paint dropped in front of them is answered by a replan you can watch rather than by a number. Press 6 to draw that corridor as a route - it bakes a debug field over the slab first, because ck.GroundNav.PathAt reads the DEBUG field and not the volume's published one, and turning it off puts the plate view back."));
         Description.Add(FText::FromString("Press 1 to swap the world's nav provider. It is a per-WORLD choice: the volume stays baked either way, but on Recast nothing routes through it and the VERDICT row says so first, before anything else it could say."));
         Description.Add(FText::FromString("The VERDICT row at the top is the whole station in one line, and every criterion in it is read live: the provider off the facade, the epoch off the volume, the paint off the markup handle, and each walker's movement state off its own agent."));
         Station.Description = Description;
@@ -303,12 +339,80 @@ class ACk_GroundNavGym_Repair_PlayerController : ACk_Gym_Base_PlayerController
         _Field.Notify_BuildCompleted(InResult);
     }
 
-    // Set only once the field publishes: before that there is nothing under the plates to draw, and a
-    // mode pushed at startup would be describing an empty picture.
+    // Applied only once the field publishes: before that there is nothing under the plates to draw,
+    // and a mode pushed at startup would be describing an empty picture.
     private void DoApply_DrawState()
     {
-        System::ExecuteConsoleCommand(f"ck.GroundNav.Debug.Mode {k_PlateDrawMode}");
         System::ExecuteConsoleCommand("ck.GroundNav.Debug.DrawMarkup 1");
+
+        DoRefresh_Draw();
+    }
+
+    // The bake that makes the plates exist, plus the route over them when one is asked for. A draw mode
+    // selects what a bake draws and nothing redraws on its own, so this is the only thing that puts a
+    // picture on screen: at startup, and again a publish after everything on this panel that makes the
+    // field stale.
+    //
+    // A re-bake replaces the FIELD group and leaves the QUERY group standing, so the route has to be
+    // re-asked here rather than surviving on its own - the line drawn by the previous PathAt describes
+    // the field as it was before this bake.
+    //
+    // It is a DEBUG bake and belongs to no volume: the rows above read the volume's own published
+    // field, and the two agree because Request_BakeDebugFieldAt pushes the volume's own tunables.
+    private void DoRefresh_Draw()
+    {
+        CkGroundNavGym::Request_BakeDebugFieldAt(_Field, Get_ScenePoint(k_SlabBakeCentre),
+            k_DebugBakeExtentUu, k_DebugBakeHeightUu, k_DebugBakeMaxCells, k_PlateDrawMode);
+
+        if (_PathDrawEnabled == false)
+        { return; }
+
+        CkGroundNavGym::Request_DrawPathAt(
+            Get_ScenePoint(k_WalkerWestPoint), Get_ScenePoint(k_WalkerEastPoint));
+    }
+
+    // Armed by every control here that makes the published field stale - the paint, the nudge and the
+    // repair - so the plate picture follows the field instead of standing still until the next
+    // keypress. The wait itself is FCkGroundNavGym_OverlayRefresh's: epoch moved, surface quiet.
+    private void DoArm_DrawRefresh()
+    {
+        _DrawRefresh.Request_Arm(_PcEntity, _Field, k_DrawRefreshPollCeiling,
+            FCk_Delegate_Timer(this, n"OnDrawRefreshPoll"));
+    }
+
+    UFUNCTION()
+    private void OnDrawRefreshPoll(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (_DrawRefresh.Do_Poll(_Field) == false)
+        { return; }
+
+        DoRefresh_Draw();
+    }
+
+    // ---- The route draw ------------------------------------------------------------------------------
+    //
+    // The corridor the walkers are on, end to end, so the paint on key 2 can be seen carving the very
+    // route the bodies take. ck.GroundNav.PathAt reads the DEBUG field and not the volume's published
+    // one, which is why the bake comes first and has to cover the ground the route crosses.
+
+    private void DoToggle_PathDraw()
+    {
+        if (_PathDrawEnabled)
+        {
+            _PathDrawEnabled = false;
+
+            // A bake replaces the plates and leaves the QUERY group exactly where it was, so the route
+            // would go on standing over the new picture. Dropping a query drawing is the one thing
+            // only ck.GroundNav.Clear does - and it drops the plates with it, which is why the bake
+            // follows immediately.
+            CkGroundNavGym::Request_ClearDebugDraw();
+            DoRefresh_Draw();
+            return;
+        }
+
+        _PathDrawEnabled = true;
+
+        DoRefresh_Draw();
     }
 
     // ---- The provider row ---------------------------------------------------------------------------
@@ -333,6 +437,8 @@ class ACk_GroundNavGym_Repair_PlayerController : ACk_Gym_Base_PlayerController
             utils_entity_lifetime::Request_DestroyEntity(FCk_Handle(_Markup));
             _Markup = FCk_Handle_NavSurfaceMarkup();
 
+            DoArm_DrawRefresh();
+
             ck::groundnav::Log("GroundNav repair gym: the paint is released - the corridor reopens once the surface settles again");
             return;
         }
@@ -354,6 +460,8 @@ class ACk_GroundNavGym_Repair_PlayerController : ACk_Gym_Base_PlayerController
             ck::groundnav::Warning("GroundNav repair gym: the paint request handed back no markup handle - nothing was carved");
             return;
         }
+
+        DoArm_DrawRefresh();
 
         ck::groundnav::Log("GroundNav repair gym: the corridor is painted impassable - the walkers on it replan around the hole");
     }
@@ -408,6 +516,13 @@ class ACk_GroundNavGym_Repair_PlayerController : ACk_Gym_Base_PlayerController
 
         _NudgesRun += 1;
 
+        // The nudge deliberately does NOT republish the volume's field, so this refresh runs out its
+        // ceiling and redraws anyway - and the redraw is the point. A debug bake reads the Jolt static
+        // world FRESH, so the picture comes back showing the body where it now stands while the rows
+        // beside it still report the ground it left as blocked. That disagreement IS the staleness
+        // this station is about, and it is what the repair on key 4 closes.
+        DoArm_DrawRefresh();
+
         ck::groundnav::Log("GroundNav repair gym: the obstacle moved one tile - the published field still carries the ground it left, until a repair opens over BOTH footprints");
     }
 
@@ -442,6 +557,10 @@ class ACk_GroundNavGym_Repair_PlayerController : ACk_Gym_Base_PlayerController
     {
         _RepairsRun += 1;
         _LastRepairResult = InResult;
+
+        // A completed repair is the one thing on this panel that reopens ground, and reopened ground
+        // is a plate that was not there before - which is invisible without a redraw over it.
+        DoArm_DrawRefresh();
     }
 
     // Whether this scene owes a repair. Asked of the VOLUME first: Get_IsBuildCurrent compares the
@@ -877,37 +996,36 @@ class ACk_GroundNavGym_Repair_PlayerController : ACk_Gym_Base_PlayerController
             "Provider (a per-WORLD choice - the volume here only answers on GroundNav)",
             CkGroundNavGym::Get_ProviderLabel()));
         Rows.Add(CkGym_Control::ToggleNamed(EKeys::Two, "2",
-            "Markup paint (straddling the walkers' corridor)",
+            "Markup paint (straddling the walkers' corridor - the plates redraw once the field republishes)",
             ck::IsValid(_Markup), "painted", "clear"));
         Rows.Add(CkGym_Control::Action(EKeys::Three, "3",
-            "Nudge the obstacle one tile - moves the body, leaves the ground behind it stale"));
+            "Nudge the obstacle one tile - moves the body, leaves the ground behind it stale (the plates redraw off the moved world, the rows keep reading the old field)"));
         Rows.Add(CkGym_Control::Status("Obstacle", Get_ObstacleStatus(), Get_RepairIsOwed()));
         Rows.Add(CkGym_Control::Action(EKeys::Four, "4",
-            "Repair over BOTH obstacle footprints", Get_RepairIsOwed()));
+            "Repair over BOTH obstacle footprints - the plates redraw when it completes, so the reopened ground is visible",
+            Get_RepairIsOwed()));
         Rows.Add(CkGym_Control::Cycle(EKeys::Five, "5", "Crowd walkers on the corridor",
             Get_WalkerCountLabel()));
         Rows.Add(CkGym_Control::Status("Walkers", Get_WalkerStatus()));
-        Rows.Add(CkGym_Control::Status("Draw",
-            f"ck.GroundNav.Debug.Mode {k_PlateDrawMode} (plates) and ck.GroundNav.Debug.DrawMarkup 1 are both set once the field publishes; type {Get_BakeFieldAtCommandText()} for a picture to draw them over - it is a DEBUG bake and it is not the field the rows above read"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::Six, "6",
+            "Draw the walkers' corridor end to end (bakes a DEBUG field over the slab first - ck.GroundNav.PathAt reads that field and not the volume's published one)",
+            _PathDrawEnabled));
+        Rows.Add(CkGym_Control::Status("Draw", Get_DrawStatus()));
 
         return Rows;
     }
 
-    // The console line a reader can actually type, aimed at the obstacle band. A hardcoded "0 0 0"
-    // would name the world origin, and this scene is wherever Request_ApplyDefaultGridLayout put the
-    // station - thousands of units from it - so the command as printed would bake a picture of nothing.
-    // Aimed at the MIDPOINT of the two obstacle positions, which is the band the repair opens over, and
-    // rounded because the line is read by a person rather than parsed back.
-    private FString Get_BakeFieldAtCommandText()
+    // What is on screen and what put it there. The retained draw is command-driven, so this row states
+    // what the gym RAN rather than what a reader could type - the bake the old row asked for is the
+    // one this gym now runs itself.
+    private FString Get_DrawStatus()
     {
-        const auto Midpoint = (k_ObstacleHomeCentre + k_ObstacleMovedCentre) * 0.5;
-        const auto Where = Get_ScenePoint(Midpoint);
+        const auto BakeText = CkGroundNavGym::Get_BakeFieldAtCommandText(Get_ScenePoint(k_SlabBakeCentre));
 
-        const auto X = Math::RoundToInt(float32(Where.X));
-        const auto Y = Math::RoundToInt(float32(Where.Y));
-        const auto Z = Math::RoundToInt(float32(Where.Z));
+        if (_PathDrawEnabled)
+        { return f"{BakeText} then ck.GroundNav.PathAt across the walkers' corridor are what is on screen - press 6 again to put the plate view back"; }
 
-        return f"ck.GroundNav.BakeFieldAt {X} {Y} {Z}";
+        return f"{BakeText} at draw mode {k_PlateDrawMode} (plates), with ck.GroundNav.Debug.DrawMarkup 1, is run for you once the field publishes and again a publish after every paint, nudge and repair - it is a DEBUG bake and it is not the field the rows above read";
     }
 
     // Where the body is standing is read off the actor; whether the ground is stale is read off the
@@ -986,6 +1104,12 @@ class ACk_GroundNavGym_Repair_PlayerController : ACk_Gym_Base_PlayerController
         if (InRowIndex == k_Row_Walkers)
         {
             DoCycle_Walkers();
+            return;
+        }
+
+        if (InRowIndex == k_Row_PathDraw)
+        {
+            DoToggle_PathDraw();
             return;
         }
     }
