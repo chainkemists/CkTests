@@ -27,6 +27,22 @@ class UCk_ObjectPoolingTest_PlainObject : UObject
     FCk_Handle_ObjectPoolingParticipant Participant;
 }
 
+// Plain pooled object for the SCRIPT-ONLY member reset test. ScriptOnlyValue carries no
+// UPROPERTY, so the class generator never creates an FProperty for it: it exists solely as an
+// AngelScript object property and the reflected FProperty sweep in Request_ResetToArchetype
+// cannot see it. Only the direct asCScriptObject::PerformCopy call resets it, which makes this
+// the one subject that pins that call's BEHAVIOUR - every other pooled subject merely executes
+// it. ReflectedValue is the control: if both regress the reflected sweep broke, if only
+// ScriptOnlyValue regresses the script copy did.
+class UCk_ObjectPoolingTest_ScriptOnlyMemberObject : UObject
+{
+    UPROPERTY()
+    int32 ReflectedValue = 0;
+
+    // Deliberately NOT a UPROPERTY - see the class comment. Do not "fix" this.
+    int32 ScriptOnlyValue = 0;
+}
+
 // Separate class for the pinned + GC test (DestroyOnRelease uses the pinned-unique
 // path, not a pool - a distinct class keeps it cleanly isolated regardless)
 class UCk_ObjectPoolingTest_PinnedObject : UObject

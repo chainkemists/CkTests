@@ -6224,6 +6224,18 @@ class ACk_AutoTest_ObjectPooling_RecycleResetsAndKeepsDelegates_Actor : ACk_Auto
     }
 }
 
+class ACk_AutoTest_ObjectPooling_RecycleResetsScriptOnlyMembers_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_ObjectPooling_RecycleResetsScriptOnlyMembers");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_ObjectPooling_ReleaseEdgeCasesAreBenign_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
