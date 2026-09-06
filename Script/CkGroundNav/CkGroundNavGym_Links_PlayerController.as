@@ -512,12 +512,15 @@ class ACk_GroundNavGym_Links_PlayerController : ACk_Gym_Base_PlayerController
     //
     // Two halves, and they INVERT with the toggle. With the links live both records must be resolved
     // and live and the walkers' routes must between them have named BOTH ids - the deck top is
-    // reachable over a link and no other way, so a crossing is the only proof the join exists. With
-    // them disabled both records must be dead and every walker must be holding - the deck is then an
-    // island, and a body still walking to it would mean a disabled record is still being searched.
+    // reachable over a link and no other way, so a search that ROUTED a body over one is the proof
+    // the join exists. With them disabled both records must be dead and every walker must be holding -
+    // the deck is then an island, and a body still walking to it would mean a disabled record is still
+    // being searched.
     //
-    // Every criterion is a live readback off the published field, and the crossing record is the
-    // walker set's own - the ids its planners have ever stepped onto, folded in as they are observed.
+    // Every criterion is a live readback off the published field, and the routing record is the walker
+    // set's own - the ids the INSTALLED routes have ever named, folded in as they are observed. It says
+    // the search took the link, not that a body finished walking it: the traversal itself is the link
+    // handshake's business and is not what this reads.
 
     // The window in which the station is between two settled answers and judges NOTHING: the field is
     // still republishing after a change, or the walkers have not yet finished proving the new state.
@@ -530,12 +533,12 @@ class ACk_GroundNavGym_Links_PlayerController : ACk_Gym_Base_PlayerController
         if (Get_LinksAreEnabled() == false)
         { return _Walkers.Get_FailedCount() < _Walkers.Get_Count(); }
 
-        return Get_UncrossedLinkCount() > 0;
+        return Get_UnroutedLinkCount() > 0;
     }
 
-    // How many of the volume's records no walker's route has ever stepped onto. Read off the records
-    // rather than counted to two, so a scene that authored a third link would be judged on it.
-    private int32 Get_UncrossedLinkCount()
+    // How many of the volume's records no walker's route has ever named. Read off the records rather
+    // than counted to two, so a scene that authored a third link would be judged on it.
+    private int32 Get_UnroutedLinkCount()
     {
         auto Volume = _Field.Get_Volume();
 
@@ -543,7 +546,7 @@ class ACk_GroundNavGym_Links_PlayerController : ACk_Gym_Base_PlayerController
         { return 0; }
 
         auto Records = utils_ground_nav_volume::Get_LinkRecords(Volume);
-        auto Crossed = _Walkers.Get_LinkIdsEverCrossed();
+        auto Routed = _Walkers.Get_LinkIdsEverCrossed();
 
         int32 Count = 0;
 
@@ -551,14 +554,16 @@ class ACk_GroundNavGym_Links_PlayerController : ACk_Gym_Base_PlayerController
         {
             const auto LinkId = Records[Index].Get_Id();
 
-            if (Crossed.Contains(LinkId) == false)
+            if (Routed.Contains(LinkId) == false)
             { Count += 1; }
         }
 
         return Count;
     }
 
-    private FString Get_CrossedIdsText()
+    // The ids the installed routes have named, which is what the walker set banks - a plan that names
+    // a link, not a body that finished walking it.
+    private FString Get_RoutedIdsText()
     {
         auto Ids = _Walkers.Get_LinkIdsEverCrossed();
 
@@ -664,7 +669,7 @@ class ACk_GroundNavGym_Links_PlayerController : ACk_Gym_Base_PlayerController
         if (Get_LinksAreEnabled() == false)
         { return "OK - both disabled, the deck is an island, walkers hold"; }
 
-        return "OK - both links live; walkers crossed link " + Get_CrossedIdsText();
+        return "OK - both links live; walkers routed over link " + Get_RoutedIdsText();
     }
 
     // ---- Scene construction ----------------------------------------------------------------------

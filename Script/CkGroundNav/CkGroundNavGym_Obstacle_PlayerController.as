@@ -146,7 +146,7 @@ class ACk_GroundNavGym_Obstacle_PlayerController : ACk_Gym_Base_PlayerController
         Station.Title = FText::FromString("GroundNav - Dynamic Obstacle");
 
         auto Description = TArray<FText>();
-        Description.Add(FText::FromString("Three walkers patrol a corridor on lanes 300uu apart, over a field this gym bakes for itself."));
+        Description.Add(FText::FromString("Three walkers patrol a corridor on lanes 150uu apart, over a field this gym bakes for itself."));
         Description.Add(FText::FromString("Press 3 to drop a 400uu box onto the middle of that corridor, and again to lift it out - the field repairs under it and the walkers re-route."));
         Description.Add(FText::FromString("Press 4 to turn the repair off: a drop then leaves the field stale and the walkers walk straight through the box. T cycles what the picture shows."));
         Station.Description = Description;
@@ -455,6 +455,12 @@ class ACk_GroundNavGym_Obstacle_PlayerController : ACk_Gym_Base_PlayerController
         _EpochAtRepair = utils_ground_nav_volume::Get_BuildEpoch(Volume);
         _RepairIsPending = true;
 
+        // Armed HERE, against the epoch the repair was asked at, and not when the repair answers: the
+        // refresh waits for the field to move PAST the epoch it snapshots at the arm, so an arm taken
+        // after the publish has already stepped the epoch waits for a move that has been and gone and
+        // only ever fires on its ten-second ceiling.
+        DoArm_OverlayRefresh();
+
         utils_ground_nav_volume::Request_Repair(Volume,
             FCk_Request_GroundNavVolume_Repair(DirtyBounds),
             FCk_Delegate_Request_OnCompleted(this, n"OnRepairCompleted"));
@@ -467,9 +473,9 @@ class ACk_GroundNavGym_Obstacle_PlayerController : ACk_Gym_Base_PlayerController
         _LastRepairResult = InResult;
         _RepairIsPending = false;
 
-        // The repair reopened ground, and reopened ground is a plate that was not there before - which
-        // is invisible until the derive republishes and the picture is re-run over it.
-        DoArm_OverlayRefresh();
+        // Bookkeeping only. The redraw is already armed - DoRepair_BoxGround did it at the REQUEST, so
+        // the epoch it snapshotted predates the publish this completion is part of and the wait can
+        // still see the field move past it.
     }
 
     // Auto-repair is flipped and nothing else happens: the reader who turned it back on is told to

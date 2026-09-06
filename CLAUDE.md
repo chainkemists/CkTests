@@ -145,6 +145,14 @@ subject is pressing arbitrary keys or holding one down.
 - **Timeout lives on the entity script**: `default _TimeoutSeconds = X.Xf;` (base default 5.0,
   `CkAutoTest_Base.as:42`); the generator propagates it to the wrapper CDO. Any doc saying
   "configure timeout on the actor wrapper" is stale - that includes the AutoTest spec §6 wording.
+- **Expected log errors live on the ACTOR wrapper**: `Get_ExpectedLogErrors` is a BlueprintNativeEvent on
+  `ACk_AutoTestRunner` (`Source/CkTests/Public/CkAutoTestRunner.h:104`), not on `UCk_AutoTest_Base` - overriding it on the
+  entity script aborts the AS boot ("does not exist in superclass UCk_AutoTest_Base"). A test that expects a Warning or
+  Error hand-authors its `A<Class>_Actor : ACk_AutoTestRunner` wrapper at the bottom of its own `.as` (with
+  `Get_TestEntityScriptClass` and its own `default _TimeoutSeconds`) and deletes the generated one from
+  `Script/Generated/CkTests_AutoTestActors.as`; the generator skips a test whose wrapper already exists
+  (`CkAutoTestWrapperGenerator.cpp` `Has_HandAuthoredWrapper`). Exemplar:
+  `Script/CkGroundNav/CkAutoTest_GroundNav_Link_DisabledMidCrossingHoldsTheBodyAndResumesOnEnable.as`.
 - **Settling**: declare the test as steps - `Add_Step` / `Add_Step_WaitUntil` / `Run_Steps`, or
   the standalone `WaitUntil(n"Predicate", n"Continue")` for branching flows. Wait on a NAMED
   CONDITION, never a fixed number of hops: how many processor passes an effect needs is a property

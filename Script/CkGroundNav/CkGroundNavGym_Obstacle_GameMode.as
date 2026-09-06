@@ -1,7 +1,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 // GroundNav Dynamic Obstacle - a box drops into a corridor and the field repairs under it
 //
-// Three walkers patrol a 3600uu corridor on lanes 300uu apart. Key 3 drops a 400uu box onto the
+// Three walkers patrol a 3600uu corridor on lanes 150uu apart. Key 3 drops a 400uu box onto the
 // middle of that corridor and lifts it again; the box goes into the Jolt static world, which is the
 // only world a GroundNav bake reads, so the published field is stale the instant it lands.
 //

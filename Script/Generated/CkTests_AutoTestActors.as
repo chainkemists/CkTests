@@ -3893,6 +3893,19 @@ class ACk_AutoTest_GroundNav_Rebuild_AdjacentPaintDoesNotReplan_Actor : ACk_Auto
     }
 }
 
+class ACk_AutoTest_GroundNav_Rebuild_IdleAgentIsNotRepairedOnItsNextRoute_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 180.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Rebuild_IdleAgentIsNotRepairedOnItsNextRoute");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_GroundNav_Rebuild_InvalidatesWalkingRouteExactlyOnce_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 120.0f;
