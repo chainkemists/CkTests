@@ -146,7 +146,7 @@ class UCk_AutoTest_Intent_UnbindStopsDelivery : UCk_AutoTest_Base
         // MUST stay a settle. What follows is the NEGATIVE - three counters that must not have moved - and it is
         // already true the instant the wait above resolves. There is no condition left to wait for; the window
         // exists to give a delivery to an unbound handler a chance to arrive and be caught.
-        Add_Step_WaitFrames("give a fire on an unbound handler a chance to arrive",  10);
+        Add_Step_WaitSeconds("give a fire on an unbound handler a chance to arrive", 0.167f);
         Add_Step(          "assert the unbound handlers heard nothing more",        n"Step_AssertSilence");
 
         Run_Steps(InHandle);
