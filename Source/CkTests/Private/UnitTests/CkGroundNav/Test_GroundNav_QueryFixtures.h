@@ -607,6 +607,67 @@ namespace ck_test_groundnav_queryfixtures
 
     // ----------------------------------------------------------------------------------------------------------------
 
+    // The same scene with one pillar standing in the east gap, which is the one thing it lacks: a false
+    // corner ON the slope. RampVsLevel has a slope and no corner near it, and the four-pillar slab has
+    // corners and no slope, so a chord that would trade length against climb is offered by neither. The
+    // pillar makes the east-gap crossing weave, and a weave on a panel is a bend a chord can cut across.
+    //
+    // The gap runs from the divider's east end to the free area's east wall, so a 150 wide pillar on its
+    // centre line leaves a slot either side. Everything under the pillar is panel: the box's whole
+    // footprint lies east of the panel's foot.
+    inline constexpr auto kRampGapPillarCentreX = 1175.0;
+    inline constexpr auto kRampGapPillarCentreY = 750.0;
+    inline constexpr auto kRampGapPillarHalfWidthUu = 75.0;
+
+    // How far the pillar stands above the ground it stands on, measured at its dearest corner so it
+    // stands at least this far above the panel at every corner. Over the profile's own standing
+    // height, so it is an obstacle rather than a step.
+    inline constexpr auto kRampGapPillarHeightUu = 150.0;
+
+    /** The pillar's top in world Z, which the field must reach: the panel under its east face plus its height. */
+    inline auto Get_RampGapPillarTopZ() -> double
+    {
+        return Get_RampVsLevelSurfaceZ(kRampGapPillarCentreX + kRampGapPillarHalfWidthUu) +
+            kRampGapPillarHeightUu;
+    }
+
+    inline auto Make_RampGapPillarScene() -> TArray<FBox>
+    {
+        auto Boxes = Make_RampVsLevelScene();
+
+        Boxes.Emplace(FBox{
+            FVector{
+                kRampGapPillarCentreX - kRampGapPillarHalfWidthUu,
+                kRampGapPillarCentreY - kRampGapPillarHalfWidthUu,
+                kGroundZ},
+            FVector{
+                kRampGapPillarCentreX + kRampGapPillarHalfWidthUu,
+                kRampGapPillarCentreY + kRampGapPillarHalfWidthUu,
+                Get_RampGapPillarTopZ()}});
+
+        return Boxes;
+    }
+
+    inline auto Bake_RampGapPillarScene(
+        FCk_GroundNav_Field& OutField) -> bool
+    {
+        auto Backend = FCk_GroundNav_GeometryBackend_Stub{Make_RampGapPillarScene()};
+
+        const auto RiseUu = (kRampVsLevelRampEndX - kRampVsLevelRampStartX) *
+            FMath::Tan(FMath::DegreesToRadians(kRampAngleDegrees));
+
+        Backend.Add_Panel(
+            FVector{kRampVsLevelRampStartX, -400.0, kGroundZ},
+            FVector{kRampVsLevelRampEndX, -400.0, kGroundZ + RiseUu},
+            FVector{kRampVsLevelRampEndX, 2000.0, kGroundZ + RiseUu},
+            FVector{kRampVsLevelRampStartX, 2000.0, kGroundZ},
+            ck::groundnav::ECk_GroundNav_BodyKind::Surface);
+
+        return DoBake_Field(Backend, Make_QueryParams(), FCk_GroundNav_Epoch{1}, OutField).Get_IsCompleted();
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+
     // One wall between two rooms, pierced twice: a tight door on the line the two ends already stand on,
     // and a wide opening well off it. The tight one is the shorter route and the wide one the roomier,
     // which is the only trade a clearance bias can make — it cannot move a string within a plate.
@@ -693,9 +754,12 @@ namespace ck_test_groundnav_queryfixtures
     // because the gym spawns actors into a world and this bakes boxes through the stub backend - two
     // ways of authoring one scene, which is only worth having when the numbers are the same numbers.
     //
-    // The four pillars straddle the west-east lane at Y 0 by different amounts, so a crossing has to
-    // weave past all of them. Four staggered rectangles on open floor is the shape whose plate
-    // decomposition offers the most rectangle corners that are not obstacle corners.
+    // Exactly ONE pillar straddles the west-east lane at Y 0: pillar 0, centred at Y -60, which at a
+    // 75 uu half-width spans Y -135..+15. The other three stand clear of it - pillar 1 at Y 120 spans
+    // 45..195, pillar 2 at Y -100 spans -175..-25, pillar 3 at Y 80 spans 5..155 - so a crossing bends
+    // around pillar 0 and then WEAVES BETWEEN the rest rather than getting past all four. Four
+    // staggered rectangles on open floor is the shape whose plate decomposition offers the most
+    // rectangle corners that are not obstacle corners, which is the artefact this scene exists for.
 
     // The gym spawns unit boxes scaled 36 x 24 x 2 about a centre at Z -100, so the slab's top face is
     // the scene's Z 0 and it reaches X +/-1800 and Y +/-1200.
