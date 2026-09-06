@@ -106,6 +106,9 @@ public:
 
 public:
     virtual auto PrepareTest() -> void override;
+    // Gates the engine's StartTest - and therefore the TimeLimit clock - on the AS test entity
+    // actually existing. See the .cpp for why the default (unconditionally true) is wrong here.
+    virtual auto IsReady_Implementation() -> bool override;
     virtual auto Tick(float DeltaSeconds) -> void override;
     virtual auto FinishTest(EFunctionalTestResult TestResult, const FString& Message) -> void override;
     virtual auto BeginDestroy() -> void override;
