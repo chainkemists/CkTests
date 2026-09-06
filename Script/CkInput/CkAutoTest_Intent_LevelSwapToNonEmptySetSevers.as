@@ -106,7 +106,7 @@ class UCk_AutoTest_Intent_LevelSwapToNonEmptySetSevers : UCk_AutoTest_Base
 
         Add_Step(          "swap to a NON-EMPTY set while it is still open",    n"Step_SwapNewSet");
         Add_Step_WaitUntil("the swap reports its outcome",                      n"Check_SwapAnswered");
-        Add_Step_WaitFrames("give a stale-index write a window to land in",      30);
+        Add_Step_WaitSeconds("give a stale-index write a window to land in", 0.500f);
         Add_Step(          "assert the old state closed and the new set is untouched", n"Step_AssertSevered");
         Add_Step(          "let go of the outgoing key",                        n"Step_ReleaseOld");
 

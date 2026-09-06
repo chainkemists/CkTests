@@ -335,12 +335,18 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //         FinishSuccess();
 //     }
 //
-// WaitFrames(N, n"Continue") is the frame-counted twin — use it ONLY when there
-// is no observable condition (i.e. when asserting something does NOT happen),
-// and only when you can say what N counts. WaitOneFrame is LEGACY: it is a
-// 0.05s timer (~3 passes at 60fps), NOT a frame wait. It is retained so
-// unmigrated tests compile, and it remains the correct call where a window was
-// tuned against that duration — swapping in a small WaitFrames(N) SHORTENS it.
+// WaitFrames(N, n"Continue") is the frame-counted twin — use it when you can say
+// what N counts, i.e. when the hop is waiting for a known number of PROCESSOR
+// PASSES. WaitOneFrame is LEGACY: it is a 0.05s timer (~3 passes at 60fps), NOT
+// a frame wait. It is retained so unmigrated tests compile, and it remains the
+// correct call where a window was tuned against that duration — swapping in a
+// small WaitFrames(N) SHORTENS it.
+//
+// WaitSeconds(S, n"Continue") / Add_Step_WaitSeconds is the WALL-CLOCK settle,
+// and it is the one to reach for when the settle backs a NEGATIVE assertion —
+// "nothing happened in this window". See the "A SETTLE THAT PROVES AN ABSENCE"
+// block below; a frame count cannot express that window, and used for it the
+// assertion silently stops being able to fail.
 
 // That's it. After saving the .as file, the generator emits this:
 //
@@ -834,6 +840,56 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 // of passes), pick that number. If it is an untuned "let things settle" window
 // inherited from wall-clock, LEAVE IT — WaitOneFrame is the correct API there,
 // not an unmigrated leftover, and the file should say so in a comment.
+//
+// ---------------------------------------------------------------------------
+
+// !!! A SETTLE THAT PROVES AN ABSENCE IS A DURATION, NOT A FRAME COUNT !!!
+//
+// Everything above is about a settle that waits for something to HAPPEN, where a
+// pass count is usually the honest unit. The mirror case is the settle that
+// exists so something can FAIL to happen — "give a fourth completion a window to
+// show up in", "watch for a repeat that outlived the release". There the frame
+// count is wrong, and wrong in the direction that hides bugs:
+//
+//   Add_Step_WaitFrames("give a completion every chance to fire", 30)
+//     = 0.50s at the pinned 60 fps (Config/DefaultEngine.ini t.MaxFPS=60)
+//     = 0.06s with the cap lifted (any harness passing `t.MaxFPS 0`)
+//
+// At 0.06s the thing you are proving absent — driven by a wall-clock cadence, a
+// settle timer, a day-cycle pulse — could not have fired anyway. The assertion
+// stops being an assertion that CAN fail, so it passes vacuously, and it passes
+// harder the faster the machine. It never goes red to tell you.
+//
+//   Use: Add_Step_WaitSeconds("give a completion every chance to fire", 0.5f)
+//        WaitSeconds(0.5f, n"Continue")            (the standalone twin)
+//
+// Both still run at least one poll, so a seconds-settle can never return before
+// a processor pass. 19 sites in the corpus were converted this way in 2026-09;
+// their labels already said "window" / "chance" / "well past", which is the tell.
+//
+// The two instruments are NOT two spellings of one thing, and the harness cannot
+// pick for you: WaitFrames(2) means "two passes" and must keep meaning that.
+// Name the unit you actually need.
+//
+// ---------------------------------------------------------------------------
+
+// !!! ASSERTING A CADENCE: Add_Step_WaitUntil's InMaxSeconds !!!
+//
+// A wait step is "eventually" by default, bounded only by the poll budget and
+// the global test deadline. When the step's NAME makes a timing claim — "the
+// later truck is targeted within rescan cadence" — "eventually" is not what it
+// says, and the step cannot fail on the thing it is named for.
+//
+//   Add_Step_WaitUntil("...within rescan cadence", n"Check_X",
+//       0, 2.0f * constants_npc_ai_task_arrival::k_TruckRescanCadenceSeconds);
+//
+// InMaxSeconds is a DECLARED wall-clock ceiling and beats both defaults — the
+// generous poll budget and the _DefaultWaitMinSeconds floor — because a bound
+// the author wrote down should outrank two defaults chosen for everyone.
+//
+// Express it against the PRODUCTION constant, never a copy of its value. A test
+// asserting a bare 2.0f keeps asserting 2.0f after the product's cadence moves,
+// and then measures a number nothing uses.
 //
 // ---------------------------------------------------------------------------
 

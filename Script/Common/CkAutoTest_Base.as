@@ -82,12 +82,26 @@ struct FCk_AutoTest_Step
     // fault. Doubles as the frame count for a predicate-less settle step.
     UPROPERTY() int32 _FrameBudget = 0;
 
-    FCk_AutoTest_Step(FString InDisplayName = "", FName InFuncName = n"", bool InIsWait = false, int32 InFrameBudget = 0)
+    // Optional DECLARED wall-clock ceiling for this step, in seconds. 0 means "no stated bound -
+    // eventually is fine", which is the right contract for most steps. Set it when the step's whole
+    // point is that something happens WITHIN a known cadence: a step named "the later truck is
+    // targeted within rescan cadence" that cannot fail until the poll budget runs out is not
+    // asserting the cadence, it is describing it.
+    UPROPERTY() float _MaxSeconds = 0.0f;
+
+    // For a predicate-LESS settle only: the span of wall-clock it lasts. 0 means the step is a
+    // frame-counted settle instead. The two are different instruments, not two spellings of one -
+    // see Add_Step_WaitFrames / Add_Step_WaitSeconds.
+    UPROPERTY() float _SettleSeconds = 0.0f;
+
+    FCk_AutoTest_Step(FString InDisplayName = "", FName InFuncName = n"", bool InIsWait = false, int32 InFrameBudget = 0, float InMaxSeconds = 0.0f, float InSettleSeconds = 0.0f)
     {
         _DisplayName = InDisplayName;
         _FuncName = InFuncName;
         _IsWait = InIsWait;
         _FrameBudget = InFrameBudget;
+        _MaxSeconds = InMaxSeconds;
+        _SettleSeconds = InSettleSeconds;
     }
 }
 
@@ -153,6 +167,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     UPROPERTY()
     float _DefaultWaitMinSeconds = 2.0f;
 
+
     // ----- Internal state -----
     private FCk_Handle SelfEntity;
     private bool _Finished = false;
@@ -191,6 +206,8 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     private FName _WaitContinuationName;
     private int32 _WaitPolls = 0;
     private int32 _WaitBudget = 0;
+    private float _WaitMaxSeconds = 0.0f;
+    private float _WaitSettleSeconds = 0.0f;
     private bool _WaitRunning = false;
     private float _WaitElapsedSeconds = 0.0f;
     private FCk_Handle_Timer _WaitTickTimer;
@@ -246,18 +263,45 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     // InFrameBudget is a floor on POLLS, not a ceiling on time: a wait is not declared stuck until BOTH
     // it and _DefaultWaitMinSeconds are exhausted, so the effective budget is max(frames, floor). No
     // call site in the corpus passes fewer than 120 frames, so this changes nothing today.
-    protected void Add_Step_WaitUntil(const FString& InDisplayName, FName InPredicateName, int32 InFrameBudget = 0)
+    //
+    // InMaxSeconds is the opposite knob and the one to reach for when the step's NAME makes a claim
+    // about timing. It is a DECLARED wall-clock ceiling, and because it is declared it beats both
+    // defaults above: a step that must converge inside a 1.0s rescan cadence fails at that bound
+    // even though the generous poll budget and the 2.0s floor would both still be patient. Leave it
+    // 0 - the default - for the ordinary "eventually" step, which is most of them.
+    protected void Add_Step_WaitUntil(const FString& InDisplayName, FName InPredicateName, int32 InFrameBudget = 0, float InMaxSeconds = 0.0f)
     {
         _Steps.Add(FCk_AutoTest_Step(InDisplayName, InPredicateName, true,
-            InFrameBudget > 0 ? InFrameBudget : _DefaultWaitFrameBudget));
+            InFrameBudget > 0 ? InFrameBudget : _DefaultWaitFrameBudget, InMaxSeconds));
     }
 
-    // A wait step that settles for a fixed number of frames. Prefer
-    // Add_Step_WaitUntil - reach for this only when there is genuinely no
-    // observable condition, e.g. asserting that something does NOT happen.
+    // A wait step that settles for a fixed number of PROCESSOR PASSES. Exactly N, at any frame
+    // rate - that is the contract, and some tests depend on it (see the spec's WaitOneFrame /
+    // WaitFrames section). Prefer Add_Step_WaitUntil over both.
+    //
+    // If what you actually need is a WINDOW OF TIME rather than a count of passes - and that is
+    // what you need whenever the settle backs a NEGATIVE assertion - use Add_Step_WaitSeconds
+    // instead. A frame count is only a duration at the frame rate it was written against.
     protected void Add_Step_WaitFrames(const FString& InDisplayName, int32 InFrames)
     {
         _Steps.Add(FCk_AutoTest_Step(InDisplayName, n"", true, InFrames > 1 ? InFrames : 1));
+    }
+
+    // A wait step that settles for a fixed SPAN OF WALL-CLOCK.
+    //
+    // THIS IS THE ONE FOR A NEGATIVE ASSERTION - "nothing happened in this window". The thing you
+    // are proving absent is driven by a wall-clock cadence (a once-a-second rescan, a settle timer,
+    // a day-cycle pulse), so the window has to be measured in the same units or it is not a window
+    // at all. A 30-frame settle is 0.5s at the pinned 60 fps (Config/DefaultEngine.ini
+    // [SystemSettings] t.MaxFPS=60) but 0.06s with the cap lifted - and at 0.06s "the count did not
+    // move" is not an assertion that CAN fail. A test whose entire purpose is to prove an absence
+    // then passes vacuously, and passes LOUDER the faster the machine.
+    //
+    // The frame budget underneath is still enforced, so the settle is max(the declared seconds, one
+    // poll) - it can never return before a single processor pass has run.
+    protected void Add_Step_WaitSeconds(const FString& InDisplayName, float InSeconds)
+    {
+        _Steps.Add(FCk_AutoTest_Step(InDisplayName, n"", true, 1, 0.0f, InSeconds));
     }
 
     // Starts the sequence. Call once, at the end of DoBeginPlay.
@@ -338,11 +382,16 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
             return;
         }
 
-        // A wait with no predicate is a fixed-frame settle: the budget IS the wait.
+        // A wait with no predicate is a settle: the budget IS the wait. Which budget depends on
+        // which instrument the author reached for - passes (Add_Step_WaitFrames) or wall-clock
+        // (Add_Step_WaitSeconds). Both are enforced, so a seconds-settle still runs at least one
+        // poll and a frames-settle is unaffected by either.
         if (Step._FuncName == NAME_None)
         {
             _PollsInStep++;
-            if (_PollsInStep >= Step._FrameBudget) { Do_AdvanceStep(); }
+            if (_PollsInStep < Step._FrameBudget) { return; }
+            if (_SecondsInStep < Step._SettleSeconds) { return; }
+            Do_AdvanceStep();
             return;
         }
 
@@ -352,8 +401,20 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
             return;
         }
 
+        // A DECLARED ceiling is the step's stated contract, so it beats both defaults - the poll
+        // budget is a generous guard and the floor exists to stop a wait being declared stuck too
+        // early, and neither should keep waiting past a bound the author wrote down.
+        if (Step._MaxSeconds > 0.0f && _SecondsInStep >= Step._MaxSeconds)
+        {
+            auto Cond = Step._FuncName;
+            auto Bound = Step._MaxSeconds;
+            auto Elapsed = _SecondsInStep;
+            FinishFailure(f"condition '{Cond}' did not hold within the declared {Bound :.2}s bound ({Elapsed :.2}s elapsed) - the step asserts a cadence, so this is a real timing regression, not a slow machine");
+            return;
+        }
+
         _PollsInStep++;
-        if (_PollsInStep >= Step._FrameBudget && _SecondsInStep >= _DefaultWaitMinSeconds)
+        if (Step._MaxSeconds <= 0.0f && _PollsInStep >= Step._FrameBudget && _SecondsInStep >= _DefaultWaitMinSeconds)
         {
             auto Cond = Step._FuncName;
             auto Budget = Step._FrameBudget;
@@ -425,7 +486,11 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     // predicate. The continuation takes the FCk_Delegate_Timer signature, the
     // same shape WaitOneFrame callbacks already use:
     //   UFUNCTION() private void Name(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    protected void WaitUntil(FName InPredicateName, FName InContinuationName, int32 InFrameBudget = 0)
+    //
+    // InMaxSeconds is the declared wall-clock ceiling, exactly as on Add_Step_WaitUntil: set it when
+    // the wait is asserting a cadence rather than merely awaiting one, and it beats both the poll
+    // budget and _DefaultWaitMinSeconds.
+    protected void WaitUntil(FName InPredicateName, FName InContinuationName, int32 InFrameBudget = 0, float InMaxSeconds = 0.0f)
     {
         if (_WaitRunning)
         {
@@ -437,6 +502,8 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         _WaitContinuationName = InContinuationName;
         _WaitPolls = 0;
         _WaitBudget = InFrameBudget > 0 ? InFrameBudget : _DefaultWaitFrameBudget;
+        _WaitMaxSeconds = InMaxSeconds;
+        _WaitSettleSeconds = 0.0f;
         _WaitElapsedSeconds = 0.0f;
         _WaitRunning = true;
 
@@ -468,6 +535,35 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         _WaitContinuationName = InContinuationName;
         _WaitPolls = 0;
         _WaitBudget = InFrames > 1 ? InFrames : 1;
+        _WaitMaxSeconds = 0.0f;
+        _WaitSettleSeconds = 0.0f;
+        _WaitElapsedSeconds = 0.0f;
+        _WaitRunning = true;
+
+        if (ck::Is_NOT_Valid(_WaitTickTimer))
+        { _WaitTickTimer = Do_MakePerFrameTimer(n"INTERNAL__AutoTest_WaitTick"); }
+        else
+        { utils_timer::Request_Resume(_WaitTickTimer); }
+    }
+
+    // Yields a fixed SPAN OF WALL-CLOCK, then calls InContinuationName. The standalone twin of
+    // Add_Step_WaitSeconds - reach for it for the same reason: a settle backing a NEGATIVE
+    // assertion has to be a real window, and a frame count is only a window at the frame rate it
+    // was written against. See Add_Step_WaitSeconds for the full argument.
+    protected void WaitSeconds(float InSeconds, FName InContinuationName)
+    {
+        if (_WaitRunning)
+        {
+            FinishFailure(f"WaitSeconds called while already waiting on '{_WaitPredicateName}' - one standalone wait at a time");
+            return;
+        }
+
+        _WaitPredicateName = NAME_None;
+        _WaitContinuationName = InContinuationName;
+        _WaitPolls = 0;
+        _WaitBudget = 1;
+        _WaitMaxSeconds = 0.0f;
+        _WaitSettleSeconds = InSeconds;
         _WaitElapsedSeconds = 0.0f;
         _WaitRunning = true;
 
@@ -491,11 +587,13 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         // Arm_TestDeadline's timer is the bound now. _WaitElapsedSeconds stays as the per-wait
         // floor accumulator below, which is what it is actually good for.
 
-        // A nameless wait is a fixed-frame settle: the budget IS the wait.
+        // A nameless wait is a settle: the budget IS the wait, in whichever unit the author asked
+        // for - passes (WaitFrames) or wall-clock (WaitSeconds). Both are enforced.
         if (_WaitPredicateName == NAME_None)
         {
             _WaitPolls++;
             if (_WaitPolls < _WaitBudget) { return; }
+            if (_WaitElapsedSeconds < _WaitSettleSeconds) { return; }
             Do_DispatchWaitContinuation(InTimer, InChrono, InDeltaT);
             return;
         }
@@ -509,8 +607,18 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
             return;
         }
 
+        // A declared ceiling beats both defaults - see Add_Step_WaitUntil.
+        if (_WaitMaxSeconds > 0.0f && _WaitElapsedSeconds >= _WaitMaxSeconds)
+        {
+            auto Cond = _WaitPredicateName;
+            auto Bound = _WaitMaxSeconds;
+            auto Elapsed = _WaitElapsedSeconds;
+            FinishFailure(f"condition '{Cond}' did not hold within the declared {Bound :.2}s bound ({Elapsed :.2}s elapsed) - the wait asserts a cadence, so this is a real timing regression, not a slow machine");
+            return;
+        }
+
         _WaitPolls++;
-        if (_WaitPolls >= _WaitBudget && _WaitElapsedSeconds >= _DefaultWaitMinSeconds)
+        if (_WaitMaxSeconds <= 0.0f && _WaitPolls >= _WaitBudget && _WaitElapsedSeconds >= _DefaultWaitMinSeconds)
         {
             auto Cond = _WaitPredicateName;
             auto Budget = _WaitBudget;
@@ -679,15 +787,21 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     {
         if (_Finished) { return; }
 
-        auto Where = Get_CurrentContextLabel();
         auto Deadline = _TimeoutSeconds * 0.9f;
         auto Tracked = _CleanupOwners.Num();
+
+        // A test driving its own callback chain (its own timers, no Run_Steps and no WaitUntil in
+        // flight) has no context to name, and the label is empty. Say nothing rather than "at: .".
+        auto Where = Get_CurrentContextLabel();
+        FString At = "";
+        if (Where != "")
+        { At = f" at: {Where}"; }
 
         FString Leaked = "";
         if (Tracked > 0)
         { Leaked = f" Destroying {Tracked} tracked out-of-subtree owner(s) rather than leaking them into the rest of the lane."; }
 
-        FinishFailure(f"timed out after {Deadline :.2}s (90% of _TimeoutSeconds) at: {Where}. Raise `default _TimeoutSeconds` if the test is merely slow.{Leaked}");
+        FinishFailure(f"timed out after {Deadline :.2}s (90% of _TimeoutSeconds){At}. Raise `default _TimeoutSeconds` if the test is merely slow.{Leaked}");
     }
 
     void FinishSuccess()
