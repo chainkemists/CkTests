@@ -99,8 +99,10 @@ graphs - one `UCk_Gym_StepState` subclass per step, dwell gated by `UCk_Gym_Dwel
 displayed sequence cannot drift from what is running. `gym_auto`'s `AutoStep % TotalSteps`
 if-else dispatch is the superseded shape, retained while stations migrate one at a time - its
 `FCk_Message_Gym_AutoSet` is still the shared transport for the `Ck_Gym*_Auto` console toggle. Canonical gym list =
-`Script/Common/CkTests_GymRegistry.as` - **43** `RegisterProjectGym` calls (verified 2026-07-02).
-Gym scripts are co-located per feature in `Script/<FeatureModule>/` - there is **no**
+`Script/Common/CkTests_GymRegistry.as` — **85** `RegisterProjectGym` calls (verified 2026-09-05).
+Multi-station features ship one gym per station on the base grid (CkCrowd, CkJolt, and since
+2026-09-05 CkGroundNav's four), each opening with a live Verdict row.
+Gym scripts are co-located per feature in `Script/<FeatureModule>/` — there is **no**
 `Script/CkGyms/` directory (stale spec claim). Level: `Content/TestGyms/TestGyms_CkTests_Level.umap`.
 In-PIE exec commands (`Script/Common/CkGym_Base_PlayerController.as`): `Ck_Gym_Restart`,
 `Ck_Gym_Next`, `Ck_Gym_Prev`, `Ck_Gym_GoTo <index>`, `Ck_Gym_List`.
