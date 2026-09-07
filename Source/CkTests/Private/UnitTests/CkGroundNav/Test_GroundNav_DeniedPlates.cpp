@@ -72,9 +72,6 @@ namespace ck_test_groundnav_deniedplates
     constexpr auto kRayEndX = 1638.0;
     constexpr auto kRayMiddleX = 12.0;
 
-    // Short enough to stay inside the start's own plate, and off the lattice for the same reason.
-    constexpr auto kShortRayLengthUu = 50.0;
-
     const auto kRayStart = FVector{kRayStartX, kRayLaneY, kGroundZ};
     const auto kRayEnd = FVector{kRayEndX, kRayLaneY, kGroundZ};
     const auto kRayMiddle = FVector{kRayMiddleX, kRayLaneY, kGroundZ};
@@ -273,24 +270,23 @@ bool FCkTest_GroundNav_DeniedPlates_DeniedGoalPlateIsUnreachable::RunTest(const 
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// The START's own ground refused: Blocked, and deliberately NOT NoStartSurface.
+// The START's own ground refused: the body already stands there, so the search begins anyway and
+// answers Ready - it may just never step back onto that plate once it has left it.
 //
-// The distinction is the whole case. There IS ground under the body and the field found it - this
-// query is simply not allowed to use it, which is the verdict a body too wide for the field's
-// clearance ceiling already gets. Answering NoStartSurface would tell a caller the field has nothing
-// there, and a caller that reacts by rebuilding or re-projecting would be chasing ground that is
-// already present.
-//
-// Falsified by dropping the pre-check in FCk_GroundNav_PathSearch: Neighbors refuses plates it is
-// asked to ENTER, and the start plate is entered through no crossing, so without the pre-check the
-// search leaves the denied ground it is standing on and answers Ready.
+// Falsified two ways. Re-adding the denied-start refusal FCk_GroundNav_PathSearch used to make
+// before this plate ever loses the ground under a body that is legitimately standing on it - the
+// search would answer Blocked instead of Ready and never begin. Dropping the neighbour skip beside
+// the link veto in FCk_GroundNav_PlatePortalGraph::Neighbors lets the corridor step back onto the
+// denied plate after leaving it - this scene's own west-east route never bends back over its own
+// start to exercise that failure directly, so RouteAvoidsADeniedPlate is what falsifies it, for an
+// INTERIOR plate instead of the start.
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_GroundNav_DeniedPlates_DeniedStartPlateIsBlocked,
-    "CkTests.UnitTests.CkGroundNav.DeniedPlates.DeniedStartPlateIsBlocked",
+    FCkTest_GroundNav_DeniedPlates_DeniedStartPlateIsLeftAndNeverReentered,
+    "CkTests.UnitTests.CkGroundNav.DeniedPlates.DeniedStartPlateIsLeftAndNeverReentered",
     kCkUnitTestFlags)
 
-bool FCkTest_GroundNav_DeniedPlates_DeniedStartPlateIsBlocked::RunTest(const FString& Parameters)
+bool FCkTest_GroundNav_DeniedPlates_DeniedStartPlateIsLeftAndNeverReentered::RunTest(const FString& Parameters)
 {
     using namespace ck_test_groundnav_deniedplates;
 
@@ -313,8 +309,20 @@ bool FCkTest_GroundNav_DeniedPlates_DeniedStartPlateIsBlocked::RunTest(const FSt
 
     const auto Denied = Get_Path(Field, Make_QueryDenying(Query, StartPlate));
 
-    TestEqual(TEXT("a body standing on refused ground is Blocked, not standing on no ground"),
-        Denied._Status, ECk_GroundNav_PathStatus::Blocked);
+    TestEqual(TEXT("a body standing on refused ground still finds a route - the search begins where it stands"),
+        Denied._Status, ECk_GroundNav_PathStatus::Ready);
+
+    if (NOT TestFalse(TEXT("and its corridor is not empty"), Denied._PlateCorridor.IsEmpty()))
+    { return false; }
+
+    TestEqual(TEXT("the corridor's first plate is the denied start plate - the body LEAVES from it"),
+        Denied._PlateCorridor[0], StartPlate);
+
+    auto LaterPlates = Denied._PlateCorridor;
+    LaterPlates.RemoveAt(0);
+
+    TestFalse(TEXT("and no later plate of the corridor re-enters the denied start plate"),
+        LaterPlates.Contains(StartPlate));
 
     return true;
 }
@@ -386,18 +394,23 @@ bool FCkTest_GroundNav_DeniedPlates_RaycastBlocksAtADeniedPlatesEdge::RunTest(co
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// A ray STANDING on refused ground is refused where it stands, ahead of the plate early-out.
+// A ray STANDING on refused ground walks off it rather than being refused where it stands - the start
+// plate is never denied, exactly as the search's own start is never denied. Two shapes over the same
+// lane and its two already-distinguished plates: denied only at its own start, a ray still reaches
+// ground on a later, undenied plate; denied at its start AND at a second plate further down the lane,
+// it still leaves the start and then blocks at that second plate's edge, exactly where
+// RaycastBlocksAtADeniedPlatesEdge already pins a mid-lane denial.
 //
-// Falsified by moving the start check below that early-out: a segment that never leaves the start's
-// own plate is answered without a single step, so the early-out would report Success for a ray whose
-// whole length lies on ground the query refused.
+// Falsified by re-adding the pre-check that used to run ahead of the plate early-out in
+// Get_SurfaceRaycast: with it back the first case answers Blocked at the start instead of Success
+// beyond it.
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_GroundNav_DeniedPlates_RaycastFromADeniedPlateIsBlocked,
-    "CkTests.UnitTests.CkGroundNav.DeniedPlates.RaycastFromADeniedPlateIsBlocked",
+    FCkTest_GroundNav_DeniedPlates_RaycastFromADeniedPlateWalksOffIt,
+    "CkTests.UnitTests.CkGroundNav.DeniedPlates.RaycastFromADeniedPlateWalksOffIt",
     kCkUnitTestFlags)
 
-bool FCkTest_GroundNav_DeniedPlates_RaycastFromADeniedPlateIsBlocked::RunTest(const FString& Parameters)
+bool FCkTest_GroundNav_DeniedPlates_RaycastFromADeniedPlateWalksOffIt::RunTest(const FString& Parameters)
 {
     using namespace ck_test_groundnav_deniedplates;
 
@@ -406,31 +419,56 @@ bool FCkTest_GroundNav_DeniedPlates_RaycastFromADeniedPlateIsBlocked::RunTest(co
     if (NOT TestTrue(TEXT("the four-pillar slab bakes"), Bake_SharedFourPillarSlabScene(Field)))
     { return false; }
 
-    const auto StartPlate = TryGet_FlatPlateAt(*Field, kRayStart);
+    const auto Clear = Get_SurfaceRaycast(*Field, Make_RaycastQuery(kRayStart, kRayEnd));
 
-    if (NOT TestTrue(TEXT("the lane's start stands on a plate"), StartPlate != INDEX_NONE))
-    { return false; }
-
-    // Short enough to stay on the start's own plate, which is what routes the query through the early
-    // out this case exists to get in front of.
-    const auto ShortEnd = kRayStart + FVector{kShortRayLengthUu, 0.0, 0.0};
-
-    const auto Clear = Get_SurfaceRaycast(*Field, Make_RaycastQuery(kRayStart, ShortEnd));
-
-    if (NOT TestEqual(TEXT("the short segment is clear with no veto"),
+    if (NOT TestEqual(TEXT("the lane south of every pillar is clear end to end"),
         Clear._Status, ECk_NavSurface_QueryStatus::Success))
     { return false; }
 
-    auto DeniedQuery = Make_RaycastQuery(kRayStart, ShortEnd);
-    DeniedQuery._DeniedPlates.Add(StartPlate);
+    const auto StartPlate = TryGet_FlatPlateAt(*Field, kRayStart);
+    const auto MiddlePlate = TryGet_FlatPlateAt(*Field, kRayMiddle);
 
-    const auto Denied = Get_SurfaceRaycast(*Field, DeniedQuery);
+    if (NOT TestTrue(TEXT("the lane's start and middle stand on different plates"),
+        StartPlate != INDEX_NONE && MiddlePlate != INDEX_NONE && StartPlate != MiddlePlate))
+    { return false; }
 
-    TestEqual(TEXT("a ray standing on refused ground is Blocked"),
-        Denied._Status, ECk_NavSurface_QueryStatus::Blocked);
+    // Denied only on its own start plate, ending on a later, undenied plate down the lane: it must
+    // leave the start plate to get there, and leaving is all the rule asks.
+    auto DeniedAtStartOnly = Make_RaycastQuery(kRayStart, kRayMiddle);
+    DeniedAtStartOnly._DeniedPlates.Add(StartPlate);
 
-    TestTrue(TEXT("and it never reached the end it was asked about"),
-        Denied._HitLocation != ShortEnd);
+    const auto WalksOff = Get_SurfaceRaycast(*Field, DeniedAtStartOnly);
+
+    TestEqual(TEXT("a ray denied only on its own start plate still reaches ground beyond it"),
+        WalksOff._Status, ECk_NavSurface_QueryStatus::Success);
+
+    // Denied at the start AND at a second plate further down the lane: it still leaves the start, and
+    // blocks where the second denial's edge is.
+    auto DeniedAtStartAndMiddle = Make_RaycastQuery(kRayStart, kRayEnd);
+    DeniedAtStartAndMiddle._DeniedPlates.Add(StartPlate);
+    DeniedAtStartAndMiddle._DeniedPlates.Add(MiddlePlate);
+
+    const auto Blocked = Get_SurfaceRaycast(*Field, DeniedAtStartAndMiddle);
+
+    ck::groundnav::Display(
+        TEXT("[DENIED-PLATES] start plate [{}] denied plate [{}], hit [{}] status [{}]"),
+        StartPlate, MiddlePlate, Blocked._HitLocation, Blocked._Status);
+
+    TestEqual(TEXT("a ray that crosses a second denied plate is Blocked at its edge"),
+        Blocked._Status, ECk_NavSurface_QueryStatus::Blocked);
+
+    TestFalse(TEXT("and it is the ground that stopped it, not a cost cap"), Blocked._StoppedOnCost);
+
+    // At the EDGE, and having left the ALSO-denied start behind: the old pre-check would have stopped
+    // this ray at kRayStart itself, which reads identically on LastSurface's plate as the denied start.
+    TestTrue(TEXT("having left the denied start plate before it was stopped"),
+        Get_FlatPlateOfSurface(*Field, Blocked._LastSurface) != StartPlate);
+
+    TestTrue(TEXT("and stopped on the plate BEFORE the second denied one"),
+        Get_FlatPlateOfSurface(*Field, Blocked._LastSurface) != MiddlePlate);
+
+    TestTrue(TEXT("stopping at or before the second denied plate's western edge"),
+        Blocked._HitLocation.X <= kRayMiddle.X);
 
     return true;
 }
