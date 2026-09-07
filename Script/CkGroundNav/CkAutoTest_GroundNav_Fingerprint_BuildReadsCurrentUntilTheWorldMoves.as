@@ -50,6 +50,7 @@ class UCk_AutoTest_GroundNav_Fingerprint_BuildReadsCurrentUntilTheWorldMoves : U
     // slack: a contract that expires on the harness's anonymous TimesUp names nothing, and every
     // wait below carries its own budget so it fails on its own condition.
     default _TimeoutSeconds = 300.0f;
+    default _AutoStageOriginField = false; // creates its own GroundNav volume
 
     //------------------------------------------------------------------------
     // Fixture geometry - a 3x3 lattice at 400uu tiles

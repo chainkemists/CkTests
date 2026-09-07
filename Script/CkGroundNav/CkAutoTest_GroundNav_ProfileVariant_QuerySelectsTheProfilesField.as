@@ -101,6 +101,7 @@ class UCk_AutoTest_GroundNav_ProfileVariant_QuerySelectsTheProfilesField : UCk_A
     // purpose: every wait below carries its own budget so it fails on its own condition rather than
     // on the harness's anonymous TimesUp.
     default _TimeoutSeconds = 420.0f;
+    default _AutoStageOriginField = false; // creates its own GroundNav volume
 
     //------------------------------------------------------------------------
     // Fixture geometry

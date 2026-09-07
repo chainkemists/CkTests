@@ -46,6 +46,7 @@ class UCk_AutoTest_NavSurface_RecastBudgets_MovedObstacleRepairLatency : UCk_Aut
     // Five moves, each waiting on two independent tile repairs. Deliberately slack - a measurement
     // that times out measures nothing.
     default _TimeoutSeconds = 240.0f;
+    default _AutoStageOriginField = false; // measures Recast: no GroundNav field, provider pinned below
 
     private const int32 MoveCount = 5;
 
@@ -123,9 +124,17 @@ class UCk_AutoTest_NavSurface_RecastBudgets_MovedObstacleRepairLatency : UCk_Aut
     private int32 _FirstPaintPolls = 0;
     private bool _FirstPaintCarveSeen = false;
 
+    // World state this test changes and must hand back - this test measures Recast, so the world
+    // is pinned onto it regardless of what it was answering on when the test began.
+    private ECk_NavSurface_Provider _ProviderBefore = ECk_NavSurface_Provider::Recast;
+
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        // Captured BEFORE anything can fail, so DoEndPlay always has something to put back.
+        _ProviderBefore = utils_nav_surface::Get_Provider();
+
+        Add_Step(          "pin the world onto Recast (this test measures Recast)", n"Step_PinRecast");
         Add_Step_WaitUntil("the nav surface provider settles at Ready",   n"Check_ProviderIsReady", 900);
         Add_Step(          "find the level floor and its rectangle",      n"Step_FindFloor");
         Add_Step(          "ask the provider to build its surface",       n"Step_KickRebuild");
@@ -138,6 +147,18 @@ class UCk_AutoTest_NavSurface_RecastBudgets_MovedObstacleRepairLatency : UCk_Aut
         Add_Step_WaitUntil("the floor comes back where the box stood",    n"Check_BothSpotsProject", 900);
         Add_Step(          "judge the run",                               n"Step_Judge");
         Run_Steps(InHandle);
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void DoEndPlay(FCk_Handle InHandle)
+    {
+        utils_nav_surface::Request_SetProvider(_ProviderBefore);
+    }
+
+    UFUNCTION()
+    private void Step_PinRecast(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        utils_nav_surface::Request_SetProvider(ECk_NavSurface_Provider::Recast);
     }
 
     UFUNCTION()

@@ -41,6 +41,7 @@ class UCk_AutoTest_NavSurface_RecastBudgets_CostFixtures : UCk_AutoTest_Base
     // Three fixtures, five queries and three rebuilds over runtime-spawned geometry. Deliberately
     // slack - a measurement that times out measures nothing.
     default _TimeoutSeconds = 180.0f;
+    default _AutoStageOriginField = false; // measures Recast: no GroundNav field, provider pinned below
 
     // /Engine/BasicShapes/Cube is 100uu on a side, so an actor scale of N gives N*100uu of extent.
     private const float64 CubeMeshSizeUu = 100.0;
@@ -182,11 +183,19 @@ class UCk_AutoTest_NavSurface_RecastBudgets_CostFixtures : UCk_AutoTest_Base
     private FVector _QueryGoal = FVector::ZeroVector;
     private FString _QueryLabel;
 
+    // World state this test changes and must hand back - this test measures Recast, so the world
+    // is pinned onto it regardless of what it was answering on when the test began.
+    private ECk_NavSurface_Provider _ProviderBefore = ECk_NavSurface_Provider::Recast;
+
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _SelfHandle = InHandle;
 
+        // Captured BEFORE anything can fail, so DoEndPlay always has something to put back.
+        _ProviderBefore = utils_nav_surface::Get_Provider();
+
+        Add_Step(          "pin the world onto Recast (this test measures Recast)", n"Step_PinRecast");
         Add_Step_WaitUntil("the nav surface provider settles at Ready",       n"Check_ProviderIsReady", 900);
         Add_Step(          "probe the band for ground that is already there", n"Step_ProbeBand");
         Add_Step(          "lay the floor over the band",                     n"Step_LayFloor");
@@ -218,6 +227,18 @@ class UCk_AutoTest_NavSurface_RecastBudgets_CostFixtures : UCk_AutoTest_Base
         Add_Step(          "take the fixtures back down",                     n"Step_TearDown");
 
         Run_Steps(InHandle);
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void DoEndPlay(FCk_Handle InHandle)
+    {
+        utils_nav_surface::Request_SetProvider(_ProviderBefore);
+    }
+
+    UFUNCTION()
+    private void Step_PinRecast(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        utils_nav_surface::Request_SetProvider(ECk_NavSurface_Provider::Recast);
     }
 
     //------------------------------------------------------------------------

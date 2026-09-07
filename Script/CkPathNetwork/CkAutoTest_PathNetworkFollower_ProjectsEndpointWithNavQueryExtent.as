@@ -38,7 +38,7 @@ class UCk_AutoTest_PathNetworkFollower_ProjectsEndpointWithNavQueryExtent
             LocalHandle,
             FTransform(FRotator::ZeroRotator, Start, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         TArray<FCk_PathNetwork_RibbonPoint> Points;
         Points.Add(FCk_PathNetwork_RibbonPoint(NetworkEntry, 100.0f));
@@ -66,6 +66,15 @@ class UCk_AutoTest_PathNetworkFollower_ProjectsEndpointWithNavQueryExtent
         WaitOneFrame(n"OnNetworkReadyToRoute");
     }
 
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
+    }
+
     UFUNCTION()
     private void OnNetworkReadyToRoute(
         FCk_Handle_Timer InTimer,
@@ -82,24 +91,17 @@ class UCk_AutoTest_PathNetworkFollower_ProjectsEndpointWithNavQueryExtent
         for (auto X = 600.0f; X <= 3000.0f; X += 100.0f)
         {
             const auto Candidate = FVector(X, 0.0f, 0.0f);
-            FVector TightProjection;
-            const auto ProjectsWithTightExtent = utils_nav::Try_ProjectOntoNavmesh(
-                FCk_Handle(_Follower),
-                Candidate,
-                25.0f,
-                TightProjection,
-                100.0f);
-            FVector BroadProjection;
-            const auto ProjectsWithNavQueryExtent = utils_nav::Try_ProjectOntoNavmesh(
-                FCk_Handle(_Follower),
-                Candidate,
-                500.0f,
-                BroadProjection,
-                500.0f);
+            const auto TightResult = Do_ProjectOntoSurface(Candidate, FVector(25.0f, 25.0f, 100.0f));
+            const auto ProjectsWithTightExtent = TightResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
+            // Zero opts into the project-wide projection extent (UCk_Nav_ProjectSettings_UE::
+            // _NavQuerySearchHalfExtent, 500cm by default) - the "normal CkNavigation query extent"
+            // this fixture is named for.
+            const auto BroadResult = Do_ProjectOntoSurface(Candidate, FVector::ZeroVector);
+            const auto ProjectsWithNavQueryExtent = BroadResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
             if (!ProjectsWithTightExtent && ProjectsWithNavQueryExtent)
             {
                 _Goal = Candidate;
-                _ProjectedGoal = BroadProjection;
+                _ProjectedGoal = BroadResult.Get_Location();
                 FoundFixture = true;
                 break;
             }

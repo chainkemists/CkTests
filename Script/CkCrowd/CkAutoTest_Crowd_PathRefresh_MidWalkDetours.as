@@ -49,7 +49,7 @@ class UCk_AutoTest_Crowd_PathRefresh_MidWalkDetours : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, FVector(WalkStartX, 0.0, 100.0), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
@@ -71,13 +71,13 @@ class UCk_AutoTest_Crowd_PathRefresh_MidWalkDetours : UCk_AutoTest_Base
             // must resolve immediately (CkNav defers a request whose start tile isn't baked yet,
             // and a deferred first path would resolve AFTER the discs paint and detour on its
             // own - no stale path, nothing for PathRefresh to prove).
-            FVector Projected;
-            if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, FVector::ZeroVector, 100.0f, Projected, 300.0f) == false)
+            const auto OriginProjected = Do_ProjectOntoSurface(FVector::ZeroVector, FVector(100.0, 100.0, 300.0));
+            if (OriginProjected.Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { return; }   // bake not done yet
-            _FloorZ = float(Projected.Z);
-            if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, FVector(WalkStartX, 0.0, _FloorZ), 100.0f, Projected, 300.0f) == false)
+            _FloorZ = float(OriginProjected.Get_Location().Z);
+            if (Do_ProjectOntoSurface(FVector(WalkStartX, 0.0, _FloorZ), FVector(100.0, 100.0, 300.0)).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { return; }
-            if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, FVector(WalkEndX, 0.0, _FloorZ), 100.0f, Projected, 300.0f) == false)
+            if (Do_ProjectOntoSurface(FVector(WalkEndX, 0.0, _FloorZ), FVector(100.0, 100.0, 300.0)).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { return; }
 
             _MeshFound = true;
@@ -173,6 +173,15 @@ class UCk_AutoTest_Crowd_PathRefresh_MidWalkDetours : UCk_AutoTest_Base
         T = Math::Clamp(T, 0.0, 1.0);
         const auto ClosestPoint = A + AB * T;
         return float((P - ClosestPoint).Size());
+    }
+
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
     }
 
     private void SpawnPicketLine(FCk_Handle& InOwner)

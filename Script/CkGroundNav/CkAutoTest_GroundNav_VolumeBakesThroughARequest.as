@@ -28,6 +28,7 @@
 class UCk_AutoTest_GroundNav_VolumeBakesThroughARequest : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 30.0f;
+    default _AutoStageOriginField = false; // creates its own GroundNav volume
 
     private FCk_Handle _SelfHandle;
     private FCk_Handle_JoltBody _FloorBody;

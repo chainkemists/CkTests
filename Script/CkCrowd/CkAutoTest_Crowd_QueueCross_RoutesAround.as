@@ -44,7 +44,7 @@ class UCk_AutoTest_Crowd_QueueCross_RoutesAround : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, FVector(-CrosserApproachX, 0.0, 100.0), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
@@ -62,12 +62,12 @@ class UCk_AutoTest_Crowd_QueueCross_RoutesAround : UCk_AutoTest_Base
 
         if (_MeshFound == false)
         {
-            FVector OriginOnMesh;
-            if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, FVector::ZeroVector, 100.0f, OriginOnMesh, 300.0f) == false)
+            const auto Projected = Do_ProjectOntoSurface(FVector::ZeroVector, FVector(100.0, 100.0, 300.0));
+            if (Projected.Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { return; }
 
             _MeshFound = true;
-            _FloorZ = float(OriginOnMesh.Z);
+            _FloorZ = float(Projected.Get_Location().Z);
             return;
         }
 
@@ -133,6 +133,15 @@ class UCk_AutoTest_Crowd_QueueCross_RoutesAround : UCk_AutoTest_Base
             f"PRESSED: the crosser came within {Recorder.Get_MinSepAcrossCycle()}uu of the line (need {MinCrosserClearanceUu}+). The route went through the queue, not around its end.");
 
         FinishSuccess();
+    }
+
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
     }
 
     private FCk_Handle_CrowdAgent Spawn_Agent(FCk_Handle& InOwner, FVector InLoc)

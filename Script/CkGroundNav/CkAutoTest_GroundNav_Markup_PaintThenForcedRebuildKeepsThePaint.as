@@ -19,6 +19,7 @@
 class UCk_AutoTest_GroundNav_Markup_PaintThenForcedRebuildKeepsThePaint : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 120.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     private const float SpotOffsetX = 300.0;
     private const float SpotOffsetY = 300.0;

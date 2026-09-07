@@ -55,6 +55,7 @@ class UCk_AutoTest_GroundNav_DebugSubmenu_RendersDiagnosticsAsValues : UCk_AutoT
     // condition. Deliberately slack: a contract that expires on the harness's
     // anonymous TimesUp names nothing.
     default _TimeoutSeconds = 300.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     //------------------------------------------------------------------------
     // Geometry, as offsets from the floor's own centre and top face. Both ends

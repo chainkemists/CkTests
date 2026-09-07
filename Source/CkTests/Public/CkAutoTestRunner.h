@@ -7,9 +7,13 @@
 #include "CkCore/Settings/CkCore_Settings.h"
 #include "CkEcs/Handle/CkHandle.h"
 
+#include "CkGroundNav/Volume/CkGroundNavVolume_Fragment_Data.h"
+
 #include "CkAutoTestRunner.generated.h"
 
+class AStaticMeshActor;
 class UCk_EntityScript_UE;
+class UWorld;
 
 // --------------------------------------------------------------------------------------------------------------------
 //
@@ -27,10 +31,13 @@ class UCk_EntityScript_UE;
 //   3. Run via Session Frontend → Automation → Project.Functional Tests.
 //
 // The actor:
-//   - In PrepareTest: syncs engine TimeLimit to _TimeoutSeconds, spawns
-//     the AS entity on the world's transient entity, binds the OnConstructed
-//     promise.
-//   - In Tick: polls the runner entity for an FCk_AutoTest_Result fragment,
+//   - In PrepareTest: syncs engine TimeLimit to _TimeoutSeconds, stages the
+//     GroundNav harness origin field when this world runs on GroundNav and the
+//     test did not opt out (see Get_ShouldStageOriginField), then spawns the AS
+//     entity on the world's transient entity and binds the OnConstructed
+//     promise. Under staging the spawn is DEFERRED to Tick.
+//   - In Tick: drives the staging state machine to completion (deferred spawn),
+//     then polls the runner entity for an FCk_AutoTest_Result fragment,
 //     calling FinishTest() once status is terminal (Passed/Failed).
 //   - If the AS test never writes a terminal result, the engine TimeLimit
 //     fires TimesUpResult=Failed automatically (no extra logic needed here).
@@ -118,9 +125,10 @@ private:
     void OnRunnerConstructed(struct FCk_Handle_EntityScript InEntityScriptHandle);
 
     // Destroys the spawned runner entity (and its entire child graph — every
-    // entity the AS test created during Construct/BeginPlay). Idempotent.
-    // Called from FinishTest and EndPlay so leaked agents from one test
-    // cannot contaminate the dynamic-navmesh / world-state of the next.
+    // entity the AS test created during Construct/BeginPlay), and releases the
+    // harness origin field if one was staged. Idempotent. Called from
+    // FinishTest and EndPlay so leaked agents from one test cannot contaminate
+    // the dynamic-navmesh / world-state of the next.
     void Destroy_RunnerEntity();
 
     // Forces CkEnsure's display policy to LogOnly for the duration of a test
@@ -171,9 +179,60 @@ private:
     void Capture_EntityBaseline();
     auto Get_EntityLeaks() const -> TArray<FString>;
 
+    // ----- GroundNav harness origin field -----
+    //
+    // The shared autotest level ships a Recast navmesh and NOTHING that publishes a GroundNav
+    // field, so a world on ECk_NavSurface_Provider::GroundNav has no ground for a test to answer
+    // over: every such test fails for the harness's reason rather than its own. The runner
+    // therefore bakes one volume over the level's origin floor BEFORE the test entity exists, and
+    // spawns the entity only once the field is built and the surface has settled.
+    //
+    // Staged here rather than from the AS base because the AS base could only ever prepend steps to
+    // Run_Steps, which reaches the 191 of 1032 autotests that declare a step list. The ground is a
+    // property of the WORLD the test runs in, not of the shape the test was written in.
+    //
+    // A test opts out with `default _AutoStageOriginField = false;` on its entity script; that
+    // writes the subclass CDO, which is what Get_ShouldStageOriginField reads.
+    auto Get_ShouldStageOriginField(const UClass* InTestEntityScriptClass, UWorld* InWorld) const -> bool;
+
+    // Bakes the origin field. Returns false having already called FinishTest(Failed) with the
+    // reason, so the caller only has to stop.
+    auto Request_StageOriginField(UWorld* InWorld, FCk_Handle& InTransientEntity) -> bool;
+
+    // Destroys the staged volume entity and pulls the floor back out of the Jolt static world IF
+    // this runner is the one that put it there. Idempotent; safe on a runner that never staged.
+    auto Release_OriginField() -> void;
+
+    // Spawns the AS test entity on the world transient entity and binds the construction promise.
+    // Both the immediate path (PrepareTest, no staging) and the deferred path (Tick, once the
+    // field is up) route through here so the two cannot drift.
+    auto Spawn_TestEntity() -> void;
+
 private:
     FCk_Handle _RunnerEntity;
     bool _ResultReported = false;
+
+    // ----- GroundNav harness origin field state -----
+    // All inert for a test on Recast and for every opt-out.
+    FCk_Handle _OriginFieldEntity;
+    FCk_Handle_GroundNavVolume _OriginFieldVolume;
+
+    // Weak on purpose: the floor is a level actor held across frames by a harness that must never
+    // be the reason it stays alive.
+    TWeakObjectPtr<AStaticMeshActor> _OriginFieldFloor;
+
+    // True only when THIS runner put the floor into the Jolt static world. A floor the host's own
+    // level sweep (or an earlier test) baked is left exactly as it was found.
+    bool _OriginFieldFloorBakedByThisRunner = false;
+
+    // The spawn is deferred while this is set. Cleared when the deferred spawn happens, when
+    // staging times out, and in FinishTest so a TimesUp mid-stage cannot spawn a test entity for a
+    // test that has already reported.
+    bool _StagingOriginField = false;
+    bool _StagingFieldBuilt = false;
+    int32 _StagingBuildFrames = 0;
+    int32 _StagingSettleFrames = 0;
+    float _StagingSeconds = 0.0f;
 
     // Per-instance idempotency guard so FinishTest + BeginDestroy don't
     // double-decrement the process-wide override refcount. The actual

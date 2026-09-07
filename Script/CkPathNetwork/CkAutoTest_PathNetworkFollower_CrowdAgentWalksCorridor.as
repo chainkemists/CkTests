@@ -44,7 +44,7 @@ class UCk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor : UCk_AutoTest_Ba
             FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         // The sidewalk: a straight ribbon just off the agent's spawn, ending just short of the goal.
         TArray<FCk_PathNetwork_RibbonPoint> Points;
@@ -109,6 +109,15 @@ class UCk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor : UCk_AutoTest_Ba
         utils_crowd_agent::Request_MoveTo(_Agent, FCk_Request_CrowdAgent_MoveTo(Goal));
     }
 
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
+    }
+
     UFUNCTION()
     private void OnRouteReady(FCk_Handle_PathNetworkFollower InFollower, FCk_PathNetwork_RouteResult InResult)
     {
@@ -127,13 +136,13 @@ class UCk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor : UCk_AutoTest_Ba
         const auto Waypoints = InResult.Get_CompiledWaypoints();
         for (int32 i = 0; i < Waypoints.Num(); ++i)
         {
-            FVector ProjectedWaypoint;
-            const auto ProjectsToNavmesh = utils_nav::Try_ProjectOntoNavmesh(
-                FCk_Handle(InFollower), Waypoints[i], 25.0f, ProjectedWaypoint, 300.0f);
+            const auto ProjectionResult = Do_ProjectOntoSurface(Waypoints[i], FVector(25.0f, 25.0f, 300.0f));
+            const auto ProjectsToNavmesh = ProjectionResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
             Assert_True(ProjectsToNavmesh,
                 f"compiled waypoint {i} must project onto the AutoTests navmesh: {Waypoints[i]}");
             if (!ProjectsToNavmesh) { return; }
 
+            const auto ProjectedWaypoint = ProjectionResult.Get_Location();
             Assert_True((ProjectedWaypoint - Waypoints[i]).Size() <= 2.0f,
                 f"compiled waypoint {i} must already lie on navmesh (projection delta {(ProjectedWaypoint - Waypoints[i]).Size()}cm): {Waypoints[i]}");
         }

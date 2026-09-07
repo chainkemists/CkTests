@@ -82,6 +82,7 @@ class UCk_AutoTest_GroundNav_Link_AuthoredLinkIsLiveAndRoutesAcross : UCk_AutoTe
     // own budgeted condition. Deliberately slack: a contract that expires on the harness's anonymous
     // TimesUp names nothing.
     default _TimeoutSeconds = 300.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     //------------------------------------------------------------------------
     // Geometry, all of it as offsets from the floor's own centre and top face.

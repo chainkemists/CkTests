@@ -83,6 +83,7 @@ class UCk_AutoTest_GroundNav_Settle_PaintThenSettleThenLive : UCk_AutoTest_Base
     // condition. Deliberately slack: a contract that expires on the harness's anonymous TimesUp
     // names nothing.
     default _TimeoutSeconds = 240.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     //------------------------------------------------------------------------
     // The spot, and the probe that can tell a hole from ground

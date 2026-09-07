@@ -60,6 +60,7 @@
 class UCk_AutoTest_Crowd_GroundNav_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 48.0f;
+    default _AutoStageOriginField = false; // creates its own GroundNav volume
 
     //------------------------------------------------------------------------
     // Fixture geometry

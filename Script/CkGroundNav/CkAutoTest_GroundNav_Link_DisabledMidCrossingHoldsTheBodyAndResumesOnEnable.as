@@ -50,6 +50,7 @@
 class UCk_AutoTest_GroundNav_Link_DisabledMidCrossingHoldsTheBodyAndResumesOnEnable : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 300.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     //------------------------------------------------------------------------
     // Geometry - offsets from the origin floor's own centre and top face.

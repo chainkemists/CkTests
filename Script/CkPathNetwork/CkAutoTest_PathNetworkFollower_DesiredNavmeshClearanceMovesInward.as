@@ -32,10 +32,18 @@ class UCk_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward
     {
         auto _CkPerfScope = ck::ScopedStat();
         _Context = InHandle;
-        auto LocalHandle = InHandle;
 
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
         WaitOneFrame(n"OnNavmeshReady");
+    }
+
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
     }
 
     UFUNCTION()
@@ -49,16 +57,12 @@ class UCk_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward
         auto HighestNavmeshY = -1.0;
         for (float64 CandidateY = 0.0; CandidateY <= 5000.0; CandidateY += 50.0)
         {
-            FVector Projected;
-            auto LocalHandle = _Context;
-            const auto Projects = utils_nav::Try_ProjectOntoNavmesh(
-                LocalHandle,
+            const auto Result = Do_ProjectOntoSurface(
                 FVector(0.0, CandidateY, 0.0),
-                5.0f,
-                Projected,
-                300.0f);
+                FVector(5.0f, 5.0f, 300.0f));
+            const auto Projects = Result.Get_Status() == ECk_NavSurface_QueryStatus::Success;
             if (!Projects ||
-                (Projected - FVector(0.0, CandidateY, 0.0)).Size2D() > 2.0f)
+                (Result.Get_Location() - FVector(0.0, CandidateY, 0.0)).Size2D() > 2.0f)
             { break; }
             HighestNavmeshY = CandidateY;
         }
@@ -76,40 +80,28 @@ class UCk_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward
         _Start = FVector(-300.0, _CenterlineY, 0.0);
         _Goal = FVector(300.0, _CenterlineY, 0.0);
 
-        FVector ProjectedLane;
-        auto LaneHandle = _Context;
-        const auto LaneProjects = utils_nav::Try_ProjectOntoNavmesh(
-            LaneHandle,
+        const auto LaneResult = Do_ProjectOntoSurface(
             FVector(0.0, _CenterlineY, 0.0),
-            10.0f,
-            ProjectedLane,
-            300.0f);
+            FVector(10.0f, 10.0f, 300.0f));
+        const auto LaneProjects = LaneResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
         Assert_True(
             LaneProjects &&
-                (ProjectedLane - FVector(0.0, _CenterlineY, 0.0)).Size2D() <= 2.0f,
+                (LaneResult.Get_Location() - FVector(0.0, _CenterlineY, 0.0)).Size2D() <= 2.0f,
             "discovered baseline lane must lie on the AutoTests navmesh");
 
-        FVector ProjectedInward;
-        auto InwardHandle = _Context;
-        const auto InwardProjects = utils_nav::Try_ProjectOntoNavmesh(
-            InwardHandle,
+        const auto InwardResult = Do_ProjectOntoSurface(
             FVector(0.0, _CenterlineY - 150.0, 0.0),
-            10.0f,
-            ProjectedInward,
-            300.0f);
+            FVector(10.0f, 10.0f, 300.0f));
+        const auto InwardProjects = InwardResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
         Assert_True(
             InwardProjects &&
-                (ProjectedInward - FVector(0.0, _CenterlineY - 150.0, 0.0)).Size() <= 2.0f,
+                (InwardResult.Get_Location() - FVector(0.0, _CenterlineY - 150.0, 0.0)).Size() <= 2.0f,
             "the ribbon must have navmesh room inward from the discovered boundary");
 
-        FVector ProjectedOutside;
-        auto OutsideHandle = _Context;
-        const auto OutsideProjects = utils_nav::Try_ProjectOntoNavmesh(
-            OutsideHandle,
+        const auto OutsideResult = Do_ProjectOntoSurface(
             FVector(0.0, HighestNavmeshY + 100.0, 0.0),
-            10.0f,
-            ProjectedOutside,
-            300.0f);
+            FVector(10.0f, 10.0f, 300.0f));
+        const auto OutsideProjects = OutsideResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
         Assert_True(
             OutsideProjects == false,
             "the discovered clearance lane must have a navmesh boundary on its north side");
@@ -257,16 +249,13 @@ class UCk_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward
 
         for (int32 Index = 0; Index < Waypoints.Num(); ++Index)
         {
-            FVector ProjectedWaypoint;
-            const auto Projects = utils_nav::Try_ProjectOntoNavmesh(
-                FCk_Handle(InFollower),
+            const auto WaypointResult = Do_ProjectOntoSurface(
                 Waypoints[Index],
-                25.0f,
-                ProjectedWaypoint,
-                300.0f);
+                FVector(25.0f, 25.0f, 300.0f));
+            const auto Projects = WaypointResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
             Assert_True(
                 Projects &&
-                    (ProjectedWaypoint - Waypoints[Index]).Size() <= 2.0f,
+                    (WaypointResult.Get_Location() - Waypoints[Index]).Size() <= 2.0f,
                 f"clearance waypoint {Index} must remain on navmesh: {Waypoints[Index]}");
         }
 

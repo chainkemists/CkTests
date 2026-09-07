@@ -164,7 +164,7 @@ class UCk_AutoTest_Crowd_Avoidance_WallSegmentsKeepAgentOnMesh : UCk_AutoTest_Ba
 
         // Kick the navmesh: AutoTests_CkTests_Level has the fixture but the bake is lazy, and the
         // edge probe below is synchronous.
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
@@ -221,12 +221,12 @@ class UCk_AutoTest_Crowd_Avoidance_WallSegmentsKeepAgentOnMesh : UCk_AutoTest_Ba
 
     private void Tick_WaitForMesh(FCk_Handle& InSelfHandle)
     {
-        FVector OriginOnMesh;
-        if (utils_nav::Try_ProjectOntoNavmesh(InSelfHandle, FVector::ZeroVector, 100.0f, OriginOnMesh, ProbeVerticalExtentUu) == false)
+        const auto Projected = Do_ProjectOntoSurface(FVector::ZeroVector, FVector(100.0, 100.0, ProbeVerticalExtentUu));
+        if (Projected.Get_Status() != ECk_NavSurface_QueryStatus::Success)
         { return; }   // bake not done yet - keep polling
 
         _MeshFound = true;
-        _FloorZ = float(OriginOnMesh.Z);
+        _FloorZ = float(Projected.Get_Location().Z);
 
         if (FindMeshEdgeTowardsNegativeX(InSelfHandle) == false)
         {
@@ -352,25 +352,33 @@ class UCk_AutoTest_Crowd_Avoidance_WallSegmentsKeepAgentOnMesh : UCk_AutoTest_Ba
 
     private void AssertOnMesh(FCk_Handle& InSelfHandle, FVector InAgentLoc, FString InWho)
     {
-        FVector OnMesh;
-        const auto Projected = utils_nav::Try_ProjectOntoNavmesh(
-            InSelfHandle, InAgentLoc, OnMeshAssertExtentUu, OnMesh, ProbeVerticalExtentUu);
+        const auto Projected = Do_ProjectOntoSurface(
+            InAgentLoc, FVector(OnMeshAssertExtentUu, OnMeshAssertExtentUu, ProbeVerticalExtentUu));
 
         const auto AgentX = float(InAgentLoc.X);
-        Assert_True(Projected,
+        Assert_True(Projected.Get_Status() == ECk_NavSurface_QueryStatus::Success,
             f"{InWho} ended OFF the navmesh at X={AgentX} (mesh edge X={_EdgeX})");
+    }
+
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
     }
 
     private bool FindMeshEdgeTowardsNegativeX(FCk_Handle& InSelfHandle)
     {
-        FVector Unused;
+        const auto ProbeHalfExtents = FVector(ProbeExtentUu, ProbeExtentUu, ProbeVerticalExtentUu);
 
         float LastGoodX = 0.0;
         float CoarseFailX = 1.0;
         bool CoarseFailed = false;
         for (float X = -CoarseStepUu; X >= -MaxProbeUu; X -= CoarseStepUu)
         {
-            if (utils_nav::Try_ProjectOntoNavmesh(InSelfHandle, FVector(X, 0.0, _FloorZ), ProbeExtentUu, Unused, ProbeVerticalExtentUu) == false)
+            if (Do_ProjectOntoSurface(FVector(X, 0.0, _FloorZ), ProbeHalfExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             {
                 CoarseFailX = X;
                 CoarseFailed = true;
@@ -384,7 +392,7 @@ class UCk_AutoTest_Crowd_Avoidance_WallSegmentsKeepAgentOnMesh : UCk_AutoTest_Ba
 
         for (float X = LastGoodX - RefineStepUu; X > CoarseFailX; X -= RefineStepUu)
         {
-            if (utils_nav::Try_ProjectOntoNavmesh(InSelfHandle, FVector(X, 0.0, _FloorZ), ProbeExtentUu, Unused, ProbeVerticalExtentUu) == false)
+            if (Do_ProjectOntoSurface(FVector(X, 0.0, _FloorZ), ProbeHalfExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { break; }
             LastGoodX = X;
         }

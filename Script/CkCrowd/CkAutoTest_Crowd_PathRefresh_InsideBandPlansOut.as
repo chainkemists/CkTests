@@ -58,7 +58,7 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, FVector(ProbeStartX, 0.0, 100.0), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
@@ -76,12 +76,12 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
 
         if (_MeshFound == false)
         {
-            FVector OriginOnMesh;
-            if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, FVector::ZeroVector, 100.0f, OriginOnMesh, 300.0f) == false)
+            const auto Projected = Do_ProjectOntoSurface(FVector::ZeroVector, FVector(100.0, 100.0, 300.0));
+            if (Projected.Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { return; }   // bake not done yet
 
             _MeshFound = true;
-            _FloorZ = float(OriginOnMesh.Z);
+            _FloorZ = float(Projected.Get_Location().Z);
             SpawnPicketLine(SelfHandle);
             return;
         }
@@ -115,9 +115,11 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
         // then does the walker scenario start.
         if (_ProbeDetoured == false)
         {
-            if (utils_nav::Get_PathStatus(SelfHandle) == ECk_Nav_PathStatus::Ready)
+            auto ProbeQuery = FCk_NavSurface_PathQuery(FVector(ProbeStartX, 0.0, _FloorZ), FVector(GoalX, 0.0, _FloorZ));
+            ProbeQuery.Set_AgentRadiusUu(42.0f);
+            const auto Result = utils_nav_surface::Try_FindPathSync(ProbeQuery);
+            if (Result.Get_Status() == ECk_NavSurface_QueryStatus::Success)
             {
-                const auto Result = utils_nav::Get_PathResult(SelfHandle);
                 const auto Clearance = Compute_WorstClearance(Result.Get_Waypoints(), FVector(ProbeStartX, 0.0, _FloorZ));
                 if (Clearance >= MinClearanceUu)
                 {
@@ -126,8 +128,6 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
                     return;
                 }
             }
-            utils_nav::Request_FindPath(SelfHandle,
-                FCk_Request_Nav_FindPath(FVector(GoalX, 0.0, _FloorZ)));
             return;
         }
 
@@ -190,6 +190,15 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
         T = Math::Clamp(T, 0.0, 1.0);
         const auto ClosestPoint = A + AB * T;
         return float((P - ClosestPoint).Size());
+    }
+
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
     }
 
     private void SpawnPicketLine(FCk_Handle& InOwner)

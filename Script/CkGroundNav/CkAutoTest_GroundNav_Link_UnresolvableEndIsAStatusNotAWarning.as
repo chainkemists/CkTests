@@ -46,6 +46,7 @@ class UCk_AutoTest_GroundNav_Link_UnresolvableEndIsAStatusNotAWarning : UCk_Auto
 {
     // A 16-tile bake of the origin floor plus two kicked settles, each on its own budgeted condition.
     default _TimeoutSeconds = 240.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     //------------------------------------------------------------------------
     // Geometry, as offsets from the floor's own centre and top face

@@ -36,9 +36,17 @@ class UCk_AutoTest_PathNetworkFollower_ProjectsRibbonWaypointWithinNavQueryExten
     {
         auto _CkPerfScope = ck::ScopedStat();
         _Context = InHandle;
-        auto LocalHandle = InHandle;
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
         WaitOneFrame(n"OnNavmeshReady");
+    }
+
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
     }
 
     UFUNCTION()
@@ -52,16 +60,12 @@ class UCk_AutoTest_PathNetworkFollower_ProjectsRibbonWaypointWithinNavQueryExten
         auto HighestNavmeshY = -1.0;
         for (float64 CandidateY = 0.0; CandidateY <= 5000.0; CandidateY += 50.0)
         {
-            FVector Projected;
-            auto LocalHandle = _Context;
-            const auto Projects = utils_nav::Try_ProjectOntoNavmesh(
-                LocalHandle,
+            const auto Result = Do_ProjectOntoSurface(
                 FVector(0.0, CandidateY, 0.0),
-                5.0f,
-                Projected,
-                300.0f);
+                FVector(5.0f, 5.0f, 300.0f));
+            const auto Projects = Result.Get_Status() == ECk_NavSurface_QueryStatus::Success;
             if (!Projects ||
-                (Projected - FVector(0.0, CandidateY, 0.0)).Size2D() > 2.0f)
+                (Result.Get_Location() - FVector(0.0, CandidateY, 0.0)).Size2D() > 2.0f)
             { break; }
             HighestNavmeshY = CandidateY;
         }
@@ -78,25 +82,17 @@ class UCk_AutoTest_PathNetworkFollower_ProjectsRibbonWaypointWithinNavQueryExten
         _Goal = FVector(300.0, BoundaryY, 0.0);
         _OutsideCenterlinePoint = FVector(0.0, BoundaryY + CenterlineOutsideNavmeshCm, 0.0);
 
-        FVector TightProjection;
-        auto TightHandle = _Context;
-        const auto ProjectsWithTightExtent = utils_nav::Try_ProjectOntoNavmesh(
-            TightHandle,
+        const auto TightResult = Do_ProjectOntoSurface(
             _OutsideCenterlinePoint,
-            TightProjectionExtentCm,
-            TightProjection,
-            300.0f);
+            FVector(TightProjectionExtentCm, TightProjectionExtentCm, 300.0f));
+        const auto ProjectsWithTightExtent = TightResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
 
-        FVector RibbonProjection;
-        auto RibbonHandle = _Context;
-        const auto ProjectsWithRibbonExtent = utils_nav::Try_ProjectOntoNavmesh(
-            RibbonHandle,
+        const auto RibbonResult = Do_ProjectOntoSurface(
             _OutsideCenterlinePoint,
-            RibbonProjectionExtentCm,
-            RibbonProjection,
-            300.0f);
+            FVector(RibbonProjectionExtentCm, RibbonProjectionExtentCm, 300.0f));
+        const auto ProjectsWithRibbonExtent = RibbonResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
         const auto RibbonProjectionDelta =
-            (_OutsideCenterlinePoint - RibbonProjection).Size2D();
+            (_OutsideCenterlinePoint - RibbonResult.Get_Location()).Size2D();
 
         if (ProjectsWithTightExtent ||
             !ProjectsWithRibbonExtent ||
@@ -201,14 +197,11 @@ class UCk_AutoTest_PathNetworkFollower_ProjectsRibbonWaypointWithinNavQueryExten
 
         for (int32 Index = 0; Index < Waypoints.Num(); ++Index)
         {
-            FVector ProjectedWaypoint;
-            const auto Projects = utils_nav::Try_ProjectOntoNavmesh(
-                FCk_Handle(InFollower),
+            const auto WaypointResult = Do_ProjectOntoSurface(
                 Waypoints[Index],
-                TightProjectionExtentCm,
-                ProjectedWaypoint,
-                300.0f);
-            if (!Projects || (ProjectedWaypoint - Waypoints[Index]).Size() > 2.0f)
+                FVector(TightProjectionExtentCm, TightProjectionExtentCm, 300.0f));
+            const auto Projects = WaypointResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
+            if (!Projects || (WaypointResult.Get_Location() - Waypoints[Index]).Size() > 2.0f)
             {
                 Complete(false,
                     f"published waypoint {Index} must lie on navmesh, got {Waypoints[Index]}");
