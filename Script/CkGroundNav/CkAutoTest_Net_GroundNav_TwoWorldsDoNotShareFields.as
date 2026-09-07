@@ -96,6 +96,7 @@ class UCk_AutoTest_Net_GroundNav_TwoWorldsDoNotShareFields : UCk_AutoTest_NetBas
     // own deadline (0.9 * 26 = 23.4s) fires with room to spare and still well
     // inside the harness's hard 30s.
     default _TimeoutSeconds = 26.0f;
+    default _AutoStageOriginField = false; // creates its own GroundNav volume
 
     // The default 240 polls is ~4s at 60fps - far short of an 18s gate, and the
     // lane's actual frame rate is not 60. See the header.

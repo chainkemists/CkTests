@@ -74,6 +74,7 @@ class UCk_AutoTest_GroundNav_Repair_MovedMarkupBoxChangesOnlyWhereItMoved : UCk_
     // sliced to a tile a tick. Deliberately slack: a contract that expires on the harness's
     // anonymous TimesUp names nothing.
     default _TimeoutSeconds = 240.0f;
+    default _AutoStageOriginField = false; // creates its own GroundNav volume
 
     //------------------------------------------------------------------------
     // Fixture geometry - an 8x3 lattice at 400uu tiles

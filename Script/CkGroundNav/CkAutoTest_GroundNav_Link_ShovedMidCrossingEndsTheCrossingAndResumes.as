@@ -108,6 +108,7 @@
 class UCk_AutoTest_GroundNav_Link_ShovedMidCrossingEndsTheCrossingAndResumes : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 300.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     //------------------------------------------------------------------------
     // Geometry - the sibling's, verbatim, so the two files cannot drift into

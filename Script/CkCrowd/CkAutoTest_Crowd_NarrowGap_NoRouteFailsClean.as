@@ -27,6 +27,7 @@ class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
     // (~30s: a 3s no-progress window, two stall re-plans and three blocked rechecks), so a slow
     // frame cannot turn a bounded failure into a timeout.
     default _TimeoutSeconds = 75.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     private FCkAutoTest_GroundNavFixture _Field;
 

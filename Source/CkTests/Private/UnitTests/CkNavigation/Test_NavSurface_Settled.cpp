@@ -67,6 +67,12 @@ namespace ck_test_nav_surface_settled
         Table._IsReachable = [](UWorld*, const FCk_NavSurface_ReachabilityQuery&)
         { return FCk_NavSurface_ReachabilityResult{}; };
 
+        Table._FindPathSync = [](UWorld*, const FCk_NavSurface_PathQuery&)
+        { return FCk_NavSurface_PathResult{}; };
+
+        Table._FindDistanceToWall = [](UWorld*, const FCk_NavSurface_WallDistanceQuery&)
+        { return FCk_NavSurface_WallDistanceResult{}; };
+
         Table._SurfaceBounds = [](UWorld*)
         { return FBox{ForceInit}; };
 
@@ -111,7 +117,7 @@ bool FCkTest_NavSurfaceSettled_TableIsIncompleteWithoutTheSettledEntry::RunTest(
     // Asked of the table directly rather than through Register_Provider: registration REFUSES an
     // incomplete table with an ensure, and an ensure is a failure to this harness even when it is the
     // behaviour under test.
-    TestFalse(TEXT("thirteen of fourteen capabilities is not a provider"), Table.Get_IsComplete());
+    TestFalse(TEXT("fifteen of sixteen capabilities is not a provider"), Table.Get_IsComplete());
 
     Table._IsSurfaceSettled = [](UWorld*)
     { return false; };

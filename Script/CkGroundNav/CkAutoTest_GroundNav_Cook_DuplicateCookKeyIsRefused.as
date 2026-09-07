@@ -59,6 +59,7 @@ class UCk_AutoTest_GroundNav_Cook_DuplicateCookKeyIsRefused : UCk_AutoTest_Base
     // anonymous TimesUp names nothing, and every wait below carries its own
     // budget so it fails on its own condition.
     default _TimeoutSeconds = 120.0f;
+    default _AutoStageOriginField = false; // creates its own GroundNav volume
 
     //------------------------------------------------------------------------
     // Fixture geometry - two 2x2 lattices at 400uu tiles, side by side in X
