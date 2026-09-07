@@ -30,6 +30,13 @@
 // restates the price claim where the route climbs, which is the one term the chord's own raycast
 // cannot see.
 //
+// Two further pins state what the pass's two DIALS buy. Shortcut_SpanCapBoundary states the cap's own
+// boundary - a cap of one is still the pass OFF and answers the polyline element for element, a cap of
+// two takes a chord over at most one dropped point, and a wider reach never keeps more points than a
+// narrower one. Shortcut_BudgetSeesGroundNoWaypointStandsOn states what the RAY budget buys that the
+// retired endpoint-max arithmetic could not: a chord across dear ground NO waypoint of it stands on is
+// admitted when the detour it replaces crosses at least as much of that ground.
+//
 // PINS THIS STAGE MUST LEAVE GREEN. FCkTest_GroundNav_Path_LCorridorThreeWaypointsAllClearOfBoundary
 // (Test_GroundNav_PathPostProcess.cpp) is the over-shortcutting regression pin: the L corridor's one
 // bend is a REAL corner, the shortest string through that corridor genuinely bends there, and a
@@ -93,10 +100,15 @@ namespace ck_test_groundnav_pathshortcut
     using ck_test_groundnav_queryfixtures::kCellSize;
     using ck_test_groundnav_queryfixtures::kFourPillarAgentRadiusUu;
     using ck_test_groundnav_queryfixtures::kFourPillarEastPost;
+    using ck_test_groundnav_queryfixtures::kFourPillarPostXUu;
+    using ck_test_groundnav_queryfixtures::kFourPillarSlabBottomZ;
+    using ck_test_groundnav_queryfixtures::kFourPillarSlabHalfXUu;
+    using ck_test_groundnav_queryfixtures::kFourPillarSlabHalfYUu;
     using ck_test_groundnav_queryfixtures::kFourPillarWestPost;
     using ck_test_groundnav_queryfixtures::kGroundZ;
     using ck_test_groundnav_queryfixtures::kStepHeight;
     using ck_test_groundnav_queryfixtures::Make_FlatParams;
+    using ck_test_groundnav_queryfixtures::Make_FourPillarParams;
     using ck_test_groundnav_queryfixtures::Make_QueryParams;
 
     using ck_test_groundnav_referencepaths::kEpsilon;
@@ -971,6 +983,162 @@ bool FCkTest_GroundNav_Path_ShortcutIsIdempotent::RunTest(const FString& Paramet
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// WHERE THE CAP TURNS ON, AND WHAT IT BUYS ONE STEP AT A TIME. The idempotence pin above states the
+// OFF end of the dial at zero; this one states the boundary the documentation makes and a number
+// alone cannot: one is still off, because a chord needs TWO segments to replace and a cap of one
+// leaves the candidate loop empty (CkGroundNav_PathPostProcess.cpp:598-600), so the pass answers what
+// it was given. Two is the narrowest cap that is ON, and it may skip exactly one point per chord -
+// which is assertable on the answer itself, since every point the pass keeps is a point it was given
+// and the gaps between them are what a reach of two allows.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Path_ShortcutSpanCapBoundary,
+    "CkTests.UnitTests.CkGroundNav.Path.Shortcut_SpanCapBoundary",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Path_ShortcutSpanCapBoundary::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathshortcut;
+
+    // The last cap that is still the pass OFF, and the one a reader cannot guess from the number.
+    constexpr auto kCapThatIsStillOff = 1;
+
+    // The narrowest cap that is ON: it reaches two points ahead, so the widest chord it can take
+    // replaces two segments and drops the ONE point between them.
+    constexpr auto kCapThatMaySkipOnePoint = 2;
+
+    // Measured and reported only, so the line carries the shape of the dial rather than one point on it.
+    constexpr auto kCapThatMaySkipTwoPoints = 3;
+
+    // What a cap of two may leave between two consecutive points it kept: the next point of the input,
+    // or the one after it. Anything wider is a chord that skipped two points on a reach of two.
+    constexpr auto kWidestGapACapOfTwoMayLeave = 2;
+
+    constexpr auto kFewestPointsWithAnInterior = 3;
+
+    auto Field = FCk_GroundNav_FieldPtr{};
+
+    if (NOT TestTrue(TEXT("the four-pillar slab bakes"), Bake_SharedFourPillarSlabScene(Field)))
+    { return false; }
+
+    const auto Result = Get_Path(Field, Make_PathQuery(
+        kFourPillarWestPost, kFourPillarEastPost, kFourPillarAgentRadiusUu,
+        Make_Cost(kShortcutUnbounded)));
+
+    if (NOT TestEqual(TEXT("the slab answers a west-east crossing"),
+        Result._Status, ECk_GroundNav_PathStatus::Ready))
+    { return false; }
+
+    // The polyline the PLAN hands the pass, for the reason the idempotence pin states: fed the funnel's
+    // bare output the pass is an identity on this scene, and a boundary stated over an input nothing
+    // happens to would hold of a pass that never read the cap at all.
+    const auto Input = Get_PreShortcutLocations(Result, *Field, kFourPillarAgentRadiusUu);
+    const auto Pinned = Get_PinnedWaypoints(Result);
+    const auto Agent = Make_Agent(kFourPillarAgentRadiusUu);
+
+    if (NOT TestTrue(TEXT("the offset stages gave a polyline with an interior to shorten"),
+        Input.Num() >= kFewestPointsWithAnInterior))
+    { return false; }
+
+    const auto AtCapOne = Get_Shortcut(
+        Input, Pinned, *Field, Make_Cost(kCapThatIsStillOff), Agent, kStepHeight);
+
+    const auto AtCapTwo = Get_Shortcut(
+        Input, Pinned, *Field, Make_Cost(kCapThatMaySkipOnePoint), Agent, kStepHeight);
+
+    const auto AtCapThree = Get_Shortcut(
+        Input, Pinned, *Field, Make_Cost(kCapThatMaySkipTwoPoints), Agent, kStepHeight);
+
+    const auto AtNoCap = Get_Shortcut(
+        Input, Pinned, *Field, Make_Cost(kShortcutUnbounded), Agent, kStepHeight);
+
+    const auto Report = FString::Printf(
+        TEXT("[SHORTCUT-CAP] input %d: cap1 %d, cap2 %d, cap3 %d, unbounded %d"),
+        Input.Num(), AtCapOne.Num(), AtCapTwo.Num(), AtCapThree.Num(), AtNoCap.Num());
+
+    ck::groundnav::Display(TEXT("{}"), Report);
+
+    // Element for element, exactly, the same statement the zero pin makes: a cap below two is not a
+    // span of one, it is no pass at all, and a pass that shortened anything here read the dial wrong.
+    auto ChangedAtCapOne = FMath::Abs(AtCapOne.Num() - Input.Num());
+
+    if (AtCapOne.Num() == Input.Num())
+    {
+        for (auto Index = 0; Index < Input.Num(); ++Index)
+        {
+            if (AtCapOne[Index] != Input[Index])
+            { ++ChangedAtCapOne; }
+        }
+    }
+
+    TestEqual(FString::Printf(
+        TEXT("a span cap of one is still the pass OFF and answers element for element [%s]"), *Report),
+        ChangedAtCapOne, 0);
+
+    // The PRECONDITION for everything below: this route has a false corner, so a cap that admits a
+    // one-point skip has one to take. A cap of two that removed nothing leaves the gap claim vacuous.
+    if (NOT TestTrue(FString::Printf(
+        TEXT("a span cap of two removes at least one point of the polyline [%s]"), *Report),
+        AtCapTwo.Num() < Input.Num()))
+    { return false; }
+
+    // Every point the pass kept, matched to the input point it IS - exact equality, in order, indices
+    // strictly increasing - which is the comparison the idempotence pin makes and for the same reason:
+    // the pass either kept a point or it did not, and moving one is not something it may do.
+    auto KeptIndices = TArray<int32>{};
+    auto Cursor = 0;
+    auto EveryKeptPointIsAnInputPoint = true;
+
+    for (const auto& Kept : AtCapTwo)
+    {
+        auto Found = int32{INDEX_NONE};
+
+        for (auto Index = Cursor; Index < Input.Num(); ++Index)
+        {
+            if (Input[Index] == Kept)
+            {
+                Found = Index;
+
+                break;
+            }
+        }
+
+        if (Found == INDEX_NONE)
+        {
+            EveryKeptPointIsAnInputPoint = false;
+
+            break;
+        }
+
+        KeptIndices.Emplace(Found);
+        Cursor = Found + 1;
+    }
+
+    if (NOT TestTrue(FString::Printf(
+        TEXT("every point the cap-two answer kept is a point it was given, in order [%s]"), *Report),
+        EveryKeptPointIsAnInputPoint && KeptIndices.Num() == AtCapTwo.Num()))
+    { return false; }
+
+    auto WidestGap = 0;
+
+    for (auto Index = 1; Index < KeptIndices.Num(); ++Index)
+    { WidestGap = FMath::Max(WidestGap, KeptIndices[Index] - KeptIndices[Index - 1]); }
+
+    TestTrue(FString::Printf(
+        TEXT("and no chord it took skipped more than one point: widest gap %d [%s]"),
+        WidestGap, *Report),
+        WidestGap <= kWidestGapACapOfTwoMayLeave);
+
+    // A wider reach offers the candidate loop every chord a narrower one offered and more, and it takes
+    // the farthest that clears, so it can never come back holding more points.
+    TestTrue(FString::Printf(
+        TEXT("a wider reach never keeps more points than a narrower one [%s]"), *Report),
+        AtNoCap.Num() <= AtCapTwo.Num());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
 namespace ck_test_groundnav_pathshortcut_dearendpoint
 {
     using namespace ck_test_groundnav_pathshortcut;
@@ -991,12 +1159,18 @@ namespace ck_test_groundnav_pathshortcut_dearendpoint
     // pays that ground on BOTH of its segments while the chord pays it once, so the chord is TAKEN and
     // the published price falls.
     //
-    // A third shape was tried and abandoned - a dear plate the chord CROSSES with no waypoint on it,
-    // the design's O2 discriminator for the ray budget. On this slab both sides cross the same tile-wide
-    // plate end to end and the DIAGONAL chord crosses ~0.1 uu MORE of it than the straight segment it
-    // replaces, so at 4x it costs 3820.68 against a 3820.21 budget and O5 rightly refuses it by 0.47 -
-    // it never pays more for the ground than the corridor paid. O2 needs a fixture where the DETOUR
-    // crosses more dear ground than the chord (filed as its own follow-up).
+    // The third shape - a dear plate the chord CROSSES with no waypoint on it, the design's O2
+    // discriminator for the ray budget - is stated by Shortcut_BudgetSeesGroundNoWaypointStandsOn
+    // below rather than here, and it is still SELECTED by measurement rather than authored - but no
+    // longer from THIS slab. The sweep was run over the four-pillar route once (S11-8) and the slab
+    // measured EMPTY: two rows cast, both at corner 2 on plate 10, the chord costing 3820.68 against
+    // a 3820.21 ray budget - refused by 0.47, so O5 rightly never pays more for the ground than the
+    // corridor paid - and the other corners are real corners around pillars whose chords the geometry
+    // refuses outright. What is left is one clear chord across a 1.6 uu false corner, and on a
+    // tile-wide plate the sign of "how much of a plate the chord crosses minus how much the detour
+    // crosses" is a sub-uu matter there. That pin therefore keeps the sweep as its SELECTOR and runs
+    // it on the purpose-built dear-band bend scene below, where a real bend has a clear chord; it
+    // still fails loudly where no row discriminates.
     constexpr auto kDearEndpointMultiplier = 4.0f;
 
     /** Which flat plate a body standing at a location stands on, read the way the priced-band pin reads its own. */
@@ -1027,6 +1201,39 @@ namespace ck_test_groundnav_pathshortcut_dearendpoint
         Cost._PlateCostMultipliers.Add(InDearPlate, kDearEndpointMultiplier);
 
         return Cost;
+    }
+
+    /**
+     * One UNCAPPED priced ray, answering what the ground between two points cost - and nothing where
+     * the ray did not come back clear.
+     *
+     * A _MaxCost of zero is the raycast's own "no cap", which is what makes two of these comparable:
+     * each is what the ground actually costs rather than what fitted inside a budget. A refused ray
+     * has no price to report, and a refusal is not a zero.
+     */
+    auto Cast_PricedRay(
+        const FCk_GroundNav_Field&          InField,
+        const FVector&                      InFrom,
+        const FVector&                      InTo,
+        const FCk_GroundNav_PathCostParams& InCost,
+        const FCk_GroundNav_QueryAgent&     InAgent) -> TOptional<double>
+    {
+        auto Query = FCk_GroundNav_RaycastQuery{};
+
+        Query._Start = InFrom;
+        Query._End = InTo;
+        Query._StartVerticalToleranceUu = kStepHeight;
+        Query._Agent = InAgent;
+        Query._PlateCostMultipliers = InCost._PlateCostMultipliers;
+        Query._UseBakedPlateCost = true;
+        Query._MaxCost = 0.0f;
+
+        const auto Answer = Get_SurfaceRaycast(InField, Query);
+
+        if (NOT Answer.Get_IsClear())
+        { return {}; }
+
+        return static_cast<double>(Answer._AccumulatedCost);
     }
 }
 
@@ -1194,7 +1401,9 @@ bool FCkTest_GroundNav_Path_ShortcutCostNeverRisesWhenAnEndpointStandsOnDearGrou
     // to be about a pass that did something.
     //
     // The plate the chord CROSSES with no waypoint on it - the design's O2 discriminator - is NOT
-    // stated here; the multiplier's note above records why this slab cannot host it.
+    // stated here; Shortcut_BudgetSeesGroundNoWaypointStandsOn below states it on its own scene (the
+    // dear-band bend - this slab measured empty), over a (corner, plate) pair it selects by measuring
+    // the three rays.
     if (NOT TestTrue(FString::Printf(
         TEXT("the chord's near end and the corner it drops share a plate the far end does not, or ")
         TEXT("this scenario has no dear ground to price [near %d dropped %d far %d]"),
@@ -1308,6 +1517,424 @@ bool FCkTest_GroundNav_Path_ShortcutCostNeverRisesWhenAnEndpointStandsOnDearGrou
 
     TestEqual(FString::Printf(TEXT("and moves none of the points it kept [%s]"), *IdempotenceReport),
         Moved, 0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_test_groundnav_pathshortcut_dearband
+{
+    using namespace ck_test_groundnav_pathshortcut;
+
+    // THE SCENE THE O2 PIN SWEEPS, and the one thing it is for: a route with a REAL bend whose chord is
+    // clear ground. The four-pillar slab offers one or the other and never both - its corners are real
+    // corners around pillars, so the chords that would span them cross a pillar and the raycast refuses
+    // them before any budget is consulted, and its one clear chord cuts a 1.6 uu false corner where the
+    // whole trade lives under a unit.
+    //
+    // So the bend is bought in the SEARCH instead of authored into the geometry. The floor is the
+    // four-pillar slab's own floor box and NOTHING else - no pillars - and the search query prices the
+    // one tile sitting on the direct line at 100. A* buys the way round it, the funnel bends at that
+    // tile's corners, and the ground under the bend is unbroken slab: a price artefact, not a wall.
+
+    // The four-pillar posts' own X, and a Y in row R2: 380 uu north of that row's south edge and 420 uu
+    // south of its north edge, so the cheaper way round the priced tile is SOUTH through R1 and what
+    // comes back is a bend rather than a straight run.
+    const auto kDearBandWestPost = FVector{-kFourPillarPostXUu, 380.0, kGroundZ};
+    const auto kDearBandEastPost = FVector{kFourPillarPostXUu, 380.0, kGroundZ};
+
+    // The middle of C2xR2 - the tile on the direct line whose plate the SEARCH prices, and the one the
+    // POST table deliberately leaves at 1.0.
+    const auto kDearBandBentTileProbe = FVector{0.0, 400.0, kGroundZ};
+
+    // Far past the crossover, the same reading the priced-band pin's own multiplier has: enough that
+    // A* buys the whole way round the tile rather than clipping a corner of it.
+    constexpr auto kDearBandBendMultiplier = 100.0f;
+
+    // How far off the straight line between the posts an interior point has to stand before the answer
+    // counts as a bend. Well under the ~404 uu the funnel apexes are expected to measure, and well over
+    // the 1.6 uu false corner the four-pillar slab offered.
+    constexpr auto kDearBandBentOffTheLineUu = 200.0;
+
+    /**
+     * The four-pillar slab's FLOOR and nothing else.
+     *
+     * Copied box for box from Test_GroundNav_QueryFixtures.h rather than shared, because what this
+     * scene needs is the slab WITHOUT the pillars and a fixture helper that took a flag would make one
+     * scene answer for two claims.
+     */
+    auto Make_DearBandBendScene() -> TArray<FBox>
+    {
+        auto Boxes = TArray<FBox>{};
+
+        Boxes.Emplace(FBox{
+            FVector{-kFourPillarSlabHalfXUu, -kFourPillarSlabHalfYUu, kFourPillarSlabBottomZ},
+            FVector{kFourPillarSlabHalfXUu, kFourPillarSlabHalfYUu, kGroundZ}});
+
+        return Boxes;
+    }
+
+    /**
+     * Baked with the FOUR-PILLAR params, which is what puts the tile grid where the posts assume it is.
+     *
+     * Tiles are laid from the params' own _OriginXY (CkGroundNav_Field.cpp:86-88), and those params put
+     * the origin at (-2000, -1600) with 5x4 tiles of 800. Make_QueryParams is a 2x2 field at the world
+     * origin and would put every number below on different ground.
+     */
+    auto Bake_DearBandBend(
+        FCk_GroundNav_FieldPtr& OutField) -> bool
+    {
+        auto Baked = MakeShared<FCk_GroundNav_Field>();
+
+        if (NOT Bake(Make_DearBandBendScene(), Make_FourPillarParams(), *Baked))
+        { return false; }
+
+        OutField = Baked;
+
+        return true;
+    }
+
+    /** How far a point stands off the straight line between the two posts, in XY. */
+    auto Get_OffTheStraightLineUu(
+        const FVector& InPoint) -> double
+    {
+        const auto Along = FVector2D{
+            kDearBandEastPost.X - kDearBandWestPost.X, kDearBandEastPost.Y - kDearBandWestPost.Y};
+
+        const auto ToPoint = FVector2D{
+            InPoint.X - kDearBandWestPost.X, InPoint.Y - kDearBandWestPost.Y};
+
+        const auto LengthUu = Along.Size();
+
+        if (LengthUu <= 0.0)
+        { return ToPoint.Size(); }
+
+        return FMath::Abs(FVector2D::CrossProduct(Along, ToPoint)) / LengthUu;
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// WHAT THIS CLAIMS. The ray budget prices the ground the replaced stretch actually CROSSES, so a chord
+// running over dear ground NO waypoint of it stands on is admitted whenever the detour it replaces
+// crosses at least as much of that ground - which the retired arithmetic, the replaced stretch's XY
+// length times the greater of its two ENDPOINTS' multipliers, cannot see and therefore refuses.
+//
+// THE TWO INEQUALITIES, IN WORDS. The chord's own priced ray costs MORE than the two replaced segments
+// measured end to end at the endpoint multiplier - which is 1.0 here - and that is the retired budget
+// refusing. And the chord's priced ray costs no more than those two segments' OWN priced rays added
+// together, which is the shipped budget admitting. A row where both hold is a case the rewrite decides
+// differently from what it replaced, and that difference is the whole of the claim.
+//
+// WHY THE PLATE MUST BE ONE NO WAYPOINT STANDS ON. It is what holds the endpoint-max at 1.0, so the two
+// inequalities are about the ground BETWEEN the points rather than about the prices of the points
+// themselves; a dear plate under an ENDPOINT is the case the pin above already states, from both sides.
+//
+// WHY THIS SCENE AND NOT THE FOUR-PILLAR SLAB. The sweep below was run over that slab once (S11-8) and
+// it measured EMPTY: rows cast 2, endpoint-max REFUSES 2, ray budget ADMITS 0, both 0. Both rows were
+// corner 2 on plate 10 - near->dropped 615.76, dropped->far 3204.45, near->far 3820.68, plain detour
+// 1420.21 - so the chord came out 0.47 uu the wrong side of a 3820.21 ray budget. The slab's other
+// corners are real corners around pillars and the geometry refuses their chords outright, which leaves
+// exactly one clear chord, across a 1.6 uu false corner; on a tile-wide plate the sign of "chord
+// crossing minus detour crossing" is a sub-uu matter there. The pin keeps its sweep as the SELECTOR and
+// moves it to a scene where a real bend has a clear chord.
+//
+// HOW THE BEND IS BOUGHT. The search honours _Cost._PlateCostMultipliers - CkGroundNav_PathSearch.cpp:304
+// copies the table into the shared search data and CkGroundNav_PlatePortalGraph.cpp:234 applies it per
+// plate - so pricing the ONE tile on the direct line at 100 in the SEARCH query makes A* route around it
+// and the funnel bend at that tile's corners, which the corner offset then pushes a further radius off.
+//
+// AND WHY THE POST TABLE DOES NOT PRICE THAT TILE. The table the pass and the fill price with is a POST
+// param, and it is a different table. It prices ONLY the swept BAND tile, at 4x, and leaves the bent
+// tile at 1.0 - which is the whole trade: the chord runs cheap across the ground the corridor was
+// expensive on, while the detour crosses the band the long way and the chord only clips its corner.
+//
+// THE GRID, BECAUSE THE POSTS ARE PLACED ON IT. Columns C0 [-2000,-1200) C1 [-1200,-400) C2 [-400,400)
+// C3 [400,1200) C4 [1200,2000); rows R0 [-1600,-800) R1 [-800,0) R2 [0,800) R3 [800,1600). The posts
+// stand at Y 380 in R2, nearer its south edge, so the way round C2xR2 goes south through R1.
+//
+// WHAT IS EXPECTED, SO A RED CAN BE READ RATHER THAN RE-MEASURED BLIND. Corridor C0R2 -> C1R2 -> C1R1 ->
+// C2R1 -> C3R1 -> C3R2 -> C4R2; funnel apexes at C2xR2's south corners (-400, 0) and (400, 0), pushed by
+// the corner offset (K 1.0 x radius 34) to about A1 (-424, -24) and A2 (424, -24); pre-shortcut polyline
+// [W, A1, A2, E]. The BAND is C2xR1: the detour's second segment runs its whole 800 uu at Y about -24,
+// the chord W->A2 enters R1 only at X about 301 and crosses about 101 uu of it, and no waypoint stands
+// on it (A1 is in C1xR1, A2 in C3xR1, W in C0xR2). Under a post table pricing C2xR1 at 4x, the chord
+// prices at about 2416 against a plain detour of about 2139 - the endpoint-max REFUSING by about 276 -
+// and against about 4539 of summed segment rays, which the ray budget ADMITS by about 2120.
+//
+// WHY NOT A WALL-BENT CORNER, AND WHY NOT THE SLOPE. A corner that bends around geometry has that
+// geometry between its two neighbours, so the chord is refused by the raycast before any budget is
+// consulted - which is what every other corner of the four-pillar route measured. And the surface ray
+// charges nothing for slope, so a pin built on the ramp would be about the ray and the fill disagreeing
+// rather than about the budget.
+//
+// AND WHY THE PLATE IS STILL MEASURED RATHER THAN AUTHORED. The numbers above are what the scene is
+// built to produce, not what the pin asserts: it sweeps the route's own interior corners, probes the
+// chord and the two replaced segments for candidate plates, casts the three rays, and takes the first
+// pair that discriminates. A sweep that finds none FAILS rather than skipping: a fixture that stopped
+// hosting the case has to say so.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Path_ShortcutBudgetSeesGroundNoWaypointStandsOn,
+    "CkTests.UnitTests.CkGroundNav.Path.Shortcut_BudgetSeesGroundNoWaypointStandsOn",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Path_ShortcutBudgetSeesGroundNoWaypointStandsOn::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathshortcut;
+    using namespace ck_test_groundnav_pathshortcut_dearband;
+    using namespace ck_test_groundnav_pathshortcut_dearendpoint;
+
+    // The near and far ends with the corner between them gone: the answer that says the chord was taken.
+    constexpr auto kTheChordAlone = 2;
+
+    // Enough that a row is decided by the ground rather than by the last bits of a float - the numbers
+    // these rays answer with run into the thousands.
+    constexpr auto kMarginUu = 1.0;
+
+    constexpr auto kFewestPointsWithAnInterior = 3;
+
+    auto Field = FCk_GroundNav_FieldPtr{};
+
+    if (NOT TestTrue(TEXT("the dear-band bend scene bakes"), Bake_DearBandBend(Field)))
+    { return false; }
+
+    const auto BentPlate = Get_PlateAt(*Field, kDearBandBentTileProbe);
+
+    if (NOT TestTrue(TEXT("the tile on the direct line is ground a body can stand on"),
+        BentPlate != INDEX_NONE))
+    { return false; }
+
+    // ONE search, and the ONLY table the SEARCH sees: the tile on the direct line priced at 100, which
+    // is what buys the bend. Every table after this is a POST param, so each row below prices one
+    // corridor differently rather than comparing two routes.
+    auto SearchCost = Make_Cost(kShortcutUnbounded);
+    SearchCost._PlateCostMultipliers.Add(BentPlate, kDearBandBendMultiplier);
+
+    const auto Result = Get_Path(Field, Make_PathQuery(
+        kDearBandWestPost, kDearBandEastPost, kFourPillarAgentRadiusUu, SearchCost));
+
+    if (NOT TestEqual(TEXT("the scene answers a west-east crossing"),
+        Result._Status, ECk_GroundNav_PathStatus::Ready))
+    { return false; }
+
+    const auto Input = Get_PreShortcutLocations(Result, *Field, kFourPillarAgentRadiusUu);
+    const auto PinnedList = Get_PinnedWaypoints(Result);
+    const auto Agent = Make_Agent(kFourPillarAgentRadiusUu);
+
+    const auto InputReport = FString::Printf(
+        TEXT("[SHORTCUT-O2] bent tile plate %d at %.1f: pre-shortcut %s"),
+        BentPlate, static_cast<double>(kDearBandBendMultiplier), *Get_WaypointReport(Input));
+
+    ck::groundnav::Display(TEXT("{}"), InputReport);
+
+    if (NOT TestTrue(FString::Printf(
+        TEXT("the offset stages gave a polyline with an interior corner to sweep [%s]"), *InputReport),
+        Input.Num() >= kFewestPointsWithAnInterior))
+    { return false; }
+
+    // THE PRECONDITION THE WHOLE SWEEP RESTS ON: the search BENT. A straight answer means the priced
+    // tile never reached the corridor - the bend was not bought - and the pin has nothing to say rather
+    // than something to be quiet about.
+    auto FurthestOffTheLineUu = 0.0;
+
+    for (auto Index = 1; Index < Input.Num() - 1; ++Index)
+    { FurthestOffTheLineUu = FMath::Max(FurthestOffTheLineUu, Get_OffTheStraightLineUu(Input[Index])); }
+
+    if (NOT TestTrue(FString::Printf(
+        TEXT("the priced tile bent the route: an interior point stands %.2f uu off the straight line, ")
+        TEXT("and %.2f is the least that counts [%s]"),
+        FurthestOffTheLineUu, kDearBandBentOffTheLineUu, *InputReport),
+        FurthestOffTheLineUu > kDearBandBentOffTheLineUu))
+    { return false; }
+
+    // Where along the chord the dear plate is looked for. Three points rather than one because a chord
+    // crosses several plates and only some of them are ones no waypoint of that chord stands on.
+    const auto ProbeFractions = TArray<double>{0.25, 0.5, 0.75};
+
+    auto Rows = TArray<FString>{};
+
+    auto RowsCast = 0;
+    auto RowsTheEndpointMaxRefuses = 0;
+    auto RowsTheRayBudgetAdmits = 0;
+    auto RowsWhereBothHold = 0;
+
+    auto TakenCorner = int32{INDEX_NONE};
+    auto TakenPlate = int32{INDEX_NONE};
+    auto TakenChordCount = 0;
+    auto TakenUniformCount = 0;
+    auto TakenNumbers = FString{};
+
+    for (auto Corner = 1; Corner < Input.Num() - 1 && TakenCorner == INDEX_NONE; ++Corner)
+    {
+        // A pinned point is a place the body passes THROUGH, so no chord may span it and there is
+        // nothing at this corner to measure.
+        if (PinnedList.Contains(Input[Corner]))
+        { continue; }
+
+        const auto Near = Input[Corner - 1];
+        const auto Dropped = Input[Corner];
+        const auto Far = Input[Corner + 1];
+
+        const auto NearPlate = Get_PlateAt(*Field, Near);
+        const auto DroppedPlate = Get_PlateAt(*Field, Dropped);
+        const auto FarPlate = Get_PlateAt(*Field, Far);
+
+        if (NearPlate == INDEX_NONE || DroppedPlate == INDEX_NONE || FarPlate == INDEX_NONE)
+        { continue; }
+
+        // WHERE THE CANDIDATE PLATES COME FROM, and why the chord's own probes are not enough. The
+        // three fractions sample the CHORD, which finds a band the chord crosses; but the case the ray
+        // budget is for is a band the DETOUR crosses far more of than the chord does, and a chord that
+        // merely clips the corner of such a band may sample none of it at any fraction. The two
+        // replaced segments' midpoints name that ground directly: it is the ground the ray budget sums.
+        auto Probes = TArray<TPair<FString, FVector>>{};
+
+        for (const auto Fraction : ProbeFractions)
+        {
+            Probes.Emplace(
+                FString::Printf(TEXT("f %.2f"), Fraction), Near + ((Far - Near) * Fraction));
+        }
+
+        Probes.Emplace(FString{TEXT("seg1 mid")}, (Near + Dropped) * 0.5);
+        Probes.Emplace(FString{TEXT("seg2 mid")}, (Dropped + Far) * 0.5);
+
+        // Two probes landing on one plate are one row, not two: the row is about the PLATE, and casting
+        // it twice would double every count the loud failure below reports.
+        auto PlatesAlreadyCast = TSet<int32>{};
+
+        for (const auto& Probe : Probes)
+        {
+            const auto ProbePlate = Get_PlateAt(*Field, Probe.Value);
+
+            // The plate must be one NO waypoint of the chord stands on, which is also what keeps the
+            // endpoint-max at 1.0 and the two inequalities about the ground between the points.
+            if (ProbePlate == INDEX_NONE || ProbePlate == NearPlate ||
+                ProbePlate == DroppedPlate || ProbePlate == FarPlate)
+            { continue; }
+
+            if (PlatesAlreadyCast.Contains(ProbePlate))
+            { continue; }
+
+            PlatesAlreadyCast.Add(ProbePlate);
+
+            // The POST table, and it prices ONLY this band plate. The tile the SEARCH priced at 100 is
+            // deliberately absent from it and stands at 1.0 here - that is what makes the chord across
+            // the corridor's inside cheap, and the pass and the fill both price with THIS table.
+            const auto Table = Make_DearEndpointCost(kShortcutUnbounded, ProbePlate);
+
+            const auto NearToDropped = Cast_PricedRay(*Field, Near, Dropped, Table, Agent);
+            const auto DroppedToFar = Cast_PricedRay(*Field, Dropped, Far, Table, Agent);
+            const auto NearToFar = Cast_PricedRay(*Field, Near, Far, Table, Agent);
+
+            if (NOT NearToDropped.IsSet() || NOT DroppedToFar.IsSet() || NOT NearToFar.IsSet())
+            {
+                Rows.Emplace(FString::Printf(
+                    TEXT("[SHORTCUT-O2] corner %d %s plate %d: a ray was refused, row not cast"),
+                    Corner, *Probe.Key, ProbePlate));
+
+                continue;
+            }
+
+            ++RowsCast;
+
+            const auto NearToDroppedUu = NearToDropped.GetValue();
+            const auto DroppedToFarUu = DroppedToFar.GetValue();
+            const auto NearToFarUu = NearToFar.GetValue();
+
+            // What the RETIRED budget would have measured: the replaced stretch's XY length times the
+            // greater of the two endpoints' multipliers, which is 1.0 because the dear plate is one
+            // neither of them stands on.
+            const auto PlainDetourUu = FVector::Dist2D(Near, Dropped) + FVector::Dist2D(Dropped, Far);
+
+            const auto EndpointMaxRefuses = NearToFarUu > PlainDetourUu + kMarginUu;
+            const auto RayBudgetAdmits = NearToFarUu + kMarginUu <= NearToDroppedUu + DroppedToFarUu;
+
+            RowsTheEndpointMaxRefuses += EndpointMaxRefuses ? 1 : 0;
+            RowsTheRayBudgetAdmits += RayBudgetAdmits ? 1 : 0;
+
+            Rows.Emplace(FString::Printf(
+                TEXT("[SHORTCUT-O2] corner %d %s plate %d: near->dropped %.2f | dropped->far %.2f | ")
+                TEXT("near->far %.2f | plain detour %.2f | endpoint-max %s | ray budget %s"),
+                Corner, *Probe.Key, ProbePlate,
+                NearToDroppedUu, DroppedToFarUu, NearToFarUu, PlainDetourUu,
+                EndpointMaxRefuses ? TEXT("REFUSES") : TEXT("ADMITS"),
+                RayBudgetAdmits ? TEXT("ADMITS") : TEXT("REFUSES")));
+
+            if (NOT (EndpointMaxRefuses && RayBudgetAdmits))
+            { continue; }
+
+            ++RowsWhereBothHold;
+
+            // A three-point input, with nothing pinned: its two ends are pinned by construction, so the
+            // one decision the pass has left is whether to take the chord across the corner between them.
+            const auto ChordInput = TArray<FVector>{Near, Dropped, Far};
+            const auto NothingPinned = TArray<FVector>{};
+
+            const auto Chord = Get_Shortcut(
+                ChordInput, NothingPinned, *Field, Table, Agent, kStepHeight);
+
+            // The fill conjunct is entitled to refuse a row the ray budget admits, and that refusal is
+            // an answer rather than a defect - so the row records it and the sweep keeps looking.
+            if (Chord.Num() != kTheChordAlone)
+            {
+                Rows.Last() += TEXT(" | chord REFUSED past the rays (the fill conjunct, or the capped ray)");
+
+                continue;
+            }
+
+            TakenCorner = Corner;
+            TakenPlate = ProbePlate;
+            TakenChordCount = Chord.Num();
+
+            // The CONTROL: the same three points at a uniform table. The chord is clear ground either
+            // way, so the dear plate is the only thing that varies between the two runs.
+            TakenUniformCount = Get_Shortcut(
+                ChordInput, NothingPinned, *Field, Make_Cost(kShortcutUnbounded),
+                Agent, kStepHeight).Num();
+
+            TakenNumbers = FString::Printf(
+                TEXT("near->dropped %.2f, dropped->far %.2f, near->far %.2f, plain detour %.2f"),
+                NearToDroppedUu, DroppedToFarUu, NearToFarUu, PlainDetourUu);
+
+            break;
+        }
+    }
+
+    for (const auto& Row : Rows)
+    { ck::groundnav::Display(TEXT("{}"), Row); }
+
+    // NEVER VACUOUS AND NEVER SKIPPED. A sweep that measured every corner of the route and found no
+    // pair that discriminates has not shown the budget is wrong - it has shown this fixture no longer
+    // hosts the case, and the counts say which half of the pair went missing.
+    if (TakenCorner == INDEX_NONE)
+    {
+        TestTrue(FString::Printf(
+            TEXT("the sweep found a corner and a plate that discriminate: rows cast %d, endpoint-max ")
+            TEXT("REFUSES %d, ray budget ADMITS %d, both %d - the dear-band bend hosts no O2 case at ")
+            TEXT("%.1fx; re-measure the posts and the band from the rows above"),
+            RowsCast, RowsTheEndpointMaxRefuses, RowsTheRayBudgetAdmits, RowsWhereBothHold,
+            static_cast<double>(kDearEndpointMultiplier)),
+            false);
+
+        return false;
+    }
+
+    ck::groundnav::Display(TEXT("{}"), FString::Printf(
+        TEXT("[SHORTCUT-O2] TAKEN at corner %d plate %d"), TakenCorner, TakenPlate));
+
+    // THE CLAIM, on the row the sweep selected: the chord crosses dear ground no waypoint of it stands
+    // on, the detour it replaces crosses at least as much of that ground, and the pass takes it.
+    TestEqual(FString::Printf(
+        TEXT("the pass takes a chord across dear ground no waypoint of it stands on [corner %d plate %d: %s]"),
+        TakenCorner, TakenPlate, *TakenNumbers),
+        TakenChordCount, kTheChordAlone);
+
+    TestEqual(FString::Printf(
+        TEXT("and the same three points come back as two at a uniform table, so the dear ground is the ")
+        TEXT("only variable [corner %d plate %d: %s]"),
+        TakenCorner, TakenPlate, *TakenNumbers),
+        TakenUniformCount, kTheChordAlone);
 
     return true;
 }

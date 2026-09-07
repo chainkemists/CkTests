@@ -49,7 +49,7 @@ struct FCkGroundNavDemo_Walker
     UPROPERTY() bool _AwaitsRetry = false;
     UPROPERTY() bool _HasWalked = false;
     UPROPERTY() bool _MoveAsked = false;
-    UPROPERTY() TArray<int32> _LinkIdsCrossed;
+    UPROPERTY() TArray<int32> _LinkIdsRouted;
 
     // Spawns the body at post A facing post B and asks for the first leg. YAW ONLY on the facing: a
     // post standing higher than the spawn is a fact about the route, not about which way the body
@@ -118,7 +118,7 @@ struct FCkGroundNavDemo_Walker
         _Failures = 0;
         _AwaitsRetry = false;
         _HasWalked = false;
-        _LinkIdsCrossed.Empty();
+        _LinkIdsRouted.Empty();
 
         Request_MoveTo(InPostB);
 
@@ -288,8 +288,8 @@ struct FCkGroundNavDemo_Walker
 
         for (int32 Index = 0; Index < Ids.Num(); Index++)
         {
-            if (_LinkIdsCrossed.Contains(Ids[Index]) == false)
-            { _LinkIdsCrossed.Add(Ids[Index]); }
+            if (_LinkIdsRouted.Contains(Ids[Index]) == false)
+            { _LinkIdsRouted.Add(Ids[Index]); }
         }
     }
 
@@ -558,19 +558,20 @@ struct FCkGroundNavDemo_WalkerSet
         return true;
     }
 
-    // Every link id any walker's route has ever stepped onto, in first-seen order.
-    TArray<int32> Get_LinkIdsEverCrossed()
+    // Every link id any walker's installed route has ever NAMED, in first-seen order - a plan that names a
+    // link, not a body that finished walking it.
+    TArray<int32> Get_LinkIdsEverRouted()
     {
         auto Ids = TArray<int32>();
 
         for (int32 WalkerIndex = 0; WalkerIndex < _Walkers.Num(); WalkerIndex++)
         {
-            auto Crossed = _Walkers[WalkerIndex]._LinkIdsCrossed;
+            auto Routed = _Walkers[WalkerIndex]._LinkIdsRouted;
 
-            for (int32 Index = 0; Index < Crossed.Num(); Index++)
+            for (int32 Index = 0; Index < Routed.Num(); Index++)
             {
-                if (Ids.Contains(Crossed[Index]) == false)
-                { Ids.Add(Crossed[Index]); }
+                if (Ids.Contains(Routed[Index]) == false)
+                { Ids.Add(Routed[Index]); }
             }
         }
 
