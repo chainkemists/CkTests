@@ -3789,6 +3789,19 @@ class ACk_AutoTest_GroundNav_Link_DisableReplansOnlyTheAgentsUsingIt_Actor : ACk
     }
 }
 
+class ACk_AutoTest_GroundNav_Link_ShovedMidCrossingEndsTheCrossingAndResumes_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 300.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GroundNav_Link_ShovedMidCrossingEndsTheCrossingAndResumes");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_GroundNav_Link_TraversalHandshakeFiresExactlyOnce_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 300.0f;
