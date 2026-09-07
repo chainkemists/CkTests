@@ -107,6 +107,15 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     UPROPERTY()
     float _TimeoutSeconds = 5.0f;
 
+    // Whether the harness stages a GroundNav field over the origin floor for this test. Read off
+    // this class's DEFAULT OBJECT by the C++ runner (ACk_AutoTestRunner::Get_ShouldStageOriginField)
+    // before the test entity is spawned, so it reaches every autotest rather than only the ones
+    // that declare a step list. A test that stages its own field, or that is measuring Recast, opts
+    // out on its entity-script subclass via `default _AutoStageOriginField = false;` - that writes
+    // the subclass CDO, which is the object the runner reads.
+    UPROPERTY()
+    bool _AutoStageOriginField = true;
+
     // Multi-world shape this test expects. Default Standalone preserves the classic
     // single-PIE flow. Subclasses targeting multi-PIE override via
     // `default _NetMode = ECk_AutoTest_NetMode::...` (UCk_AutoTest_NetBase already

@@ -47,6 +47,7 @@
 class UCk_AutoTest_GroundNav_Shadow_InstalledPathIsByteIdenticalToRecast : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 180.0f;
+    default _AutoStageOriginField = false; // creates its own GroundNav volume
 
     //------------------------------------------------------------------------
     // Fixture shape
