@@ -19,6 +19,7 @@
 class UCk_AutoTest_Crowd_NarrowGap_TraverseCalm : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 25.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     private FCkAutoTest_GroundNavFixture _Field;
 
