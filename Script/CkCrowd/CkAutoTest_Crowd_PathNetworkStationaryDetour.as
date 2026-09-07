@@ -91,7 +91,7 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
                 FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.1));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
@@ -112,33 +112,18 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
 
         if (_MeshFound == false)
         {
-            FVector OriginOnMesh;
-            FVector StartOnMesh;
-            FVector GoalOnMesh;
-            if (utils_nav::Try_ProjectOntoNavmesh(
-                    SelfHandle,
-                    FVector::ZeroVector,
-                    100.0f,
-                    OriginOnMesh,
-                    300.0f) == false ||
-                utils_nav::Try_ProjectOntoNavmesh(
-                    SelfHandle,
-                    FVector(StartX, 0.0, 0.0),
-                    100.0f,
-                    StartOnMesh,
-                    300.0f) == false ||
-                utils_nav::Try_ProjectOntoNavmesh(
-                    SelfHandle,
-                    FVector(GoalX, 0.0, 0.0),
-                    100.0f,
-                    GoalOnMesh,
-                    300.0f) == false)
+            const auto OriginProjected = Do_ProjectOntoSurface(FVector::ZeroVector, FVector(100.0, 100.0, 300.0));
+            const auto StartProjected = Do_ProjectOntoSurface(FVector(StartX, 0.0, 0.0), FVector(100.0, 100.0, 300.0));
+            const auto GoalProjected = Do_ProjectOntoSurface(FVector(GoalX, 0.0, 0.0), FVector(100.0, 100.0, 300.0));
+            if (OriginProjected.Get_Status() != ECk_NavSurface_QueryStatus::Success ||
+                StartProjected.Get_Status() != ECk_NavSurface_QueryStatus::Success ||
+                GoalProjected.Get_Status() != ECk_NavSurface_QueryStatus::Success)
             {
                 return;
             }
 
             _MeshFound = true;
-            _FloorZ = float(OriginOnMesh.Z);
+            _FloorZ = float(OriginProjected.Get_Location().Z);
             BuildStraightNetwork(SelfHandle);
             return;
         }
@@ -196,9 +181,11 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
 
         if (_ProbeDetoured == false)
         {
-            if (utils_nav::Get_PathStatus(SelfHandle) == ECk_Nav_PathStatus::Ready)
+            auto ProbeQuery = FCk_NavSurface_PathQuery(FVector(StartX, 0.0, _FloorZ), FVector(GoalX, 0.0, _FloorZ));
+            ProbeQuery.Set_AgentRadiusUu(AgentRadiusUu);
+            const auto ProbeResult = utils_nav_surface::Try_FindPathSync(ProbeQuery);
+            if (ProbeResult.Get_Status() == ECk_NavSurface_QueryStatus::Success)
             {
-                const auto ProbeResult = utils_nav::Get_PathResult(SelfHandle);
                 const auto ProbeClearance = Compute_WorstClearance(
                     ProbeResult.Get_Waypoints(),
                     FVector(StartX, 0.0, _FloorZ));
@@ -209,9 +196,6 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
                 }
             }
 
-            utils_nav::Request_FindPath(
-                SelfHandle,
-                FCk_Request_Nav_FindPath(FVector(GoalX, 0.0, _FloorZ)));
             return;
         }
 
@@ -417,6 +401,15 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
         FinishFailure("walker goal failed before a local stationary-markup detour installed");
+    }
+
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
     }
 
     private float Compute_WorstClearance(
