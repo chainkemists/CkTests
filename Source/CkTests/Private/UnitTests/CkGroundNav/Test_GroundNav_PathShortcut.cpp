@@ -1124,9 +1124,10 @@ bool FCkTest_GroundNav_Path_ShortcutSpanCapBoundary::RunTest(const FString& Para
     { WidestGap = FMath::Max(WidestGap, KeptIndices[Index] - KeptIndices[Index - 1]); }
 
     TestTrue(FString::Printf(
-        TEXT("and no chord it took skipped more than one point: widest gap %d [%s]"),
-        WidestGap, *Report),
-        WidestGap <= kWidestGapACapOfTwoMayLeave);
+        TEXT("and no chord it took skipped more than one point: kept %d points, widest gap %d ")
+        TEXT("(must be 1..2) [%s]"),
+        KeptIndices.Num(), WidestGap, *Report),
+        KeptIndices.Num() >= 2 && WidestGap >= 1 && WidestGap <= kWidestGapACapOfTwoMayLeave);
 
     // A wider reach offers the candidate loop every chord a narrower one offered and more, and it takes
     // the farthest that clears, so it can never come back holding more points.
@@ -1761,7 +1762,6 @@ bool FCkTest_GroundNav_Path_ShortcutBudgetSeesGroundNoWaypointStandsOn::RunTest(
 
     auto TakenCorner = int32{INDEX_NONE};
     auto TakenPlate = int32{INDEX_NONE};
-    auto TakenChordCount = 0;
     auto TakenUniformCount = 0;
     auto TakenNumbers = FString{};
 
@@ -1885,7 +1885,6 @@ bool FCkTest_GroundNav_Path_ShortcutBudgetSeesGroundNoWaypointStandsOn::RunTest(
 
             TakenCorner = Corner;
             TakenPlate = ProbePlate;
-            TakenChordCount = Chord.Num();
 
             // The CONTROL: the same three points at a uniform table. The chord is clear ground either
             // way, so the dear plate is the only thing that varies between the two runs.
@@ -1921,15 +1920,13 @@ bool FCkTest_GroundNav_Path_ShortcutBudgetSeesGroundNoWaypointStandsOn::RunTest(
     }
 
     ck::groundnav::Display(TEXT("{}"), FString::Printf(
-        TEXT("[SHORTCUT-O2] TAKEN at corner %d plate %d"), TakenCorner, TakenPlate));
+        TEXT("[SHORTCUT-O2] TAKEN at corner %d plate %d: %s"), TakenCorner, TakenPlate, *TakenNumbers));
 
     // THE CLAIM, on the row the sweep selected: the chord crosses dear ground no waypoint of it stands
-    // on, the detour it replaces crosses at least as much of that ground, and the pass takes it.
-    TestEqual(FString::Printf(
-        TEXT("the pass takes a chord across dear ground no waypoint of it stands on [corner %d plate %d: %s]"),
-        TakenCorner, TakenPlate, *TakenNumbers),
-        TakenChordCount, kTheChordAlone);
-
+    // on, the detour it replaces crosses at least as much of that ground, and the pass takes it. That
+    // claim is established by the selection itself - the sweep above stops and records TAKEN only on a
+    // row where Chord.Num() == kTheChordAlone - so the assertions with teeth are the loud fail above
+    // when the sweep finds no TAKEN row, and the uniform-table control below.
     TestEqual(FString::Printf(
         TEXT("and the same three points come back as two at a uniform table, so the dear ground is the ")
         TEXT("only variable [corner %d plate %d: %s]"),
