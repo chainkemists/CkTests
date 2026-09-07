@@ -546,7 +546,7 @@ class ACk_GroundNavGym_Links_PlayerController : ACk_Gym_Base_PlayerController
         { return 0; }
 
         auto Records = utils_ground_nav_volume::Get_LinkRecords(Volume);
-        auto Routed = _Walkers.Get_LinkIdsEverCrossed();
+        auto Routed = _Walkers.Get_LinkIdsEverRouted();
 
         int32 Count = 0;
 
@@ -565,7 +565,7 @@ class ACk_GroundNavGym_Links_PlayerController : ACk_Gym_Base_PlayerController
     // a link, not a body that finished walking it.
     private FString Get_RoutedIdsText()
     {
-        auto Ids = _Walkers.Get_LinkIdsEverCrossed();
+        auto Ids = _Walkers.Get_LinkIdsEverRouted();
 
         if (Ids.Num() == 0)
         { return "none"; }

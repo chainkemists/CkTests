@@ -151,7 +151,9 @@ subject is pressing arbitrary keys or holding one down.
   Error hand-authors its `A<Class>_Actor : ACk_AutoTestRunner` wrapper at the bottom of its own `.as` (with
   `Get_TestEntityScriptClass` and its own `default _TimeoutSeconds`) and deletes the generated one from
   `Script/Generated/CkTests_AutoTestActors.as`; the generator skips a test whose wrapper already exists
-  (`CkAutoTestWrapperGenerator.cpp` `Has_HandAuthoredWrapper`). Exemplar:
+  (`CkAutoTestWrapperGenerator.cpp` `Has_HandAuthoredWrapper`) and, since S11-8, by a source scan
+  (`Collect_SourceDeclaredWrapperNames`), so a wrapper whose file does not currently compile still suppresses the
+  generated entry. Exemplar:
   `Script/CkGroundNav/CkAutoTest_GroundNav_Link_DisabledMidCrossingHoldsTheBodyAndResumesOnEnable.as`.
 - **Settling**: declare the test as steps - `Add_Step` / `Add_Step_WaitUntil` / `Run_Steps`, or
   the standalone `WaitUntil(n"Predicate", n"Continue")` for branching flows. Wait on a NAMED
