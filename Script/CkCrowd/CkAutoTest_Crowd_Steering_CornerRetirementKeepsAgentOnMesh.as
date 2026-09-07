@@ -85,6 +85,7 @@
 class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 40.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     private FCkAutoTest_GroundNavFixture _Field;
 

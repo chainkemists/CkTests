@@ -81,6 +81,7 @@ class UCk_AutoTest_GroundNav_Rebuild_InvalidatesWalkingRouteExactlyOnce : UCk_Au
     // Wide enough that every wait below expires on its OWN budget and names the condition it was
     // on, rather than the harness's anonymous TimesUp arriving first.
     default _TimeoutSeconds = 120.0f;
+    default _AutoStageOriginField = false; // creates its own GroundNav volume
 
     //------------------------------------------------------------------------
     // Fixture geometry

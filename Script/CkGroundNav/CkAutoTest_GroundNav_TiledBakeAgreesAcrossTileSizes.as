@@ -50,6 +50,7 @@
 class UCk_AutoTest_GroundNav_TiledBakeAgreesAcrossTileSizes : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 40.0f;
+    default _AutoStageOriginField = false; // creates its own GroundNav volume
 
     private FCk_Handle _SelfHandle;
     private FCk_Handle_JoltBody _FloorBody;

@@ -104,6 +104,7 @@ class UCk_AutoTest_GroundNav_Rebuild_IdleAgentIsNotRepairedOnItsNextRoute : UCk_
     // pins expires a 1800-poll wait, and at a headless lane's frame rate that alone can be most of
     // the sibling's 120 s.
     default _TimeoutSeconds = 180.0f;
+    default _AutoStageOriginField = false; // creates its own GroundNav volume
 
     //------------------------------------------------------------------------
     // Fixture geometry

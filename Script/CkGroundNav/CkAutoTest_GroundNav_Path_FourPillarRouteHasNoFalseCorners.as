@@ -44,6 +44,7 @@ class UCk_AutoTest_GroundNav_Path_FourPillarRouteHasNoFalseCorners : UCk_AutoTes
     // A 20-tile bake of a 3800 x 2600 region, then one search. Deliberately slack: a contract that
     // expires on the harness's anonymous TimesUp names nothing.
     default _TimeoutSeconds = 300.0f;
+    default _AutoStageOriginField = false; // creates its own GroundNav volume
 
     // ---- The scene, verbatim from CkGroundNavGym_Walk_PlayerController.as:16-28, stated
     // scene-local and pushed onto the band by Get_ScenePoint ----------------------------------

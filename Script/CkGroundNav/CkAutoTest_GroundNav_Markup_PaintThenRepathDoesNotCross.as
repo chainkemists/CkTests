@@ -67,6 +67,7 @@ class UCk_AutoTest_GroundNav_Markup_PaintThenRepathDoesNotCross : UCk_AutoTest_B
     // Wide enough that every wait below expires on its OWN budget and names the condition it was
     // on, rather than the harness's anonymous TimesUp arriving first.
     default _TimeoutSeconds = 180.0f;
+    default _AutoStageOriginField = false; // creates its own GroundNav volume
 
     //------------------------------------------------------------------------
     // Fixture geometry

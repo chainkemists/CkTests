@@ -77,6 +77,7 @@ class UCk_AutoTest_GroundNav_Link_DisableReplansOnlyTheAgentsUsingIt : UCk_AutoT
     // A 16-tile bake, four kicked settles, two crowd episodes and a link toggle, each on its own
     // budgeted condition.
     default _TimeoutSeconds = 300.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     //------------------------------------------------------------------------
     // Geometry, as offsets from the floor's own centre and top face.

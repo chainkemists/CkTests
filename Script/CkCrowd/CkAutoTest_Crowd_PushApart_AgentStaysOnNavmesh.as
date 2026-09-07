@@ -45,7 +45,7 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
 
         // Kick the navmesh: AutoTests_CkTests_Level has the fixture but the bake is lazy.
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         // Poll until the bake lands - the edge probe below is synchronous and needs a live mesh.
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.25));
@@ -62,12 +62,12 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
 
         auto SelfHandle = DoGet_ScriptEntity();
 
-        FVector OriginOnMesh;
-        if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, FVector::ZeroVector, 100.0f, OriginOnMesh, ProbeVerticalExtentUu) == false)
+        const auto OriginProjected = Do_ProjectOntoSurface(FVector::ZeroVector, FVector(100.0, 100.0, ProbeVerticalExtentUu));
+        if (OriginProjected.Get_Status() != ECk_NavSurface_QueryStatus::Success)
         { return; }   // bake not done yet - keep polling
 
         _MeshFound = true;
-        _FloorZ = float(OriginOnMesh.Z);
+        _FloorZ = float(OriginProjected.Get_Location().Z);
 
         if (FindMeshEdge(SelfHandle) == false)
         {
@@ -110,9 +110,9 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
 
     private void AssertOnMesh(FCk_Handle& InSelfHandle, FVector InAgentLoc, FString InWho)
     {
-        FVector OnMesh;
-        const auto Projected = utils_nav::Try_ProjectOntoNavmesh(
-            InSelfHandle, InAgentLoc, OnMeshAssertExtentUu, OnMesh, ProbeVerticalExtentUu);
+        const auto Result = Do_ProjectOntoSurface(
+            InAgentLoc, FVector(OnMeshAssertExtentUu, OnMeshAssertExtentUu, ProbeVerticalExtentUu));
+        const auto Projected = Result.Get_Status() == ECk_NavSurface_QueryStatus::Success;
 
         const auto AgentX = float(InAgentLoc.X);
         Assert_True(Projected,
@@ -120,6 +120,7 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
 
         if (Projected == false) { return; }
 
+        const auto OnMesh = Result.Get_Location();
         auto PlanarDelta = OnMesh - InAgentLoc;
         PlanarDelta.Z = 0.0;
         const auto DriftOffMesh = float(PlanarDelta.Size());
@@ -133,13 +134,13 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
 
     private bool FindMeshEdge(FCk_Handle& InSelfHandle)
     {
-        FVector Unused;
+        const auto ProbeHalfExtents = FVector(ProbeExtentUu, ProbeExtentUu, ProbeVerticalExtentUu);
 
         float LastGoodX = 0.0f;
         float CoarseFailX = -1.0f;
         for (float X = CoarseStepUu; X <= MaxProbeUu; X += CoarseStepUu)
         {
-            if (utils_nav::Try_ProjectOntoNavmesh(InSelfHandle, FVector(X, 0.0f, _FloorZ), ProbeExtentUu, Unused, ProbeVerticalExtentUu) == false)
+            if (Do_ProjectOntoSurface(FVector(X, 0.0f, _FloorZ), ProbeHalfExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             {
                 CoarseFailX = X;
                 break;
@@ -152,13 +153,22 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
 
         for (float X = LastGoodX + RefineStepUu; X < CoarseFailX; X += RefineStepUu)
         {
-            if (utils_nav::Try_ProjectOntoNavmesh(InSelfHandle, FVector(X, 0.0f, _FloorZ), ProbeExtentUu, Unused, ProbeVerticalExtentUu) == false)
+            if (Do_ProjectOntoSurface(FVector(X, 0.0f, _FloorZ), ProbeHalfExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { break; }
             LastGoodX = X;
         }
 
         _EdgeX = LastGoodX;
         return true;
+    }
+
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
     }
 
     private FCk_Handle_CrowdAgent SpawnIdleAgent(FCk_Handle& InOwner, FVector InSpawn)

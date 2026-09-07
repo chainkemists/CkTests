@@ -47,6 +47,7 @@
 class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 48.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     private FCkAutoTest_GroundNavFixture _Field;
 

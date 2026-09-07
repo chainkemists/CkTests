@@ -22,6 +22,7 @@
 class UCk_AutoTest_NavSurface_RecastBudgets_OriginFloor : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 20.0f;
+    default _AutoStageOriginField = false; // measures Recast: no GroundNav field, provider pinned below
 
     private const int32 DirectionCount = 8;
     private const float FarAwayUu = 20000.0;
@@ -43,9 +44,17 @@ class UCk_AutoTest_NavSurface_RecastBudgets_OriginFloor : UCk_AutoTest_Base
 
     private FVector _FloorPoint = FVector::ZeroVector;
 
+    // World state this test changes and must hand back - this test measures Recast, so the world
+    // is pinned onto it regardless of what it was answering on when the test began.
+    private ECk_NavSurface_Provider _ProviderBefore = ECk_NavSurface_Provider::Recast;
+
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        // Captured BEFORE anything can fail, so DoEndPlay always has something to put back.
+        _ProviderBefore = utils_nav_surface::Get_Provider();
+
+        Add_Step(          "pin the world onto Recast (this test measures Recast)", n"Step_PinRecast");
         Add_Step_WaitUntil("the nav surface provider settles at Ready",        n"Check_ProviderIsReady", 900);
         Add_Step(          "find the level floor and its rectangle",           n"Step_FindFloor");
         Add_Step(          "ask the provider to build its surface",           n"Step_KickRebuild");
@@ -54,6 +63,18 @@ class UCk_AutoTest_NavSurface_RecastBudgets_OriginFloor : UCk_AutoTest_Base
         Add_Step(          "measure where rays toward the rim stop",           n"Step_MeasureRaycastToRim");
         Add_Step(          "measure where walks toward the rim end",           n"Step_MeasureWalkToRim");
         Run_Steps(InHandle);
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void DoEndPlay(FCk_Handle InHandle)
+    {
+        utils_nav_surface::Request_SetProvider(_ProviderBefore);
+    }
+
+    UFUNCTION()
+    private void Step_PinRecast(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        utils_nav_surface::Request_SetProvider(ECk_NavSurface_Provider::Recast);
     }
 
     UFUNCTION()

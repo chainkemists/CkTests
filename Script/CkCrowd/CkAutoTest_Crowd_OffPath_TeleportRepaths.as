@@ -44,6 +44,7 @@
 class UCk_AutoTest_Crowd_OffPath_TeleportRepaths : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 34.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     private FCkAutoTest_GroundNavFixture _Field;
 

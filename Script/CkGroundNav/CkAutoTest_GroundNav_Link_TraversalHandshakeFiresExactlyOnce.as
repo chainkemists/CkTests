@@ -106,6 +106,7 @@ class UCk_AutoTest_GroundNav_Link_TraversalHandshakeFiresExactlyOnce : UCk_AutoT
     // budgeted condition. Deliberately slack: a contract that expires on the harness's anonymous
     // TimesUp names nothing.
     default _TimeoutSeconds = 300.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     //------------------------------------------------------------------------
     // Geometry - the authored-link pin's scene, offsets from the floor's own centre

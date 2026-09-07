@@ -5,6 +5,7 @@
 class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 20.0f;
+    default _AutoStageOriginField = false; // stages its own origin field
 
     private FCkAutoTest_GroundNavFixture _Field;
 

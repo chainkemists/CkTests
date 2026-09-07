@@ -164,6 +164,23 @@ subject is pressing arbitrary keys or holding one down.
   copy (`auto Res = OutResult; Res.Set(...)`) - AngelScript rejects a non-const call on a by-value
   struct param. `WaitOneFrame` is legacy (a 0.05s timer, not a frame wait), retained so unmigrated
   tests compile.
+- **Under the GroundNav default the C++ runner stages the ground for you.** The shared autotest
+  level ships a Recast navmesh and nothing that publishes a GroundNav field, so with
+  `_DefaultNavSurfaceProvider = GroundNav` a test that stages nothing has no ground to answer over.
+  `ACk_AutoTestRunner::PrepareTest` therefore bakes one GroundNav volume over the level's origin
+  floor (`StaticMeshActor_1`, +/-1000uu around its centre, the same bake shape
+  `FCkAutoTest_GroundNavFixture` uses) **before the test entity is spawned**, and `Tick` DEFERS that
+  spawn until the volume reports itself built and `Get_IsSurfaceSettled` goes true - budgets 3600
+  and a further 900 frames, then fails the test naming which of the two never arrived.
+  `Destroy_RunnerEntity` (and `EndPlay`) destroy the volume entity and pull the floor back out of
+  the Jolt static world if the runner is what put it there. Staged from C++ rather than by
+  prepending steps to `Run_Steps`, because a step prepend only ever reached the 191 of 1032
+  autotests that declare a step list; the ground is a property of the WORLD the test runs in, not of
+  the shape the test was written in. The measured staging time is added back onto the engine
+  `TimeLimit` at spawn, so `_TimeoutSeconds` budgets the test BODY rather than the bake. Opt out
+  with `default _AutoStageOriginField = false;` on the entity script - the runner reads that off the
+  class default object, and `default` writes the subclass CDO: the tests that compose
+  `FCkAutoTest_GroundNavFixture` themselves and the `RecastBudgets_*` tests all do.
 - **Don't rename test classes casually** - a rename orphans the placed wrapper actor in the .umap
   (git history: revert `604a2d4`). Let the populator sync, and prefer stable names.
 

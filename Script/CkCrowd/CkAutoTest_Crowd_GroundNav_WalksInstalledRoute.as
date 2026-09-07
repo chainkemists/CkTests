@@ -41,6 +41,7 @@
 class UCk_AutoTest_Crowd_GroundNav_WalksInstalledRoute : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 45.0f;
+    default _AutoStageOriginField = false; // creates its own GroundNav volume
 
     //------------------------------------------------------------------------
     // Fixture geometry
