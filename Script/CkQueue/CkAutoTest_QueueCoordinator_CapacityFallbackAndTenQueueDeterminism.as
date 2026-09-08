@@ -24,6 +24,8 @@ class UCk_AutoTest_QueueCoordinator_CapacityFallbackAndTenQueueDeterminism : UCk
             auto Params = FCk_Fragment_Queue_ParamsData();
             Params.Set_Category(utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.Gym"));
             Params.Set_HardLimit(Index == 0 ? 1 : 2);
+            // SoftLimit must not exceed HardLimit or the Queue is refused (CkQueue_Utils.cpp LimitsAreValid).
+            Params.Set_SoftLimit(Index == 0 ? 1 : 2);
             auto Queue = utils_queue::Add(Owner, Params);
             _Queues.Add(Queue);
             if (Index == 0)

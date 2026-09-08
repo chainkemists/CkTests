@@ -33,50 +33,23 @@ class UCk_AutoTest_Crowd_Pathfinding_Success : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        utils_nav::BindTo_OnPathReady(LocalHandle,
-            FCk_Delegate_Nav_OnPathReady(this, n"OnPathReady"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-
-        utils_nav::BindTo_OnPathFailed(LocalHandle,
-            FCk_Delegate_Nav_OnPathFailed(this, n"OnUnexpectedFailed"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-
-        // Kick the navmesh: AutoTests_CkTests_Level has NavMeshBoundsVolume + floor at origin
-        // but the bake is lazy. Triggering Build() here ensures the navmesh is ready by the
-        // time the deferred-request queue drains. Mirrors CkAutoTest_Nav_PathQueuedDuringBake.
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        // Kick the surface: AutoTests_CkTests_Level has NavMeshBoundsVolume + floor at origin
+        // but the bake is lazy. Triggering a rebuild here ensures the surface is ready by the
+        // time the synchronous query below runs. Mirrors CkAutoTest_Nav_PathQueuedDuringBake.
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         // Short, reachable target. Within 500cm of the start so any non-degenerate
-        // navmesh covering origin satisfies it.
-        auto Request = FCk_Request_Nav_FindPath(FVector(200.0, 0.0, 0.0));
-        utils_nav::Request_FindPath(LocalHandle, Request);
-    }
+        // surface covering origin satisfies it.
+        auto Query = FCk_NavSurface_PathQuery(FVector::ZeroVector, FVector(200.0, 0.0, 0.0));
+        const auto Result = utils_nav_surface::Try_FindPathSync(Query);
 
-    UFUNCTION()
-    private void OnPathReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
-    {
-        if (IsFinished()) { return; }
+        Assert_True(Result.Get_Status() == ECk_NavSurface_QueryStatus::Success,
+            f"Expected status Success, got {Result.Get_Status()}. Test fixture may be missing a NavMeshBoundsVolume covering origin.");
 
-        Assert_True(InResult.Get_Status() == ECk_Nav_PathStatus::Ready,
-            f"Expected status Ready, got {InResult.Get_Status()}");
-
-        Assert_True(InResult.Get_Waypoints().Num() >= 1,
-            f"Expected at least 1 waypoint, got {InResult.Get_Waypoints().Num()}");
+        Assert_True(Result.Get_Waypoints().Num() >= 1,
+            f"Expected at least 1 waypoint, got {Result.Get_Waypoints().Num()}");
 
         FinishSuccess();
-    }
-
-    UFUNCTION()
-    private void OnUnexpectedFailed(FCk_Handle InHandle)
-    {
-        if (IsFinished()) { return; }
-
-        const auto Result = utils_nav::Get_PathResult(InHandle);
-        const auto FailReason = Result.Get_Diagnostics().Get_LastFailReason();
-
-        FinishFailure(f"Path query to reachable target (200, 0, 0) unexpectedly failed with reason {FailReason}. Test fixture may be missing a NavMeshBoundsVolume covering origin.");
     }
 }
 
