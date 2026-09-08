@@ -66,4 +66,30 @@ bool FCkTest_ScopedStat_StatIdCache_ResolvesValidIds::RunTest(const FString& Par
 
     return true;
 }
+
+// --------------------------------------------------------------------------------------------------------------------
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_ScopedStat_ActiveCache_InvalidationFallback,
+    "CkTests.UnitTests.CkProfile.ScopedStat.ActiveCache_InvalidationFallback",
+    kProfileUnitTestFlags)
+
+bool FCkTest_ScopedStat_ActiveCache_InvalidationFallback::RunTest(const FString& Parameters)
+{
+    // C++ has no active AngelScript frame, so this takes the same Script::Unknown fallback used
+    // by the production constructor outside script execution. The AS AutoTest covers the real
+    // function-id cache; this verifies the module callback's total, side-effect-free epoch path.
+    const auto IdBefore = ck::Get_ActiveScriptScopeStatId();
+    const auto EpochBefore = ck::Get_ActiveScriptScopeStatCacheEpoch_ForTests();
+    ck::Invalidate_ActiveScriptScopeStatCache();
+    const auto IdAfter = ck::Get_ActiveScriptScopeStatId();
+    const auto EpochAfter = ck::Get_ActiveScriptScopeStatCacheEpoch_ForTests();
+
+    TestTrue(TEXT("pre-invalidation fallback stat id is valid"), IdBefore.IsValidStat());
+    TestTrue(TEXT("post-invalidation fallback stat id is valid"), IdAfter.IsValidStat());
+    TestEqual(TEXT("invalidation advances exactly one cache epoch"), EpochAfter, EpochBefore + 1);
+    return true;
+}
+#endif
 #endif
