@@ -277,52 +277,41 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, 100.0), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        utils_nav::BindTo_OnPathReady(LocalHandle,
-            FCk_Delegate_Nav_OnPathReady(this, n"OnNavProbeReady"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-
-        utils_nav::BindTo_OnPathFailed(LocalHandle,
-            FCk_Delegate_Nav_OnPathFailed(this, n"OnNavProbeFailed"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-
         // AutoTests_CkTests_Level carries the fixture but the bake is lazy, and
         // the edge probe below is a SYNCHRONOUS projection - it needs a live mesh
         // or it reports the origin itself as the edge.
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
-        utils_nav::Request_FindPath(LocalHandle,
-            FCk_Request_Nav_FindPath(FVector(500.0, 0.0, 100.0)));
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
     }
 
+    // Retried each poll until the surface answers Success: the rebuild kicked in
+    // Step_ProbeNavmesh is async, so the first few polls can legitimately read Unbuilt while the
+    // bake finishes.
     UFUNCTION()
-    private void OnNavProbeReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
+    private void Check_NavReady(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         if (IsFinished()) { return; }
 
-        if (InResult.Get_Status() != ECk_Nav_PathStatus::Ready)
+        auto Res = OutResult;
+
+        if (_NavProbeReady)
         {
-            FinishFailure(f"navigation readiness probe returned status {InResult.Get_Status()} instead of Ready");
+            Res.Set(true);
+            return;
+        }
+
+        auto ProbeQuery = FCk_NavSurface_PathQuery(FVector(0.0, 0.0, 100.0), FVector(500.0, 0.0, 100.0));
+        const auto Result = utils_nav_surface::Try_FindPathSync(ProbeQuery);
+
+        if (Result.Get_Status() == ECk_NavSurface_QueryStatus::Unbuilt) { return; }
+
+        if (Result.Get_Status() != ECk_NavSurface_QueryStatus::Success)
+        {
+            FinishFailure(f"navigation readiness probe returned status {Result.Get_Status()} instead of Success");
             return;
         }
 
         _NavProbeReady = true;
-    }
-
-    UFUNCTION()
-    private void OnNavProbeFailed(FCk_Handle InHandle)
-    {
-        if (IsFinished()) { return; }
-
-        const auto Result = utils_nav::Get_PathResult(InHandle);
-        FinishFailure(f"navigation readiness probe failed: reason={Result.Get_Diagnostics().Get_LastFailReason()}");
-    }
-
-    UFUNCTION()
-    private void Check_NavReady(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
-    {
-        auto Res = OutResult;
-        Res.Set(_NavProbeReady);
+        Res.Set(true);
     }
 
     // ---- Fixture: where the mesh actually ends --------------------------------------------------------
@@ -332,14 +321,13 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
     {
         auto LocalHandle = InHandle;
 
-        FVector OriginOnMesh;
-        if (utils_nav::Try_ProjectOntoNavmesh(LocalHandle, FVector::ZeroVector, 100.0f,
-                OriginOnMesh, ProbeVerticalExtentUu) == false)
+        const auto OriginProjection = Do_ProjectOntoSurface(FVector::ZeroVector, FVector(100.0, 100.0, ProbeVerticalExtentUu));
+        if (OriginProjection.Get_Status() != ECk_NavSurface_QueryStatus::Success)
         {
             FinishFailure("the navmesh answered a path query but the origin does not project - the test level's mesh is not where this fixture expects it");
             return;
         }
-        _FloorZ = float(OriginOnMesh.Z);
+        _FloorZ = float(OriginProjection.Get_Location().Z);
 
         if (DoFind_MeshEdgeX(LocalHandle) == false)
         {
@@ -353,9 +341,8 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         // an agent does while BOTH projections fail; if the mesh reaches the
         // displacement target, the recovery branch runs instead and a green would
         // mean nothing.
-        FVector Unused;
-        if (utils_nav::Try_ProjectOntoNavmesh(LocalHandle, FVector(_OffMeshX, 0.0, _FloorZ),
-                OffMeshConfirmExtentUu, Unused, OffMeshConfirmExtentUu))
+        if (Do_ProjectOntoSurface(FVector(_OffMeshX, 0.0, _FloorZ),
+                FVector(OffMeshConfirmExtentUu, OffMeshConfirmExtentUu, OffMeshConfirmExtentUu)).Get_Status() == ECk_NavSurface_QueryStatus::Success)
         {
             FinishFailure(f"INCONCLUSIVE FIXTURE: the displacement target X={_OffMeshX} still projects onto the navmesh within {OffMeshConfirmExtentUu}uu, even though the +X edge probed as X={_EdgeX}. An agent put there would take the RECOVERY branch, not the both-projections-fail branch this test is about.");
             return;
@@ -364,17 +351,13 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         _SpawnLocation = FVector(_EdgeX + SpawnXFromEdgeUu, 0.0, _FloorZ + 100.0);
         _GoalLocation = FVector(_EdgeX + GoalXFromEdgeUu, 0.0, _FloorZ);
 
-        FVector SpawnOnMesh;
-        if (utils_nav::Try_ProjectOntoNavmesh(LocalHandle, _SpawnLocation, 100.0f,
-                SpawnOnMesh, ProbeVerticalExtentUu) == false)
+        if (Do_ProjectOntoSurface(_SpawnLocation, FVector(100.0, 100.0, ProbeVerticalExtentUu)).Get_Status() != ECk_NavSurface_QueryStatus::Success)
         {
             FinishFailure(f"INCONCLUSIVE FIXTURE: the walker's spawn {_SpawnLocation} is not on the navmesh (edge X={_EdgeX}) - the run would be measuring an agent that never walked.");
             return;
         }
 
-        FVector GoalOnMesh;
-        if (utils_nav::Try_ProjectOntoNavmesh(LocalHandle, _GoalLocation, 100.0f,
-                GoalOnMesh, ProbeVerticalExtentUu) == false)
+        if (Do_ProjectOntoSurface(_GoalLocation, FVector(100.0, 100.0, ProbeVerticalExtentUu)).Get_Status() != ECk_NavSurface_QueryStatus::Success)
         {
             FinishFailure(f"INCONCLUSIVE FIXTURE: the walker's goal {_GoalLocation} is not on the navmesh (edge X={_EdgeX}) - no path, so no cruise, so nothing to displace.");
             return;
@@ -383,19 +366,27 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         ck::crowd::Log(f"[OFFMESH-HOLD] floorZ={_FloorZ} edgeX={_EdgeX} offMeshX={_OffMeshX} spawn={_SpawnLocation} goal={_GoalLocation}");
     }
 
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
+    }
+
     // Coarse sweep then a fine refine, the same shape
     // Crowd_PushApart_AgentStaysOnNavmesh uses - a hardcoded edge silently stops
     // being the edge the first time the test level is re-authored.
     private bool DoFind_MeshEdgeX(FCk_Handle& InSelf)
     {
-        FVector Unused;
+        const auto ProbeExtents = FVector(ProbeExtentUu, ProbeExtentUu, ProbeVerticalExtentUu);
 
         float LastGoodX = 0.0f;
         float CoarseFailX = -1.0f;
         for (float X = CoarseStepUu; X <= MaxProbeUu; X += CoarseStepUu)
         {
-            if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector(X, 0.0, _FloorZ),
-                    ProbeExtentUu, Unused, ProbeVerticalExtentUu) == false)
+            if (Do_ProjectOntoSurface(FVector(X, 0.0, _FloorZ), ProbeExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             {
                 CoarseFailX = X;
                 break;
@@ -408,8 +399,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
 
         for (float X = LastGoodX + RefineStepUu; X < CoarseFailX; X += RefineStepUu)
         {
-            if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector(X, 0.0, _FloorZ),
-                    ProbeExtentUu, Unused, ProbeVerticalExtentUu) == false)
+            if (Do_ProjectOntoSurface(FVector(X, 0.0, _FloorZ), ProbeExtents).Get_Status() != ECk_NavSurface_QueryStatus::Success)
             { break; }
             LastGoodX = X;
         }

@@ -490,6 +490,17 @@ bool FCkTest_GroundNav_Path_SkipFirstMirrorsTheCkPass::RunTest(const FString& Pa
     TestEqual(TEXT("and an empty route answers with an empty one"),
         Get_SkipFirstWaypoint(TArray<FVector>{}, Points[0], RadiusUu).Num(), 0);
 
+    // A one-point route is the corridor a body plans when it already stands on its goal - dropping
+    // that point would publish Ready with zero waypoints, which no listener expects.
+    const auto OnePoint = Make_Line(1, SpacingUu);
+    const auto KeptDestination = Get_SkipFirstWaypoint(OnePoint, OnePoint[0], RadiusUu);
+
+    TestEqual(TEXT("a one-point route keeps its destination"),
+        KeptDestination.Num(), 1);
+
+    TestTrue(TEXT("and it is the same point"),
+        KeptDestination.Num() == 1 && KeptDestination[0].Equals(OnePoint[0], kEpsilon));
+
     return true;
 }
 
