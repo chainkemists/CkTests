@@ -31,47 +31,21 @@ class UCk_AutoTest_Crowd_Pathfinding_Failure : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        utils_nav::BindTo_OnPathFailed(LocalHandle,
-            FCk_Delegate_Nav_OnPathFailed(this, n"OnPathFailed"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-
-        utils_nav::BindTo_OnPathReady(LocalHandle,
-            FCk_Delegate_Nav_OnPathReady(this, n"OnUnexpectedReady"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-
-        // Kick the navmesh: AutoTests_CkTests_Level has NavMeshBoundsVolume + floor at origin
-        // but the bake is lazy. Triggering Build() here ensures the start projection succeeds
-        // so the request reaches FindPathSync and exercises the End-projection failure path
-        // (instead of force-failing at the 5s deferred cap with NoNavData). Mirrors the pattern
-        // CkAutoTest_Nav_PathQueuedDuringBake uses successfully.
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        // Kick the surface: AutoTests_CkTests_Level has NavMeshBoundsVolume + floor at origin
+        // but the bake is lazy. Triggering a rebuild here ensures the start projection succeeds
+        // so the query exercises the End-projection failure path (instead of force-failing on
+        // an unbuilt surface). Mirrors the pattern CkAutoTest_Nav_PathQueuedDuringBake uses
+        // successfully.
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         // Off-mesh target. Far outside any reasonable NavMeshBoundsVolume.
-        auto Request = FCk_Request_Nav_FindPath(FVector(99999.0, 99999.0, 99999.0));
-        utils_nav::Request_FindPath(LocalHandle, Request);
-    }
+        auto Query = FCk_NavSurface_PathQuery(FVector::ZeroVector, FVector(99999.0, 99999.0, 99999.0));
+        const auto Result = utils_nav_surface::Try_FindPathSync(Query);
 
-    UFUNCTION()
-    private void OnPathFailed(FCk_Handle InHandle)
-    {
-        if (IsFinished()) { return; }
-
-        const auto Result = utils_nav::Get_PathResult(InHandle);
-        const auto FailReason = Result.Get_Diagnostics().Get_LastFailReason();
-
-        Assert_True(FailReason == ECk_Nav_PathFailReason::EndProjectFailed,
-            f"Expected EndProjectFailed for off-mesh target, got {FailReason}");
+        Assert_True(Result.Get_Status() == ECk_NavSurface_QueryStatus::NoSurface,
+            f"Expected NoSurface for off-mesh target, got {Result.Get_Status()}");
 
         FinishSuccess();
-    }
-
-    UFUNCTION()
-    private void OnUnexpectedReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
-    {
-        if (IsFinished()) { return; }
-        FinishFailure(f"Path query to off-mesh target (99999, 99999, 99999) unexpectedly returned Ready with {InResult.Get_Waypoints().Num()} waypoints");
     }
 }
 

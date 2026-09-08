@@ -19,11 +19,14 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
 {
     private FCk_Handle _PcEntity;
     private FCk_Handle _StationHandle;
-    private FCk_Handle _NavProbeEntity;
+    private FVector _ProbeStart;
+    private FVector _ProbeGoal;
     private TArray<FCk_Handle_CrowdAgent> _Agents;
     private bool _AutoSpawned = false;
+    private bool _NavProbeFailed = false;
 
     private const int32 AutoSpawnCount = 20;
+    private const float NavProbePollSec = 0.5;
 
     // Station-LOCAL +X is "in front of the alcove" (toward the player camera) after the cycler's
     // 180 degree rotation, so a local +X offset always lands in the visible play area.
@@ -87,45 +90,48 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
         // AFTER the floor spawns, not before: Recast has to see the runtime floor before any agent
         // asks for a path, and the floor is spawned here rather than in BeginPlay because the
         // station transforms it anchors to only exist once the stations have settled.
-        utils_nav::Request_NavigationRebuild_ForTesting(_PcEntity);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         // Auto-spawn gate: a probe path from a real ring point through the centre proves the bake
         // finished (the same readiness pattern the BunchUp autotest uses); spawning on a timer
         // instead would race the async tile build and every MoveTo would fail.
         const auto Centre = Get_Centre();
-        const auto ProbeStart = Centre + FVector(RingRadius, 0.0, 0.0);
-        _NavProbeEntity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
-        utils_transform::Add(_NavProbeEntity,
-            FTransform(FRotator::ZeroRotator, ProbeStart, FVector::OneVector),
-            ECk_Replication::DoesNotReplicate);
+        _ProbeStart = Centre + FVector(RingRadius, 0.0, 0.0);
+        _ProbeGoal = Centre;
 
-        utils_nav::BindTo_OnPathReady(_NavProbeEntity,
-            FCk_Delegate_Nav_OnPathReady(this, n"OnNavProbeReady"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-        utils_nav::BindTo_OnPathFailed(_NavProbeEntity,
-            FCk_Delegate_Nav_OnPathFailed(this, n"OnNavProbeFailed"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-        utils_nav::Request_FindPath(_NavProbeEntity, FCk_Request_Nav_FindPath(Centre));
+        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(NavProbePollSec));
+        TimerParams.Set_StartingState(ECk_Timer_State::Running)
+                   .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+        auto Timer = utils_timer::Add(_PcEntity, TimerParams);
+        Timer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnNavProbePoll"));
 
         ck::crowd::Log(f"BunchUp gym started - auto-spawning {AutoSpawnCount} agents once the navmesh probe resolves. Panel [G] re-runs it manually.");
     }
 
+    // Retried every NavProbePollSec until the surface answers Success: the rebuild kicked in
+    // Request_StartGym is async, so the first few polls can legitimately read Unbuilt while the
+    // bake finishes.
     UFUNCTION()
-    private void OnNavProbeReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
+    private void OnNavProbePoll(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (_AutoSpawned || _Agents.Num() > 0)
+        if (_AutoSpawned || _Agents.Num() > 0 || _NavProbeFailed)
         { return; }
 
-        _AutoSpawned = true;
-        Ck_GymCrowd_BunchUp_Spawn(AutoSpawnCount);
-    }
+        auto ProbeQuery = FCk_NavSurface_PathQuery(_ProbeStart, _ProbeGoal);
+        const auto Result = utils_nav_surface::Try_FindPathSync(ProbeQuery);
 
-    UFUNCTION()
-    private void OnNavProbeFailed(FCk_Handle InHandle)
-    {
-        ck::crowd::Log("BunchUp gym: navmesh probe failed - auto-spawn skipped; press G on the control panel once the navmesh is visible.");
+        if (Result.Get_Status() == ECk_NavSurface_QueryStatus::Success)
+        {
+            _AutoSpawned = true;
+            Ck_GymCrowd_BunchUp_Spawn(AutoSpawnCount);
+            return;
+        }
+
+        if (Result.Get_Status() != ECk_NavSurface_QueryStatus::Unbuilt)
+        {
+            _NavProbeFailed = true;
+            ck::crowd::Log("BunchUp gym: navmesh probe failed - auto-spawn skipped; press G on the control panel once the navmesh is visible.");
+        }
     }
 
     private void SpawnFloor()

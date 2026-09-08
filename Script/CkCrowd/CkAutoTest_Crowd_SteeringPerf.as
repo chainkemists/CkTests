@@ -27,6 +27,8 @@ class UCk_AutoTest_Crowd_SteeringPerf : UCk_AutoTest_Base
     private float _SampleSum = 0.0f;
     private float _SampleMax = 0.0f;
     private int32 _SampleCount = 0;
+    private FVector _ProbeStart = FVector::ZeroVector;
+    private FVector _ProbeTarget = FVector::ZeroVector;
     private bool _NavProbeReady = false;
     private bool _MoveRequestsIssued = false;
     private bool _BenchmarkStarted = false;
@@ -48,27 +50,16 @@ class UCk_AutoTest_Crowd_SteeringPerf : UCk_AutoTest_Base
         Set_CVarForTest(n"t.MaxFPS", "0");
         Set_CVarForTest(n"r.VSync", "0");
 
-        const auto ProbeStart = Centre + FVector(InnerRadius, 0.0, 0.0);
-        const auto ProbeTarget = FVector(-ProbeStart.X, -ProbeStart.Y, ProbeStart.Z);
+        _ProbeStart = Centre + FVector(InnerRadius, 0.0, 0.0);
+        _ProbeTarget = FVector(-_ProbeStart.X, -_ProbeStart.Y, _ProbeStart.Z);
         utils_transform::Add(LocalHandle,
-            FTransform(FRotator::ZeroRotator, ProbeStart, FVector::OneVector),
+            FTransform(FRotator::ZeroRotator, _ProbeStart, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
-
-        utils_nav::BindTo_OnPathReady(LocalHandle,
-            FCk_Delegate_Nav_OnPathReady(this, n"OnNavProbeReady"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-
-        utils_nav::BindTo_OnPathFailed(LocalHandle,
-            FCk_Delegate_Nav_OnPathFailed(this, n"OnNavProbeFailed"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
 
         // Kick the bake, then send one real path request through the same
         // explicit-default-nav-data path used by every benchmark agent. A
         // projection-only probe can select different nav data and false-positive.
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
-        utils_nav::Request_FindPath(LocalHandle, FCk_Request_Nav_FindPath(ProbeTarget));
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));
     }
@@ -81,7 +72,10 @@ class UCk_AutoTest_Crowd_SteeringPerf : UCk_AutoTest_Base
         if (_MoveRequestsIssued == false)
         {
             if (_NavProbeReady == false)
-            { return; }
+            {
+                DoTryNavProbe();
+                return;
+            }
 
             auto SelfHandle = DoGet_ScriptEntity();
             SpawnWorkload(SelfHandle);
@@ -131,33 +125,28 @@ class UCk_AutoTest_Crowd_SteeringPerf : UCk_AutoTest_Base
         FinishSuccess();
     }
 
-    UFUNCTION()
-    private void OnNavProbeReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
+    // Retried each tick until the surface answers Success: the rebuild kicked in DoBeginPlay is
+    // async, so the first few ticks can legitimately read Unbuilt while the bake finishes.
+    private void DoTryNavProbe()
     {
-        if (IsFinished()) { return; }
+        auto ProbeQuery = FCk_NavSurface_PathQuery(_ProbeStart, _ProbeTarget);
+        const auto Result = utils_nav_surface::Try_FindPathSync(ProbeQuery);
 
-        if (InResult.Get_Status() != ECk_Nav_PathStatus::Ready)
+        if (Result.Get_Status() == ECk_NavSurface_QueryStatus::Unbuilt) { return; }
+
+        if (Result.Get_Status() != ECk_NavSurface_QueryStatus::Success)
         {
-            FinishFailure(f"navigation readiness probe returned status {InResult.Get_Status()} instead of Ready");
+            FinishFailure(f"navigation readiness probe returned status {Result.Get_Status()} instead of Success");
             return;
         }
 
-        if (InResult.Get_Waypoints().Num() < 1)
+        if (Result.Get_Waypoints().Num() < 1)
         {
             FinishFailure("navigation readiness probe returned no waypoints");
             return;
         }
 
         _NavProbeReady = true;
-    }
-
-    UFUNCTION()
-    private void OnNavProbeFailed(FCk_Handle InHandle)
-    {
-        if (IsFinished()) { return; }
-
-        const auto Result = utils_nav::Get_PathResult(InHandle);
-        FinishFailure(f"navigation readiness probe failed: reason={Result.Get_Diagnostics().Get_LastFailReason()}");
     }
 
     private void SpawnWorkload(FCk_Handle& InOwner)
@@ -182,26 +171,34 @@ class UCk_AutoTest_Crowd_SteeringPerf : UCk_AutoTest_Base
         }
     }
 
+    // The nav slot is the wrong read here: under the crowd's two-phase GroundNav plan a strict
+    // pass can answer Unreachable and get retried PERMISSIVELY one tick later
+    // (FProcessor_CrowdAgent_OnGroundNavPathResolved runs RunAfter OnPathResolved), so
+    // utils_nav::Get_PathStatus can read a transient Failed for one frame with no episode
+    // actually failed. Read the crowd episode contract instead: abort only on the sticky
+    // GoalFailedHold, and "ready" means the agent is Walking or has already reached its goal.
     private bool TryStartBenchmark()
     {
         for (auto Agent : _Agents)
         {
-            FCk_Handle AgentEntity = Agent;
-            const auto Status = utils_nav::Get_PathStatus(AgentEntity);
-            if (Status == ECk_Nav_PathStatus::Failed || Status == ECk_Nav_PathStatus::Partial)
+            if (utils_crowd_agent::Get_IsGoalFailedHold(Agent))
             {
-                const auto Result = utils_nav::Get_PathResult(AgentEntity);
                 StopAllAgents();
-                FinishFailure(f"benchmark agent path failed before steering started: status={Status}, reason={Result.Get_Diagnostics().Get_LastFailReason()}");
+                FinishFailure(f"benchmark agent path failed before steering started: goal-failed hold set");
                 return false;
             }
 
-            if (Status != ECk_Nav_PathStatus::Ready)
+            const bool IsWalking = utils_crowd_agent::Get_MovementState(Agent) == ECk_CrowdAgent_MovementState::Walking;
+            if (IsWalking == false && utils_crowd_agent::Get_HasReachedActiveGoal(Agent) == false)
             { return false; }
         }
 
-        // Begin the benchmark clock only after all 240 paths are ready. The
-        // three-second warmup still absorbs their one-frame resolution skew.
+        // Begin the benchmark clock only after all 240 paths are ready. An agent that
+        // already reached its goal counts as ready too - routes resolve over roughly a
+        // second while antipode trips take roughly five, so early arrivals can go Idle
+        // before the last agents start Walking, and the all-Walking condition alone
+        // would never be met for a crowd that resolves in waves. The three-second
+        // warmup still absorbs their one-frame resolution skew.
         _Elapsed = 0.0f;
         _SampleSum = 0.0f;
         _SampleMax = 0.0f;
@@ -210,24 +207,31 @@ class UCk_AutoTest_Crowd_SteeringPerf : UCk_AutoTest_Base
         return true;
     }
 
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
+    }
+
     private bool ValidateAllAgentsOnNavmesh(FString InPhase)
     {
-        auto SelfHandle = DoGet_ScriptEntity();
         for (int32 AgentIndex = 0; AgentIndex < _Agents.Num(); ++AgentIndex)
         {
             FCk_Handle AgentEntity = _Agents[AgentIndex];
             const auto AgentLoc = utils_transform::Get_EntityCurrentLocation(
                 utils_transform::DoCastChecked(AgentEntity));
 
-            FVector OnMesh;
-            const auto Projects = utils_nav::Try_ProjectOntoNavmesh(
-                SelfHandle, AgentLoc, 42.0f, OnMesh, 192.0f);
-            if (Projects == false)
+            const auto Projection = Do_ProjectOntoSurface(AgentLoc, FVector(42.0, 42.0, 192.0));
+            if (Projection.Get_Status() != ECk_NavSurface_QueryStatus::Success)
             {
                 FinishFailure(f"benchmark agent {AgentIndex} left the navmesh {InPhase}: location={AgentLoc}");
                 return false;
             }
 
+            const auto OnMesh = Projection.Get_Location();
             const auto VerticalDrift = Math::Abs(float(AgentLoc.Z - OnMesh.Z));
             if (VerticalDrift > 2.0f)
             {

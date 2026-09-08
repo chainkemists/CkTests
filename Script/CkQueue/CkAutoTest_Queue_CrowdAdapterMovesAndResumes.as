@@ -80,7 +80,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
     {
         auto LocalHandle = InHandle;
         utils_transform::Add(LocalHandle, FTransform::Identity, ECk_Replication::DoesNotReplicate);
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         Add_Step_WaitUntil("spawn and queue target are navigable", n"Check_NavigationReady");
         Add_Step("compose an isolated queue and CrowdAgent", n"Step_ComposeQueueAndAgent");
@@ -207,16 +207,22 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
     UFUNCTION()
     private void Check_NavigationReady(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        FVector SpawnOnMesh;
-        FVector TargetOnMesh;
-        auto Context = InHandle;
-        const bool SpawnIsNavigable = utils_nav::Try_ProjectOntoNavmesh(
-            Context, FVector(-400.0f, 0.0f, 0.0f), 100.0f, SpawnOnMesh, 300.0f);
-        const bool TargetIsNavigable = utils_nav::Try_ProjectOntoNavmesh(
-            Context, FVector(600.0f, 0.0f, 0.0f), 100.0f, TargetOnMesh, 300.0f);
-        if (SpawnIsNavigable) { _Spawn = SpawnOnMesh; }
+        const auto SpawnResult = Do_ProjectOntoSurface(FVector(-400.0f, 0.0f, 0.0f), FVector(100.0f, 100.0f, 300.0f));
+        const auto TargetResult = Do_ProjectOntoSurface(FVector(600.0f, 0.0f, 0.0f), FVector(100.0f, 100.0f, 300.0f));
+        const bool SpawnIsNavigable = SpawnResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
+        const bool TargetIsNavigable = TargetResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
+        if (SpawnIsNavigable) { _Spawn = SpawnResult.Get_Location(); }
         auto Result = OutResult;
         Result.Set(SpawnIsNavigable && TargetIsNavigable);
+    }
+
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
     }
 
     UFUNCTION()
@@ -398,7 +404,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         _NavigationReflowTarget = Snapshot.Get_TargetWorldTransform().GetLocation();
         _NavigationReflowSampling = true;
         _NavigationReflowHardStopObserved = false;
-        utils_nav::Request_NavigationRebuild_ForTesting(InHandle);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
     }
 
     UFUNCTION()
@@ -536,7 +542,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
     UFUNCTION()
     private void Step_RequestClaimedNavigationRebuild(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        utils_nav::Request_NavigationRebuild_ForTesting(InHandle);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
     }
 
     UFUNCTION()
@@ -606,10 +612,11 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
     UFUNCTION()
     private void Step_DisplaceSettledAgent(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        FVector ProjectedLocation;
-        const bool IsNavigable = utils_nav::Try_ProjectOntoNavmesh(
-            InHandle, _CapturedQueueSlot + FVector(0.0f, 180.0f, 0.0f), 100.0f, ProjectedLocation, 300.0f);
+        const auto ProjectionResult = Do_ProjectOntoSurface(
+            _CapturedQueueSlot + FVector(0.0f, 180.0f, 0.0f), FVector(100.0f, 100.0f, 300.0f));
+        const bool IsNavigable = ProjectionResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
         Assert_True(IsNavigable, "settled front member displacement target projects onto navigable ground");
+        const auto ProjectedLocation = ProjectionResult.Get_Location();
         Assert_True(float((ProjectedLocation - _CapturedQueueSlot).Size()) > _Queue.Get_SlotReacquireRadiusUu(),
             "settled front member is displaced beyond its queue reacquire radius");
         _DisplacedLocation = ProjectedLocation;

@@ -710,6 +710,65 @@ namespace ck_test_groundnav_pathinvalidation
 
         return Outcome;
     }
+
+    // ----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Opens an episode and stops there.
+     *
+     * The drain stands the search UP - FGroundNavPath_Episode::DoTry_Begin resolves a field and pins
+     * it for the whole episode - and runs no slice, so what is left behind is a search holding a
+     * snapshot, with nothing published and no corridor cached. That is exactly the state the in-flight
+     * claim below is about, and it is reached without touching a budget CVar: the drain and the
+     * slicing are two separate calls, and this test makes only the first.
+     */
+    auto Do_BeginSearchWithoutSlicing(
+        FInvalidationFixture& InOutFixture,
+        int32                 InAgentIndex,
+        const FVector&        InFrom,
+        const FVector&        InGoal) -> bool
+    {
+        auto Request = FCk_Request_GroundNavPath_FindPath{InFrom, InGoal};
+
+        Request.Set_RequestRevision(1);
+        Request.Set_PlanMode(ECk_GroundNav_PlanMode::Cold);
+
+        UCk_Utils_GroundNavPath_UE::Request_FindPath(InOutFixture._Paths[InAgentIndex], Request, {});
+
+        Do_DrainRequests(InOutFixture, InAgentIndex);
+
+        return InOutFixture.Get_Current(InAgentIndex).Get_HasBegun() &&
+            NOT InOutFixture.Get_HasFreshResult(InAgentIndex) &&
+            Get_StoredCorridor(InOutFixture, InAgentIndex).IsValid == 0;
+    }
+
+    /** Slices until that episode answers, which is the publish the parked news is spent at. */
+    auto Do_SliceUntilAnswered(
+        FInvalidationFixture& InOutFixture,
+        int32                 InAgentIndex) -> bool
+    {
+        auto Slice = ck::FProcessor_GroundNavPath_Slice{InOutFixture._WorldEntity.Get_RegistryView()};
+
+        auto Ticks = 0;
+
+        while (NOT InOutFixture.Get_HasFreshResult(InAgentIndex) && Ticks < kMaxTicks)
+        {
+            Slice.DoTick(FCk_Time{kSixtyHertz});
+            ++Ticks;
+        }
+
+        // A corridor is what a SUCCESSFUL publish leaves, and only a successful one spends the news -
+        // so a run that failed instead has to fail the row rather than pass its negative half.
+        return InOutFixture.Get_HasFreshResult(InAgentIndex) &&
+            Get_StoredCorridor(InOutFixture, InAgentIndex).IsValid != 0;
+    }
+
+    /** A box centred on a point, wide enough that the overlap is a fact about boxes and not a face. */
+    auto Make_BoxAround(
+        const FVector& InPoint) -> FBox
+    {
+        return FBox{InPoint - FVector{kWellClearUu}, InPoint + FVector{kWellClearUu}};
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -1580,6 +1639,170 @@ bool FCkTest_GroundNav_Invalidation_ChangedLinkIdsNameExactlyWhatChanged::RunTes
     TestTrue(FString::Printf(TEXT("and removing one names the id it was authored under [named %s]"),
             *Get_IdsText(Removed._ChangedLinkIds)),
         Get_NamesExactly(Removed._ChangedLinkIds, kCrossingLinkId));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// A rebuild that lands while a search is IN FLIGHT is the one case the corridor test cannot answer:
+// there is no corridor yet, and the search pinned the field it reads when it began, so the route it
+// eventually publishes has not read the publish. The claim is that the news is parked while the
+// search runs and spent at the publish - both halves on the same agent, in that order, because a pass
+// that flagged eagerly would pass the second half on its own.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Invalidation_RebuiltWhileSearchInFlightRepathsOnPublish,
+    "CkTests.UnitTests.CkGroundNav.Invalidation.RebuiltWhileSearchInFlightRepathsOnPublish",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Invalidation_RebuiltWhileSearchInFlightRepathsOnPublish::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathinvalidation;
+
+    auto Fixture = FInvalidationFixture{};
+
+    if (NOT TestTrue(TEXT("the two-route scene bakes, publishes and takes an agent"),
+        Do_Setup(Fixture, TEXT("CkGroundNavInvalidationInFlight"), 1,
+            ECk_NavSurface_Provider::GroundNav)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    if (NOT TestTrue(TEXT("and its search stands up holding a field, with nothing published and no corridor"),
+        Do_BeginSearchWithoutSlicing(Fixture, 0, kTwoRouteStart, kTwoRouteGoal)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    // The registry moves past the snapshot the search is reading, which is the whole mechanism: that
+    // search cannot see this publish, so nothing it answers has read it.
+    Do_PublishNextEpoch(Fixture);
+
+    const auto Overlapping = Make_BoxAround(kTwoRouteStart);
+
+    Do_NotifyRebuilt(Fixture, Overlapping);
+    Do_RunInvalidator(Fixture);
+
+    if (NOT TestFalse(FString::Printf(
+            TEXT("a rebuild meeting a search in flight raises no repath while it runs [rebuild %s]"),
+            *Get_BoxText(Overlapping)),
+        Get_IsFlagged(Fixture, 0)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    // The watch's own drain, exactly as under the scheduler. The boxes are gone before the route
+    // publishes, so a publish that flags has to be spending something the invalidator parked rather
+    // than re-reading a queue.
+    Do_DrainPublishedRebuilds(Fixture);
+
+    if (NOT TestEqual(TEXT("and the watch empties the queue before the search finishes"),
+        Get_QueuedRebuildCount(Fixture), 0))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    if (NOT TestTrue(TEXT("the search then finishes and publishes a route with a corridor"),
+        Do_SliceUntilAnswered(Fixture, 0)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    TestTrue(FString::Printf(
+            TEXT("and that publish flags the agent for one re-plan [rebuild %s vs corridor %s]"),
+            *Get_BoxText(Overlapping), *Get_BoxText(Get_StoredCorridor(Fixture, 0))),
+        Get_IsFlagged(Fixture, 0));
+
+    Do_Teardown(Fixture);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// The control for the row above, in its two halves. A publish that flagged unconditionally would pass
+// that row, so one agent runs its search to a publish with nothing rebuilt at all, and a second runs
+// one under a rebuild placed clear of the bounds its request spans. Two agents rather than two phases
+// on one: the first agent holds a corridor once it has published, and a corridor is answered by the
+// other half of the invalidator entirely.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Invalidation_SearchInFlightIsNotRepathedWithoutAReachingRebuild,
+    "CkTests.UnitTests.CkGroundNav.Invalidation.SearchInFlightIsNotRepathedWithoutAReachingRebuild",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Invalidation_SearchInFlightIsNotRepathedWithoutAReachingRebuild::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathinvalidation;
+
+    auto Fixture = FInvalidationFixture{};
+
+    if (NOT TestTrue(TEXT("the two-route scene bakes, publishes and takes two agents"),
+        Do_Setup(Fixture, TEXT("CkGroundNavInvalidationInFlightControl"), 2,
+            ECk_NavSurface_Provider::GroundNav)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    // The first agent alone, so the slice loop below advances nobody else.
+    if (NOT TestTrue(TEXT("the first agent's search stands up with nothing published"),
+        Do_BeginSearchWithoutSlicing(Fixture, 0, kTwoRouteStart, kTwoRouteGoal)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    if (NOT TestTrue(TEXT("and finishes into a published route with a corridor"),
+        Do_SliceUntilAnswered(Fixture, 0)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    TestFalse(TEXT("a search that nothing rebuilt under publishes unflagged"),
+        Get_IsFlagged(Fixture, 0));
+
+    if (NOT TestTrue(TEXT("the second agent's search stands up with nothing published"),
+        Do_BeginSearchWithoutSlicing(Fixture, 1, kTwoRouteStart, kTwoRouteGoal)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    Do_PublishNextEpoch(Fixture);
+
+    /**
+     * Clear of the box that request's two ends span - X[300..1000] at Y=300, grown by the body's
+     * radius and the lattice margin - by more than 250uu in Y, and inside the scene rather than far
+     * outside it, so the row is a claim about those bounds and not about being nowhere near.
+     */
+    const auto Clear = FBox{
+        FVector{kTwoRouteStart.X, 600.0, kGroundZ - kWellClearUu},
+        FVector{kTwoRouteGoal.X, 800.0, kGroundZ + kWellClearUu}};
+
+    Do_NotifyRebuilt(Fixture, Clear);
+    Do_RunInvalidator(Fixture);
+    Do_DrainPublishedRebuilds(Fixture);
+
+    if (NOT TestTrue(TEXT("and finishes into a published route with a corridor"),
+        Do_SliceUntilAnswered(Fixture, 1)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    TestFalse(FString::Printf(
+            TEXT("a rebuild clear of the search's request bounds leaves its publish unflagged ")
+            TEXT("[rebuild %s vs corridor %s]"),
+            *Get_BoxText(Clear), *Get_BoxText(Get_StoredCorridor(Fixture, 1))),
+        Get_IsFlagged(Fixture, 1));
+
+    Do_Teardown(Fixture);
 
     return true;
 }

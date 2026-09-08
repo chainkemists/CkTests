@@ -4,7 +4,9 @@
 // flag anybody has to remember to clear, so the only way to be wrong about it is to read the wrong
 // thing. The rule is stated over a field and a record, and that is exactly how most of this file asks
 // it — a stub-baked field and a hand-built record need no world, no physics and no scheduler, so the
-// epoch arithmetic can be pinned exactly instead of waited on.
+// epoch arithmetic can be pinned exactly instead of waited on. Every fixture here bakes the field WITH
+// the record on it, so what is pinned is the epoch half on a field that already priced it; the pricing
+// half — a field that never saw the record at all — is pinned in Test_GroundNav_MarkupLive_RequiresPricing.cpp.
 //
 // The entity-shaped half is asked through the volume drains directly, as Test_GroundNav_MarkupAdmission
 // does: a headless registry has no scheduler, and a volume cannot publish a field without a physics
@@ -280,15 +282,18 @@ bool FCkTest_GroundNav_MarkupLive_IsFalseUntilTheCoveringTilesRepublish::RunTest
 {
     using namespace ck_test_groundnav_markuplive;
 
-    auto Field = FCk_GroundNav_Field{};
-
-    if (NOT TestTrue(TEXT("the field bakes"), Bake_Field({}, Field)))
-    { return false; }
-
     // Wholly inside tile (0,0): [100,300] on both axes, against a tile covering [0,400].
     auto Record = Make_Record(1, FVector{200.0, 200.0, 0.0}, FVector{100.0, 100.0, 50.0},
         ECk_GroundNav_MarkupKind::Cost);
     Record.Set_RequestedAtEpoch(kRequestedEpoch);
+
+    // The field must have PRICED the record - baking it in is what the epoch arithmetic below is
+    // pinned against; a field that never saw the record cannot be made live by any epoch at all.
+    auto Field = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the field bakes with the record priced"),
+        Bake_Field(TArray<FCk_GroundNav_MarkupRecord>{Record}, Field)))
+    { return false; }
 
     const auto Reached = Get_ReachedTileIndices(Field, Record);
 
@@ -349,16 +354,19 @@ bool FCkTest_GroundNav_MarkupLive_TwoTileRecordIsLiveOnlyWhenBothRepublish::RunT
 {
     using namespace ck_test_groundnav_markuplive;
 
-    auto Field = FCk_GroundNav_Field{};
-
-    if (NOT TestTrue(TEXT("the field bakes"), Bake_Field({}, Field)))
-    { return false; }
-
     // Straddling the seam at X = 400: [300,500] x [100,300], inside tile (0,0) and tile (1,0) and
     // reaching neither of the tiles above them.
     auto Record = Make_Record(1, FVector{400.0, 200.0, 0.0}, FVector{100.0, 100.0, 50.0},
         ECk_GroundNav_MarkupKind::Cost);
     Record.Set_RequestedAtEpoch(kRequestedEpoch);
+
+    // The field must have PRICED the record - baking it in is what the epoch arithmetic below is
+    // pinned against; a field that never saw the record cannot be made live by any epoch at all.
+    auto Field = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the field bakes with the record priced"),
+        Bake_Field(TArray<FCk_GroundNav_MarkupRecord>{Record}, Field)))
+    { return false; }
 
     const auto Reached = Get_ReachedTileIndices(Field, Record);
 

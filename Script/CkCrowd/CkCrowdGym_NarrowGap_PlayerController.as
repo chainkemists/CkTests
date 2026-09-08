@@ -27,11 +27,12 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
 {
     private FCk_Handle _PcEntity;
     private FCk_Handle _StationHandle;
-    private FCk_Handle _NavProbeEntity;
+    private FVector _ProbeStart;
     private FVector _ProbeGoal;
     private TArray<FCk_Handle_CrowdAgent> _Agents;
     private TArray<AActor> _FlankWalls;
     private bool _AutoSpawned = false;
+    private bool _NavProbeFailed = false;
 
     private const float SpawnZ          = 100.0;
     private const float WallLineOffset  = 600.0;
@@ -44,6 +45,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
     private const int32 SpawnRows       = 4;
     private const int32 DefaultCount    = 20;
     private const int32 AutoSpawnCount  = 20;
+    private const float NavProbePollSec = 0.5;
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
@@ -92,47 +94,54 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
         SpawnFloor();
         SpawnWalls();
 
-        utils_nav::Request_NavigationRebuild_ForTesting(_PcEntity);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         // Auto-spawn gate: a probe path from the spawn side through the gap proves the bake
         // (including the wall carve) finished; a timer would race the async tile build.
-        const auto ProbeStart = Local_To_World(FVector(WallLineOffset - ApproachOffset, 0.0, SpawnZ));
-        const auto ProbeGoal  = Local_To_World(FVector(WallLineOffset + ApproachOffset, 0.0, SpawnZ));
-        _ProbeGoal = ProbeGoal;
-        _NavProbeEntity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
-        utils_transform::Add(_NavProbeEntity,
-            FTransform(FRotator::ZeroRotator, ProbeStart, FVector::OneVector),
-            ECk_Replication::DoesNotReplicate);
+        _ProbeStart = Local_To_World(FVector(WallLineOffset - ApproachOffset, 0.0, SpawnZ));
+        _ProbeGoal  = Local_To_World(FVector(WallLineOffset + ApproachOffset, 0.0, SpawnZ));
 
-        utils_nav::BindTo_OnPathReady(_NavProbeEntity,
-            FCk_Delegate_Nav_OnPathReady(this, n"OnNavProbeReady"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-        utils_nav::BindTo_OnPathFailed(_NavProbeEntity,
-            FCk_Delegate_Nav_OnPathFailed(this, n"OnNavProbeFailed"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-        utils_nav::Request_FindPath(_NavProbeEntity, FCk_Request_Nav_FindPath(ProbeGoal));
+        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(NavProbePollSec));
+        TimerParams.Set_StartingState(ECk_Timer_State::Running)
+                   .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+        auto Timer = utils_timer::Add(_PcEntity, TimerParams);
+        Timer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnNavProbePoll"));
 
         ck::crowd::Log(f"NarrowGap gym started - auto-spawning {AutoSpawnCount} walkers once the navmesh probe resolves.");
     }
 
+    // Retried every NavProbePollSec until the surface answers Success: the rebuild kicked in
+    // Request_StartGym is async, so the first few polls can legitimately read Unbuilt while the
+    // bake finishes.
     UFUNCTION()
-    private void OnNavProbeReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
+    private void OnNavProbePoll(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (_AutoSpawned || _Agents.Num() > 0)
+        if (_AutoSpawned || _Agents.Num() > 0 || _NavProbeFailed)
         { return; }
 
-        // A "Ready" path to a goal the end-projection pulled back onto the near side looks exactly
-        // like success - the one PIE symptom this gym ever shipped with. Require the path to
-        // actually reach the far side before trusting the bake.
-        auto Waypoints = InResult.Get_Waypoints();
+        auto ProbeQuery = FCk_NavSurface_PathQuery(_ProbeStart, _ProbeGoal);
+        const auto Result = utils_nav_surface::Try_FindPathSync(ProbeQuery);
+
+        if (Result.Get_Status() == ECk_NavSurface_QueryStatus::Unbuilt) { return; }
+
+        if (Result.Get_Status() != ECk_NavSurface_QueryStatus::Success)
+        {
+            _NavProbeFailed = true;
+            ck::crowd::Log("NarrowGap gym: navmesh probe failed - auto-spawn skipped; press G on the control panel once the navmesh is visible.");
+            return;
+        }
+
+        // A "Success" path to a goal the end-projection pulled back onto the near side looks
+        // exactly like success - the one PIE symptom this gym ever shipped with. Require the path
+        // to actually reach the far side before trusting the bake.
+        auto Waypoints = Result.Get_Waypoints();
         if (Waypoints.Num() > 0)
         {
             auto EndDelta = Waypoints[Waypoints.Num() - 1] - _ProbeGoal;
             EndDelta.Z = 0.0;
             if (EndDelta.Size() > 200.0)
             {
+                _NavProbeFailed = true;
                 ck::crowd::Warning(f"NarrowGap gym: probe path stops {EndDelta.Size()}cm short of the far side - the gap failed to bake or the map's NavMeshBoundsVolume doesn't cover the layout. Auto-spawn skipped.");
                 return;
             }
@@ -140,12 +149,6 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
 
         _AutoSpawned = true;
         Ck_GymCrowd_NarrowGap_Spawn(AutoSpawnCount);
-    }
-
-    UFUNCTION()
-    private void OnNavProbeFailed(FCk_Handle InHandle)
-    {
-        ck::crowd::Log("NarrowGap gym: navmesh probe failed - auto-spawn skipped; press G on the control panel once the navmesh is visible.");
     }
 
     // ---- Geometry ----------------------------------------------------------------------------------
@@ -285,7 +288,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
             _FlankWalls.Add(SpawnWallBox(FVector(WallLineOffset, -CentreY, WallHeight * 0.5), Scale));
         }
 
-        utils_nav::Request_NavigationRebuild_ForTesting(_PcEntity);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
         const auto FlankState = InClosed ? FString("CLOSED (no detour)") : FString("OPEN");
         ck::crowd::Log(f"NarrowGap gym: flank caps {FlankState} - navmesh rebuilding");
     }
@@ -346,6 +349,15 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
+    }
+
     private FCk_Handle_CrowdAgent SpawnAgent(FVector InSpawnLoc, FVector InTargetLoc, FLinearColor InColor, FName InDebugName, bool InIssueMove)
     {
         FCk_Handle TransientOwner = ck::TransientEntity();
@@ -357,9 +369,9 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
         // Grounding is displacement-driven (ConstrainToNavmesh only moves an agent that moves), so
         // a parked agent spawned above the floor hovers there forever. Snap every spawn to the mesh.
         auto GroundedSpawn = InSpawnLoc;
-        FVector Snapped;
-        if (utils_nav::Try_ProjectOntoNavmesh(_PcEntity, InSpawnLoc, 200.0, Snapped, 300.0))
-        { GroundedSpawn = Snapped; }
+        const auto SpawnProjection = Do_ProjectOntoSurface(InSpawnLoc, FVector(200.0, 200.0, 300.0));
+        if (SpawnProjection.Get_Status() == ECk_NavSurface_QueryStatus::Success)
+        { GroundedSpawn = SpawnProjection.Get_Location(); }
 
         const auto LookDir   = InTargetLoc - InSpawnLoc;
         const auto PlanarDir = FVector(LookDir.X, LookDir.Y, 0.0);

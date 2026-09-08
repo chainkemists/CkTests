@@ -63,6 +63,7 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
     private TArray<FVector> _QuietStartPos;
     private TArray<int32> _QuietStartEpisode;
 
+    private FVector _ProbeStart = FVector::ZeroVector;
     private bool _NavProbeReady = false;
     private bool _AgentsSpawned = false;
     private bool _Measuring = false;
@@ -129,24 +130,13 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
         // Probe from a real ring point through the centre, so the readiness probe travels the same
         // route every agent will. A projection-only probe can select different nav data and
         // false-positive.
-        const auto ProbeStart = Centre + FVector(RingRadius, 0.0, 0.0);
+        _ProbeStart = Centre + FVector(RingRadius, 0.0, 0.0);
         utils_transform::Add(LocalHandle,
-            FTransform(FRotator::ZeroRotator, ProbeStart, FVector::OneVector),
+            FTransform(FRotator::ZeroRotator, _ProbeStart, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        utils_nav::BindTo_OnPathReady(LocalHandle,
-            FCk_Delegate_Nav_OnPathReady(this, n"OnNavProbeReady"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-
-        utils_nav::BindTo_OnPathFailed(LocalHandle,
-            FCk_Delegate_Nav_OnPathFailed(this, n"OnNavProbeFailed"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-
-        // Kick the navmesh: AutoTests_CkTests_Level has the fixture but the bake is lazy.
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
-        utils_nav::Request_FindPath(LocalHandle, FCk_Request_Nav_FindPath(Centre));
+        // Kick the surface: AutoTests_CkTests_Level has the fixture but the bake is lazy.
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
@@ -155,33 +145,28 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
         Timer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnSample"));
     }
 
-    UFUNCTION()
-    private void OnNavProbeReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
+    // Retried each sample until the surface answers Success: the rebuild kicked in DoBeginPlay is
+    // async, so the first few ticks can legitimately read Unbuilt while the bake finishes.
+    private void DoTryNavProbe()
     {
-        if (IsFinished()) { return; }
+        auto ProbeQuery = FCk_NavSurface_PathQuery(_ProbeStart, Centre);
+        const auto Result = utils_nav_surface::Try_FindPathSync(ProbeQuery);
 
-        if (InResult.Get_Status() != ECk_Nav_PathStatus::Ready)
+        if (Result.Get_Status() == ECk_NavSurface_QueryStatus::Unbuilt) { return; }
+
+        if (Result.Get_Status() != ECk_NavSurface_QueryStatus::Success)
         {
-            FinishFailure(f"navigation readiness probe returned status {InResult.Get_Status()} instead of Ready");
+            FinishFailure(f"navigation readiness probe returned status {Result.Get_Status()} instead of Success");
             return;
         }
 
-        if (InResult.Get_Waypoints().Num() < 1)
+        if (Result.Get_Waypoints().Num() < 1)
         {
             FinishFailure("navigation readiness probe returned no waypoints");
             return;
         }
 
         _NavProbeReady = true;
-    }
-
-    UFUNCTION()
-    private void OnNavProbeFailed(FCk_Handle InHandle)
-    {
-        if (IsFinished()) { return; }
-
-        const auto Result = utils_nav::Get_PathResult(InHandle);
-        FinishFailure(f"navigation readiness probe failed: reason={Result.Get_Diagnostics().Get_LastFailReason()}");
     }
 
     UFUNCTION()
@@ -201,7 +186,11 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
 
         if (_AgentsSpawned == false)
         {
-            if (_NavProbeReady == false) { return; }
+            if (_NavProbeReady == false)
+            {
+                DoTryNavProbe();
+                return;
+            }
 
             auto SelfHandle = DoGet_ScriptEntity();
             DoSpawnAgents(SelfHandle);
