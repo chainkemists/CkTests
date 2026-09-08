@@ -97,6 +97,7 @@ public class CkTests : CkModuleRules
             "CkPmg",
             "CkPhysics",
             "CkProfile",
+            "TraceLog", // CPU-work trace writer lifecycle fixture.
             "CkProjectile",
             "CkProvider",
             "CkQueue",
