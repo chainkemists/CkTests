@@ -18,13 +18,16 @@ class UCk_AutoTest_Queue_CrowdAdapterFacesOrigin : UCk_AutoTest_Base
     {
         auto Context = InHandle;
         utils_transform::Add(Context, FTransform::Identity, ECk_Replication::DoesNotReplicate);
-        utils_nav::Request_NavigationRebuild_ForTesting(Context);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         Add_Step_WaitUntil("queue facing spawn and target are navigable", n"Check_NavigationReady");
         Add_Step("compose a queue with a rotated owner target and one CrowdAgent", n"Step_ComposeQueueAndAgent");
         Add_Step_WaitUntil("queue formation becomes ready", n"Check_QueueReady");
         Add_Step("join through the Crowd queue adapter", n"Step_RequestJoin");
-        Add_Step_WaitUntil("Crowd reaches the assigned queue slot and becomes idle", n"Check_ArrivedAndIdle");
+        // 520uu spawn-to-slot walk at 600uu/s (MaxSpeed) + claim + 10uu settle needs ~2.2s; the
+        // harness default of 240 frames only buffers ~1s at 240fps and this lane has measured
+        // 58-107fps, so match the sibling CrowdAdapterMovesAndResumes's 1200-frame budget.
+        Add_Step_WaitUntil("Crowd reaches the assigned queue slot and becomes idle", n"Check_ArrivedAndIdle", 1200);
         Add_Step_WaitUntil("adapter applies the assigned owner-target facing after arrival", n"Check_FacingApplied");
         Add_Step_WaitFrames("queue facing remains owned across later Crowd facing passes", 3);
         Add_Step("assert final queue-facing contract", n"Step_AssertFacing");
@@ -34,16 +37,22 @@ class UCk_AutoTest_Queue_CrowdAdapterFacesOrigin : UCk_AutoTest_Base
     UFUNCTION()
     private void Check_NavigationReady(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        FVector SpawnOnMesh;
-        FVector TargetOnMesh;
-        auto Context = InHandle;
-        const bool SpawnIsNavigable = utils_nav::Try_ProjectOntoNavmesh(
-            Context, FVector(-400.0f, 0.0f, 0.0f), 100.0f, SpawnOnMesh, 300.0f);
-        const bool TargetIsNavigable = utils_nav::Try_ProjectOntoNavmesh(
-            Context, FVector(-280.0f, 0.0f, 0.0f), 100.0f, TargetOnMesh, 300.0f);
-        if (SpawnIsNavigable) { _Spawn = SpawnOnMesh; }
+        const auto SpawnResult = Do_ProjectOntoSurface(FVector(-400.0f, 0.0f, 0.0f), FVector(100.0f, 100.0f, 300.0f));
+        const auto TargetResult = Do_ProjectOntoSurface(FVector(-280.0f, 0.0f, 0.0f), FVector(100.0f, 100.0f, 300.0f));
+        const bool SpawnIsNavigable = SpawnResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
+        const bool TargetIsNavigable = TargetResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
+        if (SpawnIsNavigable) { _Spawn = SpawnResult.Get_Location(); }
         auto Result = OutResult;
         Result.Set(SpawnIsNavigable && TargetIsNavigable);
+    }
+
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
     }
 
     UFUNCTION()

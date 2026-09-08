@@ -27,11 +27,24 @@
 // branches (a sidewalk or voxel provider that never answers) carry no bound of
 // their own and cannot be stalled on demand at all - which is precisely why the
 // seams exist.
+//
+// GroundNav needs the SAME parked start, by a different route, and reaches it only
+// by declining the harness's default field. If the runner stages its own origin
+// field (the GroundNav default), TryGet_EntryFor's first-field fallback hands the
+// lookup that field even for this Spawn far above it, the projection comes back
+// with no surface, and the request answers StartProjectFailed SYNCHRONOUSLY -
+// never Pending, so the fixture never gets a subject. With no field registered at
+// all, DoTry_Begin (CkGroundNavPath_Processor.cpp) finds nothing to search over and
+// parks the episode instead, re-probing for ck.GroundNav.MaxDeferralSeconds (5s) -
+// the same narrow race documented above for CkNavigation's deferral. Hence
+// `default _AutoStageOriginField = false;` below: the harness must not stage a
+// field this test needs absent.
 //============================================================================
 
 class UCk_AutoTest_Crowd_Watchdog_PendingTimeoutFailsEpisodeOnce : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 25.0f;
+    default _AutoStageOriginField = false; // the harness's own field would resolve this Spawn synchronously - see header
 
     private FCk_Handle_CrowdAgent _Agent;
     private int32 _GoalFailedCount = 0;

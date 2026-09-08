@@ -383,6 +383,12 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
     private void OnGoalReached(FCk_Handle_CrowdAgent InAgent)
     {
         if (IsFinished()) { return; }
+
+        // An arrival at the recovery goal is the success branch's own outcome, not a false
+        // arrival for the disconnected goal - GroundNav fails the goal fast enough that the
+        // walker is already standing on the recovery goal when it is issued.
+        if (_RecoveryIssued) { return; }
+
         _Reached = true;
     }
 

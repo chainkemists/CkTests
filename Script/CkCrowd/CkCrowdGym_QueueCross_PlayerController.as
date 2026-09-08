@@ -16,10 +16,12 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
 {
     private FCk_Handle _PcEntity;
     private FCk_Handle _StationHandle;
-    private FCk_Handle _NavProbeEntity;
+    private FVector _NavProbeStart = FVector::ZeroVector;
+    private FVector _NavProbeGoal = FVector::ZeroVector;
     private TArray<FCk_Handle_CrowdAgent> _LineMembers;
     private TArray<FCk_Handle_CrowdAgent> _Crossers;
     private bool _AutoSpawned = false;
+    private bool _NavProbeFailed = false;
     private bool _CrossersDispatched = false;
     private float _ConfirmWaitSec = 0.0;
 
@@ -77,42 +79,44 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
         }
 
         SpawnFloor();
-        utils_nav::Request_NavigationRebuild_ForTesting(_PcEntity);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
-        const auto ProbeStart = Local_To_World(FVector(LineOffset - CrosserApproach, 0.0, SpawnZ));
-        const auto ProbeGoal  = Local_To_World(FVector(LineOffset + CrosserOvershoot, 300.0, SpawnZ));
-        _NavProbeEntity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
-        utils_transform::Add(_NavProbeEntity,
-            FTransform(FRotator::ZeroRotator, ProbeStart, FVector::OneVector),
-            ECk_Replication::DoesNotReplicate);
+        _NavProbeStart = Local_To_World(FVector(LineOffset - CrosserApproach, 0.0, SpawnZ));
+        _NavProbeGoal  = Local_To_World(FVector(LineOffset + CrosserOvershoot, 300.0, SpawnZ));
 
-        utils_nav::BindTo_OnPathReady(_NavProbeEntity,
-            FCk_Delegate_Nav_OnPathReady(this, n"OnNavProbeReady"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-        utils_nav::BindTo_OnPathFailed(_NavProbeEntity,
-            FCk_Delegate_Nav_OnPathFailed(this, n"OnNavProbeFailed"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-        utils_nav::Request_FindPath(_NavProbeEntity, FCk_Request_Nav_FindPath(ProbeGoal));
+        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(ConfirmPollSec));
+        TimerParams.Set_StartingState(ECk_Timer_State::Running)
+                   .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+        auto Timer = utils_timer::Add(_PcEntity, TimerParams);
+        Timer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnNavProbePoll"));
 
         ck::crowd::Log("QueueCross gym started - the line auto-spawns once the navmesh probe resolves; crossers follow when its markup confirms.");
     }
 
+    // Retried every ConfirmPollSec until the surface answers Success: the rebuild kicked in
+    // Request_StartGym is async, so the first few polls can legitimately read Unbuilt while the
+    // bake finishes.
     UFUNCTION()
-    private void OnNavProbeReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
+    private void OnNavProbePoll(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (_AutoSpawned)
+        if (_AutoSpawned || _NavProbeFailed)
         { return; }
 
-        _AutoSpawned = true;
-        Request_SpawnLineAndCrossers();
-    }
+        auto ProbeQuery = FCk_NavSurface_PathQuery(_NavProbeStart, _NavProbeGoal);
+        const auto Result = utils_nav_surface::Try_FindPathSync(ProbeQuery);
 
-    UFUNCTION()
-    private void OnNavProbeFailed(FCk_Handle InHandle)
-    {
-        ck::crowd::Log("QueueCross gym: navmesh probe failed - auto-spawn skipped; press G on the control panel once the navmesh is visible.");
+        if (Result.Get_Status() == ECk_NavSurface_QueryStatus::Success)
+        {
+            _AutoSpawned = true;
+            Request_SpawnLineAndCrossers();
+            return;
+        }
+
+        if (Result.Get_Status() != ECk_NavSurface_QueryStatus::Unbuilt)
+        {
+            _NavProbeFailed = true;
+            ck::crowd::Log("QueueCross gym: navmesh probe failed - auto-spawn skipped; press G on the control panel once the navmesh is visible.");
+        }
     }
 
     // ---- Geometry ----------------------------------------------------------------------------------
@@ -280,6 +284,15 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
 
     // ---- Agent factory ---------------------------------------------------------------------------
 
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
+    }
+
     private FCk_Handle_CrowdAgent SpawnAgent(FVector InSpawnLoc, FVector InTargetLoc, FLinearColor InColor, FName InDebugName, bool InIssueMove)
     {
         FCk_Handle TransientOwner = ck::TransientEntity();
@@ -292,9 +305,9 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
         // a parked line member spawned above the floor hovers there forever. Snap every spawn to
         // the mesh.
         auto GroundedSpawn = InSpawnLoc;
-        FVector Snapped;
-        if (utils_nav::Try_ProjectOntoNavmesh(_PcEntity, InSpawnLoc, 200.0, Snapped, 300.0))
-        { GroundedSpawn = Snapped; }
+        const auto SpawnProjection = Do_ProjectOntoSurface(InSpawnLoc, FVector(200.0, 200.0, 300.0));
+        if (SpawnProjection.Get_Status() == ECk_NavSurface_QueryStatus::Success)
+        { GroundedSpawn = SpawnProjection.Get_Location(); }
 
         const auto LookDir   = InTargetLoc - InSpawnLoc;
         const auto PlanarDir = FVector(LookDir.X, LookDir.Y, 0.0);

@@ -220,7 +220,7 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
         if (_InstalledPathPolls > MaxInstalledPathPolls)
         {
             FinishFailure(
-                f"a straight route installed before markup confirmation and plain Recast later detoured, but the PathNetwork-backed CrowdAgent never refreshed, left, and rejoined its ribbon after {MaxInstalledPathPolls} polls; installed clearance {_LastInstalledClearance}uu, raw route clearance {_RouteClearance}uu");
+                f"a straight route installed before markup confirmation, but the PathNetwork-backed CrowdAgent never refreshed, left, and rejoined its ribbon after {MaxInstalledPathPolls} polls; installed clearance {_LastInstalledClearance}uu, raw route clearance {_RouteClearance}uu");
         }
     }
 

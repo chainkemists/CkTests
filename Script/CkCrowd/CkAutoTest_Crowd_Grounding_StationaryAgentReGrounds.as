@@ -73,6 +73,7 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
     // the Z-only pin (Phase A) and the anti-creep pin (Phase B) measure against.
     private TArray<FVector> _LiftBaselinePos;
 
+    private FVector _ProbeStart = FVector::ZeroVector;
     private bool _NavProbeReady = false;
     private float _VerifyIntervalSec = 0.0;
 
@@ -191,60 +192,50 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
         // Probe from a real ring point THROUGH the centre, so the readiness probe
         // travels the same route every agent will. A projection-only probe can
         // select different nav data and false-positive.
-        const auto ProbeStart = Centre + FVector(RingRadius, 0.0, 0.0);
+        _ProbeStart = Centre + FVector(RingRadius, 0.0, 0.0);
         utils_transform::Add(LocalHandle,
-            FTransform(FRotator::ZeroRotator, ProbeStart, FVector::OneVector),
+            FTransform(FRotator::ZeroRotator, _ProbeStart, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        utils_nav::BindTo_OnPathReady(LocalHandle,
-            FCk_Delegate_Nav_OnPathReady(this, n"OnNavProbeReady"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-
-        utils_nav::BindTo_OnPathFailed(LocalHandle,
-            FCk_Delegate_Nav_OnPathFailed(this, n"OnNavProbeFailed"),
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-            ECk_Signal_PostFireBehavior::DoNothing);
-
-        // Kick the navmesh: AutoTests_CkTests_Level has the fixture but the bake is lazy.
-        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
-        utils_nav::Request_FindPath(LocalHandle, FCk_Request_Nav_FindPath(Centre));
+        // Kick the surface: AutoTests_CkTests_Level has the fixture but the bake is lazy.
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
     }
 
+    // Retried each poll until the surface answers Success: the rebuild kicked in
+    // Step_ProbeNavmesh is async, so the first few polls can legitimately read Unbuilt while the
+    // bake finishes.
     UFUNCTION()
-    private void OnNavProbeReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
+    private void Check_NavReady(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         if (IsFinished()) { return; }
 
-        if (InResult.Get_Status() != ECk_Nav_PathStatus::Ready)
+        auto Res = OutResult;
+
+        if (_NavProbeReady)
         {
-            FinishFailure(f"navigation readiness probe returned status {InResult.Get_Status()} instead of Ready");
+            Res.Set(true);
             return;
         }
 
-        if (InResult.Get_Waypoints().Num() < 1)
+        auto ProbeQuery = FCk_NavSurface_PathQuery(_ProbeStart, Centre);
+        const auto Result = utils_nav_surface::Try_FindPathSync(ProbeQuery);
+
+        if (Result.Get_Status() == ECk_NavSurface_QueryStatus::Unbuilt) { return; }
+
+        if (Result.Get_Status() != ECk_NavSurface_QueryStatus::Success)
+        {
+            FinishFailure(f"navigation readiness probe returned status {Result.Get_Status()} instead of Success");
+            return;
+        }
+
+        if (Result.Get_Waypoints().Num() < 1)
         {
             FinishFailure("navigation readiness probe returned no waypoints");
             return;
         }
 
         _NavProbeReady = true;
-    }
-
-    UFUNCTION()
-    private void OnNavProbeFailed(FCk_Handle InHandle)
-    {
-        if (IsFinished()) { return; }
-
-        const auto Result = utils_nav::Get_PathResult(InHandle);
-        FinishFailure(f"navigation readiness probe failed: reason={Result.Get_Diagnostics().Get_LastFailReason()}");
-    }
-
-    UFUNCTION()
-    private void Check_NavReady(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
-    {
-        auto Res = OutResult;
-        Res.Set(_NavProbeReady);
+        Res.Set(true);
     }
 
     // ---- Setup --------------------------------------------------------------------------------------

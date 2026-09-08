@@ -33,6 +33,9 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     private FCk_Handle _PcEntity;
     private FCk_Handle _LiveStation;
     private FCk_Handle _NavProbeEntity;
+    private FVector _NavProbeStart = FVector::ZeroVector;
+    private FVector _NavProbeGoal = FVector::ZeroVector;
+    private bool _NavProbeFailed = false;
     private FCk_Handle _CoordinatorOwner;
     private FCk_Handle_QueueCoordinator _Coordinator;
     private TArray<FCk_Handle> _QueueOwners;
@@ -240,24 +243,53 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         if (ck::Is_NOT_Valid(_LiveStation)) { ck::Warning("Queue gym requires its live station"); return; }
 
         _AutoStarted = false;
+        _NavProbeFailed = false;
         if (TrySpawnFloor() == false) { return; }
-        utils_nav::Request_NavigationRebuild_ForTesting(_PcEntity);
+        utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
         CancelEnvironmentTopologyProbe();
 
-        const auto ProbeStart = StationLocal_To_World(FVector(QueueFwdOffset - 600.0f, 0.0f, SpawnZ));
-        const auto ProbeGoal = StationLocal_To_World(FVector(QueueFwdOffset + 200.0f, 0.0f, SpawnZ));
-        _NavProbeEntity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
-        utils_transform::Add(_NavProbeEntity, FTransform(FRotator::ZeroRotator, ProbeStart, FVector::OneVector), ECk_Replication::DoesNotReplicate);
-        utils_nav::BindTo_OnPathReady(_NavProbeEntity, FCk_Delegate_Nav_OnPathReady(this, n"OnNavProbeReady"), ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame, ECk_Signal_PostFireBehavior::DoNothing);
-        utils_nav::BindTo_OnPathFailed(_NavProbeEntity, FCk_Delegate_Nav_OnPathFailed(this, n"OnNavProbeFailed"), ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame, ECk_Signal_PostFireBehavior::DoNothing);
-        utils_nav::Request_FindPath(_NavProbeEntity, FCk_Request_Nav_FindPath(ProbeGoal));
+        _NavProbeStart = StationLocal_To_World(FVector(QueueFwdOffset - 600.0f, 0.0f, SpawnZ));
+        _NavProbeGoal = StationLocal_To_World(FVector(QueueFwdOffset + 200.0f, 0.0f, SpawnZ));
         ck::Trace("Queue gym: waiting for its runtime floor to finish baking before auto-start");
+    }
+
+    // Retried each Tick until the surface answers Success: the rebuild kicked in Request_StartGym
+    // is async, so the first several ticks can legitimately read Unbuilt while the bake finishes.
+    private void PollNavReadiness()
+    {
+        if (_AutoStarted || _NavProbeFailed) { return; }
+
+        auto ProbeQuery = FCk_NavSurface_PathQuery(_NavProbeStart, _NavProbeGoal);
+        const auto Result = utils_nav_surface::Try_FindPathSync(ProbeQuery);
+
+        if (Result.Get_Status() == ECk_NavSurface_QueryStatus::Success)
+        {
+            _AutoStarted = true;
+            Request_StartLiveDemo();
+            return;
+        }
+
+        if (Result.Get_Status() != ECk_NavSurface_QueryStatus::Unbuilt)
+        {
+            _NavProbeFailed = true;
+            ck::Warning("Queue gym navmesh probe failed; auto-start skipped until the floor is navigable");
+        }
+    }
+
+    private FCk_NavSurface_ProjectionResult Do_ProjectOntoSurface(FVector InPoint, FVector InSearchHalfExtents) const
+    {
+        auto Query = FCk_NavSurface_ProjectionQuery(InPoint);
+        Query.Set_Mode(ECk_NavSurface_ProjectionMode::Closest);
+        Query.Set_SearchHalfExtents(InSearchHalfExtents);
+
+        return utils_nav_surface::Try_ProjectPoint(Query);
     }
 
     UFUNCTION(BlueprintOverride)
     void Tick(float InDeltaSeconds)
     {
+        PollNavReadiness();
         PollEnvironmentTopology();
         TickScatterNearAdmission(InDeltaSeconds);
         TickServedExitClearance(InDeltaSeconds);
@@ -328,50 +360,6 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         const auto Value = InEnabled ? 1 : 0;
         System::ExecuteConsoleCommand(f"{InName} {Value}");
-    }
-
-    UFUNCTION()
-    private void OnNavProbeReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
-    {
-        if (InHandle != _NavProbeEntity || _AutoStarted) { return; }
-        _AutoStarted = true;
-        Request_StartLiveDemo();
-    }
-
-    UFUNCTION()
-    private void OnNavProbeFailed(FCk_Handle InHandle)
-    {
-        if (InHandle != _NavProbeEntity) { return; }
-        ck::Warning("Queue gym navmesh probe failed; auto-start skipped until the floor is navigable");
-    }
-
-    UFUNCTION()
-    private void OnEnvironmentTopologyPathReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
-    {
-        if (InHandle != _NavProbeEntity || !_AwaitingEnvironmentTopology || _AdmissionIssued || _EnvironmentMode == 1) { return; }
-
-        FVector StartProjected;
-        FVector GoalProjected;
-        const bool StartProjects = utils_nav::Try_ProjectOntoNavmesh(_PcEntity, _TopologyProbeStart, 30.0f, StartProjected, 400.0f);
-        const bool GoalProjects = utils_nav::Try_ProjectOntoNavmesh(_PcEntity, _TopologyProbeGoal, 30.0f, GoalProjected, 400.0f);
-        auto Waypoints = InResult.Get_Waypoints();
-        const bool ReachesGoal = Waypoints.Num() > 0 && (Waypoints[Waypoints.Num() - 1] - _TopologyProbeGoal).Size() <= 200.0f;
-        if (StartProjects && GoalProjects && ReachesGoal)
-        {
-            AdmitAfterEnvironmentTopology("reachable probe projected start/target and reached the intended target");
-            return;
-        }
-
-        AddTrace("TOPOLOGY: reachable probe resolved before its intended start/target/path contract; still waiting.");
-        RefreshDisplays();
-    }
-
-    UFUNCTION()
-    private void OnEnvironmentTopologyPathFailed(FCk_Handle InHandle)
-    {
-        if (InHandle != _NavProbeEntity || !_AwaitingEnvironmentTopology || _AdmissionIssued || _EnvironmentMode == 1) { return; }
-        AddTrace("TOPOLOGY: reachable environment path failed; no agents admitted. Choose another environment or reset.");
-        RefreshDisplays();
     }
 
     // Rebuilds exactly the selected configuration; every option row funnels through here.
@@ -550,7 +538,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         CancelServedExit();
         _PlannerRetryPending = false;
         _PlannerRetriesAwaiting = 0;
-        if (ClearEnvironmentGeometry()) { utils_nav::Request_NavigationRebuild_ForTesting(_PcEntity); }
+        if (ClearEnvironmentGeometry()) { utils_nav_surface::Request_SurfaceRebuild_ForTesting(); }
         utils_entity_lifetime::Request_DestroyEntity(_QueueOwners[_SelectedQueueIndex]);
         AddTrace(f"ACTION: {GetSelectedQueueLabel()} owner destroyed. QueueCoordinator must prune that service without affecting peer Queues.");
         RefreshDisplays();
@@ -1074,9 +1062,9 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
             : Get_QueueOwnerTransform(AdvancingQueueIndex);
         auto ExitLocation = OwnerTransform.TransformPosition(
             FVector(900.0f + float(_ServedExitAttempts - 1) * 180.0f, float(LaneIndex) * 220.0f, SpawnZ));
-        FVector ProjectedExit;
-        if (utils_nav::Try_ProjectOntoNavmesh(_PcEntity, ExitLocation, 250.0f, ProjectedExit, 400.0f))
-        { ExitLocation = ProjectedExit; }
+        const auto ExitProjection = Do_ProjectOntoSurface(ExitLocation, FVector(250.0, 250.0, 400.0));
+        if (ExitProjection.Get_Status() == ECk_NavSurface_QueryStatus::Success)
+        { ExitLocation = ExitProjection.Get_Location(); }
         _ServedExitCorrelation = _ServedExitCorrelation == 2147483647 ? 1 : _ServedExitCorrelation + 1;
         if (_ServedExitCorrelation == 0) { _ServedExitCorrelation = 1; }
         auto Move = FCk_Request_CrowdAgent_MoveTo(ExitLocation);
@@ -1263,7 +1251,6 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (_AwaitingEnvironmentTopology == false || _AdmissionIssued || ck::Is_NOT_Valid(_QueueOwner)) { return; }
 
-        FVector Projected;
         if (_EnvironmentMode == 1)
         {
             const auto Targets = GetConfiguredTargetTransforms();
@@ -1271,10 +1258,10 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
             bool EveryTargetIsBlocked = true;
             for (const auto& Target : Targets)
             {
-                if (utils_nav::Try_ProjectOntoNavmesh(_PcEntity, Target.GetLocation(), 20.0f, Projected, 300.0f))
+                if (Do_ProjectOntoSurface(Target.GetLocation(), FVector(20.0, 20.0, 300.0)).Get_Status() == ECk_NavSurface_QueryStatus::Success)
                 { EveryTargetIsBlocked = false; break; }
             }
-            const bool ApproachProjects = utils_nav::Try_ProjectOntoNavmesh(_PcEntity, _TopologyProbeStart, 30.0f, Projected, 400.0f);
+            const bool ApproachProjects = Do_ProjectOntoSurface(_TopologyProbeStart, FVector(30.0, 30.0, 400.0)).Get_Status() == ECk_NavSurface_QueryStatus::Success;
             if (EveryTargetIsBlocked && ApproachProjects)
             { AdmitAfterEnvironmentTopology("target-unreachable probe confirmed blocked targets while the approach remains navigable"); }
             return;
@@ -1285,7 +1272,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
             bool EveryBlockerIsBaked = _LayoutBlockers.Num() > 0;
             for (auto Blocker : _LayoutBlockers)
             {
-                if (System::IsValid(Blocker) == false || utils_nav::Try_ProjectOntoNavmesh(_PcEntity, Blocker.GetActorLocation(), 20.0f, Projected, 300.0f))
+                if (System::IsValid(Blocker) == false || Do_ProjectOntoSurface(Blocker.GetActorLocation(), FVector(20.0, 20.0, 300.0)).Get_Status() == ECk_NavSurface_QueryStatus::Success)
                 { EveryBlockerIsBaked = false; break; }
             }
             if (EveryBlockerIsBaked && _TopologyPathRequested == false) { RequestReachableTopologyPath(); }
@@ -1297,7 +1284,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
             bool EveryWitnessIsWalkable = true;
             for (const auto& Witness : _TopologyClearWitnesses)
             {
-                if (utils_nav::Try_ProjectOntoNavmesh(_PcEntity, Witness, 20.0f, Projected, 300.0f) == false)
+                if (Do_ProjectOntoSurface(Witness, FVector(20.0, 20.0, 300.0)).Get_Status() != ECk_NavSurface_QueryStatus::Success)
                 { EveryWitnessIsWalkable = false; break; }
             }
             if (EveryWitnessIsWalkable == false) { return; }
@@ -1306,14 +1293,40 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         if (_TopologyPathRequested == false) { RequestReachableTopologyPath(); }
     }
 
+    // The async ready/failed pair collapsed into one synchronous sequence: Try_FindPathSync answers
+    // immediately, Unbuilt keeps the probe unrequested so the next poll retries, and any other
+    // non-Success status latches _TopologyPathRequested terminal exactly as the old Failed callback did.
     private void RequestReachableTopologyPath()
     {
-        if (_AwaitingEnvironmentTopology == false || _AdmissionIssued || _TopologyPathRequested || ck::Is_NOT_Valid(_NavProbeEntity)) { return; }
+        if (_AwaitingEnvironmentTopology == false || _AdmissionIssued || _TopologyPathRequested || ck::Is_NOT_Valid(_NavProbeEntity) || _EnvironmentMode == 1) { return; }
+
+        auto ProbeQuery = FCk_NavSurface_PathQuery(_TopologyProbeStart, _TopologyProbeGoal);
+        const auto Result = utils_nav_surface::Try_FindPathSync(ProbeQuery);
+
+        if (Result.Get_Status() == ECk_NavSurface_QueryStatus::Unbuilt) { return; }
+
         _TopologyPathRequested = true;
-        utils_nav::BindTo_OnPathReady(_NavProbeEntity, FCk_Delegate_Nav_OnPathReady(this, n"OnEnvironmentTopologyPathReady"), ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame, ECk_Signal_PostFireBehavior::DoNothing);
-        utils_nav::BindTo_OnPathFailed(_NavProbeEntity, FCk_Delegate_Nav_OnPathFailed(this, n"OnEnvironmentTopologyPathFailed"), ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame, ECk_Signal_PostFireBehavior::DoNothing);
-        utils_nav::Request_FindPath(_NavProbeEntity, FCk_Request_Nav_FindPath(_TopologyProbeGoal));
         AddTrace("TOPOLOGY: rebuilt reachable mode passed projection checks; requesting its path probe.");
+        RefreshDisplays();
+
+        if (Result.Get_Status() != ECk_NavSurface_QueryStatus::Success)
+        {
+            AddTrace("TOPOLOGY: reachable environment path failed; no agents admitted. Choose another environment or reset.");
+            RefreshDisplays();
+            return;
+        }
+
+        const bool StartProjects = Do_ProjectOntoSurface(_TopologyProbeStart, FVector(30.0, 30.0, 400.0)).Get_Status() == ECk_NavSurface_QueryStatus::Success;
+        const bool GoalProjects = Do_ProjectOntoSurface(_TopologyProbeGoal, FVector(30.0, 30.0, 400.0)).Get_Status() == ECk_NavSurface_QueryStatus::Success;
+        auto Waypoints = Result.Get_Waypoints();
+        const bool ReachesGoal = Waypoints.Num() > 0 && (Waypoints[Waypoints.Num() - 1] - _TopologyProbeGoal).Size() <= 200.0f;
+        if (StartProjects && GoalProjects && ReachesGoal)
+        {
+            AdmitAfterEnvironmentTopology("reachable probe projected start/target and reached the intended target");
+            return;
+        }
+
+        AddTrace("TOPOLOGY: reachable probe resolved before its intended start/target/path contract; still waiting.");
         RefreshDisplays();
     }
 
@@ -1385,7 +1398,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
 
         if (InGeometryWasRemoved || CreatedGeometry)
         {
-            utils_nav::Request_NavigationRebuild_ForTesting(_PcEntity);
+            utils_nav_surface::Request_SurfaceRebuild_ForTesting();
             AddTrace(f"OPTION: environment={GetEnvironmentLabel()}; navigation rebuilding before queue formation settles.");
         }
     }
@@ -1470,9 +1483,9 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
             const auto OverflowLane = float(Math::IntegerDivisionTrunc(Index, 2));
             auto ExitLocation = OwnerTransform.TransformPosition(
                 FVector(-600.0f, OverflowSide * (1400.0f + OverflowLane * 160.0f), SpawnZ));
-            FVector ProjectedExit;
-            if (utils_nav::Try_ProjectOntoNavmesh(_PcEntity, ExitLocation, 250.0f, ProjectedExit, 400.0f))
-            { ExitLocation = ProjectedExit; }
+            const auto ExitProjection = Do_ProjectOntoSurface(ExitLocation, FVector(250.0, 250.0, 400.0));
+            if (ExitProjection.Get_Status() == ECk_NavSurface_QueryStatus::Success)
+            { ExitLocation = ExitProjection.Get_Location(); }
             _RejectedExitCorrelation = _RejectedExitCorrelation == 2147483647 ? 1 : _RejectedExitCorrelation + 1;
             if (_RejectedExitCorrelation == 0) { _RejectedExitCorrelation = 1; }
             auto Move = FCk_Request_CrowdAgent_MoveTo(ExitLocation);
@@ -1708,9 +1721,9 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Entity = utils_entity_lifetime::Request_CreateEntity(_CoordinatorOwner);
         Entity.Set_DebugName(FName(f"QueueGym_Agent_{InIndex}"));
-        FVector Snapped;
         auto Location = InLocation;
-        if (utils_nav::Try_ProjectOntoNavmesh(_PcEntity, InLocation, 250.0f, Snapped, 400.0f)) { Location = Snapped; }
+        const auto LocationProjection = Do_ProjectOntoSurface(InLocation, FVector(250.0, 250.0, 400.0));
+        if (LocationProjection.Get_Status() == ECk_NavSurface_QueryStatus::Success) { Location = LocationProjection.Get_Location(); }
         auto Transform = utils_transform::Add(Entity, FTransform(FRotator::ZeroRotator, Location, FVector::OneVector), ECk_Replication::DoesNotReplicate);
         auto Agent = utils_crowd_agent::Add(Transform, FCk_Fragment_CrowdAgent_ParamsData(AgentRadius, AgentHeight));
         utils_crowd_agent::Set_DebugColor(Agent, FLinearColor::MakeFromHSV8(uint8((InIndex * 47) % 255), 210, 240));
