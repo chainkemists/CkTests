@@ -9,6 +9,14 @@ public class CkTests : CkModuleRules
             // ... add other private include paths required here ...
         });
 
+        // Direct C API integration coverage lives in this module's private unit-test source.
+        PrivateDependencyModuleNames.Add("CkYoga");
+        PrivateDependencyModuleNames.Add("CkSlateLayout");
+        PrivateDependencyModuleNames.Add("ImageCore");
+
+        RuntimeDependencies.Add(Path.Combine(PluginDirectory, "Resources", "ResourceInspector", "ResourceInspector.ui.html"), StagedFileType.NonUFS);
+        RuntimeDependencies.Add(Path.Combine(PluginDirectory, "Resources", "ResourceInspector", "ResourceInspector.ui.css"), StagedFileType.NonUFS);
+
         PublicDependencyModuleNames.AddRange(new string[]
         {
             "Core",
