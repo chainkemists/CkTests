@@ -9,6 +9,7 @@
 #include "CkJolt/Subsystem/CkJolt_Subsystem.h"
 
 #include <Components/StaticMeshComponent.h>
+#include <Engine/Level.h>
 #include <Engine/StaticMesh.h>
 #include <Engine/StaticMeshActor.h>
 #include <Engine/World.h>
@@ -29,10 +30,12 @@
 //     world exists (as in the SubsystemGating pin) and the project's own configuration cannot decide whether
 //     the subsystems under test are reachable.
 //
-// The two revision legs call Request_BakeActor / Request_RemoveActor DIRECTLY: nothing binds the editor's
-// actor add/delete/move delegates to them, because Request_RemoveActor resolves an actor only through
-// _ManualActorEntities and therefore cannot free or re-pose an actor the LEVEL SWEEP baked. So this pins the
-// manual bake/remove pair — which IS the surface an incremental re-bake would route through — and no more.
+// The revision legs call Request_BakeActor / Request_RemoveActor DIRECTLY, on a manually baked actor AND on
+// one the LEVEL SWEEP baked: the sweep files every actor it bakes in the same actor -> entity index the
+// manual bake writes, so a request reaches level geometry too (it used to be a silent no-op there). That
+// pair IS the surface the editor's actor add/delete/move delegates route through. The add delegate DOES
+// reach this world (SpawnActor broadcasts it), so its refusal of a not-yet-bakeable spawn is pinned below;
+// the move and delete orderings — and undo/redo — remain an [EDITOR-VERIFY], not reproducible headless.
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace ck_test_jolt_editor_world_sweep
@@ -133,6 +136,12 @@ bool FCkTest_JoltEditorWorld_SweepAndRevision::RunTest(const FString& Parameters
     if (NOT TestNotNull(TEXT("a second cube actor is spawned after the sweep"), AddedCube))
     { return false; }
 
+    // The editor add handler saw this spawn (OnLevelActorAdded fires from SpawnActor), and at that moment
+    // the actor's component had no mesh: admission must have refused it, so the count is untouched until
+    // the explicit bake below.
+    TestEqual(TEXT("the add handler did not bake a mesh-less spawn"),
+        StaticWorld->Get_NumStaticBodies(), NumBodiesAfterSweep);
+
     const auto NumBodiesBaked = StaticWorld->Request_BakeActor(*AddedCube);
 
     if (NOT TestTrue(TEXT("baking the added actor produced bodies"), NumBodiesBaked > 0))
@@ -154,6 +163,44 @@ bool FCkTest_JoltEditorWorld_SweepAndRevision::RunTest(const FString& Parameters
 
     TestTrue(TEXT("removing the actor bumps the static-scene revision again"),
         JoltSubsystem->Get_StaticSceneRevision() > RevisionAfterBake);
+
+    const auto RevisionAfterRemove = JoltSubsystem->Get_StaticSceneRevision();
+
+    // ---- A SWEEP-baked actor answers the same two requests ------------------------------------------------
+    // The whole point of the shared index: the actor below was never passed to Request_BakeActor — the
+    // level sweep baked it — and removing it must still free exactly its bodies and bump the revision.
+    StaticWorld->Request_RemoveActor(*SweptCube);
+
+    const auto NumBodiesAfterSweptRemove = StaticWorld->Get_NumStaticBodies();
+
+    TestTrue(TEXT("removing a SWEEP-baked actor frees its bodies"),
+        NumBodiesAfterSweptRemove < NumBodiesAfterSweep);
+
+    TestTrue(TEXT("removing a sweep-baked actor bumps the static-scene revision"),
+        JoltSubsystem->Get_StaticSceneRevision() > RevisionAfterRemove);
+
+    const auto RevisionAfterSweptRemove = JoltSubsystem->Get_StaticSceneRevision();
+
+    const auto NumBodiesSweptRebaked = StaticWorld->Request_BakeActor(*SweptCube);
+
+    TestEqual(TEXT("the removal dropped exactly the swept actor's own bodies"),
+        NumBodiesAfterSweptRemove + NumBodiesSweptRebaked, NumBodiesAfterSweep);
+
+    TestEqual(TEXT("re-baking the swept actor restores the swept body count"),
+        StaticWorld->Get_NumStaticBodies(), NumBodiesAfterSweep);
+
+    TestTrue(TEXT("re-baking the swept actor bumps the static-scene revision again"),
+        JoltSubsystem->Get_StaticSceneRevision() > RevisionAfterSweptRemove);
+
+    // ---- A REQUEST-baked actor's bodies go with its level -------------------------------------------------
+    // SweptCube's live entity came from Request_BakeActor, not from the sweep. It must still be in its
+    // level's teardown list, or an editor sub-level unload would free the level and leave these bodies —
+    // reachable by nothing but world teardown. LevelRemovedFromWorld is the delegate the subsystem binds,
+    // and this world is unregistered with the engine, so broadcasting it is deterministic here.
+    FWorldDelegates::LevelRemovedFromWorld.Broadcast(World->PersistentLevel, World);
+
+    TestEqual(TEXT("removing the level frees its request-baked bodies too"),
+        StaticWorld->Get_NumStaticBodies(), 0);
 
     return true;
 }
