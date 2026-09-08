@@ -1,0 +1,144 @@
+<ui version="1">
+  <menu id="resource-context">
+    <menu-item key="properties" label="Show properties" action="show-properties" />
+  </menu>
+  <menu id="category-context">
+    <menu-item key="category" label="Show category" action="show-category" />
+  </menu>
+  <menu id="inspector-actions">
+    <menu-item key="sample" label="Load sample resources" action="rows-12" />
+    <submenu key="datasets" label="Dataset size" menu="inspector-datasets" />
+    <separator key="selection-divider" />
+    <menu-item key="clear" label="Clear selection" action="clear-selection" enabled-bind="has-selection" />
+  </menu>
+  <menu id="inspector-datasets">
+    <menu-item key="empty" label="Empty" action="rows-0" />
+    <menu-item key="thousand" label="1,000 resources" action="rows-1000" />
+    <menu-item key="ten-thousand" label="10,000 resources" action="rows-10000" />
+  </menu>
+  <region name="main">
+    <dialog id="inspector-dialog" open-bind="clear-pins-dialog-open" dismiss="cancel-clear-pins">
+      <slot name="content">
+    <column id="inspector-root" class="app">
+      <row id="app-header" class="app-header"><text id="app-title" class="app-title">Resource Inspector</text><menu-button id="inspector-actions-button" menu="inspector-actions" label="Actions" /></row>
+      <column id="layout-error-banner" visible="has-layout-error" class="layout-error">
+        <text id="layout-error" bind="layout-error" class="layout-error-text" />
+      </column>
+      <splitter id="resource-splitter" direction="horizontal" class="fill">
+        <column id="navigation-pane" class="navigation-pane">
+          <text id="navigation-title" class="navigation-title">Categories</text>
+          <tree id="navigation" bind="navigation" context-menu="category-context" selection-action="select-category" row-height="26" class="fill">
+            <row id="category-row" class="category-row"><text id="category-label" bind-field="label" class="category-label" /></row>
+          </tree>
+        </column>
+        <column id="resource-pane" class="resource-pane">
+          <row id="resource-toolbar" class="toolbar">
+            <search id="query" bind="query" placeholder="Filter resources…" class="fill" />
+            <row id="header-count-wrap" class="count"><text id="header-count" bind="header-count" class="count-text" /></row>
+          </row>
+          <row id="category-filter" class="toolbar">
+            <text id="category-filter-label" class="count-text">Category</text>
+            <select id="category-select" value-bind="category" options-bind="category-options" changed="select-category-key" class="fill" />
+          </row>
+          <row id="scenario-actions" class="scenario-actions">
+            <button id="rows-0" action="rows-0">Empty</button>
+            <button id="rows-1" action="rows-1">One</button>
+            <button id="rows-12" action="rows-12">Sample</button>
+            <button id="rows-1000" action="rows-1000">1k</button>
+            <button id="rows-10000" action="rows-10000">10k</button>
+            <button id="preview-loading" action="preview-loading">Loading</button>
+            <button id="preview-error" action="preview-error">Error</button>
+          </row>
+          <row id="scenario-count" class="toolbar scenario-count">
+            <text id="scenario-count-label" class="count-text">Resource count</text>
+            <number-input id="row-count" value-bind="row-count" committed="set-row-count" kind="integer" min="0" max="10000" class="scenario-count-input" />
+            <slider id="row-count-slider" value-bind="row-count" min="0" max="10000" step="1000" interaction="set-row-count-slider" class="scenario-count-slider" />
+          </row>
+          <overlay id="resource-overlay" class="fill">
+            <scroll id="resource-scroll" direction="horizontal" visible="resource-ready" class="fill">
+              <table id="resources" bind="resources" context-menu="resource-context" filter-bind="query" selection-action="select-resource" row-height="22" class="resource-table">
+                <table-column id="name-column" label="Name" sort-field="name" class="name-column"><row id="name-cell-wrap" class="cell-wrap"><text id="name-cell" bind-field="name" class="cell-text" /></row></table-column>
+                <table-column id="kind-column" label="Kind" sort-field="kind" class="kind-column"><row id="kind-cell-wrap" class="cell-wrap"><text id="kind-cell" bind-field="kind" class="cell-text" /></row></table-column>
+                <table-column id="size-column" label="Size" sort-field="size-bytes" class="size-column"><row id="size-cell-wrap" class="cell-wrap"><text id="size-cell" bind-field="size" class="cell-text right" /></row></table-column>
+                <table-column id="state-column" label="State" sort-field="state" class="state-column"><row id="state-cell-wrap" class="cell-wrap"><text id="state-cell" bind-field="state" class="cell-text" /></row></table-column>
+              </table>
+            </scroll>
+            <column id="resource-empty" visible="resource-empty" class="empty-overlay">
+              <text id="resource-empty-message" bind="resource-empty-message" class="empty-copy" />
+            </column>
+            <column id="resource-loading" visible="resource-loading" class="state-overlay">
+              <text id="resource-loading-title" class="state-title">Loading resources</text>
+              <text id="resource-loading-copy" class="state-copy">Loading preview. Your current dataset and selection are retained.</text>
+              <button id="finish-loading" action="show-resources">Show resources</button>
+            </column>
+            <column id="resource-failure" visible="resource-error" class="state-overlay">
+              <text id="resource-failure-title" class="state-error-title">Resources could not be loaded</text>
+              <text id="resource-failure-copy" class="state-copy">Failure preview. Return to your retained dataset to continue inspecting.</text>
+              <button id="recover-resources" action="show-resources">Show resources</button>
+            </column>
+          </overlay>
+        </column>
+        <column id="detail-pane" class="detail-pane">
+          <text id="selected-title" bind="selected-title" class="detail-title" />
+          <row id="detail-toolbar" class="toolbar scenario-actions">
+            <button id="pin-selected-resource" action="pin-selected-resource" enabled-bind="has-selection">Pin snapshot</button>
+            <button id="clear-selection" action="clear-selection">Clear</button>
+            <button id="close" action="close">Close</button>
+          </row>
+          <scroll id="detail-scroll" direction="vertical" class="fill">
+            <tabs id="detail-tabs" value-bind="detail-tab" changed="select-detail-tab" class="fill">
+              <tab id="overview-panel" key="overview" label="Overview" class="detail-content">
+                <text id="selected-detail" bind="selected-detail" class="detail-copy" />
+                <column id="pinned-snapshots-section" class="pinned-snapshots-section">
+                  <text id="pinned-snapshots-heading" class="pinned-snapshots-heading">Pinned snapshots</text>
+                  <text id="pinned-snapshots-retention" class="pinned-snapshots-retention">Snapshots are retained until removed. They are captured values, not live resource data.</text>
+                  <button id="request-clear-pins" action="request-clear-pins" enabled-bind="has-pins">Clear pinned snapshots</button>
+                  <repeat id="pinned-snapshots" bind="pinned-snapshots" class="pinned-snapshots-list">
+                    <column id="pinned-snapshot-card" class="pinned-snapshot-card">
+                      <text id="pinned-snapshot-name" bind-field="heading" class="detail-copy" />
+                      <row id="pinned-snapshot-header" class="pinned-snapshot-header">
+                        <button id="toggle-pinned-snapshot" item-action="toggle-pinned-snapshot" class="pinned-snapshot-toggle">Details</button>
+                        <button id="remove-pinned-snapshot" item-action="remove-pinned-snapshot" class="pinned-snapshot-remove">Remove</button>
+                      </row>
+                      <text id="pinned-snapshot-details" bind-field="details" visible-field="expanded" class="pinned-snapshot-details" />
+                    </column>
+                  </repeat>
+                </column>
+              </tab>
+              <tab id="properties-panel" key="properties" label="Properties" class="detail-content">
+              <column id="session-note-form" class="session-note-form">
+                <text id="session-note-label" class="session-note-label">Session note</text>
+                <text-input id="session-note" value-bind="session-note" committed="commit-session-note" read-only-bind="session-note-locked" placeholder="Add a note for this inspection session" error-bind="session-note-error" class="session-note-input" />
+                <checkbox id="lock-session-note" value-bind="session-note-locked" changed="lock-session-note" label-bind="lock-note-label" />
+                <text id="session-note-error" bind="session-note-error" visible="has-session-note-error" class="session-note-error" />
+              </column>
+              </tab>
+              <tab id="activity-panel" key="activity" label="Activity" class="detail-content">
+                <text id="activity-heading" class="pinned-snapshots-heading">Session activity</text>
+                <text id="activity-retention" class="activity-retention">Latest 100 changes, newest first. Activity belongs to this inspection session.</text>
+                <text id="activity-empty" visible="activity-empty" class="activity-retention">Select a resource or change this session to start recording activity.</text>
+                <repeat id="activity" bind="activity" class="activity-list">
+                  <column id="activity-entry" class="activity-entry">
+                    <text id="activity-message" bind-field="message" class="activity-message" />
+                  </column>
+                </repeat>
+              </tab>
+            </tabs>
+          </scroll>
+        </column>
+      </splitter>
+    </column>
+      </slot>
+      <slot name="body">
+        <column id="clear-pins-dialog" class="dialog-body">
+          <text id="clear-pins-title" class="detail-title">Clear pinned snapshots?</text>
+          <text id="clear-pins-copy" class="detail-copy">This removes all pinned snapshots from this session. Your resources, selection and session note are retained.</text>
+          <row id="clear-pins-actions" class="scenario-actions">
+            <button id="cancel-clear-pins" action="cancel-clear-pins">Cancel</button>
+            <button id="confirm-clear-pins" action="confirm-clear-pins">Clear snapshots</button>
+          </row>
+        </column>
+      </slot>
+    </dialog>
+  </region>
+</ui>
