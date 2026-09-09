@@ -149,7 +149,7 @@ namespace ck_test_groundnav_pathdiagnostics
         ck::nav_surface::Set_ProviderForWorld(
             InOutFixture.World, ECk_NavSurface_Provider::GroundNav);
 
-        ck::groundnav::world_fields::Publish(InOutFixture.World, FCk_Handle{}, InOutFixture.Field, {});
+        ck::groundnav::world_fields::Publish(InOutFixture.World, FCk_Handle{}, InOutFixture.Field, {}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
         auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(
             InOutFixture.EcsWorld.Get_Registry());

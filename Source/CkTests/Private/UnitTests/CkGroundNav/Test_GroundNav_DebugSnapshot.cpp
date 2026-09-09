@@ -93,7 +93,7 @@ namespace ck_test_groundnav_snapshot
         DoCompute_Clearance(Layers, Connections, kCellSize, Clearance);
 
         auto Plates = FCk_GroundNav_PlateField{};
-        DoDecompose_Plates(Spans, Layers, FCk_GroundNav_MergeTunables{}, Plates);
+        DoDecompose_Plates(Spans, Layers, Connections, FCk_GroundNav_MergeTunables{}, Plates);
 
         auto Portals = FCk_GroundNav_PortalField{};
         DoExtract_Portals(Spans, Layers, Connections, Plates, Clearance, Portals);
@@ -873,7 +873,7 @@ bool FCkTest_GroundNav_Snapshot_OutlivesItsProducer::RunTest(const FString& Para
 
         auto Published = FCk_GroundNav_FieldPtr{Field};
 
-        world_fields::Publish(Fixture._World, Fixture._WorldEntity, Published, {});
+        world_fields::Publish(Fixture._World, Fixture._WorldEntity, Published, {}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
         Snapshot = Make_DebugSnapshotFromField(*Published, kUncapped);
         Do_StampWorldCollectedValues(Snapshot);

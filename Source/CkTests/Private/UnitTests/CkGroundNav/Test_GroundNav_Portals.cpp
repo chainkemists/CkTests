@@ -40,6 +40,7 @@ namespace ck_test_groundnav_portals
     struct FBakeResult
     {
         FCk_GroundNav_SpanField _Spans;
+        FCk_GroundNav_ConnectionField _Connections;
         FCk_GroundNav_LayerField _Layers;
         FCk_GroundNav_PlateField _Plates;
         FCk_GroundNav_ClearanceField _Clearance;
@@ -63,23 +64,21 @@ namespace ck_test_groundnav_portals
         if (NOT DoRasterizeSpans(InGeometry, InRegion, Config, Profile, Result._Spans).Get_IsCompleted())
         { return Result; }
 
-        auto Connections = FCk_GroundNav_ConnectionField{};
-
-        if (NOT DoFilter_Walkability(Profile, Result._Spans, Connections).Get_IsCompleted())
+        if (NOT DoFilter_Walkability(Profile, Result._Spans, Result._Connections).Get_IsCompleted())
         { return Result; }
 
-        if (NOT DoExtract_Layers(Result._Spans, Connections, Result._Layers).Get_IsCompleted())
+        if (NOT DoExtract_Layers(Result._Spans, Result._Connections, Result._Layers).Get_IsCompleted())
         { return Result; }
 
-        if (NOT DoCompute_Clearance(Result._Layers, Connections, kCellSize, Result._Clearance).Get_IsCompleted())
+        if (NOT DoCompute_Clearance(Result._Layers, Result._Connections, kCellSize, Result._Clearance).Get_IsCompleted())
         { return Result; }
 
         if (NOT DoDecompose_Plates(
-            Result._Spans, Result._Layers, FCk_GroundNav_MergeTunables{}, Result._Plates).Get_IsCompleted())
+            Result._Spans, Result._Layers, Result._Connections, FCk_GroundNav_MergeTunables{}, Result._Plates).Get_IsCompleted())
         { return Result; }
 
         Result._Completed = DoExtract_Portals(
-            Result._Spans, Result._Layers, Connections, Result._Plates, Result._Clearance,
+            Result._Spans, Result._Layers, Result._Connections, Result._Plates, Result._Clearance,
             Result._Portals).Get_IsCompleted();
 
         return Result;

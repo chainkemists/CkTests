@@ -14,6 +14,7 @@
 #include "CkGroundNav/Cook/CkGroundNav_CookedTile.h"
 #include "CkGroundNav/Field/CkGroundNav_Field.h"
 #include "CkGroundNav/Field/CkGroundNav_FieldSerialize.h"
+#include "CkGroundNav/Field/CkGroundNav_TileBake.h"
 #include "CkGroundNav/Field/CkGroundNav_FieldTypes.h"
 
 #include "CkCore/Validation/CkIsValid.h"
@@ -25,6 +26,7 @@
 
 #include <UObject/Class.h>
 #include <UObject/Package.h>
+#include <NativeGameplayTags.h>
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -32,6 +34,9 @@ using ck::tests::kCkUnitTestFlags;
 
 namespace ck_test_groundnav_cookedassets
 {
+    UE_DEFINE_GAMEPLAY_TAG_STATIC(kCookedProfileTag, "CkTests.GroundNav.CookedProfile");
+    UE_DEFINE_GAMEPLAY_TAG_STATIC(kCookedPathProfileA, "A");
+    UE_DEFINE_GAMEPLAY_TAG_STATIC(kCookedPathProfileProfilesA, "Profiles.A");
     // Deliberately not the module's current format version: what is under test is the comparison,
     // not the number, and a fixture pinned to the live constant would stop testing the mismatch the
     // day the constant moves.
@@ -65,9 +70,14 @@ namespace ck_test_groundnav_cookedassets
     // split out to have.
 
     using ck::groundnav::FCk_GroundNav_Field;
+    using ck::groundnav::FCk_GroundNav_Epoch;
+    using ck::groundnav::FCk_GroundNav_DataLayerSelector;
     using ck::groundnav::Get_CookedLatticeKey;
+    using ck::groundnav::Get_CookedTileContentHash;
+    using ck::groundnav::Get_TileBounds;
     using ck::groundnav::Read_Field;
     using ck::groundnav::Try_LoadCookedField;
+    using ck::groundnav::TryMake_DataLayerSelector;
     using ck::groundnav::Write_Field;
     using ck::groundnav::Write_Tile;
     using ck::groundnav::kFieldBlobFormatVersion;
@@ -93,7 +103,11 @@ namespace ck_test_groundnav_cookedassets
 
     /** Every tile of InField written to its own transient cooked asset, in tile-index order. */
     auto Make_CookedTilesFor(
-        const FCk_GroundNav_Field& InField) -> TArray<TSoftObjectPtr<UCk_GroundNav_CookedTile_UE>>
+        const FCk_GroundNav_Field& InField,
+        FGameplayTag InProfileTag = {},
+        int32 InStreamingVolumeId = INDEX_NONE,
+        const FCk_GroundNav_DataLayerSelector& InDataLayerSelector = {})
+        -> TArray<TSoftObjectPtr<UCk_GroundNav_CookedTile_UE>>
     {
         const auto Lattice = Get_CookedLatticeKey(InField._Params);
 
@@ -112,9 +126,15 @@ namespace ck_test_groundnav_cookedassets
 
             CookedTile->Set_FormatVersion(kFieldBlobFormatVersion);
             CookedTile->Set_TileCoord(FIntPoint{Tile._Coord._X, Tile._Coord._Y});
+            CookedTile->Set_StreamingVolumeId(InStreamingVolumeId);
+            CookedTile->Set_WorldBounds(Get_TileBounds(
+                InField._Params.Get_TileBakeParams(Tile._Coord, FCk_GroundNav_Epoch{})));
+            CookedTile->Set_DataLayerNames(InDataLayerSelector.Get_LayerNames());
             CookedTile->Set_Fingerprint(kFixtureInputFingerprint);
+            CookedTile->Set_ProfileTag(InProfileTag);
             CookedTile->Set_LatticeKey(Lattice);
             CookedTile->Set_Blob(Blob);
+            CookedTile->Set_ContentHash(Get_CookedTileContentHash(CookedTile->Get_Blob()));
 
             Tiles.Emplace(TSoftObjectPtr<UCk_GroundNav_CookedTile_UE>{CookedTile});
         }
@@ -125,7 +145,10 @@ namespace ck_test_groundnav_cookedassets
     /** An index over those tiles that a reader speaking the current format would accept. */
     auto Make_CookedIndexFor(
         const FCk_GroundNav_Field&                                 InField,
-        const TArray<TSoftObjectPtr<UCk_GroundNav_CookedTile_UE>>& InTiles)
+        const TArray<TSoftObjectPtr<UCk_GroundNav_CookedTile_UE>>& InTiles,
+        FGameplayTag InProfileTag = {},
+        int32 InStreamingVolumeId = INDEX_NONE,
+        const FCk_GroundNav_DataLayerSelector& InDataLayerSelector = {})
         -> UCk_GroundNav_CookedFieldIndex_UE*
     {
         auto* Index = NewObject<UCk_GroundNav_CookedFieldIndex_UE>(GetTransientPackage());
@@ -135,6 +158,9 @@ namespace ck_test_groundnav_cookedassets
 
         Index->Set_LevelPackage(kFixtureLevelPackage);
         Index->Set_CookKey(kFixtureCookKey);
+        Index->Set_StreamingVolumeId(InStreamingVolumeId);
+        Index->Set_DataLayerNames(InDataLayerSelector.Get_LayerNames());
+        Index->Set_ProfileTag(InProfileTag);
         Index->Set_Fingerprint(kFixtureInputFingerprint);
         Index->Set_FormatVersion(kFieldBlobFormatVersion);
         Index->Set_LatticeKey(Get_CookedLatticeKey(InField._Params));
@@ -142,6 +168,254 @@ namespace ck_test_groundnav_cookedassets
 
         return Index;
     }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_CookedAssets_AStreamedChunkIdentityMismatchIsStaleCook,
+    "CkTests.UnitTests.CkGroundNav.CookedAssets.AStreamedChunkIdentityMismatchIsStaleCook",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_CookedAssets_AStreamedChunkIdentityMismatchIsStaleCook::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_cookedassets;
+
+    constexpr auto kStreamingVolumeId = int32{701};
+    auto Selector = FCk_GroundNav_DataLayerSelector{};
+    const auto SelectorNames = TArray<FName>{FName{TEXT("Gameplay" )}, FName{TEXT("Navigation")}};
+
+    if (NOT TestTrue(TEXT("the streamed selector canonicalizes"),
+        TryMake_DataLayerSelector(SelectorNames, Selector)))
+    { return false; }
+
+    auto Baked = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
+    { return false; }
+
+    auto Tiles = Make_CookedTilesFor(Baked, {}, kStreamingVolumeId, Selector);
+    auto* Index = Make_CookedIndexFor(Baked, Tiles, {}, kStreamingVolumeId, Selector);
+
+    if (NOT TestTrue(TEXT("the streamed cooked assets were created"),
+        ck::IsValid(Index) && NOT Tiles.IsEmpty() && Tiles[0].IsValid()))
+    { return false; }
+
+    auto* FirstTile = Tiles[0].Get();
+    TestEqual(TEXT("the manifest retains the positive streamed volume identity"),
+        Index->Get_StreamingVolumeId(), kStreamingVolumeId);
+    TestTrue(TEXT("the manifest retains the canonical selector set"),
+        Index->Get_DataLayerNames() == Selector.Get_LayerNames());
+    TestEqual(TEXT("every chunk retains the same positive volume identity"),
+        FirstTile->Get_StreamingVolumeId(), kStreamingVolumeId);
+    TestTrue(TEXT("every chunk retains exact published-cell bounds"),
+        FirstTile->Get_WorldBounds() == Get_TileBounds(
+            Baked._Params.Get_TileBakeParams(Baked._Tiles[0]._Coord, FCk_GroundNav_Epoch{})));
+    TestTrue(TEXT("every chunk retains the canonical selector set"),
+        FirstTile->Get_DataLayerNames() == Selector.Get_LayerNames());
+    TestEqual(TEXT("every chunk retains a hash of its value blob"), FirstTile->Get_ContentHash(),
+        Get_CookedTileContentHash(FirstTile->Get_Blob()));
+
+    auto Loaded = FCk_GroundNav_Field{};
+    auto Status = Try_LoadCookedField(*Index, kFixtureLevelPackage, kFixtureCookKey,
+        Baked._Params, kFixtureInputFingerprint, Loaded, {}, kStreamingVolumeId, Selector);
+
+    if (NOT TestTrue(TEXT("matching streamed chunk identity loads"),
+        Status == ECk_GroundNav_CookStatus::Cooked))
+    { return false; }
+
+    // The same bytes with a different selector would describe a different geometry collection. The
+    // caller's fallback is deliberately non-empty before the refusal to prove validation is atomic.
+    FirstTile->Set_DataLayerNames(TArray<FName>{FName{TEXT("OtherLayer")}});
+    Loaded = FCk_GroundNav_Field{};
+    Loaded._Params._MinZUu = -12345.0f;
+    Status = Try_LoadCookedField(*Index, kFixtureLevelPackage, kFixtureCookKey,
+        Baked._Params, kFixtureInputFingerprint, Loaded, {}, kStreamingVolumeId, Selector);
+
+    TestTrue(TEXT("a chunk from another selector is stale"), Status == ECk_GroundNav_CookStatus::StaleCook);
+    TestTrue(TEXT("selector refusal leaves the caller fallback untouched"),
+        Loaded._Params._MinZUu == -12345.0f && Loaded._Tiles.IsEmpty());
+
+    FirstTile->Set_DataLayerNames(Selector.Get_LayerNames());
+    auto WrongBounds = FirstTile->Get_WorldBounds();
+    WrongBounds.Max.X += 1.0;
+    FirstTile->Set_WorldBounds(WrongBounds);
+    Loaded = FCk_GroundNav_Field{};
+    Loaded._Params._MinZUu = -12345.0f;
+    Status = Try_LoadCookedField(*Index, kFixtureLevelPackage, kFixtureCookKey,
+        Baked._Params, kFixtureInputFingerprint, Loaded, {}, kStreamingVolumeId, Selector);
+
+    TestTrue(TEXT("a chunk with mismatched world bounds is stale"), Status == ECk_GroundNav_CookStatus::StaleCook);
+    TestTrue(TEXT("world-bounds refusal leaves the caller fallback untouched"),
+        Loaded._Params._MinZUu == -12345.0f && Loaded._Tiles.IsEmpty());
+
+    // A hashless chunk is not a 7E chunk. Refuse before deserializing so a malformed asset cannot
+    // publish an answer whose bytes the manifest never authenticated.
+    FirstTile->Set_WorldBounds(Get_TileBounds(
+        Baked._Params.Get_TileBakeParams(Baked._Tiles[0]._Coord, FCk_GroundNav_Epoch{})));
+    FirstTile->Set_ContentHash(0);
+    Loaded = FCk_GroundNav_Field{};
+    Loaded._Params._MinZUu = -12345.0f;
+    Status = Try_LoadCookedField(*Index, kFixtureLevelPackage, kFixtureCookKey,
+        Baked._Params, kFixtureInputFingerprint, Loaded, {}, kStreamingVolumeId, Selector);
+
+    TestTrue(TEXT("a hashless chunk is stale"), Status == ECk_GroundNav_CookStatus::StaleCook);
+    TestTrue(TEXT("hash refusal leaves the caller fallback untouched"),
+        Loaded._Params._MinZUu == -12345.0f && Loaded._Tiles.IsEmpty());
+
+    FirstTile->Set_ContentHash(Get_CookedTileContentHash(FirstTile->Get_Blob()));
+    FirstTile->Set_StreamingVolumeId(kStreamingVolumeId + 1);
+    Loaded = FCk_GroundNav_Field{};
+    Loaded._Params._MinZUu = -12345.0f;
+    Status = Try_LoadCookedField(*Index, kFixtureLevelPackage, kFixtureCookKey,
+        Baked._Params, kFixtureInputFingerprint, Loaded, {}, kStreamingVolumeId, Selector);
+
+    TestTrue(TEXT("a chunk from another streamed volume is stale"),
+        Status == ECk_GroundNav_CookStatus::StaleCook);
+    TestTrue(TEXT("volume-identity refusal leaves the caller fallback untouched"),
+        Loaded._Params._MinZUu == -12345.0f && Loaded._Tiles.IsEmpty());
+
+    FirstTile->Set_StreamingVolumeId(kStreamingVolumeId);
+    FirstTile->Set_TileCoord(FIntPoint{99, 99});
+    Loaded = FCk_GroundNav_Field{};
+    Loaded._Params._MinZUu = -12345.0f;
+    Status = Try_LoadCookedField(*Index, kFixtureLevelPackage, kFixtureCookKey,
+        Baked._Params, kFixtureInputFingerprint, Loaded, {}, kStreamingVolumeId, Selector);
+
+    TestTrue(TEXT("a chunk filed under another coordinate is stale"),
+        Status == ECk_GroundNav_CookStatus::StaleCook);
+    TestTrue(TEXT("coordinate refusal leaves the caller fallback untouched"),
+        Loaded._Params._MinZUu == -12345.0f && Loaded._Tiles.IsEmpty());
+
+    FirstTile->Set_TileCoord(FIntPoint{Baked._Tiles[0]._Coord._X, Baked._Tiles[0]._Coord._Y});
+    const auto NonCanonicalNames = TArray<FName>{FName{TEXT("Navigation")}, FName{TEXT("Gameplay")}};
+    Index->Set_DataLayerNames(NonCanonicalNames);
+    FirstTile->Set_DataLayerNames(NonCanonicalNames);
+    Loaded = FCk_GroundNav_Field{};
+    Loaded._Params._MinZUu = -12345.0f;
+    Status = Try_LoadCookedField(*Index, kFixtureLevelPackage, kFixtureCookKey,
+        Baked._Params, kFixtureInputFingerprint, Loaded, {}, kStreamingVolumeId, Selector);
+
+    TestTrue(TEXT("a manifest with noncanonical selector names is stale"),
+        Status == ECk_GroundNav_CookStatus::StaleCook);
+    TestTrue(TEXT("selector-shape refusal leaves the caller fallback untouched"),
+        Loaded._Params._MinZUu == -12345.0f && Loaded._Tiles.IsEmpty());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_CookedAssets_AProfileSwappedTileIsStaleCook,
+    "CkTests.UnitTests.CkGroundNav.CookedAssets.AProfileSwappedTileIsStaleCook",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_CookedAssets_AProfileSwappedTileIsStaleCook::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_cookedassets;
+
+    auto Baked = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
+    { return false; }
+
+    auto Tiles = Make_CookedTilesFor(Baked, kCookedProfileTag);
+    auto* Index = Make_CookedIndexFor(Baked, Tiles, kCookedProfileTag);
+
+    if (NOT TestTrue(TEXT("the variant cooked index asset was created"), ck::IsValid(Index)))
+    { return false; }
+
+    // The index says variant while the first tile was copied from default. Its bytes can deserialize,
+    // but they name a different field and must not partially mutate the caller's fallback field.
+    Tiles[0].Get()->Set_ProfileTag({});
+    auto Loaded = FCk_GroundNav_Field{};
+    Loaded._Params._MinZUu = -12345.0f;
+
+    const auto Status = Try_LoadCookedField(*Index, kFixtureLevelPackage, kFixtureCookKey,
+        Baked._Params, kFixtureInputFingerprint, Loaded, kCookedProfileTag);
+
+    TestTrue(TEXT("a tile from another profile is stale"), Status == ECk_GroundNav_CookStatus::StaleCook);
+    TestTrue(TEXT("and the fallback field is untouched"),
+        Loaded._Params._MinZUu == -12345.0f && Loaded._Tiles.IsEmpty());
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_CookedAssets_AWrongTileCardinalityIsStaleCook,
+    "CkTests.UnitTests.CkGroundNav.CookedAssets.AWrongTileCardinalityIsStaleCook",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_CookedAssets_AWrongTileCardinalityIsStaleCook::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_cookedassets;
+
+    auto Baked = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
+    { return false; }
+
+    auto Tiles = Make_CookedTilesFor(Baked);
+
+    if (NOT TestTrue(TEXT("the fixture cooked at least one tile"), NOT Tiles.IsEmpty()))
+    { return false; }
+
+    Tiles.Pop();
+    auto* Index = Make_CookedIndexFor(Baked, Tiles);
+
+    if (NOT TestTrue(TEXT("the incomplete cooked index asset was created"), ck::IsValid(Index)))
+    { return false; }
+
+    auto Loaded = FCk_GroundNav_Field{};
+    Loaded._Params._MinZUu = -12345.0f;
+
+    const auto Status = Try_LoadCookedField(
+        *Index, kFixtureLevelPackage, kFixtureCookKey, Baked._Params, kFixtureInputFingerprint, Loaded);
+
+    TestTrue(TEXT("a missing tile slot is stale"), Status == ECk_GroundNav_CookStatus::StaleCook);
+    TestTrue(TEXT("and the fallback field is untouched"),
+        Loaded._Params._MinZUu == -12345.0f && Loaded._Tiles.IsEmpty());
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_CookedAssets_AMalformedParamsAreStaleCook,
+    "CkTests.UnitTests.CkGroundNav.CookedAssets.AMalformedParamsAreStaleCook",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_CookedAssets_AMalformedParamsAreStaleCook::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_cookedassets;
+
+    auto Baked = FCk_GroundNav_Field{};
+
+    if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
+    { return false; }
+
+    auto Tiles = Make_CookedTilesFor(Baked);
+    auto* Index = Make_CookedIndexFor(Baked, Tiles);
+
+    if (NOT TestTrue(TEXT("the cooked index and tile assets were created"),
+        ck::IsValid(Index) && NOT Tiles.IsEmpty() && Tiles[0].IsValid()))
+    { return false; }
+
+    auto MalformedParams = Baked._Params;
+    MalformedParams._Divisions = FIntPoint{0, 1};
+    auto Loaded = FCk_GroundNav_Field{};
+    Loaded._Params._MinZUu = -12345.0f;
+
+    const auto Status = Try_LoadCookedField(
+        *Index, kFixtureLevelPackage, kFixtureCookKey, MalformedParams, kFixtureInputFingerprint, Loaded);
+
+    TestTrue(TEXT("malformed field params are stale before an allocation"),
+        Status == ECk_GroundNav_CookStatus::StaleCook);
+    TestTrue(TEXT("and the fallback field is untouched"),
+        Loaded._Params._MinZUu == -12345.0f && Loaded._Tiles.IsEmpty());
+    return true;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -314,6 +588,9 @@ bool FCkTest_GroundNav_CookedAssets_IndexPathConventionIsStable::RunTest(const F
 
     TestTrue(TEXT("the index path is under the cooked root"), IndexPath.StartsWith(Root));
 
+    TestEqual(TEXT("the default profile keeps its published legacy path"), IndexPath,
+        FString{TEXT("/Game/CkGroundNavData/Maps/TestMap/GroundNavIndex_FirstVolume.GroundNavIndex_FirstVolume")});
+
     TestTrue(TEXT("and carries the cook key, which is what separates two volumes in one level"),
         IndexPath.Contains(kFixtureCookKey.ToString()));
 
@@ -322,6 +599,56 @@ bool FCkTest_GroundNav_CookedAssets_IndexPathConventionIsStable::RunTest(const F
 
     TestTrue(TEXT("so a second volume in the same level names a different asset"),
         IndexPath != OtherKeyPath);
+
+    const auto NestedDefaultLevel = FString{TEXT("/Game/Maps/Foo/Profiles/A")};
+    const auto VariantSourceLevel = FString{TEXT("/Game/Maps/Foo")};
+    const auto NestedDefaultPath = ck::groundnav::Get_CookedIndexAssetPath(
+        Root, NestedDefaultLevel, kFixtureCookKey);
+    const auto VariantPath = ck::groundnav::Get_CookedIndexAssetPath(
+        Root, VariantSourceLevel, kFixtureCookKey, kCookedPathProfileA);
+
+    TestTrue(TEXT("a profile asset cannot overlap a default asset in a level path named Profiles/A"),
+        NestedDefaultPath != VariantPath);
+
+    TestEqual(TEXT("a profile asset uses the dedicated, count-delimited schema"), VariantPath,
+        FString{TEXT("/Game/CkGroundNavData/__CkGroundNavProfiles/Level_3/Game/Maps/Foo/Profiles/S_A/GroundNavProfileIndex_FirstVolume.GroundNavProfileIndex_FirstVolume")});
+
+    const auto NestedVariantPath = ck::groundnav::Get_CookedIndexAssetPath(
+        Root, TEXT("/Game/Maps/Foo/Profiles"), kFixtureCookKey, kCookedPathProfileA);
+    const auto HierarchicalVariantPath = ck::groundnav::Get_CookedIndexAssetPath(
+        Root, VariantSourceLevel, kFixtureCookKey, kCookedPathProfileProfilesA);
+
+    TestTrue(TEXT("the source-level component count separates nested-level and nested-profile variants"),
+        NestedVariantPath != HierarchicalVariantPath);
+
+    auto FirstSelector = FCk_GroundNav_DataLayerSelector{};
+    auto SecondSelector = FCk_GroundNav_DataLayerSelector{};
+    auto FirstSelectorInOtherAuthoringOrder = FCk_GroundNav_DataLayerSelector{};
+    const auto FirstSelectorNames = TArray<FName>{FName{TEXT("Gameplay")}, FName{TEXT("Navigation")}};
+    const auto SecondSelectorNames = TArray<FName>{FName{TEXT("Gameplay")}, FName{TEXT("Props")}};
+    const auto FirstSelectorNamesReversed = TArray<FName>{FName{TEXT("Navigation")}, FName{TEXT("Gameplay")}};
+
+    if (NOT TestTrue(TEXT("the first selector canonicalizes"),
+        TryMake_DataLayerSelector(FirstSelectorNames, FirstSelector)) ||
+        NOT TestTrue(TEXT("the second selector canonicalizes"),
+        TryMake_DataLayerSelector(SecondSelectorNames, SecondSelector)) ||
+        NOT TestTrue(TEXT("the reordered first selector canonicalizes"),
+        TryMake_DataLayerSelector(FirstSelectorNamesReversed, FirstSelectorInOtherAuthoringOrder)))
+    { return false; }
+
+    const auto FirstSelectorPath = ck::groundnav::Get_CookedIndexAssetPath(
+        Root, Level, kFixtureCookKey, {}, FirstSelector);
+    const auto SecondSelectorPath = ck::groundnav::Get_CookedIndexAssetPath(
+        Root, Level, kFixtureCookKey, {}, SecondSelector);
+    const auto ReorderedFirstSelectorPath = ck::groundnav::Get_CookedIndexAssetPath(
+        Root, Level, kFixtureCookKey, {}, FirstSelectorInOtherAuthoringOrder);
+
+    TestTrue(TEXT("different canonical selector sets have distinct index paths"),
+        FirstSelectorPath != SecondSelectorPath);
+    TestEqual(TEXT("selector path identity is independent of authoring order"),
+        FirstSelectorPath, ReorderedFirstSelectorPath);
+    TestTrue(TEXT("a selector path carries every canonical layer name"),
+        FirstSelectorPath.Contains(TEXT("L_Gameplay")) && FirstSelectorPath.Contains(TEXT("L_Navigation")));
 
     const auto FirstTilePath = ck::groundnav::Get_CookedTileAssetPath(
         Root, Level, kFixtureCookKey, FIntPoint{2, 1});
@@ -333,6 +660,17 @@ bool FCkTest_GroundNav_CookedAssets_IndexPathConventionIsStable::RunTest(const F
     TestTrue(TEXT("and a different coord names a different tile"),
         FirstTilePath != ck::groundnav::Get_CookedTileAssetPath(
             Root, Level, kFixtureCookKey, FIntPoint{1, 2}));
+
+    TestTrue(TEXT("profile tiles also use a basename distinct from default tiles"),
+        ck::groundnav::Get_CookedTileAssetPath(
+            Root, VariantSourceLevel, kFixtureCookKey, FIntPoint{2, 1}, kCookedPathProfileA)
+        .EndsWith(TEXT("/GroundNavProfileTile_FirstVolume_2_1.GroundNavProfileTile_FirstVolume_2_1")));
+
+    TestTrue(TEXT("different selector sets also separate tile paths"),
+        ck::groundnav::Get_CookedTileAssetPath(
+            Root, Level, kFixtureCookKey, FIntPoint{2, 1}, {}, FirstSelector)
+        != ck::groundnav::Get_CookedTileAssetPath(
+            Root, Level, kFixtureCookKey, FIntPoint{2, 1}, {}, SecondSelector));
 
     // PIE renames every level package, and the cook only ever ran on the unprefixed one: a lookup key
     // that kept the prefix would match nothing and degrade silently to a runtime bake.
@@ -428,7 +766,8 @@ bool FCkTest_GroundNav_CookedAssets_AStaleFingerprintIsStaleCook::RunTest(const 
     if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
     { return false; }
 
-    auto* Index = Make_CookedIndexFor(Baked, Make_CookedTilesFor(Baked));
+    auto Tiles = Make_CookedTilesFor(Baked);
+    auto* Index = Make_CookedIndexFor(Baked, Tiles);
 
     if (NOT TestTrue(TEXT("the cooked index asset was created"), ck::IsValid(Index)))
     { return false; }
@@ -466,24 +805,44 @@ bool FCkTest_GroundNav_CookedAssets_AnIncompatibleFormatIsStaleCook::RunTest(con
     if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
     { return false; }
 
-    auto* Index = Make_CookedIndexFor(Baked, Make_CookedTilesFor(Baked));
+    auto Tiles = Make_CookedTilesFor(Baked);
+    auto* Index = Make_CookedIndexFor(Baked, Tiles);
 
     if (NOT TestTrue(TEXT("the cooked index asset was created"), ck::IsValid(Index)))
     { return false; }
 
-    // Refused on the INDEX alone, before a tile is resolved: a whole cooked field written under a
-    // format this reader does not speak is judged without paying to load the assets it names.
-    Index->Set_FormatVersion(kFieldBlobFormatVersion + 1);
+    // A v1 field may have plate topology produced before connection-gated decomposition, so it is
+    // stale even though its byte layout remains readable.
+    Index->Set_FormatVersion(1);
 
     auto Loaded = FCk_GroundNav_Field{};
 
-    const auto Status = Try_LoadCookedField(
+    const auto OldVersionStatus = Try_LoadCookedField(
         *Index, kFixtureLevelPackage, kFixtureCookKey, Baked._Params, kFixtureInputFingerprint, Loaded);
 
-    TestTrue(FString::Printf(TEXT("an index written under another format version is stale [%s]"),
-        *Get_CookStatusName(Status)), Status == ECk_GroundNav_CookStatus::StaleCook);
+    TestTrue(FString::Printf(TEXT("a v1 index is stale [%s]"),
+        *Get_CookStatusName(OldVersionStatus)), OldVersionStatus == ECk_GroundNav_CookStatus::StaleCook);
 
     TestTrue(TEXT("and nothing was composed"), Loaded._Tiles.IsEmpty());
+
+    // The comparison is exact in both directions; a future writer is equally unsafe to admit.
+    Index->Set_FormatVersion(kFieldBlobFormatVersion + 1);
+    const auto FutureVersionStatus = Try_LoadCookedField(
+        *Index, kFixtureLevelPackage, kFixtureCookKey, Baked._Params, kFixtureInputFingerprint, Loaded);
+
+    TestTrue(FString::Printf(TEXT("a future-version index is stale [%s]"),
+        *Get_CookStatusName(FutureVersionStatus)), FutureVersionStatus == ECk_GroundNav_CookStatus::StaleCook);
+
+    Index->Set_FormatVersion(kFieldBlobFormatVersion);
+    auto* FirstTile = Tiles.IsEmpty() ? nullptr : Tiles[0].Get();
+    if (NOT TestTrue(TEXT("the first cooked tile resolves"), ck::IsValid(FirstTile)))
+    { return false; }
+    FirstTile->Set_FormatVersion(1);
+    const auto OldTileVersionStatus = Try_LoadCookedField(
+        *Index, kFixtureLevelPackage, kFixtureCookKey, Baked._Params, kFixtureInputFingerprint, Loaded);
+
+    TestTrue(FString::Printf(TEXT("a v1 tile is stale [%s]"),
+        *Get_CookStatusName(OldTileVersionStatus)), OldTileVersionStatus == ECk_GroundNav_CookStatus::StaleCook);
 
     return true;
 }
@@ -706,7 +1065,8 @@ bool FCkTest_GroundNav_CookedAssets_AnIndexForAnotherKeyIsStaleCook::RunTest(con
     if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
     { return false; }
 
-    auto* Index = Make_CookedIndexFor(Baked, Make_CookedTilesFor(Baked));
+    auto Tiles = Make_CookedTilesFor(Baked);
+    auto* Index = Make_CookedIndexFor(Baked, Tiles);
 
     if (NOT TestTrue(TEXT("the cooked index asset was created"), ck::IsValid(Index)))
     { return false; }
@@ -764,7 +1124,8 @@ bool FCkTest_GroundNav_CookedAssets_ALoadComposesOnce::RunTest(const FString& Pa
     if (NOT TestTrue(TEXT("the reference scene bakes"), Bake(Make_QueryScene(), Make_QueryParams(), Baked)))
     { return false; }
 
-    auto* Index = Make_CookedIndexFor(Baked, Make_CookedTilesFor(Baked));
+    auto Tiles = Make_CookedTilesFor(Baked);
+    auto* Index = Make_CookedIndexFor(Baked, Tiles);
 
     if (NOT TestTrue(TEXT("the cooked index asset was created"), ck::IsValid(Index)))
     { return false; }

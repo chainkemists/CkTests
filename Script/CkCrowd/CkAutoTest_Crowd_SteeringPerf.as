@@ -49,7 +49,7 @@ class UCk_AutoTest_Crowd_SteeringPerf : UCk_AutoTest_Base
         // Uncap so deltas measure work, not vsync.
         Set_CVarForTest(n"t.MaxFPS", "0");
         Set_CVarForTest(n"r.VSync", "0");
-
+        Set_CVarForTest(n"ck.Crowd.Debug.PendingTimeoutState", "1");
         _ProbeStart = Centre + FVector(InnerRadius, 0.0, 0.0);
         _ProbeTarget = FVector(-_ProbeStart.X, -_ProbeStart.Y, _ProbeStart.Z);
         utils_transform::Add(LocalHandle,

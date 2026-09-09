@@ -76,6 +76,10 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
     private FVector _ProbeStart = FVector::ZeroVector;
     private bool _NavProbeReady = false;
     private float _VerifyIntervalSec = 0.0;
+    private FCk_Handle _InitialSettleOwner;
+    private FCk_Handle_Timer _InitialSettleTimer;
+    private bool _InitialSettleComplete = false;
+    private float _InitialSettleElapsedSec = 0.0;
 
     private int32 _DriftIndex = -1;
     private int32 _ElevatedIndex = -1;
@@ -84,6 +88,10 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
     private bool _DriftLiftObserved = false;
 
     private float _ElevatedPreLiftZ = 0.0;
+    private bool _ElevatedStopCompleted = false;
+    private bool _ElevatedStopSucceeded = false;
+    private int32 _ElevatedPathFailedCount = 0;
+    private ECk_Nav_PathFailReason _ElevatedPathFailReason = ECk_Nav_PathFailReason::None;
 
     private FVector _PostRecoveryGoal = FVector::ZeroVector;
     private bool _PostRecoveryReached = false;
@@ -127,12 +135,15 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
     private const float SettledSpeedCm = 5.0;
     private const float GoalArrivalToleranceCm = 110.0;
 
-    // Deliberately generous: an over-large budget is bounded by the base class's
-    // own deadline (_TimeoutSeconds * 0.9), while an under-sized one fails a
-    // merely-slow test. A full-suite run spreads these tests over concurrent
-    // editors, so a settle buys far fewer frames per second than it does alone.
+    // The named setup and post-recovery waits retain their bounded sequencer budgets. The initial
+    // crowded settlement is the exception: its own elapsed-time deadline makes it independent of
+    // editor FPS, while the sequencer waits only for that explicit result.
     private const int32 SettleBudgetPolls = 1200;
     private const int32 LeaseBudgetPolls = 600;
+    private const float InitialSettleSampleIntervalSec = 0.1;
+    private const float InitialSettleDeadlineSec = 15.0;
+    // This only prevents the sequencer's frame counter racing the elapsed-time deadline above.
+    private const int32 InitialSettleSequencerPolls = 2147483647;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -147,8 +158,10 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
                             n"Step_SpawnAgents");
         Add_Step_WaitUntil( "every agent's path resolves Ready",
                             n"Check_AllPathsReady", SettleBudgetPolls);
+        Add_Step(           "start the elapsed-time initial settling window",
+                            n"Step_BeginInitialSettleTimer");
         Add_Step_WaitUntil( "every agent is terminal and has come to rest",
-                            n"Check_AllSettled", SettleBudgetPolls);
+                            n"Check_InitialSettleComplete", InitialSettleSequencerPolls);
         Add_Step(           "latch the formation and lift one settled agent 120cm",
                             n"Step_LiftDriftAgent");
         Add_Step_WaitUntil( "the lease returns the lifted agent to the surface, Z-only",
@@ -159,10 +172,18 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
                             n"Step_MoveAfterReGround");
         Add_Step_WaitUntil( "that move resolves successfully instead of NoRouteFound",
                             n"Check_PostRecoveryMoveResolved", SettleBudgetPolls);
-        Add_Step(           "lift a DIFFERENT settled agent 4x its body height",
+        Add_Step(           "drain the elevated agent's prior navigation episode",
+                            n"Step_BeginElevatedAgentQuiesce");
+        Add_Step_WaitUntil( "that Stop has cleared the prior nav result",
+                            n"Check_ElevatedAgentQuiescent", SettleBudgetPolls);
+        Add_Step(           "lift the drained agent 4x its body height",
                             n"Step_LiftElevatedAgent");
         Add_Step_WaitUntil( "the deliberately elevated agent is REPORTED off-navmesh",
                             n"Check_ElevatedReportedOffNavmesh", LeaseBudgetPolls);
+        Add_Step(           "request a route only after its elevated transform is observed",
+                            n"Step_RequestElevatedTerminal");
+        Add_Step_WaitUntil( "its expected off-mesh start-projection terminal is observed",
+                            n"Check_ElevatedTerminalFailureObserved", LeaseBudgetPolls);
         Add_Step(           "and was reported rather than dragged back down",
                             n"Step_AssertDeliberateElevationHeld");
         Run_Steps(InHandle);
@@ -236,6 +257,76 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
 
         _NavProbeReady = true;
         Res.Set(true);
+    }
+
+    UFUNCTION()
+    private void Step_BeginInitialSettleTimer(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        _InitialSettleOwner = InHandle;
+        _InitialSettleComplete = false;
+        _InitialSettleElapsedSec = 0.0;
+
+        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(InitialSettleSampleIntervalSec));
+        TimerParams.Set_StartingState(ECk_Timer_State::Running)
+                   .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+        _InitialSettleTimer = utils_timer::Add(InHandle, TimerParams);
+        _InitialSettleTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnInitialSettleSample"));
+    }
+
+    UFUNCTION()
+    private void OnInitialSettleSample(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished())
+        {
+            Pause_InitialSettleTimer();
+            return;
+        }
+
+        _InitialSettleElapsedSec += InitialSettleSampleIntervalSec;
+        auto Result = utils_shared_bool::Make(false);
+        Check_AllSettled(_InitialSettleOwner, Result, FInstancedStruct());
+        if (IsFinished())
+        {
+            Pause_InitialSettleTimer();
+            return;
+        }
+
+        if (Result.Get())
+        {
+            Pause_InitialSettleTimer();
+            _InitialSettleComplete = true;
+            return;
+        }
+
+        if (_InitialSettleElapsedSec >= InitialSettleDeadlineSec)
+        {
+            Pause_InitialSettleTimer();
+            FinishFailure(f"the four-agent formation never became terminal and at rest within {InitialSettleDeadlineSec}s after every path resolved Ready. The initial grounding lift requires a genuinely resting crowd, so a walking or coasting formation cannot proceed.");
+        }
+    }
+
+    UFUNCTION()
+    private void Check_InitialSettleComplete(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+
+        if (IsFinished())
+        {
+            Pause_InitialSettleTimer();
+            return;
+        }
+
+        if (_InitialSettleComplete)
+        {
+            Pause_InitialSettleTimer();
+            Res.Set(true);
+        }
+    }
+
+    private void Pause_InitialSettleTimer()
+    {
+        if (ck::IsValid(_InitialSettleTimer))
+        { utils_timer::Request_Pause(_InitialSettleTimer); }
     }
 
     // ---- Setup --------------------------------------------------------------------------------------
@@ -492,7 +583,7 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
     // ---- Phase D: a deliberate elevation is reported, never corrected -------------------------------
 
     UFUNCTION()
-    private void Step_LiftElevatedAgent(FCk_Handle InHandle, FInstancedStruct InPayload)
+    private void Step_BeginElevatedAgentQuiesce(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         _ElevatedIndex = DoPick_ElevatedAgent();
         if (_ElevatedIndex < 0)
@@ -501,9 +592,75 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
             return;
         }
 
-        _ElevatedPreLiftZ = float(DoGet_Position(_Agents[_ElevatedIndex]).Z);
-        DoLift(_ElevatedIndex, DeliberateLiftCm);
+        auto Agent = _Agents[_ElevatedIndex];
+        _ElevatedStopCompleted = false;
+        _ElevatedStopSucceeded = false;
+        utils_crowd_agent::Request_Stop(Agent,
+            FCk_Delegate_Request_OnCompleted(this, n"OnElevatedStopCompleted"));
+    }
 
+    UFUNCTION()
+    private void OnElevatedStopCompleted(FCk_Handle InRequestOwner, ECk_Request_OperationResult InResult)
+    {
+        if (IsFinished()) { return; }
+
+        if (_ElevatedIndex < 0 || InRequestOwner != FCk_Handle(_Agents[_ElevatedIndex]))
+        {
+            FinishFailure("the elevated-agent Stop completed for an unexpected request owner");
+            return;
+        }
+
+        _ElevatedStopSucceeded = InResult == ECk_Request_OperationResult::Succeeded;
+        _ElevatedStopCompleted = true;
+    }
+
+    UFUNCTION()
+    private void Check_ElevatedAgentQuiescent(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        if (_ElevatedIndex < 0 || DoValidateAgents() == false) { return; }
+        if (_ElevatedStopCompleted == false) { return; }
+        if (_ElevatedStopSucceeded == false)
+        {
+            FinishFailure("the elevated-agent Stop did not complete successfully, so its prior navigation episode was not proven drained");
+            return;
+        }
+
+        auto Agent = _Agents[_ElevatedIndex];
+        FCk_Handle AgentEntity = Agent;
+        if (utils_nav::Get_PathStatus(AgentEntity) != ECk_Nav_PathStatus::None ||
+            utils_crowd_agent::Get_HasReachedActiveGoal(Agent) ||
+            utils_crowd_agent::Get_IsGoalBlocked(Agent))
+        { return; }
+
+        Res.Set(true);
+    }
+
+    UFUNCTION()
+    private void Step_LiftElevatedAgent(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        if (_ElevatedIndex < 0)
+        {
+            FinishFailure("no quiesced agent remains for the deliberate elevation");
+            return;
+        }
+
+        auto Agent = _Agents[_ElevatedIndex];
+        FCk_Handle AgentEntity = Agent;
+        _ElevatedPathFailedCount = 0;
+        _ElevatedPathFailReason = ECk_Nav_PathFailReason::None;
+
+        // This lift deliberately puts the agent beyond the projection extent. The resulting
+        // start-projection failure is the expected terminal proof that the agent was held, not
+        // snapped down; bind before the lift and wait for it so its warning cannot leak after the
+        // test runner has completed.
+        utils_nav::BindTo_OnPathFailed(AgentEntity,
+            FCk_Delegate_Nav_OnPathFailed(this, n"OnElevatedPathFailed"),
+            ECk_Signal_BindingPolicy::IgnorePayloadInFlight,
+            ECk_Signal_PostFireBehavior::DoNothing);
+
+        _ElevatedPreLiftZ = float(DoGet_Position(Agent).Z);
+        DoLift(_ElevatedIndex, DeliberateLiftCm);
         ck::crowd::Log(f"[GROUNDING] elevated agent {_ElevatedIndex} by {DeliberateLiftCm}cm (4x body height) from Z={_ElevatedPreLiftZ} - the lease must REPORT this, not correct it");
     }
 
@@ -527,6 +684,54 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
         }
 
         Res.Set(utils_crowd_agent::Get_IsOffNavmesh(Agent));
+    }
+
+    UFUNCTION()
+    private void Step_RequestElevatedTerminal(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        if (_ElevatedIndex < 0 || DoValidateAgents() == false) { return; }
+
+        auto Agent = _Agents[_ElevatedIndex];
+
+        // The preceding wait proves Grounding has observed the raised transform before this request
+        // is accepted. Re-use this agent's spawn point: it is a known reachable XY goal 500cm from
+        // the Centre goal, so MoveTo cannot take its 20cm same-goal no-op. The elevated START must
+        // therefore produce the one expected StartProjectFailed terminal.
+        utils_crowd_agent::Request_MoveTo(Agent,
+            FCk_Request_CrowdAgent_MoveTo(_SpawnPositions[_ElevatedIndex]));
+    }
+
+    UFUNCTION()
+    private void OnElevatedPathFailed(FCk_Handle InHandle)
+    {
+        if (IsFinished()) { return; }
+
+        _ElevatedPathFailedCount += 1;
+        const auto Result = utils_nav::Get_PathResult(InHandle);
+        _ElevatedPathFailReason = Result.Get_Diagnostics().Get_LastFailReason();
+        ck::crowd::Log(f"[GROUNDING] elevated path-failed #{_ElevatedPathFailedCount}: rev={Result.Get_RequestRevision()} status={Result.Get_Status()} reason={_ElevatedPathFailReason}");
+    }
+
+    UFUNCTION()
+    private void Check_ElevatedTerminalFailureObserved(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+
+        if (_ElevatedPathFailedCount > 1)
+        {
+            FinishFailure(f"the deliberately elevated agent emitted {_ElevatedPathFailedCount} path-failed signals; its expected off-mesh terminal must be single-shot");
+            return;
+        }
+
+        if (_ElevatedPathFailedCount == 0) { return; }
+
+        if (_ElevatedPathFailReason != ECk_Nav_PathFailReason::StartProjectFailed)
+        {
+            FinishFailure(f"the deliberately elevated agent failed with {_ElevatedPathFailReason}, not StartProjectFailed. Beyond the recovery extent its feet must remain off-mesh, so this terminal must name failed start projection.");
+            return;
+        }
+
+        Res.Set(true);
     }
 
     UFUNCTION()
@@ -597,9 +802,10 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
         const auto Current = utils_transform::Get_EntityCurrentTransform(AgentTransform);
         const auto Lifted = Current.GetLocation() + FVector(0.0, 0.0, InLiftCm);
 
-        // Deliberately NOT preceded by Request_Stop, and deliberately absolute: the displacement has
-        // to look like something the world did TO the agent, which is how every real source of this
-        // defect (a spawn-frame fall, a long-frame vertical overshoot, a ramp edge) arrives.
+        // The agent's prior episode was explicitly drained before this phase. The displacement itself
+        // remains absolute: it has to look like something the world did TO the stationary body, which
+        // is how every real source of this defect (a spawn-frame fall, a long-frame vertical overshoot,
+        // a ramp edge) arrives.
         utils_transform::Request_SetTransform(AgentTransform,
             FCk_Request_Transform_SetTransform(
                 FTransform(Current.GetRotation(), Lifted, Current.GetScale3D())));
@@ -661,4 +867,15 @@ class ACk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds_Actor : ACk_AutoTest
 {
     default _TestEntityScriptClass = UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds;
     default _TimeoutSeconds = 45.0f;
+
+    // The final phase deliberately elevates GroundingAgent_1 beyond the projection extent and
+    // waits for this exact terminal. Expect only that owned warning; unrelated path failures must
+    // still fail the automation run.
+    UFUNCTION(BlueprintOverride)
+    TArray<FString> Get_ExpectedLogErrors() const
+    {
+        TArray<FString> Out;
+        Out.Add("GroundingAgent_1)] PathPending → Idle (path failed: Start Project Failed)");
+        return Out;
+    }
 }

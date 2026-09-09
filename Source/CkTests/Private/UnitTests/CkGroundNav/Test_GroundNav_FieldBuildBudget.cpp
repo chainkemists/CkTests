@@ -29,6 +29,8 @@ namespace ck_test_groundnav_budget
     using ck::groundnav::Get_CompletedField;
     using ck::groundnav::Request_AdvanceBuild;
     using ck::groundnav::Request_BeginBuild;
+    using ck::groundnav::Request_BeginBuild_MultiProfile_Targeted;
+    using ck::groundnav::Request_BeginBuild_Targeted;
     using ck::groundnav::Request_ReleaseCompletedField;
 
     constexpr auto kCellSize = 25.0f;
@@ -176,6 +178,28 @@ namespace ck_test_groundnav_budget
             { continue; }
 
             return Result.Get_IsCompleted();
+        }
+
+        return false;
+    }
+
+    auto Build_Targeted(
+        TConstArrayView<int32> InTileIndices,
+        int32                  InProbeBudget,
+        FCk_GroundNav_FieldBuildState& OutState) -> bool
+    {
+        const auto Backend = FCk_GroundNav_GeometryBackend_Stub{Make_Ground()};
+
+        if (NOT Request_BeginBuild_Targeted(
+            Make_Params(), FCk_GroundNav_Epoch{1}, InTileIndices, OutState).Get_IsCompleted())
+        { return false; }
+
+        for (auto Slice = 0; Slice < 256; ++Slice)
+        {
+            const auto Result = Request_AdvanceBuild(Backend, InProbeBudget, OutState);
+
+            if (Result.Get_Status() != ECk_GroundNav_BakeStatus::BudgetExhausted)
+            { return Result.Get_IsCompleted(); }
         }
 
         return false;
@@ -432,6 +456,115 @@ bool FCkTest_GroundNav_Budget_AReleasedBuildIsSpent::RunTest(const FString& Para
 
     TestTrue(TEXT("and the spent build is no longer reachable"), Get_CompletedField(State) == nullptr);
     TestFalse(TEXT("nor does it claim to be complete"), State.Get_IsComplete());
+
+    const auto Backend = FCk_GroundNav_GeometryBackend_Stub{Make_Ground()};
+    const auto AdvanceSpent = Request_AdvanceBuild(Backend, 1, State);
+
+    TestEqual(TEXT("advancing a released build is rejected"),
+        AdvanceSpent.Get_Status(), ECk_GroundNav_BakeStatus::InvalidInput);
+    TestTrue(TEXT("a rejected spent build still cannot expose a moved-from field"), Get_CompletedField(State) == nullptr);
+    TestFalse(TEXT("nor can it become complete again"), State.Get_IsComplete());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Budget_TargetedBuildsOnlyRequestedTiles,
+    "CkTests.UnitTests.CkGroundNav.Bake.Budget_TargetedBuildsOnlyRequestedTiles",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Budget_TargetedBuildsOnlyRequestedTiles::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_budget;
+
+    const auto Requested = TArray<int32>{7, 1, 4};
+    auto State = FCk_GroundNav_FieldBuildState{};
+
+    if (NOT TestTrue(TEXT("the requested subset completes"), Build_Targeted(Requested, 1, State)))
+    { return false; }
+
+    const auto* Field = Get_CompletedField(State);
+
+    if (NOT TestTrue(TEXT("the completed targeted field remains private until whole"), Field != nullptr))
+    { return false; }
+
+    TestEqual(TEXT("the full declared lattice is retained"), Field->Get_TileCount(), kDivisions * kDivisions);
+    TestEqual(TEXT("only requested tiles are built"), Field->Get_BuiltTileCount(), Requested.Num());
+
+    for (auto TileIndex = 0; TileIndex < Field->Get_TileCount(); ++TileIndex)
+    {
+        TestEqual(FString::Printf(TEXT("tile %d has the requested build state"), TileIndex),
+            Field->_Tiles[TileIndex].Get_IsBuilt(), Requested.Contains(TileIndex));
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Budget_TargetedInputOrderAndSlicesAreDeterministic,
+    "CkTests.UnitTests.CkGroundNav.Bake.Budget_TargetedInputOrderAndSlicesAreDeterministic",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Budget_TargetedInputOrderAndSlicesAreDeterministic::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_budget;
+
+    auto A = FCk_GroundNav_FieldBuildState{};
+    auto B = FCk_GroundNav_FieldBuildState{};
+
+    if (NOT TestTrue(TEXT("the permuted small-slice build completes"),
+        Build_Targeted(TArray<int32>{8, 2, 5}, 1, A)) ||
+        NOT TestTrue(TEXT("the sorted large-slice build completes"),
+        Build_Targeted(TArray<int32>{2, 5, 8}, 100000, B)))
+    { return false; }
+
+    const auto* AField = Get_CompletedField(A);
+    const auto* BField = Get_CompletedField(B);
+
+    return TestTrue(TEXT("canonical target order and slice budget yield the same field"),
+        AField != nullptr && BField != nullptr && Get_FieldsMatch(*AField, *BField));
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Budget_TargetedMultiProfileIsAtomicAndInvalidListDoesNotMutate,
+    "CkTests.UnitTests.CkGroundNav.Bake.Budget_TargetedMultiProfileIsAtomicAndInvalidListDoesNotMutate",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Budget_TargetedMultiProfileIsAtomicAndInvalidListDoesNotMutate::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_budget;
+
+    auto State = FCk_GroundNav_FieldBuildState{};
+    const auto Params = TArray<FCk_GroundNav_FieldParams>{Make_Params(), Make_Params()};
+    const auto Requested = TArray<int32>{3, 6};
+
+    if (NOT TestTrue(TEXT("the all-profile targeted build is admitted"),
+        Request_BeginBuild_MultiProfile_Targeted(Params, FCk_GroundNav_Epoch{1}, Requested, State).Get_IsCompleted()))
+    { return false; }
+
+    const auto Backend = FCk_GroundNav_GeometryBackend_Stub{Make_Ground()};
+    const auto FirstSlice = Request_AdvanceBuild(Backend, 1, State);
+
+    if (NOT TestEqual(TEXT("one requested coordinate does not expose either profile"),
+        FirstSlice.Get_Status(), ECk_GroundNav_BakeStatus::BudgetExhausted) ||
+        NOT TestTrue(TEXT("there is no partial multi-profile output"), Get_CompletedField(State) == nullptr))
+    { return false; }
+
+    const auto ParamsBefore = State._Params.Num();
+    const auto NextBefore = State._NextTileIndex;
+    AddExpectedError(TEXT("GroundNav targeted field build requires unique in-range tile indices"), EAutomationExpectedErrorFlags::Contains, 2);
+    const auto Invalid = Request_BeginBuild_Targeted(
+        Make_Params(), FCk_GroundNav_Epoch{2}, TArray<int32>{1, 1}, State);
+
+    TestEqual(TEXT("a duplicate list is rejected"), Invalid.Get_Status(), ECk_GroundNav_BakeStatus::InvalidInput);
+    TestEqual(TEXT("the rejected list preserves active profile state"), State._Params.Num(), ParamsBefore);
+    TestEqual(TEXT("the rejected list preserves the resume coordinate"), State._NextTileIndex, NextBefore);
 
     return true;
 }

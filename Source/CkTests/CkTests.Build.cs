@@ -181,6 +181,7 @@ public class CkTests : CkModuleRules
                 "CommonUI",
                 "CkUI",
                 "CkUIDebugger",
+                "CkGroundNavEditor",
             });
         }
     }

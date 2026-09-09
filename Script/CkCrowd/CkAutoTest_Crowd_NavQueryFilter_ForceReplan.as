@@ -49,7 +49,9 @@ class UCk_AutoTest_Crowd_NavQueryFilter_ForceReplan : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
         utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
 
-        _InitialPolicy = utils_gameplay_tag::ResolveGameplayTag(n"Nav.Filter.Customer");
+        // This framework-owned policy has a native definition. Customer is project-owned and has
+        // no framework mapping, so it cannot serve as a portable non-default fixture.
+        _InitialPolicy = utils_gameplay_tag::ResolveGameplayTag(n"Nav.Filter.Crowd.AvoidStandingCrowds");
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
         Params.Set_NavQueryFilter(_InitialPolicy);
         _Agent = utils_crowd_agent::Add(AgentTransform, Params);

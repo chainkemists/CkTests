@@ -199,6 +199,7 @@ namespace ck_test_groundnav_revision_world
         ck::FProcessor_GroundNavVolume_Unpublish::ForEachEntity(
             FCk_Time{kSixtyHertz},
             InVolume,
+            InVolume.Get<ck::FFragment_GroundNavVolume_Params>(),
             InVolume.Get<ck::FFragment_GroundNavVolume_BuiltField>());
     }
 }
@@ -253,8 +254,8 @@ bool FCkTest_GroundNav_Revision_WorldRevisionDoesNotFallWhenAVolumeIsTornDown::R
         return false;
     }
 
-    world_fields::Publish(Fixture._World, FirstVolume, FirstField, {});
-    world_fields::Publish(Fixture._World, SecondVolume, SecondField, {});
+    world_fields::Publish(Fixture._World, FirstVolume, FirstField, {}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
+    world_fields::Publish(Fixture._World, SecondVolume, SecondField, {}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
     if (NOT TestEqual(TEXT("the world holds one field per volume"),
         world_fields::Get_FieldCount(Fixture._World), 2))

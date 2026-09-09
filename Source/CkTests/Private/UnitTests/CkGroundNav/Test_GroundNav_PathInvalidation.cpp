@@ -44,10 +44,12 @@
 #include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
 
 #include "CkGroundNav/Bake/CkGroundNav_LinkTypes.h"
+#include "CkGroundNav/Bake/CkGroundNav_MarkupTypes.h"
 #include "CkGroundNav/Facade/CkGroundNav_WorldFieldRegistry.h"
 #include "CkGroundNav/Field/CkGroundNav_Field.h"
 #include "CkGroundNav/Field/CkGroundNav_FieldLinks.h"
 #include "CkGroundNav/Field/CkGroundNav_FieldMarkupCost.h"
+#include "CkGroundNav/Query/CkGroundNav_Query_Reachability.h"
 #include "CkGroundNav/Path/CkGroundNavPath_Invalidate_Processor.h"
 #include "CkGroundNav/Path/CkGroundNavPath_Processor.h"
 #include "CkGroundNav/Path/CkGroundNavPath_Utils.h"
@@ -56,9 +58,14 @@
 #include "CkNavigation/NavSurface/CkNavSurface_Processor.h"
 #include "CkNavigation/NavSurface/CkNavSurface_Utils.h"
 
+#include "CkShapes/Box/CkShapeBox_Fragment_Data.h"
+
+#include "../CkTest_CompletionListener.h"
 #include "../CkUnitTest_Common.h"
 
 #include "Test_GroundNav_QueryFixtures.h"
+
+#include "NativeGameplayTags.h"
 
 #include <CoreMinimal.h>
 #include <Engine/World.h>
@@ -67,6 +74,11 @@
 
 using ck::tests::kCkUnitTestFlags;
 
+// The area a cost-only derive prices its ground into. Its own tag rather than a shared one: these
+// files land in the same unity blob, and a tag defined twice would not compile.
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_CkTests_GroundNav_Invalidation_Dear, "CkTests.GroundNav.Invalidation.Dear");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_CkTests_GroundNav_Invalidation_Profile, "CkTests.GroundNav.Invalidation.Profile");
+
 namespace ck_test_groundnav_pathinvalidation
 {
     using ck::groundnav::FCk_GroundNav_Epoch;
@@ -74,6 +86,8 @@ namespace ck_test_groundnav_pathinvalidation
     using ck::groundnav::FCk_GroundNav_FieldPtr;
     using ck::groundnav::Get_ChangedTileBounds;
     using ck::groundnav::Get_FieldWithLinks;
+    using ck::groundnav::Get_FieldWithMarkupCost;
+    using ck::groundnav::Get_TileAndPlate;
 
     using ck_test_groundnav_queryfixtures::Bake;
     using ck_test_groundnav_queryfixtures::kGroundZ;
@@ -146,6 +160,14 @@ namespace ck_test_groundnav_pathinvalidation
     constexpr auto kAddedLinkId = 3;
 
     constexpr auto kRepricedMultiplier = 2.0f;
+
+    // The cost record the markup derive below prices with. Centred on the two-route field and wider
+    // than all of it, so the derive is certain to restamp the ground every corridor here sits on - a
+    // re-price that quietly reached nothing would leave those rows asserting nothing.
+    constexpr auto kRepricingMarkupId = 9;
+
+    const auto kRepricingCentre = FVector{800.0, 800.0, kGroundZ};
+    const auto kRepricingHalfExtents = FVector{1000.0, 1000.0, 400.0};
 
     constexpr auto kCrossingAgent = 0;
     constexpr auto kBesideAgent = 1;
@@ -240,6 +262,18 @@ namespace ck_test_groundnav_pathinvalidation
         {
             return _Paths[InAgentIndex].Get<ck::FFragment_GroundNavPath_Result>().Get_HasFreshResult();
         }
+
+        auto Get_Result(
+            int32 InAgentIndex) const -> const FCk_GroundNavPath_Result&
+        {
+            return _Paths[InAgentIndex].Get<ck::FFragment_GroundNavPath_Result>().Get_Result();
+        }
+
+        auto Get_PublishSequence(
+            int32 InAgentIndex) const -> int32
+        {
+            return _Paths[InAgentIndex].Get<ck::FFragment_GroundNavPath_Result>().Get_PublishSequence();
+        }
     };
 
     auto Make_PathParams() -> FCk_Fragment_GroundNavPath_ParamsData
@@ -291,7 +325,8 @@ namespace ck_test_groundnav_pathinvalidation
         InOutFixture._WorldEntity.AddOrGet<ck::FFragment_NavSurface_RevisionWatch>();
         InOutFixture._WorldEntity.AddOrGet<ck::FFragment_NavSurface_PendingRebuilds>();
 
-        world_fields::Publish(InOutFixture._World, FCk_Handle{}, InOutFixture._Field, {});
+        world_fields::Publish(InOutFixture._World, FCk_Handle{}, InOutFixture._Field, {},
+            world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
         UCk_Utils_NavSurface_UE::Request_SetProvider(InOutFixture._World, InProvider);
 
@@ -387,7 +422,8 @@ namespace ck_test_groundnav_pathinvalidation
 
     /** One cold plan per agent, sliced until every slot carries a finished episode with a corridor. */
     auto Do_PlanEveryAgent(
-        FInvalidationFixture& InOutFixture) -> bool
+        FInvalidationFixture&            InOutFixture,
+        const FCk_Nav_QueryFilterOverlay& InQueryFilterOverlay = {}) -> bool
     {
         for (auto Index = 0; Index < InOutFixture._Paths.Num(); ++Index)
         {
@@ -395,6 +431,7 @@ namespace ck_test_groundnav_pathinvalidation
 
             Request.Set_RequestRevision(1);
             Request.Set_PlanMode(ECk_GroundNav_PlanMode::Cold);
+            Request.Set_QueryFilterOverlay(InQueryFilterOverlay);
 
             UCk_Utils_GroundNavPath_UE::Request_FindPath(InOutFixture._Paths[Index], Request, {});
 
@@ -518,7 +555,8 @@ namespace ck_test_groundnav_pathinvalidation
 
         InOutFixture._Field = Rebuilt;
 
-        world_fields::Publish(InOutFixture._World, FCk_Handle{}, InOutFixture._Field, {});
+        world_fields::Publish(InOutFixture._World, FCk_Handle{}, InOutFixture._Field, {},
+            world_fields::FCk_GroundNav_PublishClaim::Geometry());
     }
 
     auto Do_NotifyRebuilt(
@@ -547,7 +585,8 @@ namespace ck_test_groundnav_pathinvalidation
         OutChangedLinkIds = Derived._ChangedLinkIds;
 
         world_fields::Publish(
-            InOutFixture._World, FCk_Handle{}, InOutFixture._Field, {}, Derived._ChangedLinkIds);
+            InOutFixture._World, FCk_Handle{}, InOutFixture._Field, {},
+            world_fields::FCk_GroundNav_PublishClaim::LinkOnly(Derived._ChangedLinkIds));
 
         const auto Bounds = Get_ChangedTileBounds(*InOutFixture._Field, InOutFixture._Field->_Epoch);
 
@@ -572,7 +611,51 @@ namespace ck_test_groundnav_pathinvalidation
         InOutFixture._Field = Rebuilt;
 
         world_fields::Publish(
-            InOutFixture._World, FCk_Handle{}, InOutFixture._Field, {}, TArray<int32>{});
+            InOutFixture._World, FCk_Handle{}, InOutFixture._Field, {},
+            world_fields::FCk_GroundNav_PublishClaim::LinkOnly({}));
+    }
+
+    /**
+     * The markup COST derive's own publish, done by hand: the published field re-priced through
+     * Get_FieldWithMarkupCost, swapped in, and claimed as cost-only.
+     *
+     * A real derive rather than a republish of the same field under a new epoch, because the claim
+     * being pinned is that ground which MOVED ITS LABELS and nothing else leaves a route alone - and a
+     * field that changed nothing at all would be a weaker thing to publish. Answers false unless the
+     * derive really did move the epoch, so a row cannot pass on a publish nobody could have noticed.
+     */
+    auto Do_PublishCostOnlyDerive(
+        FInvalidationFixture& InOutFixture) -> bool
+    {
+        auto Record = FCk_GroundNav_MarkupRecord{
+            kRepricingMarkupId,
+            FCk_AnyShape{FCk_ShapeBox_Dimensions{kRepricingHalfExtents}},
+            FTransform{kRepricingCentre},
+            ECk_GroundNav_MarkupKind::Cost};
+
+        Record.Set_AreaTag(TAG_CkTests_GroundNav_Invalidation_Dear);
+        Record.Set_CostMultiplier(kRepricedMultiplier);
+
+        const auto Records = TArray<FCk_GroundNav_MarkupRecord>{Record};
+
+        const auto PublishedEpoch = InOutFixture._Field->_Epoch;
+
+        const auto Derived = Get_FieldWithMarkupCost(
+            *InOutFixture._Field, Records, PublishedEpoch.Get_Next());
+
+        if (NOT Derived.Value.Get_IsCompleted() || NOT Derived.Key.IsValid())
+        { return false; }
+
+        if (NOT Derived.Key->_Epoch.Get_IsNewerThan(PublishedEpoch))
+        { return false; }
+
+        InOutFixture._Field = Derived.Key;
+
+        world_fields::Publish(
+            InOutFixture._World, FCk_Handle{}, InOutFixture._Field, {},
+            world_fields::FCk_GroundNav_PublishClaim::CostOnly());
+
+        return true;
     }
 
     auto Do_RunInvalidator(
@@ -726,20 +809,132 @@ namespace ck_test_groundnav_pathinvalidation
         FInvalidationFixture& InOutFixture,
         int32                 InAgentIndex,
         const FVector&        InFrom,
-        const FVector&        InGoal) -> bool
+        const FVector&        InGoal,
+        const FGameplayTag&   InProfileTag = {},
+        const FCk_Delegate_Request_OnCompleted& InCompletion = {}) -> bool
     {
         auto Request = FCk_Request_GroundNavPath_FindPath{InFrom, InGoal};
 
         Request.Set_RequestRevision(1);
         Request.Set_PlanMode(ECk_GroundNav_PlanMode::Cold);
+        Request.Set_ProfileTag(InProfileTag);
 
-        UCk_Utils_GroundNavPath_UE::Request_FindPath(InOutFixture._Paths[InAgentIndex], Request, {});
+        UCk_Utils_GroundNavPath_UE::Request_FindPath(
+            InOutFixture._Paths[InAgentIndex], Request, InCompletion);
 
         Do_DrainRequests(InOutFixture, InAgentIndex);
 
         return InOutFixture.Get_Current(InAgentIndex).Get_HasBegun() &&
             NOT InOutFixture.Get_HasFreshResult(InAgentIndex) &&
             Get_StoredCorridor(InOutFixture, InAgentIndex).IsValid == 0;
+    }
+
+    /**
+     * Runs the same query the in-flight production request pinned, solely to name its completed
+     * route's fixed-lattice tiles before the real slice processor publishes that request's terminal
+     * result. Tile identity is then a test precondition rather than an assumption about where the
+     * two-route fixture happened to put its start or goal.
+     */
+    auto Do_GetPinnedRouteTileIndices(
+        const FInvalidationFixture& InFixture,
+        const FVector&              InFrom,
+        const FVector&              InGoal,
+        TSet<int32>&                OutRouteTileIndices) -> bool
+    {
+        auto Query = ck::groundnav::FCk_GroundNav_PathQuery{};
+        const auto Params = Make_PathParams();
+        Query._Start = InFrom;
+        Query._Goal = InGoal;
+        Query._VerticalToleranceUu = Params.Get_VerticalToleranceUu();
+        Query._Agent._RadiusUu = Params.Get_AgentRadiusUu();
+        Query._GreedyWeightW = Params.Get_GreedyWeightW();
+        Query._MaxExpansions = Params.Get_MaxExpansions();
+        Query._MaxCorridorLength = Params.Get_MaxCorridorLength();
+        Query._AllowPartialPath = Params.Get_AllowPartialPath();
+
+        auto Search = ck::groundnav::FCk_GroundNav_PathSearch{};
+        auto Status = Search.Request_Begin(InFixture._Field, Query);
+
+        if (Status == ECk_GroundNav_PathStatus::InProgress)
+        { Status = Search.ContinueSearch({}); }
+
+        if (Status != ECk_GroundNav_PathStatus::Ready && Status != ECk_GroundNav_PathStatus::Partial)
+        { return false; }
+
+        const auto& SearchResult = Search.Get_Result();
+
+        const auto AddSurface = [&InFixture, &OutRouteTileIndices](
+            const ck::groundnav::FCk_GroundNav_SurfaceRef& InSurface) -> bool
+        {
+            if (NOT InFixture._Field->_Tiles.IsValidIndex(InSurface._TileIndex))
+            { return false; }
+
+            OutRouteTileIndices.Add(InSurface._TileIndex);
+            return true;
+        };
+
+        OutRouteTileIndices.Reset();
+        if (NOT AddSurface(SearchResult._StartSurface) || NOT AddSurface(SearchResult._GoalSurface))
+        { return false; }
+
+        if (SearchResult._RouteKind == ck::groundnav::ECk_GroundNav_PathRouteKind::StrictCell)
+        {
+            for (const auto& Edge : SearchResult._CellRoute)
+            {
+                if (NOT AddSurface(Edge._FromSurface) || NOT AddSurface(Edge._ToSurface))
+                { return false; }
+            }
+        }
+        else
+        {
+            for (const auto FlatPlate : SearchResult._PlateCorridor)
+            {
+                auto TileIndex = int32{INDEX_NONE};
+                auto PlateIndex = int32{INDEX_NONE};
+                if (NOT Get_TileAndPlate(*InFixture._Field, FlatPlate, TileIndex, PlateIndex))
+                { return false; }
+
+                OutRouteTileIndices.Add(TileIndex);
+            }
+        }
+
+        return NOT OutRouteTileIndices.IsEmpty();
+    }
+
+    auto Do_PublishGeometryWithTileUnbuilt(
+        FInvalidationFixture& InOutFixture,
+        int32                 InTileIndex,
+        const TMap<FGameplayTag, FCk_GroundNav_FieldPtr>& InVariantFields = {}) -> bool
+    {
+        if (NOT InOutFixture._Field->_Tiles.IsValidIndex(InTileIndex))
+        { return false; }
+
+        auto Rebuilt = MakeShared<FCk_GroundNav_Field>(*InOutFixture._Field);
+        Rebuilt->_Epoch = InOutFixture._Field->_Epoch.Get_Next();
+        Rebuilt->_Tiles[InTileIndex]._Epoch = Rebuilt->_Epoch;
+        Rebuilt->_Tiles[InTileIndex]._Status = ECk_GroundNav_BuildStatus::Unbuilt;
+
+        InOutFixture._Field = Rebuilt;
+        world_fields::Publish(InOutFixture._World, FCk_Handle{}, InOutFixture._Field, InVariantFields,
+            world_fields::FCk_GroundNav_PublishClaim::Geometry());
+        return true;
+    }
+
+    auto Do_PublishGeometryChangingOnlyTile(
+        FInvalidationFixture& InOutFixture,
+        int32                 InTileIndex) -> bool
+    {
+        if (NOT InOutFixture._Field->_Tiles.IsValidIndex(InTileIndex))
+        { return false; }
+
+        auto Rebuilt = MakeShared<FCk_GroundNav_Field>(*InOutFixture._Field);
+        Rebuilt->_Epoch = InOutFixture._Field->_Epoch.Get_Next();
+        Rebuilt->_Tiles[InTileIndex]._Epoch = Rebuilt->_Epoch;
+
+        InOutFixture._Field = Rebuilt;
+        world_fields::Publish(InOutFixture._World, FCk_Handle{}, InOutFixture._Field, {},
+            world_fields::FCk_GroundNav_PublishClaim::Geometry());
+        return true;
     }
 
     /** Slices until that episode answers, which is the publish the parked news is spent at. */
@@ -1324,6 +1519,143 @@ bool FCkTest_GroundNav_Invalidation_ABuildPublishStillFlagsByBounds::RunTest(con
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// A cost derive re-prices published ground and moves none of it, so a route already walking that
+// ground is still walking ground that is there. It is asserted on the corridor's OWN box - the one
+// box that cannot miss - and paired with a geometry publish of the same shape, because a row whose
+// box quietly failed to reach would pass the negative half on its own.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Invalidation_CostOnlyPublishLeavesWalkingCorridorAlone,
+    "CkTests.UnitTests.CkGroundNav.Invalidation.CostOnlyPublishLeavesWalkingCorridorAlone",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Invalidation_CostOnlyPublishLeavesWalkingCorridorAlone::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathinvalidation;
+
+    auto Fixture = FInvalidationFixture{};
+
+    if (NOT TestTrue(TEXT("the two-route scene bakes, publishes and takes an agent"),
+        Do_Setup(Fixture, TEXT("CkGroundNavInvalidationCostOnly"), 1,
+            ECk_NavSurface_Provider::GroundNav)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    if (NOT TestTrue(TEXT("and the agent plans a route with a corridor to measure against"),
+        Do_PlanEveryAgent(Fixture)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    const auto Corridor = Get_StoredCorridor(Fixture, 0);
+    const auto CorridorEpoch = Fixture.Get_Current(0).Get_LastCorridorEpoch()._Value;
+
+    if (NOT TestTrue(TEXT("the published field is re-priced and goes out as a cost-only publish"),
+        Do_PublishCostOnlyDerive(Fixture)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    // The corridor's own box, so nothing about where the fixture put its geometry can spare this
+    // route: if a cost-only publish flagged by bounds at all, it would flag here.
+    Do_NotifyRebuilt(Fixture, Corridor);
+    Do_RunInvalidator(Fixture);
+
+    TestFalse(FString::Printf(
+            TEXT("a cost-only publish leaves a walking corridor alone, box or no box ")
+            TEXT("[published the corridor's own box %s]"),
+            *Get_BoxText(Corridor)),
+        Get_IsFlagged(Fixture, 0));
+
+    TestEqual(TEXT("and leaves the plan itself where it was"),
+        Fixture.Get_Current(0).Get_LastCorridorEpoch()._Value, CorridorEpoch);
+
+    TestTrue(FString::Printf(TEXT("bounds and all [corridor now %s]"),
+            *Get_BoxText(Get_StoredCorridor(Fixture, 0))),
+        Get_StoredCorridor(Fixture, 0) == Corridor);
+
+    // The other half, on the SAME agent and the SAME box: ground that MOVED still reaches it. Without
+    // this, a queue that had quietly gone empty would pass everything above.
+    Do_PublishNextEpoch(Fixture);
+    Do_NotifyRebuilt(Fixture, Corridor);
+    Do_RunInvalidator(Fixture);
+
+    TestTrue(FString::Printf(
+            TEXT("while a geometry publish of that very box does flag it [published %s]"),
+            *Get_BoxText(Corridor)),
+        Get_IsFlagged(Fixture, 0));
+
+    Do_Teardown(Fixture);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Invalidation_CostOnlyPublishRepathsWhenSavedFilterDeniesCorridor,
+    "CkTests.UnitTests.CkGroundNav.Invalidation.CostOnlyPublishRepathsWhenSavedFilterDeniesCorridor",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Invalidation_CostOnlyPublishRepathsWhenSavedFilterDeniesCorridor::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathinvalidation;
+
+    auto Fixture = FInvalidationFixture{};
+
+    if (NOT TestTrue(TEXT("the two-route scene bakes, publishes and takes an agent"),
+        Do_Setup(Fixture, TEXT("CkGroundNavInvalidationCostOnlyDeniedPlate"), 1,
+            ECk_NavSurface_Provider::GroundNav)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    auto Overlay = FCk_Nav_QueryFilterOverlay{};
+    Overlay.Set_ExcludedAreaTags({TAG_CkTests_GroundNav_Invalidation_Dear});
+
+    if (NOT TestTrue(TEXT("the agent plans while its saved overlay excludes a tag absent from the field"),
+        Do_PlanEveryAgent(Fixture, Overlay)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    const auto Corridor = Get_StoredCorridor(Fixture, 0);
+    const auto& FlatPlates = Fixture.Get_Current(0).Get_LastCorridorFlatPlates();
+
+    if (NOT TestTrue(TEXT("the completed route has cached plates for the denial check"),
+        FlatPlates.Num() > 0))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    if (NOT TestTrue(TEXT("the cost derive adds the excluded tag to the planned ground"),
+        Do_PublishCostOnlyDerive(Fixture)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    Do_NotifyRebuilt(Fixture, Corridor);
+    Do_RunInvalidator(Fixture);
+
+    TestTrue(TEXT("a cost-only publish repaths when the saved filter now denies a corridor plate"),
+        Get_IsFlagged(Fixture, 0));
+
+    Do_Teardown(Fixture);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_GroundNav_Invalidation_RemovedLinkIsFlaggedByItsStableId,
     "CkTests.UnitTests.CkGroundNav.Invalidation.RemovedLinkIsFlaggedByItsStableId",
@@ -1804,6 +2136,378 @@ bool FCkTest_GroundNav_Invalidation_SearchInFlightIsNotRepathedWithoutAReachingR
 
     Do_Teardown(Fixture);
 
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// The in-flight arm is the one thing a COST-ONLY publish must still do. A search that stood up before
+// the re-price pinned the field it reads, so the route it publishes was planned on prices that no
+// longer exist - and unlike a corridor, it never had the chance to be planned against them. The row
+// above says a cost-only publish spares a route that HAS a corridor; this one says it does not spare a
+// search that has none, which is the same distinction the two branches of the invalidator draw.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Invalidation_CostOnlyPublishStillArmsInFlightSearch,
+    "CkTests.UnitTests.CkGroundNav.Invalidation.CostOnlyPublishStillArmsInFlightSearch",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Invalidation_CostOnlyPublishStillArmsInFlightSearch::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathinvalidation;
+
+    auto Fixture = FInvalidationFixture{};
+
+    if (NOT TestTrue(TEXT("the two-route scene bakes, publishes and takes an agent"),
+        Do_Setup(Fixture, TEXT("CkGroundNavInvalidationCostOnlyInFlight"), 1,
+            ECk_NavSurface_Provider::GroundNav)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    if (NOT TestTrue(TEXT("and its search stands up holding a field, with nothing published and no corridor"),
+        Do_BeginSearchWithoutSlicing(Fixture, 0, kTwoRouteStart, kTwoRouteGoal)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    // A re-price this time rather than a rebuild: the registry moves past the snapshot the search is
+    // reading, and nothing that search answers has read the new prices.
+    if (NOT TestTrue(TEXT("the published field is re-priced and goes out as a cost-only publish"),
+        Do_PublishCostOnlyDerive(Fixture)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    const auto Overlapping = Make_BoxAround(kTwoRouteStart);
+
+    Do_NotifyRebuilt(Fixture, Overlapping);
+    Do_RunInvalidator(Fixture);
+
+    if (NOT TestFalse(FString::Printf(
+            TEXT("a cost-only publish meeting a search in flight raises no repath while it runs ")
+            TEXT("[published %s]"),
+            *Get_BoxText(Overlapping)),
+        Get_IsFlagged(Fixture, 0)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    // Emptied before the route publishes, so a publish that flags is spending news the invalidator
+    // parked rather than re-reading a queue.
+    Do_DrainPublishedRebuilds(Fixture);
+
+    if (NOT TestEqual(TEXT("and the watch empties the queue before the search finishes"),
+        Get_QueuedRebuildCount(Fixture), 0))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    if (NOT TestTrue(TEXT("the search then finishes and publishes a route with a corridor"),
+        Do_SliceUntilAnswered(Fixture, 0)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    TestTrue(FString::Printf(
+            TEXT("and that publish flags the agent for one re-plan [published %s vs corridor %s]"),
+            *Get_BoxText(Overlapping), *Get_BoxText(Get_StoredCorridor(Fixture, 0))),
+        Get_IsFlagged(Fixture, 0));
+
+    Do_Teardown(Fixture);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// A cost publish must retain unobserved link changes, but never replay a link change predating the plan.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Invalidation_CostPublishPreservesLinkEpochOrdering,
+    "CkTests.UnitTests.CkGroundNav.Invalidation.CostPublishPreservesLinkEpochOrdering",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Invalidation_CostPublishPreservesLinkEpochOrdering::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathinvalidation;
+
+    for (const auto ReplanAfterLinkChange : {false, true})
+    {
+        auto Fixture = FInvalidationFixture{};
+        if (NOT TestTrue(TEXT("real link corridor is established"),
+            Do_Setup_AndPlanAcrossTheLink(Fixture, TEXT("CkGroundNavCostLinkOrder"))))
+        {
+            Do_Teardown(Fixture);
+            return false;
+        }
+
+        auto ChangedIds = TArray<int32>{};
+        Do_PublishLinkDerive(Fixture,
+            TArray<FCk_GroundNav_LinkRecord>{Make_SpareLink(), Make_CrossingLink(ECk_EnableDisable::Disable)},
+            ChangedIds);
+        Do_PublishLinkDerive(Fixture,
+            TArray<FCk_GroundNav_LinkRecord>{Make_SpareLink(), Make_CrossingLink()}, ChangedIds);
+        TestTrue(TEXT("reenabling the crossed link produces a real link change"),
+            Get_NamesExactly(ChangedIds, kCrossingLinkId));
+
+        if (ReplanAfterLinkChange && NOT TestTrue(TEXT("new plan observes the restored link"),
+            Do_PlanAgent(Fixture, kCrossingAgent, kNearSide, kFarSide)))
+        {
+            Do_Teardown(Fixture);
+            return false;
+        }
+
+        if (NOT TestTrue(TEXT("cost derive advances the field after the link publishes"),
+            Do_PublishCostOnlyDerive(Fixture)))
+        {
+            Do_Teardown(Fixture);
+            return false;
+        }
+        Do_NotifyRebuilt(Fixture, Get_StoredCorridor(Fixture, kCrossingAgent));
+        Do_RunInvalidator(Fixture);
+        TestEqual(TEXT("only a corridor predating the link changes is invalidated"),
+            Get_IsFlagged(Fixture, kCrossingAgent), NOT ReplanAfterLinkChange);
+        Do_Teardown(Fixture);
+    }
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// The terminal boundary must reject only a route that the new Geometry field actually took away. The
+// fixture names the route's tile from an equivalent completion over the pinned field before the normal
+// slice processor gets to publish, so this cannot pass by unbuilding an unrelated tile or by failing
+// before a route exists.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Invalidation_TerminalGeometryUnbuiltRouteTileFails,
+    "CkTests.UnitTests.CkGroundNav.StreamingAcceptance.Invalidation.TerminalGeometryUnbuiltRouteTileFails",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Invalidation_TerminalGeometryUnbuiltRouteTileFails::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathinvalidation;
+
+    auto Fixture = FInvalidationFixture{};
+    if (NOT TestTrue(TEXT("the two-route scene bakes, publishes and takes an agent"),
+        Do_Setup(Fixture, TEXT("CkGroundNavTerminalUnbuiltRouteTile"), 1,
+            ECk_NavSurface_Provider::GroundNav)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    const auto Listener = TStrongObjectPtr<UCk_Test_CompletionListener_UE>{
+        NewObject<UCk_Test_CompletionListener_UE>(GetTransientPackage())};
+    auto Completion = FCk_Delegate_Request_OnCompleted{};
+    Completion.BindDynamic(Listener.Get(), &UCk_Test_CompletionListener_UE::OnRequestCompleted);
+
+    if (NOT TestTrue(TEXT("a request begins over a pinned field without publishing"),
+        Do_BeginSearchWithoutSlicing(Fixture, 0, kTwoRouteStart, kTwoRouteGoal, {}, Completion)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    auto RouteTiles = TSet<int32>{};
+    if (NOT TestTrue(TEXT("the pinned query completes through at least one fixed-lattice tile"),
+        Do_GetPinnedRouteTileIndices(Fixture, kTwoRouteStart, kTwoRouteGoal, RouteTiles)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    const auto RemovedRouteTile = RouteTiles.Array()[0];
+    if (NOT TestTrue(TEXT("a newer Geometry field makes that completed route tile Unbuilt"),
+        Do_PublishGeometryWithTileUnbuilt(Fixture, RemovedRouteTile)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    TestTrue(TEXT("the terminal slice publishes the requested Unbuilt failure"),
+        Fixture.Get_HasFreshResult(0) == false && Do_SliceUntilAnswered(Fixture, 0) == false);
+    TestEqual(TEXT("exactly one terminal publish is recorded"), Fixture.Get_PublishSequence(0), 1);
+    TestEqual(TEXT("exactly one request completion fires"), Listener->_TimesRequestCompleted, 1);
+    TestEqual(TEXT("the request completion is failure, so no Ready success completion occurred"),
+        Listener->_LastRequestResult, ECk_Request_OperationResult::Failed);
+    TestEqual(TEXT("the published terminal status is Unbuilt"),
+        Fixture.Get_Result(0).Get_Status(), ECk_GroundNav_PathStatus::Unbuilt);
+    TestFalse(TEXT("the failed terminal publish installs no stale corridor"),
+        Get_StoredCorridor(Fixture, 0).IsValid != 0);
+
+    Do_Teardown(Fixture);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// A Geometry publication can still move an unrelated tile while a search is in flight. That must
+// retain the established replan-on-publish signal without turning the successful pinned route into a
+// false Unbuilt terminal result.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Invalidation_TerminalGeometryOffRouteTilePreservesSuccessAndRepath,
+    "CkTests.UnitTests.CkGroundNav.StreamingAcceptance.Invalidation.TerminalGeometryOffRouteTilePreservesSuccessAndRepath",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Invalidation_TerminalGeometryOffRouteTilePreservesSuccessAndRepath::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathinvalidation;
+
+    auto Fixture = FInvalidationFixture{};
+    if (NOT TestTrue(TEXT("the two-route scene bakes, publishes and takes an agent"),
+        Do_Setup(Fixture, TEXT("CkGroundNavTerminalOffRouteTile"), 1,
+            ECk_NavSurface_Provider::GroundNav)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    const auto Listener = TStrongObjectPtr<UCk_Test_CompletionListener_UE>{
+        NewObject<UCk_Test_CompletionListener_UE>(GetTransientPackage())};
+    auto Completion = FCk_Delegate_Request_OnCompleted{};
+    Completion.BindDynamic(Listener.Get(), &UCk_Test_CompletionListener_UE::OnRequestCompleted);
+
+    if (NOT TestTrue(TEXT("a request begins over a pinned field without publishing"),
+        Do_BeginSearchWithoutSlicing(Fixture, 0, kTwoRouteStart, kTwoRouteGoal, {}, Completion)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    auto RouteTiles = TSet<int32>{};
+    if (NOT TestTrue(TEXT("the completed pinned route names its tile set"),
+        Do_GetPinnedRouteTileIndices(Fixture, kTwoRouteStart, kTwoRouteGoal, RouteTiles)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    auto OffRouteTile = int32{INDEX_NONE};
+    for (auto TileIndex = 0; TileIndex < Fixture._Field->_Tiles.Num(); ++TileIndex)
+    {
+        if (Fixture._Field->_Tiles[TileIndex].Get_IsBuilt() && NOT RouteTiles.Contains(TileIndex))
+        {
+            OffRouteTile = TileIndex;
+            break;
+        }
+    }
+
+    if (NOT TestTrue(TEXT("the fixture has a built tile that completed route does not traverse"),
+        OffRouteTile != INDEX_NONE))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    if (NOT TestTrue(TEXT("a newer Geometry field changes only that off-route tile"),
+        Do_PublishGeometryChangingOnlyTile(Fixture, OffRouteTile)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    // The watch's in-flight arm is deliberately driven through its existing production path. Its
+    // bounds meet the request, while the newer field itself changed only an off-route tile.
+    Do_NotifyRebuilt(Fixture, Make_BoxAround(kTwoRouteStart));
+    Do_RunInvalidator(Fixture);
+    Do_DrainPublishedRebuilds(Fixture);
+
+    TestTrue(TEXT("the terminal slice still publishes a usable route"), Do_SliceUntilAnswered(Fixture, 0));
+    TestEqual(TEXT("exactly one successful terminal publish is recorded"), Fixture.Get_PublishSequence(0), 1);
+    TestEqual(TEXT("exactly one request completion fires"), Listener->_TimesRequestCompleted, 1);
+    TestEqual(TEXT("the request completion remains success"),
+        Listener->_LastRequestResult, ECk_Request_OperationResult::Succeeded);
+    TestTrue(TEXT("the terminal status remains Ready or Partial, never Unbuilt"),
+        Fixture.Get_Result(0).Get_Status() == ECk_GroundNav_PathStatus::Ready ||
+        Fixture.Get_Result(0).Get_Status() == ECk_GroundNav_PathStatus::Partial);
+    TestTrue(TEXT("the existing in-flight repath-on-publish behavior remains armed"), Get_IsFlagged(Fixture, 0));
+
+    Do_Teardown(Fixture);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// A tagged walker pins its variant field. At terminal publication a changed default must not veto that
+// route when the tagged variant still contains every route tile; the registry snapshot must use the
+// request tag a second time rather than silently falling back to default.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_GroundNav_Invalidation_TerminalGeometryUsesCurrentProfileVariant,
+    "CkTests.UnitTests.CkGroundNav.StreamingAcceptance.Invalidation.TerminalGeometryUsesCurrentProfileVariant",
+    kCkUnitTestFlags)
+
+bool FCkTest_GroundNav_Invalidation_TerminalGeometryUsesCurrentProfileVariant::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_groundnav_pathinvalidation;
+
+    auto Fixture = FInvalidationFixture{};
+    if (NOT TestTrue(TEXT("the two-route scene bakes, publishes and takes an agent"),
+        Do_Setup(Fixture, TEXT("CkGroundNavTerminalProfileVariant"), 1,
+            ECk_NavSurface_Provider::GroundNav)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    const auto Variant = MakeShared<FCk_GroundNav_Field>(*Fixture._Field);
+    auto Variants = TMap<FGameplayTag, FCk_GroundNav_FieldPtr>{};
+    Variants.Emplace(TAG_CkTests_GroundNav_Invalidation_Profile.GetTag(), Variant);
+    world_fields::Publish(Fixture._World, FCk_Handle{}, Fixture._Field, Variants,
+        world_fields::FCk_GroundNav_PublishClaim::Geometry());
+
+    if (NOT TestTrue(TEXT("the tagged request begins over the published variant"),
+        Do_BeginSearchWithoutSlicing(Fixture, 0, kTwoRouteStart, kTwoRouteGoal,
+            TAG_CkTests_GroundNav_Invalidation_Profile.GetTag())))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    auto RouteTiles = TSet<int32>{};
+    if (NOT TestTrue(TEXT("the tagged route has a completed fixed-lattice tile set"),
+        Do_GetPinnedRouteTileIndices(Fixture, kTwoRouteStart, kTwoRouteGoal, RouteTiles)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    const auto DefaultOnlyRemovedTile = RouteTiles.Array()[0];
+    auto CurrentVariant = MakeShared<FCk_GroundNav_Field>(*Variant);
+    CurrentVariant->_Epoch = Fixture._Field->_Epoch.Get_Next();
+    for (auto& Tile : CurrentVariant->_Tiles)
+    { Tile._Epoch = CurrentVariant->_Epoch; }
+    Variants.FindChecked(TAG_CkTests_GroundNav_Invalidation_Profile.GetTag()) = CurrentVariant;
+    if (NOT TestTrue(TEXT("a newer default Geometry field removes a tagged route tile"),
+        Do_PublishGeometryWithTileUnbuilt(Fixture, DefaultOnlyRemovedTile, Variants)))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    const auto TaggedSnapshot = world_fields::TryGet_FieldSnapshot(Fixture._World, kTwoRouteStart,
+        TAG_CkTests_GroundNav_Invalidation_Profile.GetTag());
+    if (NOT TestTrue(TEXT("the current tagged lookup selects the newer intact variant"),
+        TaggedSnapshot.IsSet() && TaggedSnapshot->_Field == CurrentVariant &&
+        TaggedSnapshot->_PublishNote._LastGeometryEpoch.Get_IsNewerThan(Variant->_Epoch) &&
+        TaggedSnapshot->_Field->_Tiles[DefaultOnlyRemovedTile].Get_IsBuilt()))
+    {
+        Do_Teardown(Fixture);
+        return false;
+    }
+
+    TestTrue(TEXT("terminal publication validates against the intact tagged variant"),
+        Do_SliceUntilAnswered(Fixture, 0));
+    TestTrue(TEXT("the tagged route remains a successful terminal result"),
+        Fixture.Get_Result(0).Get_Status() == ECk_GroundNav_PathStatus::Ready ||
+        Fixture.Get_Result(0).Get_Status() == ECk_GroundNav_PathStatus::Partial);
+
+    Do_Teardown(Fixture);
     return true;
 }
 

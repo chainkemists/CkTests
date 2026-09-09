@@ -34,6 +34,7 @@ namespace ck_test_groundnav_plates
     struct FBakeResult
     {
         FCk_GroundNav_SpanField _Spans;
+        FCk_GroundNav_ConnectionField _Connections;
         FCk_GroundNav_LayerField _Layers;
         bool _Completed = false;
     };
@@ -53,13 +54,11 @@ namespace ck_test_groundnav_plates
         if (NOT DoRasterizeSpans(InGeometry, InRegion, Config, Profile, Result._Spans).Get_IsCompleted())
         { return Result; }
 
-        auto Connections = FCk_GroundNav_ConnectionField{};
-
-        if (NOT DoFilter_Walkability(Profile, Result._Spans, Connections).Get_IsCompleted())
+        if (NOT DoFilter_Walkability(Profile, Result._Spans, Result._Connections).Get_IsCompleted())
         { return Result; }
 
         Result._Completed = DoExtract_Layers(
-            Result._Spans, Connections, Result._Layers).Get_IsCompleted();
+            Result._Spans, Result._Connections, Result._Layers).Get_IsCompleted();
 
         return Result;
     }
@@ -236,7 +235,7 @@ bool FCkTest_GroundNav_Plates_FlatAndHolePlanesCollapse::RunTest(const FString& 
         auto Plates = FCk_GroundNav_PlateField{};
 
         if (NOT TestTrue(TEXT("the flat plane decomposes"),
-            DoDecompose_Plates(Baked._Spans, Baked._Layers, Tunables, Plates).Get_IsCompleted()))
+            DoDecompose_Plates(Baked._Spans, Baked._Layers, Baked._Connections, Tunables, Plates).Get_IsCompleted()))
         { return false; }
 
         TestEqual(TEXT("a 100x100 cell plane is exactly one plate"), Plates._Plates.Num(), 1);
@@ -250,7 +249,7 @@ bool FCkTest_GroundNav_Plates_FlatAndHolePlanesCollapse::RunTest(const FString& 
         { return false; }
 
         auto Plates = FCk_GroundNav_PlateField{};
-        DoDecompose_Plates(Baked._Spans, Baked._Layers, Tunables, Plates);
+        DoDecompose_Plates(Baked._Spans, Baked._Layers, Baked._Connections, Tunables, Plates);
 
         TestTrue(FString::Printf(TEXT("a plane with one hole stays at or under five plates (was %d)"),
             Plates._Plates.Num()), Plates._Plates.Num() <= 5);
@@ -282,7 +281,7 @@ bool FCkTest_GroundNav_Plates_StaircaseCountIsBoundedBothWays::RunTest(const FSt
 
     auto Plates = FCk_GroundNav_PlateField{};
     const auto Tunables = FCk_GroundNav_MergeTunables{};
-    DoDecompose_Plates(Baked._Spans, Baked._Layers, Tunables, Plates);
+    DoDecompose_Plates(Baked._Spans, Baked._Layers, Baked._Connections, Tunables, Plates);
 
     TestTrue(FString::Printf(TEXT("a 12-tread staircase lands between 12 and 24 plates (was %d)"),
         Plates._Plates.Num()),
@@ -319,14 +318,14 @@ bool FCkTest_GroundNav_Plates_DecompositionIsStable::RunTest(const FString& Para
     { return false; }
 
     auto Reference = FCk_GroundNav_PlateField{};
-    DoDecompose_Plates(Baked._Spans, Baked._Layers, Tunables, Reference);
+    DoDecompose_Plates(Baked._Spans, Baked._Layers, Baked._Connections, Tunables, Reference);
 
     // Plate indices become part of every id downstream, so a decomposition that varied between runs
     // would make those ids meaningless.
     for (auto Run = 0; Run < 100; ++Run)
     {
         auto Repeat = FCk_GroundNav_PlateField{};
-        DoDecompose_Plates(Baked._Spans, Baked._Layers, Tunables, Repeat);
+        DoDecompose_Plates(Baked._Spans, Baked._Layers, Baked._Connections, Tunables, Repeat);
 
         if (Get_PlatesMatch(Reference, Repeat))
         { continue; }
@@ -356,7 +355,7 @@ bool FCkTest_GroundNav_Plates_DecompositionIsStable::RunTest(const FString& Para
     { return false; }
 
     auto ReversedPlates = FCk_GroundNav_PlateField{};
-    DoDecompose_Plates(ReversedBake._Spans, ReversedBake._Layers, Tunables, ReversedPlates);
+    DoDecompose_Plates(ReversedBake._Spans, ReversedBake._Layers, ReversedBake._Connections, Tunables, ReversedPlates);
 
     TestTrue(TEXT("reversing geometry submission order changes nothing"),
         Get_PlatesMatch(Reference, ReversedPlates));
@@ -395,9 +394,9 @@ bool FCkTest_GroundNav_Plates_RemainsWellFormedAcrossTheTunableRange::RunTest(co
             auto RampPlates = FCk_GroundNav_PlateField{};
 
             const auto StairOk = DoDecompose_Plates(
-                StairBake._Spans, StairBake._Layers, Tunables, StairPlates).Get_IsCompleted();
+                StairBake._Spans, StairBake._Layers, StairBake._Connections, Tunables, StairPlates).Get_IsCompleted();
             const auto RampOk = DoDecompose_Plates(
-                RampBake._Spans, RampBake._Layers, Tunables, RampPlates).Get_IsCompleted();
+                RampBake._Spans, RampBake._Layers, RampBake._Connections, Tunables, RampPlates).Get_IsCompleted();
 
             if (NOT StairOk || NOT RampOk)
             {
@@ -458,7 +457,7 @@ bool FCkTest_GroundNav_Plates_ConeSeparatesSlopeFromLevelWithoutShattering::RunT
         { return false; }
 
         auto Plates = FCk_GroundNav_PlateField{};
-        DoDecompose_Plates(Baked._Spans, Baked._Layers, Tunables, Plates);
+        DoDecompose_Plates(Baked._Spans, Baked._Layers, Baked._Connections, Tunables, Plates);
 
         TestEqual(TEXT("a ramp and the landing it meets stay two plates"), Plates._Plates.Num(), 2);
     }
@@ -472,7 +471,7 @@ bool FCkTest_GroundNav_Plates_ConeSeparatesSlopeFromLevelWithoutShattering::RunT
         { return false; }
 
         auto Plates = FCk_GroundNav_PlateField{};
-        DoDecompose_Plates(Baked._Spans, Baked._Layers, Tunables, Plates);
+        DoDecompose_Plates(Baked._Spans, Baked._Layers, Baked._Connections, Tunables, Plates);
 
         const auto CellCount = Baked._Layers.Get_AssignedSpanCount();
 

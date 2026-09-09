@@ -75,6 +75,8 @@ class UCk_AutoTest_Crowd_Goal_OccupiedGoal : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        Set_CVarForTest(n"ck.Crowd.Debug.GroundNavStrictDiagnostics", "1");
+
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
