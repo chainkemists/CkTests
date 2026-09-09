@@ -101,6 +101,7 @@ namespace ck_test_groundnav_markup
     struct FBakeResult
     {
         FCk_GroundNav_SpanField _Spans;
+        FCk_GroundNav_ConnectionField _Connections;
         FCk_GroundNav_LayerField _Layers;
         bool _Completed = false;
     };
@@ -122,13 +123,11 @@ namespace ck_test_groundnav_markup
         if (NOT DoRasterizeSpans(Geometry, Region, Config, Profile, Result._Spans).Get_IsCompleted())
         { return Result; }
 
-        auto Connections = FCk_GroundNav_ConnectionField{};
-
-        if (NOT DoFilter_Walkability(Profile, Result._Spans, Connections, InMarkups).Get_IsCompleted())
+        if (NOT DoFilter_Walkability(Profile, Result._Spans, Result._Connections, InMarkups).Get_IsCompleted())
         { return Result; }
 
         Result._Completed = DoExtract_Layers(
-            Result._Spans, Connections, Result._Layers).Get_IsCompleted();
+            Result._Spans, Result._Connections, Result._Layers).Get_IsCompleted();
 
         return Result;
     }
@@ -242,8 +241,8 @@ bool FCkTest_GroundNav_Markup_ImpassableBoxMakesExactlyTheCoveredCellsImpassable
     auto PlainPlates = FCk_GroundNav_PlateField{};
     auto MarkedPlates = FCk_GroundNav_PlateField{};
 
-    DoDecompose_Plates(Plain._Spans, Plain._Layers, Tunables, PlainPlates);
-    DoDecompose_Plates(Marked._Spans, Marked._Layers, Tunables, MarkedPlates);
+    DoDecompose_Plates(Plain._Spans, Plain._Layers, Plain._Connections, Tunables, PlainPlates);
+    DoDecompose_Plates(Marked._Spans, Marked._Layers, Marked._Connections, Tunables, MarkedPlates);
 
     TestEqual(TEXT("the unmarked flat plane is exactly one plate"), PlainPlates._Plates.Num(), 1);
 
@@ -584,7 +583,7 @@ bool FCkTest_GroundNav_Markup_PlateMergeIsUnchangedWhenNoPolicyIsFed::RunTest(co
     const auto Tunables = FCk_GroundNav_MergeTunables{};
 
     auto NoView = FCk_GroundNav_PlateField{};
-    const auto NoViewResult = DoDecompose_Plates(Baked._Spans, Baked._Layers, Tunables, NoView);
+    const auto NoViewResult = DoDecompose_Plates(Baked._Spans, Baked._Layers, Baked._Connections, Tunables, NoView);
 
     // With no policy key, coplanar continuous ground is one rectangle over every cell.
     TestEqual(TEXT("a 40x40 cell plane is still exactly one plate"), NoView._Plates.Num(), 1);
@@ -596,7 +595,7 @@ bool FCkTest_GroundNav_Markup_PlateMergeIsUnchangedWhenNoPolicyIsFed::RunTest(co
     AllNone.Init(static_cast<int32>(INDEX_NONE), kFlatCells * kFlatCells * Baked._Layers._LayerCount);
 
     auto WithView = FCk_GroundNav_PlateField{};
-    const auto WithViewResult = DoDecompose_Plates(Baked._Spans, Baked._Layers, Tunables, WithView, AllNone);
+    const auto WithViewResult = DoDecompose_Plates(Baked._Spans, Baked._Layers, Baked._Connections, Tunables, WithView, AllNone);
 
     TestTrue(TEXT("an all-none policy key decomposes identically"),
         Get_ArraysEqual(NoView._Plates, WithView._Plates,
@@ -649,7 +648,7 @@ bool FCkTest_GroundNav_Markup_PlateMergeSplitsOnPolicyInequality::RunTest(const 
     auto Plates = FCk_GroundNav_PlateField{};
 
     if (NOT TestTrue(TEXT("the decomposition completes"),
-        DoDecompose_Plates(Baked._Spans, Baked._Layers, FCk_GroundNav_MergeTunables{}, Plates, CellPolicy)
+        DoDecompose_Plates(Baked._Spans, Baked._Layers, Baked._Connections, FCk_GroundNav_MergeTunables{}, Plates, CellPolicy)
             .Get_IsCompleted()))
     { return false; }
 

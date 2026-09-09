@@ -30,6 +30,9 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
     private FVector _Centre;
     private bool _RouteIssued = false;
     private bool _ReplacementRouteIssued = false;
+    private int _ReplacementPolls = 0;
+    private bool _ReplacementDiagnosticEmitted = false;
+    private bool _ReplacementSettledDiagnosticEmitted = false;
     private bool _SealedStageStarted = false;
     private bool _SealedRouteIssued = false;
     private bool _SealedPathVerified = false;
@@ -37,6 +40,8 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        Set_CVarForTest(n"ck.GroundNav.Debug.MarkupLiveDiagnostics", "1");
+
         auto LocalHandle = InHandle;
         utils_transform::Add(LocalHandle,
             FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::OneVector),
@@ -83,6 +88,22 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
             { return; }
             SpawnVolumeAndAgent(SelfHandle);
             return;
+        }
+
+        if (_ReplacementRouteIssued)
+        {
+            _ReplacementPolls += 1;
+            const auto SurfaceSettled = utils_nav_surface::Get_IsSurfaceSettled();
+            if (_ReplacementSettledDiagnosticEmitted == false && SurfaceSettled)
+            {
+                _ReplacementSettledDiagnosticEmitted = true;
+                EmitReplacementDiagnostic("first-settled", SurfaceSettled);
+            }
+            if (_ReplacementDiagnosticEmitted == false && _ReplacementPolls >= 380)
+            {
+                _ReplacementDiagnosticEmitted = true;
+                EmitReplacementDiagnostic("poll-380", SurfaceSettled);
+            }
         }
 
         const auto Status = utils_nav::Get_PathStatus(_Agent);
@@ -270,6 +291,36 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
             { return false; }
         }
         return true;
+    }
+
+    // Read-only snapshots distinguish a stale off-line body from an off-line fresh route at the
+    // first settled surface and at the existing late poll without changing the race under test.
+    private void EmitReplacementDiagnostic(FString InReason, bool InSurfaceSettled)
+    {
+        const auto Current = utils_transform::Get_EntityCurrentLocation(
+            utils_transform::DoCastChecked(FCk_Handle(_Agent)));
+        const auto Installed = utils_nav::Get_PathResult(_Agent);
+        const auto OriginEpoch = utils_ground_nav_volume::Get_BuildEpoch(_Field.Get_OriginVolume());
+        const auto SurfaceRevision = utils_nav_surface::Get_SurfaceRevision();
+        auto OracleQuery = FCk_NavSurface_PathQuery(
+            Spawn + FVector(0.0, 0.0, _Centre.Z),
+            Goal + FVector(0.0, 0.0, _Centre.Z));
+        OracleQuery.Set_AgentRadiusUu(AgentRadius);
+        const auto Oracle = utils_nav_surface::Try_FindPathSync(OracleQuery);
+        ck::crowd::Display(
+            f"[AVOIDANCEVOLUME-REPLACEMENT] reason={InReason} polls={_ReplacementPolls} settled={InSurfaceSettled} " +
+            f"originEpoch={OriginEpoch} surfaceRevision={SurfaceRevision} current={Current} " +
+            f"spawn={Spawn + FVector(0.0, 0.0, _Centre.Z)} goal={Goal + FVector(0.0, 0.0, _Centre.Z)} " +
+            f"installedStatus={Installed.Get_Status()} installed={Dump_Polyline(Installed.Get_Waypoints())} " +
+            f"oracleStatus={Oracle.Get_Status()} oracle={Dump_Polyline(Oracle.Get_Waypoints())}");
+    }
+
+    private FString Dump_Polyline(const TArray<FVector>& InWaypoints)
+    {
+        auto Dump = FString("");
+        for (auto Waypoint : InWaypoints)
+        { Dump += f"({Math::RoundToInt(float32(Waypoint.X))},{Math::RoundToInt(float32(Waypoint.Y))}) "; }
+        return Dump;
     }
 
     private bool SegmentIntersectsExpandedObb(FVector InStart, FVector InEnd)

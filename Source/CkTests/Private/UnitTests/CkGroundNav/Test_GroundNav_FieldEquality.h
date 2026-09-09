@@ -326,6 +326,25 @@ namespace ck_test_groundnav_field_equality
         return Get_FirstSeamPortalDifference(InLhs, InRhs).IsEmpty();
     }
 
+    inline auto Get_FirstSeamAdjacencyDifference(
+        const ck::groundnav::FCk_GroundNav_SeamAdjacency& InLhs,
+        const ck::groundnav::FCk_GroundNav_SeamAdjacency& InRhs) -> FString
+    {
+        if (InLhs._TileIndexA != InRhs._TileIndexA)
+        { return TEXT("._TileIndexA differs"); }
+
+        if (InLhs._TileIndexB != InRhs._TileIndexB)
+        { return TEXT("._TileIndexB differs"); }
+
+        if (InLhs._Direction != InRhs._Direction)
+        { return TEXT("._Direction differs"); }
+
+        if (InLhs._UnmatchedStubCount != InRhs._UnmatchedStubCount)
+        { return TEXT("._UnmatchedStubCount differs"); }
+
+        return Get_FirstArrayDifference(InLhs._Portals, InRhs._Portals, &Get_FirstSeamPortalDifference);
+    }
+
     inline auto Get_FirstSurfaceRefDifference(
         const ck::groundnav::FCk_GroundNav_SurfaceRef& InLhs,
         const ck::groundnav::FCk_GroundNav_SurfaceRef& InRhs) -> FString
@@ -928,6 +947,12 @@ namespace ck_test_groundnav_field_equality
 
         if (NOT SeamPortalsDiff.IsEmpty())
         { return FString::Printf(TEXT("_SeamPortals%s"), *SeamPortalsDiff); }
+
+        const auto SeamAdjacenciesDiff = Get_FirstArrayDifference(
+            InLhs._SeamAdjacencies, InRhs._SeamAdjacencies, &Get_FirstSeamAdjacencyDifference);
+
+        if (NOT SeamAdjacenciesDiff.IsEmpty())
+        { return FString::Printf(TEXT("_SeamAdjacencies%s"), *SeamAdjacenciesDiff); }
 
         const auto ResolvedLinksDiff = Get_FirstArrayDifference(
             InLhs._ResolvedLinks, InRhs._ResolvedLinks, &Get_FirstResolvedLinkDifference);
