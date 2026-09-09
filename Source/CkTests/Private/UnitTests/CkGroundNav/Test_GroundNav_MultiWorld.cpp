@@ -262,6 +262,7 @@ namespace ck_test_groundnav_multiworld
         ck::FProcessor_GroundNavVolume_Unpublish::ForEachEntity(
             DeltaT,
             InFixture._Volume,
+            InFixture._Volume.Get<ck::FFragment_GroundNavVolume_Params>(),
             InFixture._Volume.Get<ck::FFragment_GroundNavVolume_BuiltField>());
 
         ck::FProcessor_EntityLifetime_DestructionPhase_Endplay::ForEachEntity(DeltaT, VolumeEntity);
@@ -315,8 +316,8 @@ bool FCkTest_GroundNav_MultiWorld_TwoWorldsDoNotShareFields::RunTest(const FStri
         return false;
     }
 
-    world_fields::Publish(WorldA._World, WorldA._Volume, FieldA, {});
-    world_fields::Publish(WorldB._World, WorldB._Volume, FieldB, {});
+    world_fields::Publish(WorldA._World, WorldA._Volume, FieldA, {}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
+    world_fields::Publish(WorldB._World, WorldB._Volume, FieldB, {}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
     TestEqual(TEXT("world A holds exactly the one field published on world A"),
         world_fields::Get_FieldCount(WorldA._World), 1);
@@ -413,8 +414,8 @@ bool FCkTest_GroundNav_MultiWorld_RevisionOfOneWorldIsUnmovedByAnother::RunTest(
         return false;
     }
 
-    world_fields::Publish(WorldA._World, WorldA._Volume, FirstFieldOfA, {});
-    world_fields::Publish(WorldB._World, WorldB._Volume, FieldOfB, {});
+    world_fields::Publish(WorldA._World, WorldA._Volume, FirstFieldOfA, {}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
+    world_fields::Publish(WorldB._World, WorldB._Volume, FieldOfB, {}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
     const auto RevisionOfABefore = Get_WorldRevision(WorldA._World);
     const auto RevisionOfBBefore = Get_WorldRevision(WorldB._World);
@@ -437,7 +438,7 @@ bool FCkTest_GroundNav_MultiWorld_RevisionOfOneWorldIsUnmovedByAnother::RunTest(
         return false;
     }
 
-    world_fields::Publish(WorldA._World, WorldA._Volume, SecondFieldOfA, {});
+    world_fields::Publish(WorldA._World, WorldA._Volume, SecondFieldOfA, {}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
     TestEqual(TEXT("world A still holds one field: the republish replaced its volume's entry"),
         world_fields::Get_FieldCount(WorldA._World), 1);
@@ -555,8 +556,8 @@ bool FCkTest_GroundNav_MultiWorld_CleanupDropsOnlyItsOwnWorld::RunTest(const FSt
         return false;
     }
 
-    world_fields::Publish(WorldA._World, WorldA._Volume, FieldA, {});
-    world_fields::Publish(WorldB._World, WorldB._Volume, FieldB, {});
+    world_fields::Publish(WorldA._World, WorldA._Volume, FieldA, {}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
+    world_fields::Publish(WorldB._World, WorldB._Volume, FieldB, {}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
     // Both worlds are set to the value the project default is NOT, so the post-cleanup reads below
     // distinguish "the entry survived" from "the entry is gone and the default answered".
@@ -658,7 +659,7 @@ bool FCkTest_GroundNav_MultiWorld_TeardownOfAVolumeLeavesTheWorldTermInPlace::Ru
         return false;
     }
 
-    world_fields::Publish(WorldA._World, WorldA._Volume, FieldA, {});
+    world_fields::Publish(WorldA._World, WorldA._Volume, FieldA, {}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
     const auto RevisionOfABefore = Get_WorldRevision(WorldA._World);
 
@@ -727,7 +728,7 @@ bool FCkTest_GroundNav_MultiWorld_DestroyedVolumeLeavesTheRegistry::RunTest(cons
         return false;
     }
 
-    world_fields::Publish(WorldA._World, WorldA._Volume, FieldA, {});
+    world_fields::Publish(WorldA._World, WorldA._Volume, FieldA, {}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
     const auto PointInA = Make_PointInside(kWorldAOriginUu);
 

@@ -726,6 +726,7 @@ namespace ck_test_groundnav_profilevariants_volume
             FCk_Time{kSixtyHertz},
             InVolume,
             InVolume.Get<ck::FFragment_GroundNavVolume_Params>(),
+            InVolume.Get<ck::FFragment_GroundNavVolume_BuiltField>(),
             InVolume.Get<ck::FFragment_GroundNavVolume_BuildState>(),
             InVolume.Get<ck::FFragment_GroundNavVolume_RepairState>(),
             InVolume.Get<ck::FFragment_GroundNavVolume_Requests>());
@@ -866,7 +867,7 @@ bool FCkTest_GroundNav_ProfileVariants_RegistrySelectsTheVariantByTag::RunTest(c
     auto VariantFields = TMap<FGameplayTag, FCk_GroundNav_FieldPtr>{};
     VariantFields.Emplace(TAG_CkTests_GroundNav_Profile_Crawler.GetTag(), VariantField);
 
-    world_fields::Publish(Fixture._World, Fixture._VolumeEntity, DefaultField, VariantFields);
+    world_fields::Publish(Fixture._World, Fixture._VolumeEntity, DefaultField, VariantFields, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
     const auto Probe = Make_SlabCornerCellCentre();
 
@@ -888,7 +889,7 @@ bool FCkTest_GroundNav_ProfileVariants_RegistrySelectsTheVariantByTag::RunTest(c
     // baking a variant leaves nothing behind under its tag.
     world_fields::Publish(
         Fixture._World, Fixture._VolumeEntity, DefaultField,
-        TMap<FGameplayTag, FCk_GroundNav_FieldPtr>{});
+        TMap<FGameplayTag, FCk_GroundNav_FieldPtr>{}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
     TestFalse(TEXT("a dropped variant is gone from the entry"),
         world_fields::TryGet_Field(
@@ -936,7 +937,7 @@ bool FCkTest_GroundNav_ProfileVariants_UnknownProfileTagAnswersNoField::RunTest(
     auto VariantFields = TMap<FGameplayTag, FCk_GroundNav_FieldPtr>{};
     VariantFields.Emplace(TAG_CkTests_GroundNav_Profile_Crawler.GetTag(), VariantField);
 
-    world_fields::Publish(Fixture._World, Fixture._VolumeEntity, DefaultField, VariantFields);
+    world_fields::Publish(Fixture._World, Fixture._VolumeEntity, DefaultField, VariantFields, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
     const auto Probe = Make_SlabCornerCellCentre();
 
@@ -1004,7 +1005,7 @@ bool FCkTest_GroundNav_ProfileVariants_NeutralQueryCarriesTheProfileTag::RunTest
     auto VariantFields = TMap<FGameplayTag, FCk_GroundNav_FieldPtr>{};
     VariantFields.Emplace(TAG_CkTests_GroundNav_Profile_Crawler.GetTag(), VariantField);
 
-    world_fields::Publish(Fixture._World, Fixture._VolumeEntity, DefaultField, VariantFields);
+    world_fields::Publish(Fixture._World, Fixture._VolumeEntity, DefaultField, VariantFields, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
     auto Query = FCk_NavSurface_ProjectionQuery{Make_SlabCornerCellCentre()};
     Query.Set_SearchHalfExtents(Make_TightSearchHalfExtents());
@@ -1182,7 +1183,7 @@ namespace ck_test_groundnav_profilevariants_path
 
         world_fields::Publish(
             InOutFixture._World, InOutFixture._VolumeEntity, InOutFixture._DefaultField,
-            Make_VariantMap(InOutFixture._VariantField));
+            Make_VariantMap(InOutFixture._VariantField), ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
         UCk_Utils_NavSurface_UE::Request_SetProvider(
             InOutFixture._World, ECk_NavSurface_Provider::GroundNav);
@@ -1263,7 +1264,7 @@ namespace ck_test_groundnav_profilevariants_path
 
         world_fields::Publish(
             InOutFixture._World, InOutFixture._VolumeEntity, InOutFixture._DefaultField,
-            Make_VariantMap(InOutFixture._VariantField));
+            Make_VariantMap(InOutFixture._VariantField), ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
     }
 
     auto Do_NotifyRebuilt(
@@ -1428,7 +1429,7 @@ bool FCkTest_GroundNav_ProfileVariants_VariantRevisionNeverFalls::RunTest(const 
     auto VariantFields = TMap<FGameplayTag, FCk_GroundNav_FieldPtr>{};
     VariantFields.Emplace(TAG_CkTests_GroundNav_Profile_Crawler.GetTag(), VariantField);
 
-    world_fields::Publish(Fixture._World, Fixture._VolumeEntity, DefaultField, VariantFields);
+    world_fields::Publish(Fixture._World, Fixture._VolumeEntity, DefaultField, VariantFields, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
     const auto RevisionWithTheVariant = Table->_SurfaceRevision(Fixture._World);
 
@@ -1444,7 +1445,7 @@ bool FCkTest_GroundNav_ProfileVariants_VariantRevisionNeverFalls::RunTest(const 
     // authoring one republishes.
     world_fields::Publish(
         Fixture._World, Fixture._VolumeEntity, DefaultField,
-        TMap<FGameplayTag, FCk_GroundNav_FieldPtr>{});
+        TMap<FGameplayTag, FCk_GroundNav_FieldPtr>{}, ck::groundnav::world_fields::FCk_GroundNav_PublishClaim::Geometry());
 
     const auto RevisionAfterTheDrop = Table->_SurfaceRevision(Fixture._World);
 
