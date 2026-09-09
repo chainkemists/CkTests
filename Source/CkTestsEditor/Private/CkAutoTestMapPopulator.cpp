@@ -1076,7 +1076,14 @@ auto
 
         // Not an AutoTest wrapper (the level's floor, lights, whatever else it holds).
         // Only the wrapper population is the populator's business.
-        if (SavedActorMetaDataClass != AutoTestRunnerNativeClassPath)
+        //
+        // Resolved and tested with IsChildOf rather than string-compared to
+        // ACk_AutoTestRunner's exact path: ActorMetaDataClass records the nearest NATIVE
+        // parent, so the day someone adds a native ACk_AutoTestRunner subclass, an exact
+        // match would stop recognising those wrappers entirely -- the pre-check would report
+        // "no wrapper on disk", and load the map every boot forever.
+        const auto* SavedNativeClass = FindObject<UClass>(nullptr, *SavedActorMetaDataClass);
+        if (SavedNativeClass == nullptr || NOT SavedNativeClass->IsChildOf(ACk_AutoTestRunner::StaticClass()))
         { continue; }
 
         ++PlacedCountByClassPath.FindOrAdd(Asset.AssetClassPath);
@@ -1091,6 +1098,23 @@ auto
         OutReasonToLoad = TEXT("no AutoTest wrapper packages found on disk for this map");
         return false;
     }
+
+    // ---- HAZARD, NOT FIXED HERE: a total wipe is reachable and nothing floors it ----
+    //
+    // If the wanted set comes back EMPTY while wrappers exist on disk, every one of them is an
+    // orphan by the rules below and the full pass destroys all ~1,400 actors and SCC-deletes
+    // their packages. An empty wanted set far more likely means discovery broke -- an
+    // AngelScript compile failure this boot, or a ClassScanRoot that stopped matching (this
+    // file records that happening at the Discover_TestClasses warning) -- than that every test
+    // was deleted at once.
+    //
+    // This pre-existed the pre-check and the pre-check does not worsen it: before, the full
+    // pass ran unconditionally and would do the same. It is NOT fixed here because the honest
+    // fix does not fit in this function -- the refusal has to be a third outcome that reaches
+    // FCkAutoTestSyncResult (returning "in sync" would make the caller log a false
+    // "Already in sync" line), and it has to cover the FORCED path too, which is the more
+    // dangerous one: `Ck.SyncAutoTestMaps` after a failed AS compile wipes the map today.
+    // Recorded as an open item rather than half-done.
 
     // ---- Wanted vs placed ----------------------------------------------------------
     for (const UClass* Class : InWantedClasses)
@@ -1118,9 +1142,15 @@ auto
             return false;
         }
 
+        // IgnoreCase, matching the full pass. The relabel test at :535 compares with FString
+        // operator!=, which is case-INsensitive, so a CaseSensitive test here would report
+        // "needs relabelling" on a label differing only by case (a case-only test rename keeps
+        // the FName's display case) while the full pass then relabels nothing -- loading the
+        // map every boot, forever. Same permanent-load shape as the unloadable-wrapper bug
+        // above. One label rule means one COMPARISON rule too.
         const auto ExpectedLabel = Compute_ExpectedLabelForClass(Class);
         if (const auto* SavedLabel = PlacedLabelByClassPath.Find(ClassPath);
-            SavedLabel == nullptr || NOT SavedLabel->Equals(ExpectedLabel, ESearchCase::CaseSensitive))
+            SavedLabel == nullptr || NOT SavedLabel->Equals(ExpectedLabel, ESearchCase::IgnoreCase))
         {
             OutReasonToLoad = ck::Format_UE(
                 TEXT("wrapper for '{}' has label '{}', expected '{}' (needs relabelling)"),
@@ -1145,34 +1175,52 @@ auto
         if (WantedClassPaths.Contains(Pair.Key))
         { continue; }
 
-        // Two very different things reach here, and conflating them makes this pre-check
-        // useless on any project that has ever hot-reloaded an AngelScript test.
+        // Two very different things reach here, and the dividing line is exactly "will the
+        // level be able to construct this actor", because that is what decides whether the
+        // full pass can act on it at all.
         //
-        //  1. A LIVE runner class that this config does not want -- a test moved between
-        //     plugins, a wrapper placed in the wrong map. The full pass sees it in
-        //     Level->Actors, destroys it and deletes its external package. Genuinely
-        //     actionable, so load the map.
+        //  1. The class is RESIDENT (FindObject finds it). The linker will construct the
+        //     actor, it enters Level->Actors, and the full pass's orphan sweep destroys it
+        //     and deletes its external package. Genuinely actionable -- load the map.
         //
-        //  2. A wrapper for a class that no longer exists, or whose slot was taken by a
-        //     newer version. AngelScript renames a replaced class with a timestamp suffix
-        //     (observed on this project: `Ck_AutoTestProbeLockTolerance260514215407_Actor`),
-        //     so the package survives on disk pointing at a dead class. That actor cannot be
-        //     constructed -- it is the `Failed to load Actor for External Actor Package`
-        //     error every boot logs -- so it never enters Level->Actors and the full pass's
-        //     orphan sweep structurally cannot see it. The only code that can is the
-        //     unloadable-wrapper pass, and that is PREVIEW-ONLY unless
-        //     Ck.AutoTest.Populator.CleanupUnloadableWrappers is explicitly set.
+        //     Note this is deliberately NOT `Is_LiveTestRunnerSubclass`. That predicate is
+        //     the WANTED-set filter and is strictly narrower: it also rejects a bare
+        //     ACk_AutoTestRunner placed by hand (Blueprintable, not abstract), a
+        //     CLASS_Deprecated subclass, and a class whose AS source file is gone. Every one
+        //     of those still constructs, so the full pass still deletes it. Using the
+        //     narrower predicate here made the pre-check claim "unloadable" -- and skip --
+        //     for packages the full pass would have removed. Resident is the right test.
+        //
+        //  2. The class is ABSENT. The actor cannot be constructed -- this is the
+        //     `Failed to load Actor for External Actor Package` error on every load of this
+        //     map -- so it never enters Level->Actors and the orphan sweep structurally
+        //     cannot see it. The only code that can is the unloadable-wrapper pass, and that
+        //     is PREVIEW-ONLY unless Ck.AutoTest.Populator.CleanupUnloadableWrappers is set.
         //
         // Treating (2) as a reason to load makes the load PERMANENT: the map is loaded every
         // boot to reach a preview that changes nothing, and the stale package is never
         // cleaned, so the condition never clears. So (2) does not force a load while cleanup
         // is off -- but the preview is still emitted below, because losing the diagnostic
         // would be the silent early-return the tenets forbid.
-        const auto bClassIsLiveRunner =
-            Is_LiveTestRunnerSubclass(FindObject<UClass>(Pair.Key),
-                                      ACk_AutoTestRunner::StaticClass());
+        //
+        // WHERE THESE ORPHANS ACTUALLY COME FROM (an earlier version of this comment, and of
+        // the commit message, asserted a mechanism that is false -- corrected in review):
+        // AngelScript does NOT rename a replaced class with a timestamp. The two offenders on
+        // this project, `Ck_AutoTestProbeLockTolerance260514215407` and `...215550`, are
+        // scratch classes minted by `CkAuto/AutoTestProbes/_probe_lock_tolerance.ps1` (which
+        // timestamps its class name deliberately, to avoid AS collisions) and committed by
+        // accident in `0e50da296`. `docs/campaigns/item-entity-migration/PROGRESS.md` had
+        // already identified them as stale probe artifacts months earlier.
+        //
+        // So the real class of failure is broader and worth stating plainly: **deleting a
+        // test never cleans up its wrapper package.** In-session the removed class is often
+        // still resident, so it still looks wanted; after a restart the class is gone and
+        // cleanup is preview-only. Nothing closes the loop, which is why an orphan can sit
+        // in the tree for months. Fixing that is a separate change -- the probe script should
+        // delete what it mints, and the preview needs to be something a human acts on.
+        const auto bClassIsResident = FindObject<UClass>(Pair.Key) != nullptr;
 
-        if (bClassIsLiveRunner)
+        if (bClassIsResident)
         {
             OutReasonToLoad = ck::Format_UE(
                 TEXT("wrapper class '{}' is on disk but not wanted by this config (needs removing)"),
@@ -1192,10 +1240,18 @@ auto
         UnloadableStalePackages.Add(Pair.Key.ToString());
     }
 
+    // Latched on the CONTENTS, not just the config name. The set can change within one
+    // editor session -- a test deleted while the editor is open moves its wrapper from
+    // "resident, still wanted" to "absent, unloadable" -- and a name-only latch would
+    // swallow the first report of a newly-orphaned package.
+    auto StaleFingerprint = InConfig->Get_DisplayName();
+    for (const auto& Pkg : UnloadableStalePackages)
+    { StaleFingerprint += TEXT("|") + Pkg; }
+
     if (NOT UnloadableStalePackages.IsEmpty() &&
-        NOT _StaleWrapperPreviewReported.Contains(InConfig->Get_DisplayName()))
+        NOT _StaleWrapperPreviewReported.Contains(StaleFingerprint))
     {
-        _StaleWrapperPreviewReported.Add(InConfig->Get_DisplayName());
+        _StaleWrapperPreviewReported.Add(StaleFingerprint);
 
         // Display, not Warning, and once per config per editor session.
         //
