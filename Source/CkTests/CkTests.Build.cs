@@ -128,6 +128,7 @@ public class CkTests : CkModuleRules
                 // The Jolt incremental-cook planner and index remap are pure functions living in the
                 // editor cooker; their tests link against it directly.
                 "CkJoltEditor",
+                "CkGroundNavEditor",
             });
         }
     }

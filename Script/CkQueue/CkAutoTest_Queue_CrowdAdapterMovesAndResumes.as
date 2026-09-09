@@ -61,11 +61,25 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
     private int32                      _NavigationRetryExhaustedEvents = 0;
     private int32                      _AdvanceCompletions = 0;
     private int32                      _ExitEpisodeBeforeRequest = 0;
+    private int32                      _ClaimedMoveStillClosingPolls = 0;
+    private int32                      _ResumedClaimEventAssignmentRevision = 0;
+    private int32                      _ResumedClaimEventEpisode = 0;
+    private int32                      _ResumedClaimEventCorrelation = 0;
     private FVector                    _CapturedQueueSlot;
     private FVector                    _DisplacedLocation;
     private FVector                    _NavigationReflowTarget;
     private FVector                    _ExitGoal;
+    private float                      _ResumedClaimEventDistanceToSlot = 0.0f;
     private bool                       _ExitReachedCleanly = false;
+    private bool                       _ResumeRequested = false;
+    private bool                       _ResumedClaimEventObserved = false;
+    private bool                       _ResumedClaimEventReachedGoal = false;
+    private bool                       _ClaimedMoveStillClosingDiagnosticEmitted = false;
+    private ECk_CrowdAgent_MovementState _ResumedClaimEventMovementState = ECk_CrowdAgent_MovementState::None;
+    private FVector                    _ClaimedMoveStillClosingStartLocation;
+    private FVector                    _ClaimedMoveStillClosingStartSlot;
+    private float                      _ClaimedMoveStillClosingStartDistance = 0.0f;
+    private float                      _ClaimedMoveStillClosingStartTimeSeconds = -1.0f;
     private ECk_Request_OperationResult _JoinResult = ECk_Request_OperationResult::Failed;
     private ECk_Request_OperationResult _FollowerJoinResult = ECk_Request_OperationResult::Failed;
     private ECk_Request_OperationResult _FollowerLeaveResult = ECk_Request_OperationResult::Failed;
@@ -99,7 +113,10 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         Add_Step_WaitUntil("suppression stops the adapter-owned move", n"Check_SuppressedAndIdle");
         Add_Step("resume movement with an owner-target reflow", n"Step_RequestResumeAndReflow");
         Add_Step_WaitUntil("adapter owns a fresh reflowed move episode", n"Check_ResumedMoveIssued");
-        Add_Step_WaitUntil("claimed front member continues closing to its settle radius", n"Check_ClaimedMoveStillClosing");
+        // The resumed claim begins with a reflowed target and can require the full physical
+        // approach/ramp window before it crosses the settle radius; use the established
+        // Crowd-adapter 1200-poll movement budget while retaining the same closing contract.
+        Add_Step_WaitUntil("claimed front member continues closing to its settle radius", n"Check_ClaimedMoveStillClosing", 1200);
         Add_Step_WaitUntil("claimed front member physically settles at its slot", n"Check_ClaimedAgentSettled");
         Add_Step_WaitUntil("the resumed Crowd moves claim their queue slots", n"Check_ResumedArrival");
         Add_Step("rebuild navigation after both members claim their reservations", n"Step_RequestClaimedNavigationRebuild");
@@ -196,7 +213,22 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         if (InEvent.Get_Member().Get_Member() != FCk_Handle(_Agent))
         { return; }
         if (InEvent.Get_Reason() == ECk_Queue_EventReason::SlotReached)
-        { _SlotReachedEvents += 1; }
+        {
+            _SlotReachedEvents += 1;
+            if (_ResumeRequested && _ResumedClaimEventObserved == false)
+            {
+                const auto EventMember = InEvent.Get_Member();
+                const auto SlotLocation = EventMember.Get_TargetWorldTransform().GetLocation();
+                const auto AgentLocation = utils_transform::Get_EntityCurrentLocation(_Agent.As_Transform());
+                _ResumedClaimEventObserved = true;
+                _ResumedClaimEventAssignmentRevision = EventMember.Get_AssignmentRevision();
+                _ResumedClaimEventDistanceToSlot = float((AgentLocation - SlotLocation).Size());
+                _ResumedClaimEventMovementState = _Agent.Get_MovementState();
+                _ResumedClaimEventEpisode = _Agent.Get_ActiveMoveEpisode();
+                _ResumedClaimEventCorrelation = _Agent.Get_ActiveMoveCorrelationId();
+                _ResumedClaimEventReachedGoal = _Agent.Get_HasReachedActiveGoal();
+            }
+        }
         else if (InEvent.Get_Reason() == ECk_Queue_EventReason::Advanced
             && InEvent.Get_Member().Get_State() == ECk_Queue_MemberState::Serving)
         { _ServingAdvancedEvents += 1; }
@@ -242,6 +274,8 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         QueueParams.Set_SlotClaimRadiusUu(80.0f);
         QueueParams.Set_SlotSettleRadiusUu(10.0f);
         QueueParams.Set_SlotReacquireRadiusUu(30.0f);
+        // This lifecycle fixture names the first admitted member as the front member throughout.
+        QueueParams.Set_ReserveAssignmentPolicy(ECk_Queue_ReserveAssignmentPolicy::TicketOrder);
         _Queue = utils_queue::Add(_QueueOwner, QueueParams);
         _SecondQueue = utils_queue::Add(_SecondQueueOwner,
             FCk_Fragment_Queue_ParamsData());
@@ -301,9 +335,13 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
     {
         FCk_Queue_MemberSnapshot Snapshot;
         const bool HasSnapshot = _Queue.TryGet_MemberSnapshot(FCk_Handle(_Agent), Snapshot);
+        FCk_Queue_MemberSnapshot FollowerSnapshot;
+        const bool HasFollowerSnapshot = _Queue.TryGet_MemberSnapshot(FCk_Handle(_Follower), FollowerSnapshot);
         const auto Episode = _Agent.Get_ActiveMoveEpisode();
         const auto Correlation = _Agent.Get_ActiveMoveCorrelationId();
-        if (HasSnapshot && Snapshot.Get_AssignmentRevision() > 0 && Episode > 0 && Correlation > 0)
+        const bool InitialRolesAreReserved = HasSnapshot && HasFollowerSnapshot
+            && Snapshot.Get_Rank() == 0 && FollowerSnapshot.Get_Rank() == 1;
+        if (InitialRolesAreReserved && Snapshot.Get_AssignmentRevision() > 0 && Episode > 0 && Correlation > 0)
         {
             _InitialAssignmentRevision = Snapshot.Get_AssignmentRevision();
             _InitialEpisode = Episode;
@@ -312,7 +350,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         auto Result = OutResult;
         Result.Set(_JoinCompletions == 1 && _JoinResult == ECk_Request_OperationResult::Succeeded
             && _FollowerJoinCompletions == 1 && _FollowerJoinResult == ECk_Request_OperationResult::Succeeded
-            && HasSnapshot && Snapshot.Get_AssignmentRevision() > 0 && Episode > 0 && Correlation > 0);
+            && InitialRolesAreReserved && Snapshot.Get_AssignmentRevision() > 0 && Episode > 0 && Correlation > 0);
     }
 
     UFUNCTION()
@@ -482,6 +520,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
     UFUNCTION()
     private void Step_RequestResumeAndReflow(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
+        _ResumeRequested = true;
         _Queue.Request_SetMovementSuppressed(
             FCk_Request_Queue_SetMovementSuppressed(FCk_Handle(_Agent), ECk_EnableDisable::Disable),
             FCk_Delegate_Request_OnCompleted(this, n"OnResumeCompleted"));
@@ -578,6 +617,13 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         const auto SlotLocation = HasSnapshot ? Snapshot.Get_TargetWorldTransform().GetLocation() : FVector::ZeroVector;
         const auto AgentLocation = utils_transform::Get_EntityCurrentLocation(_Agent.As_Transform());
         const auto DistanceToSlot = float((AgentLocation - SlotLocation).Size());
+        if (_ClaimedMoveStillClosingStartTimeSeconds < 0.0f)
+        {
+            _ClaimedMoveStillClosingStartLocation = AgentLocation;
+            _ClaimedMoveStillClosingStartSlot = SlotLocation;
+            _ClaimedMoveStillClosingStartDistance = DistanceToSlot;
+            _ClaimedMoveStillClosingStartTimeSeconds = System::GetGameTimeInSeconds();
+        }
         const bool IsStillClosing = DistanceToSlot > _Queue.Get_SlotSettleRadiusUu()
             || _Agent.Get_MovementState() != ECk_CrowdAgent_MovementState::Idle;
         const bool ClaimedBeforeSettled = HasSnapshot
@@ -589,6 +635,25 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
             _ClaimedAssignmentRevision = Snapshot.Get_AssignmentRevision();
             _ClaimedSlotReachedEvents = _SlotReachedEvents;
             _CapturedQueueSlot = SlotLocation;
+        }
+        else
+        {
+            _ClaimedMoveStillClosingPolls += 1;
+            if (_ClaimedMoveStillClosingPolls == 240 && _ClaimedMoveStillClosingDiagnosticEmitted == false)
+            {
+                _ClaimedMoveStillClosingDiagnosticEmitted = true;
+                const auto LiveState = HasSnapshot ? Snapshot.Get_State() : ECk_Queue_MemberState::PendingAdmission;
+                const auto LiveAssignment = HasSnapshot ? Snapshot.Get_AssignmentRevision() : 0;
+                FCk_Handle Generic = _Agent;
+                const auto CurrentVelocity = utils_velocity::Get_CurrentVelocity(
+                    utils_velocity::DoCastChecked(Generic));
+                const auto DesiredVelocity = utils_crowd_agent::Get_DesiredVelocity(_Agent);
+                const auto ActiveGoal = utils_crowd_agent::Get_ActiveGoal(_Agent);
+                const auto ElapsedSeconds = System::GetGameTimeInSeconds()
+                    - _ClaimedMoveStillClosingStartTimeSeconds;
+                const auto ActiveGoalDistanceToSlot = float((ActiveGoal - SlotLocation).Size());
+                Log(f"[QUEUE-CLAIM-DIAG] polls={_ClaimedMoveStillClosingPolls} elapsed={ElapsedSeconds} startLocation={_ClaimedMoveStillClosingStartLocation} startSlot={_ClaimedMoveStillClosingStartSlot} startDistance={_ClaimedMoveStillClosingStartDistance} agentLocation={AgentLocation} slotLocation={SlotLocation} distance={DistanceToSlot} distanceDelta={DistanceToSlot - _ClaimedMoveStillClosingStartDistance} activeGoal={ActiveGoal} activeGoalDistanceToSlot={ActiveGoalDistanceToSlot} currentVelocity={CurrentVelocity} currentSpeed={float(CurrentVelocity.Size())} desiredVelocity={DesiredVelocity} desiredSpeed={float(DesiredVelocity.Size())} blocked={utils_crowd_agent::Get_IsGoalBlocked(_Agent)} failedHold={utils_crowd_agent::Get_IsGoalFailedHold(_Agent)} eventObserved={_ResumedClaimEventObserved} eventAssignment={_ResumedClaimEventAssignmentRevision} eventDistance={_ResumedClaimEventDistanceToSlot} eventState={_ResumedClaimEventMovementState} eventEpisode={_ResumedClaimEventEpisode} eventCorrelation={_ResumedClaimEventCorrelation} eventReachedGoal={_ResumedClaimEventReachedGoal} liveHasSnapshot={HasSnapshot} liveState={LiveState} liveAssignment={LiveAssignment} liveMovement={_Agent.Get_MovementState()} liveEpisode={_Agent.Get_ActiveMoveEpisode()} liveCorrelation={_Agent.Get_ActiveMoveCorrelationId()} liveReachedGoal={_Agent.Get_HasReachedActiveGoal()} slotReachedEvents={_SlotReachedEvents} resumedAssignment={_ResumedAssignmentRevision} resumedEpisode={_ResumedEpisode} resumedCorrelation={_ResumedCorrelation}");
+            }
         }
         auto Result = OutResult;
         Result.Set(ClaimedBeforeSettled);

@@ -80,6 +80,8 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        Set_CVarForTest(n"ck.Crowd.Debug.PathNetworkStationaryDetourDiagnostics", "1");
+
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
