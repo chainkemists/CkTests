@@ -86,12 +86,54 @@ public:
         UCkAutoTestMapConfig* InConfig);
 
 private:
+    // Both public entry points above are EXPLICIT requests (a user at the console, a
+    // designer's Blueprint), so they force the full load-and-sync pass. The automatic
+    // triggers -- subsystem Initialize and AngelScript post-compile -- call this with
+    // bInForceFullSync = false, which lets Is_AlreadyInSync_FromAssetRegistry answer
+    // "nothing to do" without loading any map.
+    //
+    // Keeping the forcing decision at the ENTRY POINT rather than inside the sync is
+    // deliberate: it means "I asked for it, so do the real thing" is always available,
+    // which is the bounded escape hatch for any case the cheap check gets wrong.
+    auto
+    Sync_AllConfigs_Internal(
+        bool bInForceFullSync) -> void;
+
     auto
     Discover_AllConfigs() -> TArray<UCkAutoTestMapConfig*>;
 
     auto
     Sync_Config_Internal(
-        UCkAutoTestMapConfig* InConfig) -> FCkAutoTestSyncResult;
+        UCkAutoTestMapConfig* InConfig,
+        bool                  bInForceFullSync) -> FCkAutoTestSyncResult;
+
+    // Cheap pre-check: can we conclude "this config's map is already correct" WITHOUT
+    // loading it?
+    //
+    // Why this exists: loading the target map is the entire cost of a populator pass.
+    // BusterBlock's two configs pull in 1,439 external-actor packages between them and
+    // take 4.89 s of blocked game-thread time in editor frame 1, on every editor boot
+    // (including every automation-test boot), only to report "0 spawned, 0 removed".
+    //
+    // Why it is not a staleness heuristic: for an OFPA level the set of placed actors IS
+    // the set of external-actor packages on disk -- the level discovers them by asset
+    // registry scan of __ExternalActors__/<MapName>/, not from a manifest in the .umap
+    // (which is why the OFPA save path below never writes the .umap). The asset registry
+    // already carries each package's actor class (AssetClassPath), its native base
+    // (ActorMetaDataClass) and its Outliner label (ActorLabel) from disk. So the same
+    // question the full pass answers by loading 1,439 packages is answerable from
+    // registry metadata, exactly, and the answer is not an approximation of the full
+    // pass -- it is the full pass's inputs, read from the cheaper source.
+    //
+    // Every uncertainty resolves toward doing the work: a non-OFPA map, an
+    // as-yet-unpopulated map, a package the registry has no class metadata for, a count
+    // mismatch, a label mismatch, an in-memory copy of the map that might differ from
+    // disk -- all return false and the full load-and-sync runs.
+    auto
+    Is_AlreadyInSync_FromAssetRegistry(
+        UCkAutoTestMapConfig* InConfig,
+        const TArray<UClass*>& InWantedClasses,
+        FString&               OutReasonToLoad) -> bool;
 
     // Builds the set of ACk_AutoTestRunner subclasses whose source matches
     // the config's ClassScanRoot filter.
@@ -102,6 +144,19 @@ private:
     static auto
     Get_AssertedSourcePathForClass(
         UClass* InClass) -> FString;
+
+    // The Outliner label the populator assigns a wrapper: the class name with the
+    // conventional "_Actor" suffix stripped. Single source of truth -- the live-actor
+    // relabel pass, the on-disk stale-wrapper detection and the asset-registry
+    // pre-check all derive the expected label from here. A second copy of this rule
+    // would let the pre-check skip a map the full pass would have relabeled.
+    static auto
+    Compute_ExpectedLabelForClassName(
+        const FString& InClassName) -> FString;
+
+    static auto
+    Compute_ExpectedLabelForClass(
+        const UClass* InClass) -> FString;
 
     static auto
     Is_LiveTestRunnerSubclass(
@@ -141,11 +196,19 @@ private:
     OnAssetRegistryFilesLoaded() -> void;
 
     auto
-    Defer_SyncToNextTick() -> void;
+    Defer_SyncToNextTick(
+        bool bInForceFullSync) -> void;
 
 private:
     FDelegateHandle _PostAngelscriptCompileHandle;
     FDelegateHandle _AssetRegistryFilesLoadedHandle;
+
+    // Config display names whose unloadable-stale-wrapper preview has already been
+    // emitted this editor session. The pre-check can run several times per boot (asset
+    // registry files-loaded, then every AngelScript post-compile), and the condition it
+    // reports is a property of what is on disk, not of this pass -- so repeating it per
+    // pass is noise, not information.
+    TSet<FString> _StaleWrapperPreviewReported;
 };
 
 // --------------------------------------------------------------------------------------------------------------------
