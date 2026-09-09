@@ -45,6 +45,22 @@ Facts marked with a date were verified against code/disk on that date.
   `Script/Common/CkTests_AutoTestMapConfig.as` - loading the level off-disk if needed and
   auto-saving. Triggers: AS PostCompile (`CkAutoTestMapPopulator.cpp:69`), AssetRegistry
   first-load (`:81`), console `Ck.SyncAutoTestMaps` (`:42`).
+- **The two AUTOMATIC triggers no longer load the map when it is already correct.**
+  `Is_AlreadyInSync_FromAssetRegistry` answers "wanted classes == placed wrappers" from
+  asset-registry metadata on the map's `__ExternalActors__/<MapName>/` packages
+  (`AssetClassPath` = wrapper class, `ActorMetaDataClass` = native base, `ActorLabel` =
+  Outliner label), which is exact rather than approximate for an OFPA level: the level
+  discovers its actor set by registry scan of that folder, not from a manifest in the
+  `.umap`. **Why it exists**: the two configs in BusterBlock pull in 1,439 external-actor
+  packages and cost **4.89 s of blocked game-thread time in editor frame 1 on EVERY editor
+  boot** (measured 2026-09-08) - including every automation-test boot, per lane - to report
+  "0 spawned, 0 removed". Every uncertainty falls through to the full pass (non-OFPA level,
+  unpopulated map, unreadable class metadata, duplicate/missing/mislabelled wrapper, orphan,
+  or the map already resident in memory where unsaved edits could differ from disk), and the
+  reason is always logged, so a boot pause is attributable. **`Ck.SyncAutoTestMaps` and the
+  BlueprintCallable entry points always force the full load-and-sync** - that is the escape
+  hatch if the pre-check is ever wrong. If a new test does not appear, run that command; if
+  it appears only then, the pre-check has a bug worth reporting rather than working around.
 - Rows appear as `Project.Functional Tests.<map>.<class-minus-_Actor>` (label strip: `:315-316`).
   Refresh Session Frontend's Automation tab to see new rows.
 
