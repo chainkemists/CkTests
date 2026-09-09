@@ -98,7 +98,7 @@ class UCk_AutoTest_Intent_LevelMaskingNonAnchorKeyKeepsActive : UCk_AutoTest_Bas
 
         Add_Step(          "mask the OTHER key only",                            n"Step_MaskOther");
         Add_Step_WaitUntil("that capture is in force",                           n"Check_OtherMasked");
-        Add_Step_WaitFrames("give a wrong-key close a real window to happen in",  30);
+        Add_Step_WaitSeconds("give a wrong-key close a real window to happen in", 0.500f);
         Add_Step(          "assert masking a non-anchor key changed nothing",    n"Step_AssertStillActive");
 
         Add_Step(          "now mask the ANCHOR key too",                        n"Step_MaskAnchor");

@@ -85,7 +85,7 @@ class UCk_AutoTest_Intent_LevelDeactivatesUnderModal : UCk_AutoTest_Base
         Add_Step_WaitUntil("the state closes",                                   n"Check_Idle");
         Add_Step(          "assert the policy closed while the fact continues",  n"Step_AssertFactVsPolicy");
 
-        Add_Step_WaitFrames("give a reactivation a real window to happen in",     30);
+        Add_Step_WaitSeconds("give a reactivation a real window to happen in", 0.500f);
         Add_Step(          "assert the held key never re-opens the state",       n"Step_AssertNoReactivation");
         Add_Step(          "let go",                                             n"Step_Release");
 

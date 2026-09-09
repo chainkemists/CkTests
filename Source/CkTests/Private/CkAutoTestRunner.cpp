@@ -3,6 +3,7 @@
 #include "CkAutoTest_Bridge.h"
 #include "CkAutoTest_Utils.h"
 
+#include "CkEcs/EntityLifetime/CkEntityLifetime_Fragment.h"
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
 #include "CkEcs/EntityScript/CkEntityScript_Utils.h"
 #include "CkEcs/EntityScript/CkEntityScript_Fragment_Data.h"
@@ -16,6 +17,7 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogCkAutoTest_Ensure, Log, All);
 DEFINE_LOG_CATEGORY_STATIC(LogCkAutoTest_EnvDrift, Display, All);
+DEFINE_LOG_CATEGORY_STATIC(LogCkAutoTest_EntityLeaks, Display, All);
 
 // --------------------------------------------------------------------------------------------------------------------
 //
@@ -99,6 +101,55 @@ namespace ck::auto_test::env_drift
     }
 }
 
+namespace ck::auto_test::entity_leaks
+{
+    // One step up the ownership chain, or an invalid handle at the root.
+    //
+    // NOT UCk_Utils_EntityLifetime_UE::Get_LifetimeOwner, and this is the whole reason this helper
+    // exists: that function opens with CK_ENSURE_IF_NOT(InHandle.Has<FFragment_LifetimeOwner>())
+    // (CkEntityLifetime_Utils.cpp:157), which is correct for its normal callers - asking a rootless
+    // entity for its owner IS a caller error - but every walk to a root ends ON a rootless entity,
+    // the world's TransientEntity above all. Calling it there fires an Error-level ensure, and an
+    // Error during a functional test is escalated by the automation framework into a FAILURE of
+    // whatever test happens to be running (spec GOTCHA 13). A detector that exists to attribute
+    // problems to the right test would have been manufacturing them instead: measured at 852
+    // ensure firings and 78 failed tests over 1701 tests before this was caught.
+    //
+    // So the walk asks the question the ensure is guarding, rather than walking into it.
+    static auto Get_OwnerOrInvalid(const FCk_Handle& InHandle) -> FCk_Handle
+    {
+        if (NOT InHandle.Has<ck::FFragment_LifetimeOwner>())
+        { return {}; }
+
+        return InHandle.Get<ck::FFragment_LifetimeOwner, ck::IsValid_Policy_IncludePendingKill>().Get_Entity();
+    }
+
+    static TAutoConsoleVariable<bool> CVar_Strict(
+        TEXT("ck.AutoTest.StrictEntityLeaks"),
+        false,
+        TEXT("When true, a test that leaves an entity alive outside its own lifetime subtree FAILS ")
+        TEXT("instead of merely warning. Off by default until a full-suite run confirms the warning ")
+        TEXT("stream is free of legitimate world-owned churn."),
+        ECVF_Default);
+
+    // Every entity that currently HAS a lifetime owner. An entity without one is a root the world
+    // owns (the transient entity itself, subsystem roots); a test never creates one, because every
+    // creation API takes an owner. So this set is exactly the population a leak can appear in, and
+    // it is one view pass rather than a walk of the whole registry.
+    static auto Capture_OwnedEntities(const FCk_Registry& InRegistry) -> TSet<FCk_Entity>
+    {
+        TSet<FCk_Entity> Out;
+
+        InRegistry.View<ck::FFragment_LifetimeOwner>().ForEach(
+            [&Out](FCk_Entity InEntity, const ck::FFragment_LifetimeOwner&) -> void
+            {
+                Out.Add(InEntity);
+            });
+
+        return Out;
+    }
+}
+
 namespace ck::auto_test::ensure_override
 {
     static int32 GActiveCount = 0;
@@ -177,6 +228,9 @@ auto
     _EnvDriftChecked = false;
     Capture_EnvironmentFingerprint();
 
+    _EntityLeaksChecked = false;
+    Capture_EntityBaseline();
+
     // Sync engine TimeLimit to the AS-author-configured _TimeoutSeconds.
     TimeLimit = FMath::Max(_TimeoutSeconds, 0.1f);
 
@@ -212,6 +266,34 @@ auto
     auto OnConstructedDelegate = FCk_Delegate_EntityScript_Constructed{};
     OnConstructedDelegate.BindDynamic(this, &ACk_AutoTestRunner::OnRunnerConstructed);
     UCk_Utils_PendingEntityScript_UE::Promise_OnConstructed(Pending, OnConstructedDelegate);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    ACk_AutoTestRunner::
+    IsReady_Implementation()
+    -> bool
+{
+    // AFunctionalTest::Tick zeroes TotalTime in StartTest, and StartTest fires on the first tick
+    // where this returns true. The base returns true unconditionally, which for THIS runner is
+    // wrong twice over:
+    //
+    //   1. PrepareTest only REQUESTS the AS test entity - Request_SpawnEntity is deferred and the
+    //      handle arrives later via OnRunnerConstructed. Starting the clock before then charges the
+    //      spawn latency to the test's declared _TimeoutSeconds, silently shortening every test's
+    //      real runway by an amount nobody declared and nobody can see.
+    //   2. It makes the skew between the engine's clock and the AS base's own deadline unbounded.
+    //      UCk_AutoTest_Base arms that deadline in DoConstruct at 0.9 * _TimeoutSeconds precisely so
+    //      it fires FIRST and the failure routes through the AS finish path (which drains
+    //      Track_ForCleanup's out-of-subtree owners and restores the test's CVar overrides - the
+    //      engine timeout path does neither). A 10% margin is only a margin if the two clocks start
+    //      together; gate the engine's on the same event the AS one is armed by and they do.
+    //
+    // A spawn that never completes is covered by PreparationTimeLimit (engine default 15s) and
+    // reports as "Test preparation timed out", which is a strictly better diagnosis than the test
+    // timeout it used to arrive as.
+    return ck::IsValid(_RunnerEntity);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -339,6 +421,42 @@ auto
         }
     }
 
+    if (NOT _EntityLeaksChecked)
+    {
+        _EntityLeaksChecked = true;
+
+        // BEFORE Destroy_RunnerEntity, deliberately. The runner's subtree is excluded by the
+        // ownership walk either way, so the answer is the same - but reading the graph while it is
+        // whole means the detector does not depend on how far a deferred cascade happens to have
+        // got, which is the kind of coupling that makes a detector lie later.
+        const auto Leaked = Get_EntityLeaks();
+
+        if (NOT Leaked.IsEmpty())
+        {
+            const auto Joined = FString::Join(Leaked, TEXT("; "));
+
+            // Display, not Warning, for the same reason as the drift report above: a Warning during
+            // a functional test is escalated to a failure through the opaque log-capture path, and
+            // failing is the strict CVar's job - with a message.
+            UE_LOG(LogCkAutoTest_EntityLeaks, Display,
+                TEXT("[%s] finished with %d entit%s alive outside its own lifetime subtree: %s. ")
+                TEXT("ACk_AutoTestRunner::Destroy_RunnerEntity cascades ONLY the runner's subtree, so ")
+                TEXT("these survive into every later test in this PIE world - and because drivers ")
+                TEXT("discover their subjects by WORLD-scoped tag scan, they break unrelated tests far ")
+                TEXT("from here. Register each out-of-subtree ROOT you create with ")
+                TEXT("UCk_AutoTest_Base::Track_ForCleanup - but NEVER the ActorRelay channel entity ")
+                TEXT("itself, which is pooled and shared with live subsystems."),
+                *GetName(), Leaked.Num(), Leaked.Num() == 1 ? TEXT("y") : TEXT("ies"), *Joined);
+
+            if (ck::auto_test::entity_leaks::CVar_Strict.GetValueOnGameThread())
+            {
+                EffectiveResult   = EFunctionalTestResult::Failed;
+                EffectiveMessage += FString::Printf(
+                    TEXT(" | leaked out-of-subtree entities: %s"), *Joined);
+            }
+        }
+    }
+
     Super::FinishTest(EffectiveResult, EffectiveMessage);
 
     Destroy_RunnerEntity();
@@ -390,6 +508,183 @@ auto
     Drift.Sort();
 
     return Drift;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    ACk_AutoTestRunner::
+    Capture_EntityBaseline()
+    -> void
+{
+    _EntityBaseline.Reset();
+    _EntityBaselineCaptured = false;
+
+    const auto* World = GetWorld();
+
+    if (NOT IsValid(World))
+    { return; }
+
+    const auto TransientEntity = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(World);
+
+    if (ck::Is_NOT_Valid(TransientEntity))
+    { return; }
+
+    // Runs before the runner entity exists - Request_SpawnEntity in PrepareTest is deferred - so
+    // the runner and everything under it correctly read as created BY this test.
+    _EntityBaseline = ck::auto_test::entity_leaks::Capture_OwnedEntities(TransientEntity.Get_RegistryView());
+    _EntityBaselineCaptured = true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    ACk_AutoTestRunner::
+    Get_EntityLeaks() const
+    -> TArray<FString>
+{
+    TArray<FString> Leaks;
+
+    const auto* World = GetWorld();
+
+    // No baseline means "cannot judge", not "nothing leaked" - report nothing rather than
+    // attributing the whole world to this test.
+    if (NOT IsValid(World) || NOT _EntityBaselineCaptured)
+    { return Leaks; }
+
+    const auto TransientEntity = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(World);
+
+    if (ck::Is_NOT_Valid(TransientEntity))
+    { return Leaks; }
+
+    const auto& Registry = TransientEntity.Get_RegistryView();
+    const auto RunnerEntity = _RunnerEntity;
+
+    // Pass 1 collects every entity that survived this test outside its subtree. Pass 2 keeps only
+    // the ROOTS of that set - see below for why reporting the leaves is useless.
+    TSet<FCk_Entity> Candidates;
+
+    Registry.View<ck::FFragment_LifetimeOwner>().ForEach(
+        [&](FCk_Entity InEntity, const ck::FFragment_LifetimeOwner&) -> void
+        {
+            // Existed before this test ran. Note this also means a leak is reported ONCE: the next
+            // test's baseline contains it, so it is not re-attributed to every test after the
+            // culprit - which is the whole failure mode this exists to end.
+            if (_EntityBaseline.Contains(InEntity))
+            { return; }
+
+            const auto Handle = ck::MakeHandle(InEntity, Registry);
+
+            if (NOT ck::IsValid(Handle, ck::IsValid_Policy_IncludePendingKill{}))
+            { return; }
+
+            // Already on its way out. This is the normal shape for anything a test DID declare via
+            // Track_ForCleanup: UCk_AutoTest_Base::Finalize requests those destroys before it writes
+            // the result, and Request_DestroyEntity stamps FTag_DestroyEntity_Initiate SYNCHRONOUSLY
+            // and recurses into Get_LifetimeDependents in the same call
+            // (CkEntityLifetime_Utils.cpp:104-108) - so the declared root AND everything under it
+            // already carry the tag by the time this runs. Without this check every well-behaved
+            // test that tracks anything would report as leaking.
+            //
+            // It does NOT cover the runner's own subtree, which is why the ancestor walk below is
+            // also needed: Destroy_RunnerEntity has not run yet at this point, so nothing under the
+            // runner is tagged.
+            if (UCk_Utils_EntityLifetime_UE::Get_IsPendingDestroy(
+                    Handle, ECk_EntityLifetime_DestructionPhase::BeginDestroy))
+            { return; }
+
+            // Walk to the lifetime root. Anything AT or under the runner is about to be cascaded by
+            // Destroy_RunnerEntity and is not a leak by definition.
+            //
+            // The walk starts at the entity ITSELF, not at its owner, and that is load-bearing: the
+            // runner entity is spawned in PrepareTest AFTER the baseline is captured and is parented
+            // to the world's TransientEntity, so it is "new" and its OWNER is not the runner. Start
+            // one link up and every test in the corpus reports its own runner as a leak.
+            //
+            // Pending-kill links are followed throughout: the runner may already be marked by the
+            // time some other path reaches here, and a chain that stopped at a marked link would
+            // read as rooted somewhere else and be reported as a leak.
+            auto Node = Handle;
+
+            // Bounded by construction, but the bound is written down rather than assumed: a cycle
+            // in the ownership graph would otherwise hang the whole run here.
+            constexpr auto MaxDepth = 64;
+            auto Depth = 0;
+            auto RootedUnderRunner = false;
+
+            while (ck::IsValid(Node, ck::IsValid_Policy_IncludePendingKill{}) && Depth++ < MaxDepth)
+            {
+                if (Node == RunnerEntity)
+                {
+                    RootedUnderRunner = true;
+                    break;
+                }
+
+                Node = ck::auto_test::entity_leaks::Get_OwnerOrInvalid(Node);
+            }
+
+            if (RootedUnderRunner)
+            { return; }
+
+            Candidates.Add(InEntity);
+        });
+
+    // Pass 2 - report ROOTS ONLY.
+    //
+    // A leak is one entity that escaped, not one per fragment composed onto it. When an NPC pawn
+    // leaks under ck::TransientEntity(), everything built onto it leaks with it - its StateMachine
+    // states and transitions, its attributes, its SceneNodes, its interaction channels, its
+    // UnrealComponents, its ISM renderer entries - and every one of those is a candidate above,
+    // because each one's lifetime root is the leaked pawn rather than the runner.
+    //
+    // Reporting them all is not merely verbose, it defeats the point. The first full-suite run of
+    // this detector produced 386 entity names across 40 tests, one of them naming 276 entities for a
+    // single crowd test. "276 entities" is noise; "3 leaked NPC roots" is a work item, and the work
+    // is the same either way because destroying the root cascades the rest.
+    //
+    // So: an entity whose ownership chain reaches ANOTHER candidate is that candidate's child and is
+    // dropped. What remains is the set of things that actually escaped.
+    for (const auto& Candidate : Candidates)
+    {
+        const auto Handle = ck::MakeHandle(Candidate, Registry);
+
+        auto Node = ck::auto_test::entity_leaks::Get_OwnerOrInvalid(Handle);
+
+        constexpr auto MaxDepth = 64;
+        auto Depth = 0;
+        auto HasLeakedAncestor = false;
+
+        while (ck::IsValid(Node, ck::IsValid_Policy_IncludePendingKill{}) && Depth++ < MaxDepth)
+        {
+            if (Candidates.Contains(Node.Get_Entity()))
+            {
+                HasLeakedAncestor = true;
+                break;
+            }
+
+            Node = ck::auto_test::entity_leaks::Get_OwnerOrInvalid(Node);
+        }
+
+        if (HasLeakedAncestor)
+        { continue; }
+
+        Leaks.Add(FString::Printf(TEXT("%s [%s]"),
+            *Handle.Get_DebugName().ToString(), *Candidate.ToString()));
+    }
+
+    Leaks.Sort();
+
+    // The composed children are still worth a number - it says how much came with each root - so the
+    // caller reports both. Encoded rather than returned separately to keep this a TArray<FString>
+    // like Get_EnvironmentDrift beside it.
+    if (NOT Leaks.IsEmpty() && Candidates.Num() > Leaks.Num())
+    {
+        Leaks.Add(FString::Printf(
+            TEXT("(+%d composed child entities under those roots, which the cascade takes with them)"),
+            Candidates.Num() - Leaks.Num()));
+    }
+
+    return Leaks;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

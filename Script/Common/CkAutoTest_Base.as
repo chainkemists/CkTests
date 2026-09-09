@@ -82,12 +82,26 @@ struct FCk_AutoTest_Step
     // fault. Doubles as the frame count for a predicate-less settle step.
     UPROPERTY() int32 _FrameBudget = 0;
 
-    FCk_AutoTest_Step(FString InDisplayName = "", FName InFuncName = n"", bool InIsWait = false, int32 InFrameBudget = 0)
+    // Optional DECLARED wall-clock ceiling for this step, in seconds. 0 means "no stated bound -
+    // eventually is fine", which is the right contract for most steps. Set it when the step's whole
+    // point is that something happens WITHIN a known cadence: a step named "the later truck is
+    // targeted within rescan cadence" that cannot fail until the poll budget runs out is not
+    // asserting the cadence, it is describing it.
+    UPROPERTY() float _MaxSeconds = 0.0f;
+
+    // For a predicate-LESS settle only: the span of wall-clock it lasts. 0 means the step is a
+    // frame-counted settle instead. The two are different instruments, not two spellings of one -
+    // see Add_Step_WaitFrames / Add_Step_WaitSeconds.
+    UPROPERTY() float _SettleSeconds = 0.0f;
+
+    FCk_AutoTest_Step(FString InDisplayName = "", FName InFuncName = n"", bool InIsWait = false, int32 InFrameBudget = 0, float InMaxSeconds = 0.0f, float InSettleSeconds = 0.0f)
     {
         _DisplayName = InDisplayName;
         _FuncName = InFuncName;
         _IsWait = InIsWait;
         _FrameBudget = InFrameBudget;
+        _MaxSeconds = InMaxSeconds;
+        _SettleSeconds = InSettleSeconds;
     }
 }
 
@@ -120,8 +134,66 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     UPROPERTY()
     int32 _DefaultWaitFrameBudget = 240;
 
+    // Wall-clock floor a predicate wait cannot fail faster than, however many polls it burned.
+    //
+    // The budget above is a FRAME count, and much of what tests wait on is a WALL-CLOCK cadence - a
+    // once-a-second rescan, a settle timer, a day-cycle pulse. The two only agree at a known frame
+    // rate. This project pins one - Config/DefaultEngine.ini [SystemSettings] t.MaxFPS=60 - and at 60
+    // fps 240 polls IS the 4 seconds the field above intends; editor logs confirm it, e.g. a
+    // CapacityFallbackAndTenQueueDeterminism step-1 wait reporting "240 polls (4.00s)".
+    //
+    // The budget breaks wherever that pin does not hold, and the pin is easy to lift by accident: any
+    // harness passing `t.MaxFPS 0` un-caps the frame rate, and then 240 polls is well under a second.
+    // Measured there: Bb_AutoTest_EmployeeOrders_UnloadLifecycle_ManagerReadopts step 6 waits on
+    // BB_NpcAI_Processor_TaskStationArrival's 1.0s TruckRescanElapsed and reports "240 polls (0.45s)",
+    // i.e. declared stuck before the thing it waits for can fire even once. A CVar a prior test failed
+    // to restore does the same thing to whatever runs next.
+    //
+    // So the floor is not chasing faster machines - it makes the budget mean the same thing whether or
+    // not the frame cap is in force. At the pinned 60 fps it is inert.
+    //
+    // It only ever makes a wait MORE patient, never less: it ANDs into the FAILURE branch only, so a
+    // test that passes is unaffected, and it cannot lengthen a predicate-less WaitFrames settle. It
+    // stays bounded above by the global _TimeoutSeconds deadline, so the worst case is a wedged
+    // condition being reported by that deadline instead - which still names the pending step through
+    // Get_CurrentContextLabel, though its "raise _TimeoutSeconds" advice is then the wrong advice.
+    //
+    // WHY 2.0 AND NOT THE 4.0 THE BUDGET INTENDS: at 4.0 the floor is unreachable for the 259 tests
+    // declaring `_TimeoutSeconds = 3.0f`, because their deadline fires at 0.9*3.0 = 2.7s first. 2.0
+    // clears every cadence measured in the corpus (the longest is a 1.0s rescan) while staying
+    // reachable for those. The waits it does NOT reach are the ones waiting out multi-second PRODUCT
+    // durations - PhoneBooth_AnswerFlow waits out BB_PhoneBooth_Hfsm's AnsweringDuration - and those
+    // want a per-test override, which is what this being a UPROPERTY is for.
+    UPROPERTY()
+    float _DefaultWaitMinSeconds = 2.0f;
+
+
     // ----- Internal state -----
     private FCk_Handle SelfEntity;
+
+    // Game time at DoConstruct. THE test clock - see Get_DeadlineExceeded.
+    //
+    // A timestamp rather than an ECS timer, and that is the whole design, arrived at after two
+    // measured failures:
+    //
+    //   1. A deadline TIMER on SelfEntity fails the tests that count timers on the entity under
+    //      test. CkAutoTest_Timer_ForEach_Timer_VisitsAll adds three and asserts ForEach_Timer
+    //      visits exactly three; it saw four. AddOrReplace_ReplacesExisting expected one, saw two.
+    //   2. Moving that timer onto a private CHILD entity fails the tests that SEARCH the test
+    //      entity's dependents. CkAutoTest_SmTask_Delay_DestroysTimerOnCompletion walks
+    //      Get_LifetimeDependents breadth-first for the first dependent carrying any timer, so it
+    //      captured the harness's timer as the Delay task's and then asserted it had been destroyed.
+    //
+    // The lesson is that ANY harness state under the entity under test is observable by something -
+    // by counting it, or by searching for it. So the clock is not state: it is a number, and the
+    // check rides on ticks the test already has.
+    //
+    // Being ABSOLUTE is what preserves the 8l guarantee. The original watchdog's bug was that its
+    // timer's DURATION restarted whenever it happened to be armed, so a late arming pushed the
+    // deadline past the engine's. A timestamp taken at construct cannot drift: a fallback tick armed
+    // at 2.4s still finds the deadline at the same absolute moment, and fires immediately if it is
+    // already past.
+    private float _StartGameSeconds = 0.0f;
     private bool _Finished = false;
     private int32 _AssertionsRun = 0;
     private int32 _AssertionsFailed = 0;
@@ -135,8 +207,9 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     // (UCk_Utils_AutoTest_UE), because restoring a CVar means restoring both.
     private TArray<FName> _CVarOverrideNames;
 
-    // Armed only once a test tracks an out-of-subtree owner - see Track_ForCleanup.
-    private FCk_Handle_Timer _CleanupWatchdogTimer;
+    // Only ever created for a test that tracks cleanup owners and has no other tick of ours -
+    // see Arm_DeadlineFallbackTick.
+    private FCk_Handle_Timer _DeadlineFallbackTimer;
     private ECk_AutoTest_Status _PendingStatus = ECk_AutoTest_Status::Running;
     private FString _PendingMessage;
 
@@ -144,8 +217,12 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     private TArray<FCk_AutoTest_Step> _Steps;
     private int32 _CurrentStep = 0;
     private int32 _PollsInStep = 0;
+    // Per-STEP elapsed, reset by Do_AdvanceStep. Drives the wait floor and any declared
+    // per-step ceiling. There is deliberately no cumulative sequence timer beside it any more:
+    // the whole-test clock is _StartGameSeconds (see Get_DeadlineExceeded), and a second
+    // accumulator claiming to measure the same thing from a later origin is what 8l was.
+    private float _SecondsInStep = 0.0f;
     private bool _StepsRunning = false;
-    private float _StepsElapsedSeconds = 0.0f;
     private FCk_Handle_Timer _StepTickTimer;
 
     // ----- Standalone WaitUntil (independent of the sequencer) -----
@@ -153,6 +230,8 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     private FName _WaitContinuationName;
     private int32 _WaitPolls = 0;
     private int32 _WaitBudget = 0;
+    private float _WaitMaxSeconds = 0.0f;
+    private float _WaitSettleSeconds = 0.0f;
     private bool _WaitRunning = false;
     private float _WaitElapsedSeconds = 0.0f;
     private FCk_Handle_Timer _WaitTickTimer;
@@ -172,6 +251,8 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         // not yet constructed".
         UCk_Utils_AutoTest_UE::Set_Result(
             SelfEntity, ECk_AutoTest_Status::Running, "", 0, 0);
+
+        _StartGameSeconds = float(System::GetGameTimeInSeconds());
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -203,18 +284,48 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     // reference" (Script/ARCHITECTURE.md 9.1). The copy is not a workaround that
     // loses the write: FCk_SharedBool holds a shared cell, so the copy and the
     // parameter address the same bool.
-    protected void Add_Step_WaitUntil(const FString& InDisplayName, FName InPredicateName, int32 InFrameBudget = 0)
+    // InFrameBudget is a floor on POLLS, not a ceiling on time: a wait is not declared stuck until BOTH
+    // it and _DefaultWaitMinSeconds are exhausted, so the effective budget is max(frames, floor). No
+    // call site in the corpus passes fewer than 120 frames, so this changes nothing today.
+    //
+    // InMaxSeconds is the opposite knob and the one to reach for when the step's NAME makes a claim
+    // about timing. It is a DECLARED wall-clock ceiling, and because it is declared it beats both
+    // defaults above: a step that must converge inside a 1.0s rescan cadence fails at that bound
+    // even though the generous poll budget and the 2.0s floor would both still be patient. Leave it
+    // 0 - the default - for the ordinary "eventually" step, which is most of them.
+    protected void Add_Step_WaitUntil(const FString& InDisplayName, FName InPredicateName, int32 InFrameBudget = 0, float InMaxSeconds = 0.0f)
     {
         _Steps.Add(FCk_AutoTest_Step(InDisplayName, InPredicateName, true,
-            InFrameBudget > 0 ? InFrameBudget : _DefaultWaitFrameBudget));
+            InFrameBudget > 0 ? InFrameBudget : _DefaultWaitFrameBudget, InMaxSeconds));
     }
 
-    // A wait step that settles for a fixed number of frames. Prefer
-    // Add_Step_WaitUntil - reach for this only when there is genuinely no
-    // observable condition, e.g. asserting that something does NOT happen.
+    // A wait step that settles for a fixed number of PROCESSOR PASSES. Exactly N, at any frame
+    // rate - that is the contract, and some tests depend on it (see the spec's WaitOneFrame /
+    // WaitFrames section). Prefer Add_Step_WaitUntil over both.
+    //
+    // If what you actually need is a WINDOW OF TIME rather than a count of passes - and that is
+    // what you need whenever the settle backs a NEGATIVE assertion - use Add_Step_WaitSeconds
+    // instead. A frame count is only a duration at the frame rate it was written against.
     protected void Add_Step_WaitFrames(const FString& InDisplayName, int32 InFrames)
     {
         _Steps.Add(FCk_AutoTest_Step(InDisplayName, n"", true, InFrames > 1 ? InFrames : 1));
+    }
+
+    // A wait step that settles for a fixed SPAN OF WALL-CLOCK.
+    //
+    // THIS IS THE ONE FOR A NEGATIVE ASSERTION - "nothing happened in this window". The thing you
+    // are proving absent is driven by a wall-clock cadence (a once-a-second rescan, a settle timer,
+    // a day-cycle pulse), so the window has to be measured in the same units or it is not a window
+    // at all. A 30-frame settle is 0.5s at the pinned 60 fps (Config/DefaultEngine.ini
+    // [SystemSettings] t.MaxFPS=60) but 0.06s with the cap lifted - and at 0.06s "the count did not
+    // move" is not an assertion that CAN fail. A test whose entire purpose is to prove an absence
+    // then passes vacuously, and passes LOUDER the faster the machine.
+    //
+    // The frame budget underneath is still enforced, so the settle is max(the declared seconds, one
+    // poll) - it can never return before a single processor pass has run.
+    protected void Add_Step_WaitSeconds(const FString& InDisplayName, float InSeconds)
+    {
+        _Steps.Add(FCk_AutoTest_Step(InDisplayName, n"", true, 1, 0.0f, InSeconds));
     }
 
     // Starts the sequence. Call once, at the end of DoBeginPlay.
@@ -232,7 +343,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         _StepsRunning = true;
         _CurrentStep = 0;
         _PollsInStep = 0;
-        _StepsElapsedSeconds = 0.0f;
+        _SecondsInStep = 0.0f;
         _StepTickTimer = Do_MakePerFrameTimer(n"INTERNAL__AutoTest_StepTick");
     }
 
@@ -273,7 +384,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     {
         if (_Finished || _StepsRunning == false) { return; }
 
-        _StepsElapsedSeconds += float(InDeltaT.Get_Seconds());
+        _SecondsInStep += float(InDeltaT.Get_Seconds());
 
         if (_CurrentStep >= _Steps.Num())
         {
@@ -282,13 +393,11 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
             return;
         }
 
-        // Beat the engine's TimeLimit so the failure names the pending step
-        // instead of arriving as an anonymous TimesUp. 0.9 leaves room for the
-        // result write and the C++ runner's next poll.
-        if (_StepsElapsedSeconds > _TimeoutSeconds * 0.9f)
+        // The test's ONE deadline, measured from DoConstruct rather than from Run_Steps. A
+        // sequence-local clock is what 8l was: three of them, each anchored later than the engine's.
+        if (Get_DeadlineExceeded())
         {
-            auto Elapsed = _StepsElapsedSeconds;
-            FinishFailure(f"timed out after {Elapsed :.2}s - raise `default _TimeoutSeconds` if the test is merely slow");
+            Do_FailOnDeadline();
             return;
         }
 
@@ -301,11 +410,16 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
             return;
         }
 
-        // A wait with no predicate is a fixed-frame settle: the budget IS the wait.
+        // A wait with no predicate is a settle: the budget IS the wait. Which budget depends on
+        // which instrument the author reached for - passes (Add_Step_WaitFrames) or wall-clock
+        // (Add_Step_WaitSeconds). Both are enforced, so a seconds-settle still runs at least one
+        // poll and a frames-settle is unaffected by either.
         if (Step._FuncName == NAME_None)
         {
             _PollsInStep++;
-            if (_PollsInStep >= Step._FrameBudget) { Do_AdvanceStep(); }
+            if (_PollsInStep < Step._FrameBudget) { return; }
+            if (_SecondsInStep < Step._SettleSeconds) { return; }
+            Do_AdvanceStep();
             return;
         }
 
@@ -315,13 +429,26 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
             return;
         }
 
+        // A DECLARED ceiling is the step's stated contract, so it beats both defaults - the poll
+        // budget is a generous guard and the floor exists to stop a wait being declared stuck too
+        // early, and neither should keep waiting past a bound the author wrote down.
+        if (Step._MaxSeconds > 0.0f && _SecondsInStep >= Step._MaxSeconds)
+        {
+            auto Cond = Step._FuncName;
+            auto Bound = Step._MaxSeconds;
+            auto Elapsed = _SecondsInStep;
+            FinishFailure(f"condition '{Cond}' did not hold within the declared {Bound :.2}s bound ({Elapsed :.2}s elapsed) - the step asserts a cadence, so this is a real timing regression, not a slow machine");
+            return;
+        }
+
         _PollsInStep++;
-        if (_PollsInStep >= Step._FrameBudget)
+        if (Step._MaxSeconds <= 0.0f && _PollsInStep >= Step._FrameBudget && _SecondsInStep >= _DefaultWaitMinSeconds)
         {
             auto Cond = Step._FuncName;
             auto Budget = Step._FrameBudget;
-            auto Elapsed = _StepsElapsedSeconds;
-            FinishFailure(f"condition '{Cond}' never became true within {Budget} polls ({Elapsed :.2}s)");
+            auto Elapsed = _SecondsInStep;
+            auto Floor = _DefaultWaitMinSeconds;
+            FinishFailure(f"condition '{Cond}' never became true within {Budget} polls / {Elapsed :.2}s (floor {Floor :.2}s)");
         }
     }
 
@@ -329,6 +456,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     {
         _CurrentStep++;
         _PollsInStep = 0;
+        _SecondsInStep = 0.0f;
     }
 
     private void Do_InvokeStepAction(const FCk_AutoTest_Step& InStep)
@@ -386,7 +514,11 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     // predicate. The continuation takes the FCk_Delegate_Timer signature, the
     // same shape WaitOneFrame callbacks already use:
     //   UFUNCTION() private void Name(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    protected void WaitUntil(FName InPredicateName, FName InContinuationName, int32 InFrameBudget = 0)
+    //
+    // InMaxSeconds is the declared wall-clock ceiling, exactly as on Add_Step_WaitUntil: set it when
+    // the wait is asserting a cadence rather than merely awaiting one, and it beats both the poll
+    // budget and _DefaultWaitMinSeconds.
+    protected void WaitUntil(FName InPredicateName, FName InContinuationName, int32 InFrameBudget = 0, float InMaxSeconds = 0.0f)
     {
         if (_WaitRunning)
         {
@@ -398,6 +530,8 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         _WaitContinuationName = InContinuationName;
         _WaitPolls = 0;
         _WaitBudget = InFrameBudget > 0 ? InFrameBudget : _DefaultWaitFrameBudget;
+        _WaitMaxSeconds = InMaxSeconds;
+        _WaitSettleSeconds = 0.0f;
         _WaitElapsedSeconds = 0.0f;
         _WaitRunning = true;
 
@@ -429,6 +563,35 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         _WaitContinuationName = InContinuationName;
         _WaitPolls = 0;
         _WaitBudget = InFrames > 1 ? InFrames : 1;
+        _WaitMaxSeconds = 0.0f;
+        _WaitSettleSeconds = 0.0f;
+        _WaitElapsedSeconds = 0.0f;
+        _WaitRunning = true;
+
+        if (ck::Is_NOT_Valid(_WaitTickTimer))
+        { _WaitTickTimer = Do_MakePerFrameTimer(n"INTERNAL__AutoTest_WaitTick"); }
+        else
+        { utils_timer::Request_Resume(_WaitTickTimer); }
+    }
+
+    // Yields a fixed SPAN OF WALL-CLOCK, then calls InContinuationName. The standalone twin of
+    // Add_Step_WaitSeconds - reach for it for the same reason: a settle backing a NEGATIVE
+    // assertion has to be a real window, and a frame count is only a window at the frame rate it
+    // was written against. See Add_Step_WaitSeconds for the full argument.
+    protected void WaitSeconds(float InSeconds, FName InContinuationName)
+    {
+        if (_WaitRunning)
+        {
+            FinishFailure(f"WaitSeconds called while already waiting on '{_WaitPredicateName}' - one standalone wait at a time");
+            return;
+        }
+
+        _WaitPredicateName = NAME_None;
+        _WaitContinuationName = InContinuationName;
+        _WaitPolls = 0;
+        _WaitBudget = 1;
+        _WaitMaxSeconds = 0.0f;
+        _WaitSettleSeconds = InSeconds;
         _WaitElapsedSeconds = 0.0f;
         _WaitRunning = true;
 
@@ -445,21 +608,25 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
 
         _WaitElapsedSeconds += float(InDeltaT.Get_Seconds());
 
-        // Same deadline the sequencer uses. Without it a generous frame budget
-        // outlives the engine's TimeLimit and the run degrades right back to
-        // the anonymous TimesUp this API exists to replace.
-        if (_WaitElapsedSeconds > _TimeoutSeconds * 0.9f)
+        // Same single deadline. _WaitElapsedSeconds is reset by EVERY WaitUntil/WaitFrames call,
+        // so a check against IT gave a callback-chain test with N sequential waits N * 0.9 *
+        // _TimeoutSeconds of runway against the engine's single _TimeoutSeconds - it lost that race
+        // unconditionally, not just when it was slow. That was the unfiled half of 8l.
+        // _WaitElapsedSeconds stays as the per-wait floor accumulator below, which is what it is
+        // actually good for.
+        if (Get_DeadlineExceeded())
         {
-            auto Elapsed = _WaitElapsedSeconds;
-            FinishFailure(f"timed out after {Elapsed :.2}s - raise `default _TimeoutSeconds` if the test is merely slow");
+            Do_FailOnDeadline();
             return;
         }
 
-        // A nameless wait is a fixed-frame settle: the budget IS the wait.
+        // A nameless wait is a settle: the budget IS the wait, in whichever unit the author asked
+        // for - passes (WaitFrames) or wall-clock (WaitSeconds). Both are enforced.
         if (_WaitPredicateName == NAME_None)
         {
             _WaitPolls++;
             if (_WaitPolls < _WaitBudget) { return; }
+            if (_WaitElapsedSeconds < _WaitSettleSeconds) { return; }
             Do_DispatchWaitContinuation(InTimer, InChrono, InDeltaT);
             return;
         }
@@ -473,12 +640,24 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
             return;
         }
 
+        // A declared ceiling beats both defaults - see Add_Step_WaitUntil.
+        if (_WaitMaxSeconds > 0.0f && _WaitElapsedSeconds >= _WaitMaxSeconds)
+        {
+            auto Cond = _WaitPredicateName;
+            auto Bound = _WaitMaxSeconds;
+            auto Elapsed = _WaitElapsedSeconds;
+            FinishFailure(f"condition '{Cond}' did not hold within the declared {Bound :.2}s bound ({Elapsed :.2}s elapsed) - the wait asserts a cadence, so this is a real timing regression, not a slow machine");
+            return;
+        }
+
         _WaitPolls++;
-        if (_WaitPolls >= _WaitBudget)
+        if (_WaitMaxSeconds <= 0.0f && _WaitPolls >= _WaitBudget && _WaitElapsedSeconds >= _DefaultWaitMinSeconds)
         {
             auto Cond = _WaitPredicateName;
             auto Budget = _WaitBudget;
-            FinishFailure(f"condition '{Cond}' never became true within {Budget} polls");
+            auto Elapsed = _WaitElapsedSeconds;
+            auto Floor = _DefaultWaitMinSeconds;
+            FinishFailure(f"condition '{Cond}' never became true within {Budget} polls / {Elapsed :.2}s (floor {Floor :.2}s)");
         }
     }
 
@@ -554,6 +733,14 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         }
 
         _CVarOverrideNames.AddUnique(InName);
+
+        // Moving a CVar creates a restore obligation for the finish path, exactly as
+        // Track_ForCleanup creates a destroy obligation - so it earns the same fallback tick. A test
+        // that moves a CVar and then hangs without ever using a base wait would otherwise reach only
+        // the engine's TimeLimit, which does not run Finalize, and leave the variable moved for
+        // every test after it in the lane.
+        Arm_DeadlineFallbackTick();
+
         return true;
     }
 
@@ -591,36 +778,98 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         // cascades anyway). Destroying it would nuke the result before it is polled.
         if (InOwner == SelfEntity) { return; }
         _CleanupOwners.AddUnique(InOwner);
-        Arm_CleanupWatchdog();
+        Arm_DeadlineFallbackTick();
     }
 
-    // The engine's TimeLimit reports a timeout WITHOUT running this class's finish path, so a
-    // timed-out test never drains _CleanupOwners and every out-of-subtree entity it built survives
-    // into the rest of the lane. Fire our own deadline just inside the engine's so the failure
-    // routes through Finalize, which cleans up and names the test that wedged.
+    // THE test deadline. One clock, one origin, and the origin is the test.
     //
-    // Armed lazily, on the first Track_ForCleanup: a test that tracks nothing has nothing to leak
-    // on timeout, so the overwhelming majority of the corpus pays no timer for this at all.
-    private void Arm_CleanupWatchdog()
+    // The engine's TimeLimit reports a timeout WITHOUT running this class's finish path:
+    // AFunctionalTest::Tick calls OnTimeout -> FinishTest, and ACk_AutoTestRunner::FinishTest
+    // goes straight to Destroy_RunnerEntity. Finalize never runs there, so a test the engine
+    // times out drains NOTHING - not _CleanupOwners (every out-of-subtree entity it built
+    // survives into the rest of the lane) and not _CVarOverrideNames (every console variable it
+    // moved stays moved for every test after it). Both are silent, and both land on some later,
+    // innocent test.
+    //
+    // So this fires just inside the engine's deadline and routes the failure through
+    // FinishFailure -> Finalize, which cleans up and names the test that wedged.
+    //
+    // ARMED IN DoConstruct, UNCONDITIONALLY. That is the whole point, and it is what three
+    // earlier versions of this got wrong:
+    //   - arming on the first Track_ForCleanup only won the race if that first claim landed
+    //     inside 0.1 * _TimeoutSeconds of test start, which a test claiming an ASYNCHRONOUSLY
+    //     spawned thing cannot do by construction;
+    //   - the sequencer's own check was anchored at Run_Steps;
+    //   - the standalone wait's was anchored at each individual WaitUntil, so it reset N times
+    //     over a test the engine only gives one budget to.
+    // Every one of those origins is later than the engine's, so every one of them could lose.
+    // DoConstruct cannot: ACk_AutoTestRunner::IsReady gates StartTest - and therefore the
+    // engine's TotalTime - on the runner entity existing, i.e. on this very construct.
+    //
+    // COST: one one-shot timer per test, where the lazy arming meant most tests carried none.
+    // Bought with a NAMED timeout for every test instead of the engine's anonymous TimesUp, plus
+    // the two drains above actually happening. If this timer itself never fires - a wedged ECS,
+    // a stalled timer processor - the engine's TimeLimit is still underneath as the net, which is
+    // exactly the failure mode worth leaving it for.
+    // True once the test has been running longer than its own declared budget allows.
+    // 0.9 leaves room for the result write and the C++ runner's next poll.
+    private bool Get_DeadlineExceeded() const
     {
-        if (ck::IsValid(_CleanupWatchdogTimer)) { return; }
+        return float(System::GetGameTimeInSeconds()) - _StartGameSeconds >= _TimeoutSeconds * 0.9f;
+    }
 
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(_TimeoutSeconds * 0.9f));
-        Params.Set_StartingState(ECk_Timer_State::Running)
-              .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
+    // A test that never uses a base wait has no tick of ours to carry the check. Most such tests
+    // finish synchronously inside DoBeginPlay and cannot hang at all. The ones that CAN hang drive
+    // their own callback chain on their own timers - and they reach us through the calls that create
+    // a finish-path obligation, Track_ForCleanup (destroy) and Set_CVarForTest (restore), which is
+    // where this is armed from.
+    //
+    // KNOWN GAP, stated because it is real: a test that hangs on its own timers having created
+    // NEITHER obligation gets the engine's anonymous TimesUp rather than a named failure. The
+    // CkSceneNodeTween family is exactly that - it only reaches WaitUntil from an OnComplete that
+    // never fires. Nothing LEAKS there (no obligations were created), so this costs a diagnostic,
+    // not correctness, and it is the behaviour that predates this campaign. Closing it properly
+    // means enforcing the deadline from ACk_AutoTestRunner::Tick, which already runs every frame and
+    // would add no ECS state at all; that is the right next step and is written up in the campaign
+    // notes. It is NOT closed by arming a tick unconditionally here - that was tried twice, and both
+    // placements failed tests that count or search what is on the entity under test.
+    //
+    // Checked before creating one: no test in the corpus both calls Track_ForCleanup and counts the
+    // timers on its own entity, so this cannot repeat failure (1) above.
+    private void Arm_DeadlineFallbackTick()
+    {
+        if (_StepsRunning || _WaitRunning) { return; }
+        if (ck::IsValid(_DeadlineFallbackTimer)) { return; }
 
-        _CleanupWatchdogTimer = utils_timer::Add(SelfEntity, Params);
-        _CleanupWatchdogTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"INTERNAL__AutoTest_CleanupWatchdog"));
+        _DeadlineFallbackTimer = Do_MakePerFrameTimer(n"INTERNAL__AutoTest_DeadlineTick");
     }
 
     UFUNCTION()
-    private void INTERNAL__AutoTest_CleanupWatchdog(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void INTERNAL__AutoTest_DeadlineTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (_Finished) { return; }
+        if (Get_DeadlineExceeded() == false) { return; }
 
-        auto Where = Get_CurrentContextLabel();
+        Do_FailOnDeadline();
+    }
+
+    private void Do_FailOnDeadline()
+    {
+        auto Deadline = _TimeoutSeconds * 0.9f;
         auto Tracked = _CleanupOwners.Num();
-        FinishFailure(f"timed out with {Tracked} out-of-subtree owner(s) still tracked; failing here so they are destroyed rather than leaked into the rest of the lane (was at: {Where})");
+
+        // A test driving its own callback chain (its own timers, no Run_Steps and no WaitUntil in
+        // flight) has no context to name, and the label is empty. Say nothing rather than "at: .".
+        auto Where = Get_CurrentContextLabel();
+        FString At = "";
+        if (Where != "")
+        { At = f" at: {Where}"; }
+
+        FString Leaked = "";
+        if (Tracked > 0)
+        { Leaked = f" Destroying {Tracked} tracked out-of-subtree owner(s) rather than leaking them into the rest of the lane."; }
+
+        FinishFailure(f"timed out after {Deadline :.2}s (90% of _TimeoutSeconds){At}. Raise `default _TimeoutSeconds` if the test is merely slow.{Leaked}");
     }
 
     void FinishSuccess()
@@ -656,6 +905,8 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         _StepsRunning = false;
         if (ck::IsValid(_StepTickTimer))
         { utils_timer::Request_Pause(_StepTickTimer); }
+        if (ck::IsValid(_DeadlineFallbackTimer))
+        { utils_timer::Request_Pause(_DeadlineFallbackTimer); }
         Do_StopWaitTick();
     }
 
@@ -671,8 +922,8 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         // the restore. Synchronous: a CVar write needs no settle frame.
         Restore_CVarOverrides();
 
-        if (ck::IsValid(_CleanupWatchdogTimer))
-        { utils_timer::Request_Pause(_CleanupWatchdogTimer); }
+        if (ck::IsValid(_DeadlineFallbackTimer))
+        { utils_timer::Request_Pause(_DeadlineFallbackTimer); }
 
         if (_CleanupOwners.IsEmpty())
         {
