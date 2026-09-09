@@ -3,15 +3,11 @@
 // CK CROWD - AUTOMATION TEST: AN OFF-MESH WALKER HOLDS INSTEAD OF GLIDING
 //============================================================================
 //
-// *** THIS TEST IS RED ON THE CURRENT BUILD BY DESIGN. ***
-//
-// It is a CONTRACT test written against the DESIRED behaviour of
-// FProcessor_CrowdAgent_ConstrainToNavmesh, authored from a live repro, so that
-// the fix has a gate to turn green. Until that fix lands it fails, and its
-// failure text is the measurement.
+// This regression test keeps a real walking agent in the production
+// Euler/ConstrainToNavmesh path while it is displaced beyond recovery.
 //
 //----------------------------------------------------------------------------
-// THE HOLE
+// THE CONSTRAINT
 //----------------------------------------------------------------------------
 //
 // ConstrainToNavmesh is the SINGLE transform writer for a crowd agent: every
@@ -26,25 +22,20 @@
 //     surface delta. This is the constraint doing its job.
 //   * start does NOT project, but the 4x-radius / +/-Height recovery search
 //     finds mesh -> the agent is snapped back. This is the self-heal.
-//   * NEITHER projects -> the agent is flagged Get_IsOffNavmesh ... and then
-//     `EnqueueOffset(Displacement)` runs anyway
-//     (CkCrowdAgent_ConstrainToNavmesh_Processor.cpp, the both-fail branch).
+//   * NEITHER projects -> the agent is flagged Get_IsOffNavmesh. In Hold mode,
+//     its pending displacement is consumed without queuing a transform offset.
 //
-// That third branch is the hole. A crowd agent has no gravity and no floor
-// collision - nothing else in the pipeline will pull it down - so an agent that
-// gets beyond the recovery extent keeps travelling on whatever the solver last
-// staged, at CONSTANT Z, through open air. It does not fall, it does not stop,
-// it GLIDES. Measured in the field: an agent marched 800+uu at Z=1.00 over a
-// beach whose sand sits at Z=-382, and ended the session as a permanent
-// hoverer, every path it asked for afterwards dying as NoRouteFound.
+// A crowd agent has no gravity or floor collision, so accepting a pending
+// displacement from that third branch would carry it through open air at
+// constant Z. The fixture pins that no transform movement is admitted once
+// the agent is beyond recovery.
 //
 // The grounding lease (FFragment_CrowdAgent_Grounding, Get_IsOffNavmesh,
-// Get_SecondsOffNavmesh) REPORTS this - it is why the failure text below can
-// quote a dwell time - but reporting is all it does past +/-Height. Recovery
-// and reporting are deliberately different jobs (see
+// Get_SecondsOffNavmesh) reports the state and supplies the dwell time quoted
+// by failure text. Recovery and reporting are deliberately different jobs (see
 // Crowd_Grounding_StationaryAgentReGrounds phase D, which pins the recovery
-// extent from the other side). The missing half is what the agent is allowed to
-// do while it is being reported: the answer must be NOTHING.
+// extent from the other side). The Hold branch defines what the agent is
+// allowed to do while it is reported: no pending displacement is applied.
 //
 //----------------------------------------------------------------------------
 // WHAT THIS TEST STAGES, AND WHY IN THIS ORDER
@@ -52,9 +43,8 @@
 //
 // The field shape is "a walking agent leaves the mesh and keeps going". The
 // smallest honest manufacture of that is a walking agent that is MOVED off the
-// mesh mid-stride, because what makes the defect observable is not HOW the
-// agent got out there - it is that a nonzero staged displacement survives the
-// both-fail branch.
+// mesh mid-stride, because what matters is not HOW the agent got out there -
+// it is that a nonzero production displacement reaches the both-fail branch.
 //
 //   1. Find the navmesh's +X edge by probing, the way
 //      Crowd_PushApart_AgentStaysOnNavmesh does, rather than hardcoding a
@@ -93,15 +83,13 @@
 // THE POSITIVE CONTROL, AND THE ONE WAY A CORRECT FIX COULD TRIP IT
 //----------------------------------------------------------------------------
 //
-// A zero travel proves nothing if the agent had no commanded motion to begin
-// with, so the run also records the highest speed seen WHILE off-mesh and
-// reports INCONCLUSIVE rather than passing if it never got above the cruise
-// floor. That control is safe against the fix that is actually wanted:
-// ConstrainToNavmesh's query is Transform / Params / PendingDisplacement /
-// Grounding - it has no write access to the Velocity feature, so a fix inside
-// it cannot zero the agent's speed. A fix that ALSO stops the agent from
-// somewhere else would trip this control, and the right response then is to
-// relax the control, not to widen the travel limit.
+// A zero travel proves nothing if no movement reached the constraint. The
+// tracked CrowdDiag record therefore latches a high-speed sample inside the
+// already-confirmed empty projection box and requires two later samples to
+// remain at that observed location. The requested transform is not
+// the anchor: a previously staged offset can commit with it. This uses public
+// post-Constrain position/speed observations; it does not expose private
+// pipeline staging data just for the test.
 //
 // Z is measured across the same window and folded into the failure text rather
 // than asserted separately: a constant Z is the SIGNATURE of this defect (no
@@ -153,11 +141,10 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
     // stalls the precondition.
     private const float MinCruiseSpeedCm = 150.0;
 
-    // Matches the agent default _MaxAcceleration: one second of drive rebuilds full
-    // cruise speed, so the positive control's speed floor is reachable well inside
-    // the hold window even from the stopped start.
-    private const float DriveAccelCm = 480.0;
     private const float MinWalkBeforeDisplaceUu = 150.0;
+    private const float RecorderAnchorToleranceUu = 0.001;
+    private const int32 RequiredPostAnchorStationarySamples = 2;
+    private const int32 PostTrackSampleCensusLimit = 8;
 
     // Matches Crowd_Grounding_StationaryAgentReGrounds' settled threshold.
     private const float SettledSpeedCm = 5.0;
@@ -193,6 +180,16 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
     private float _SpeedAtDisplacement = 0.0;
     private FVector _DisplacedTo = FVector::ZeroVector;
     private int32 _OffMeshWaitPolls = 0;
+    private int32 _LastProcessedRecorderSampleIndex = 0;
+    private bool _SawPostTeleportMotionAnchor = false;
+    private int32 _PostAnchorStationarySamples = 0;
+    private float _MotionAnchorTimeSec = -1.0;
+    private FVector _MotionAnchorPos = FVector::ZeroVector;
+    private int32 _PostTrackSampleCensusCount = 0;
+    private FString _PostTrackSampleCensus;
+    private float _HighestOffMeshBoxSampleSpeedCm = -1.0;
+    private float _HighestOffMeshBoxSampleTimeSec = -1.0;
+    private FVector _HighestOffMeshBoxSamplePos = FVector::ZeroVector;
 
     private FVector _OffMeshEnterPos = FVector::ZeroVector;
     private FVector _LastSampledPos = FVector::ZeroVector;
@@ -211,6 +208,8 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
+        Set_CVarForTest(n"ck.Crowd.SampleHz", "1000");
+        Set_CVarForTest(n"ck.Crowd.MaxRecordedSamples", "65536");
 
         Add_Step(           "confirm the navmesh constraint and the grounding lease are live",
                             n"Step_AssertConstraintLive");
@@ -228,8 +227,6 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
                             n"Step_DisplaceOffMesh");
         Add_Step_WaitUntil( "the agent reports itself off-navmesh beyond recovery",
                             n"Check_ReportedOffNavmesh", OffMeshWaitBudgetPolls);
-        Add_Step(           "stop the episode and drive the off-mesh agent with raw acceleration",
-                            n"Step_DriveOffMeshward");
         Add_Step(           "latch the position, height and speed the hold is measured from",
                             n"Step_LatchOffMeshBaseline");
         Add_Step_WaitUntil( "the off-mesh agent HOLDS instead of travelling through open air",
@@ -489,11 +486,24 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         // indistinguishable from the constraint failing to correct height.
         _DisplacedTo = FVector(float64(_OffMeshX), From.Y, From.Z);
 
-        // Deliberately NOT preceded by Request_Stop, and deliberately absolute:
-        // the agent must keep the move it was given, because a cancelled move
-        // stages no displacement and the branch under test never runs. This is
-        // how every real source of the defect arrives - the world moves the
-        // agent, the agent's own commanded motion carries on.
+        // Start a new, high-rate diagnostic episode immediately before the
+        // teleport. Its public post-Constrain samples supply the positive
+        // control without exposing private pending-displacement state.
+        _LastProcessedRecorderSampleIndex = 0;
+        _SawPostTeleportMotionAnchor = false;
+        _PostAnchorStationarySamples = 0;
+        _MotionAnchorTimeSec = -1.0;
+        _MotionAnchorPos = FVector::ZeroVector;
+        _PostTrackSampleCensusCount = 0;
+        _PostTrackSampleCensus = "";
+        _HighestOffMeshBoxSampleSpeedCm = -1.0;
+        _HighestOffMeshBoxSampleTimeSec = -1.0;
+        _HighestOffMeshBoxSamplePos = FVector::ZeroVector;
+        utils_crowd_agent_diag::Track(_Agent, From, _GoalLocation);
+
+        // Deliberately NOT preceded by Request_Stop: the move must remain live
+        // long enough for its production Euler displacement to reach the
+        // constraint on the first off-mesh frame.
         utils_transform::Request_SetTransform(_AgentTransform,
             FCk_Request_Transform_SetTransform(
                 FTransform(Current.GetRotation(), _DisplacedTo, Current.GetScale3D())));
@@ -526,30 +536,6 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         }
     }
 
-    // The cruise-carried staging proved insufficient in the measured first run: the
-    // teleport lands ~2500uu off the PATH as well as off the mesh, BlockDetect's
-    // off-path heal re-paths within one cadence, the re-path brakes the agent, and
-    // steering zeroes the desired velocity of a path that cannot resolve from an
-    // off-mesh start - so the off-mesh agent carried no displacement and the contract
-    // held vacuously. Stop the movement episode entirely (an Idle agent is outside
-    // BlockDetect's view, so nothing re-paths or brakes it) and drive the displacement
-    // at the layer the field sources drive it: raw physics. The acceleration
-    // integrates into velocity, the integrator stages displacement every frame, and
-    // the both-projections-fail branch of ConstrainToNavmesh decides what happens
-    // which is exactly, and only, what this test exists to pin.
-    UFUNCTION()
-    private void Step_DriveOffMeshward(FCk_Handle InHandle, FInstancedStruct InPayload)
-    {
-        utils_crowd_agent::Request_Stop(_Agent);
-
-        FCk_Handle Generic = _Agent;
-        utils_acceleration::Request_OverrideAcceleration(
-            utils_acceleration::DoCastChecked(Generic),
-            FVector(DriveAccelCm, 0.0, 0.0));
-
-        ck::crowd::Log(f"[OFFMESH-HOLD] stopped the episode and applied {DriveAccelCm}cm/s2 of +X acceleration - displacement now comes from raw physics, beyond steering's reach");
-    }
-
     UFUNCTION()
     private void Step_LatchOffMeshBaseline(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
@@ -574,6 +560,8 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         auto Res = OutResult;
 
         if (DoValidate_Agent() == false) { return; }
+
+        if (DoObserve_PostTeleportHold() == false) { return; }
 
         const auto Pos = DoGet_Position();
         const auto Speed = DoGet_Speed();
@@ -614,10 +602,8 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
             return;
         }
 
-        // The window closing with the travel still under the limit is the
-        // contract being met the slow way - the agent is held but has not fully
-        // bled its velocity off. Accept it; Step_ReportHold still has to clear
-        // the positive control.
+        // The window closing with the travel still under the limit still has to
+        // clear the recorder-backed positive control in Step_ReportHold.
         _HoldPolls += 1;
         if (_HoldPolls >= HoldWindowPolls)
         { Res.Set(true); }
@@ -632,20 +618,68 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         FinishFailure(f"GLIDE: off-mesh agent travelled {_OffMeshTravelCm}uu at constant Z ({_OffMeshMinZ}) - the constraint passed displacement through instead of holding. It went off-mesh at {_OffMeshEnterPos} and reached {InEndPos} {InWhat} (limit {MaxOffMeshTravelCm}uu, endpoint delta {EndpointCm}uu, Z spread over the whole window {ZSpreadCm}uu, mesh edge X={_EdgeX}, off-navmesh for {DwellSec}s, peak speed while off-mesh {_OffMeshMaxSpeedCm}cm/s, speed when displaced {_SpeedAtDisplacement}cm/s, goalFailed={_GoalFailed} [{_GoalFailReason}]). A crowd agent has no gravity and no floor collision, so a displacement that survives the both-projections-fail branch of FProcessor_CrowdAgent_ConstrainToNavmesh carries the body through open air at whatever height it left the mesh at - that flat Z IS the signature. The agent that is beyond the recovery extent must be HELD, not merely reported.");
     }
 
+    private bool DoObserve_PostTeleportHold()
+    {
+        const auto Recorder = utils_crowd_agent_diag::Get_RecorderData(_Agent);
+        const auto Samples = Recorder.Get_Samples();
+
+        for (int32 Index = _LastProcessedRecorderSampleIndex; Index < Samples.Num(); ++Index)
+        {
+            const auto Sample = Samples[Index];
+            const auto SamplePos = Sample.Get_Pos();
+            const auto SampleSpeed = Sample.Get_Speed();
+            const auto IsInsideConfirmedOffMeshBox = DoIs_InsideConfirmedOffMeshBox(SamplePos);
+
+            if (_PostTrackSampleCensusCount < PostTrackSampleCensusLimit)
+            {
+                _PostTrackSampleCensus += f" [t={Sample.Get_T()} pos={SamplePos} speed={SampleSpeed}]";
+                _PostTrackSampleCensusCount += 1;
+            }
+
+            if (IsInsideConfirmedOffMeshBox && SampleSpeed > _HighestOffMeshBoxSampleSpeedCm)
+            {
+                _HighestOffMeshBoxSampleSpeedCm = SampleSpeed;
+                _HighestOffMeshBoxSampleTimeSec = Sample.Get_T();
+                _HighestOffMeshBoxSamplePos = SamplePos;
+            }
+
+            if (_SawPostTeleportMotionAnchor == false)
+            {
+                if (IsInsideConfirmedOffMeshBox == false) { continue; }
+                if (SampleSpeed < MinCruiseSpeedCm) { continue; }
+
+                _SawPostTeleportMotionAnchor = true;
+                _MotionAnchorTimeSec = Sample.Get_T();
+                _MotionAnchorPos = SamplePos;
+                continue;
+            }
+
+            const auto DriftFromAnchor = DoGet_Dist2D(SamplePos, _MotionAnchorPos);
+            if (DriftFromAnchor > RecorderAnchorToleranceUu)
+            {
+                FinishFailure(f"GLIDE: the post-teleport motion anchor at t={_MotionAnchorTimeSec}s, pos={_MotionAnchorPos} was followed by a position {SamplePos} at t={Sample.Get_T()}s (speed {SampleSpeed}cm/s, XY drift {DriftFromAnchor}uu, tolerance {RecorderAnchorToleranceUu}uu). The constraint accepted a staged off-mesh displacement instead of holding it.");
+                _LastProcessedRecorderSampleIndex = Samples.Num();
+                return false;
+            }
+
+            _PostAnchorStationarySamples += 1;
+        }
+
+        _LastProcessedRecorderSampleIndex = Samples.Num();
+        return true;
+    }
+
     UFUNCTION()
     private void Step_ReportHold(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         const auto ZSpreadCm = _OffMeshMaxZ - _OffMeshMinZ;
         const auto DwellSec = utils_crowd_agent::Get_SecondsOffNavmesh(_Agent);
 
-        // THE POSITIVE CONTROL. Zero travel is only evidence if there was
-        // commanded motion to suppress. ConstrainToNavmesh cannot write the
-        // Velocity feature (its query is Transform / Params /
-        // PendingDisplacement / Grounding), so the fix this test gates cannot
-        // trip this - but a fix that stops the agent from elsewhere would, and
-        // the answer then is to relax THIS line, never the travel limit.
-        Assert_True(_OffMeshMaxSpeedCm >= MinCruiseSpeedCm,
-            f"INCONCLUSIVE: the agent's peak speed while off the navmesh was only {_OffMeshMaxSpeedCm}cm/s (floor {MinCruiseSpeedCm}cm/s, it was doing {_SpeedAtDisplacement}cm/s when displaced). With no commanded motion the pipeline stages no displacement, the both-projections-fail branch has nothing to pass through, and a travel of {_OffMeshTravelCm}uu proves nothing about the hold.");
+        Assert_True(_SawPostTeleportMotionAnchor,
+            f"INCONCLUSIVE: no post-teleport CrowdDiag sample inside the confirmed empty box centered at X={_OffMeshX}, Y=0, Z={_FloorZ} with half-extents {OffMeshConfirmExtentUu}uu had speed >= {MinCruiseSpeedCm}cm/s. With no observed production motion at the displaced location, a travel of {_OffMeshTravelCm}uu cannot prove the hold. First {_PostTrackSampleCensusCount} post-Track samples:{_PostTrackSampleCensus}; highest in-box sample: t={_HighestOffMeshBoxSampleTimeSec}s pos={_HighestOffMeshBoxSamplePos} speed={_HighestOffMeshBoxSampleSpeedCm}cm/s.");
+
+        Assert_True(_PostAnchorStationarySamples >= RequiredPostAnchorStationarySamples,
+            f"INCONCLUSIVE: the post-teleport motion anchor at t={_MotionAnchorTimeSec}s had only {_PostAnchorStationarySamples} later high-rate recorder observations held at {_MotionAnchorPos} (need {RequiredPostAnchorStationarySamples}, tolerance {RecorderAnchorToleranceUu}uu). The run did not retain enough ordered post-anchor evidence to prove the hold.");
 
         Assert_True(_OffMeshTravelCm <= MaxOffMeshTravelCm,
             f"the off-mesh agent travelled {_OffMeshTravelCm}uu (limit {MaxOffMeshTravelCm}uu)");
@@ -654,6 +688,13 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
     }
 
     // ---- Helpers --------------------------------------------------------------------------------------
+
+    private bool DoIs_InsideConfirmedOffMeshBox(FVector InPos) const
+    {
+        return Math::Abs(float(InPos.X - _OffMeshX)) <= OffMeshConfirmExtentUu &&
+            Math::Abs(float(InPos.Y)) <= OffMeshConfirmExtentUu &&
+            Math::Abs(float(InPos.Z - _FloorZ)) <= OffMeshConfirmExtentUu;
+    }
 
     private bool DoValidate_Agent()
     {
