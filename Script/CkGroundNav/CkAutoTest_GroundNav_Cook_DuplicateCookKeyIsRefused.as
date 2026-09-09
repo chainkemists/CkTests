@@ -29,18 +29,15 @@
 // parks until Setup has run and refused it, and the completion is what says the
 // refusal reached the caller.
 //
-// A THIRD volume drives the other cook-key admission guard, at both of the same
-// sites: a cooked field index names ONE field for a volume, so a volume that
-// authors a cook key AND a profile variant would have no field under the
-// variant's tag - and a query naming that tag is answered from nothing rather
-// than from the default's ground, which would walk an agent up a step its own
-// profile cannot climb. It carries its own key, so the duplicate guard above
-// (which is judged first) cannot be what refuses it.
+// A THIRD volume carries its own cook key and a profile variant. No cook asset
+// exists, so it takes the ordinary MissingCook runtime fallback. Both the
+// default and tagged fields must publish; a keyed volume is allowed to author
+// variants, and fallback must preserve the complete profile bundle.
 //
-// ALL THREE GUARDS ENSURE, which is what makes them loud, so the actor wrapper
-// below registers their message substrings - the automation framework would
-// otherwise auto-fail the run on exactly the diagnostics this test exists to
-// produce.
+// The duplicate-key guards ensure, which is what makes them loud, so the actor
+// wrapper below registers their message substrings - the automation framework
+// would otherwise auto-fail the run on exactly the diagnostics this test exists
+// to produce.
 //
 // FIXTURE. One Static JoltBody slab whose top sits at Z 0, overhanging both
 // volumes by 200uu on every horizontal side so no cliff edge exists inside
@@ -95,8 +92,8 @@ class UCk_AutoTest_GroundNav_Cook_DuplicateCookKeyIsRefused : UCk_AutoTest_Base
     // under test is the clash, which is decided before any lookup runs.
     private const FName SharedCookKey = n"CkTests_GroundNav_Cook_Contested";
 
-    // The third volume's own key, so nothing it does is answered by the duplicate
-    // guard. What refuses it is the profile variant it authors beside the key.
+    // The third volume's own key, so its fallback is independent of the
+    // duplicate-key refusal above.
     private const FName VariantCookKey = n"CkTests_GroundNav_Cook_Variants";
 
     //------------------------------------------------------------------------
@@ -152,9 +149,9 @@ class UCk_AutoTest_GroundNav_Cook_DuplicateCookKeyIsRefused : UCk_AutoTest_Base
         Add_Step_WaitUntil("the duplicate's build request is answered",      n"Check_BuildRefused",    RefusalFrameBudget);
         Add_Step(          "the duplicate never became ground",              n"Step_AssertRefused");
         Add_Step(          "and the first volume is untouched",              n"Step_AssertFirstIntact");
-        Add_Step(          "stage a volume with a key AND a variant",        n"Step_StageVariantVolume");
-        Add_Step_WaitUntil("that volume's build request is answered",        n"Check_VariantBuildRefused", RefusalFrameBudget);
-        Add_Step(          "a cooked field carries one profile",             n"Step_AssertVariantRefused");
+        Add_Step(          "stage a keyed volume with a variant",            n"Step_StageVariantVolume");
+        Add_Step_WaitUntil("the fallback publishes both fields",             n"Check_VariantFieldsPublished", BuildFrameBudget);
+        Add_Step(          "the fallback publishes default and variant",     n"Step_AssertVariantFallback");
         Add_Step(          "report what each volume answered",               n"Step_Report");
         Add_Step(          "tear the fixture down",                          n"Step_Cleanup");
 
@@ -288,7 +285,7 @@ class UCk_AutoTest_GroundNav_Cook_DuplicateCookKeyIsRefused : UCk_AutoTest_Base
     }
 
     //------------------------------------------------------------------------
-    // The volume that authors a key AND a profile variant
+    // The keyed volume that falls back with a profile variant
     //------------------------------------------------------------------------
 
     UFUNCTION()
@@ -300,9 +297,9 @@ class UCk_AutoTest_GroundNav_Cook_DuplicateCookKeyIsRefused : UCk_AutoTest_Base
         auto ThirdParams = Make_VolumeParams(ThirdCentreX);
         ThirdParams.Set_CookKey(VariantCookKey);
 
-        // Registered natively by Test_GroundNav_ProfileVariants.cpp, which pins the variant feature
-        // over the same tag. WHICH tag it is does not matter here - what is refused is that there is
-        // one at all beside a cook key.
+        // Registered natively by Test_GroundNav_ProfileVariants.cpp, which pins
+        // the same selector. This fixture proves the keyed MissingCook fallback
+        // builds it beside its untagged default.
         TArray<FCk_GroundNav_ProfileVariant> Variants;
         Variants.Add(FCk_GroundNav_ProfileVariant(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.GroundNav.Profile.Crawler"),
@@ -313,7 +310,7 @@ class UCk_AutoTest_GroundNav_Cook_DuplicateCookKeyIsRefused : UCk_AutoTest_Base
         _ThirdVolume = utils_ground_nav_volume::Add(_ThirdVolumeEntity, ThirdParams);
 
         Assert_True(ck::IsValid(_ThirdVolume),
-            "the variant-carrying volume must be a valid volume handle - it is refused at ADMISSION, which is not the same as never being composed");
+            "the keyed variant volume must be a valid volume handle");
 
         utils_ground_nav_volume::Request_Build(_ThirdVolume, FCk_Request_GroundNavVolume_Build(),
             FCk_Delegate_Request_OnCompleted(this, n"OnVariantBuildCompleted"));
@@ -327,25 +324,31 @@ class UCk_AutoTest_GroundNav_Cook_DuplicateCookKeyIsRefused : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void Check_VariantBuildRefused(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    private void Check_VariantFieldsPublished(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
+        const auto CrawlerTag = utils_gameplay_tag::ResolveGameplayTag(n"CkTests.GroundNav.Profile.Crawler");
         auto Res = OutResult;
-        Res.Set(_VariantBuildCompletions >= 1);
+        Res.Set(utils_ground_nav_volume::Get_IsBuilt_ForProfile(_ThirdVolume, FGameplayTag()) &&
+            utils_ground_nav_volume::Get_IsBuilt_ForProfile(_ThirdVolume, CrawlerTag));
     }
 
     UFUNCTION()
-    private void Step_AssertVariantRefused(FCk_Handle InHandle, FInstancedStruct InPayload)
+    private void Step_AssertVariantFallback(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        Assert_True(_LastVariantBuildResult == ECk_Request_OperationResult::Failed,
-            f"a build asked of a volume carrying both a cook key and a profile variant must complete Failed - the index names one field per volume, so the variant's tag would be answered from nothing (got {_LastVariantBuildResult})");
+        Assert_True(_LastVariantBuildResult == ECk_Request_OperationResult::Succeeded,
+            f"a keyed volume whose complete cooked bundle is absent falls back to a runtime build successfully (got {_LastVariantBuildResult})");
 
-        Assert_True(!utils_ground_nav_volume::Get_IsBuilt(_ThirdVolume),
-            "the variant-carrying volume must never have published a field: it was refused at admission, so no build was ever armed and the refused request armed none either");
+        Assert_True(utils_ground_nav_volume::Get_IsBuilt_ForProfile(_ThirdVolume, FGameplayTag()),
+            "the keyed fallback publishes its default field");
+
+        const auto CrawlerTag = utils_gameplay_tag::ResolveGameplayTag(n"CkTests.GroundNav.Profile.Crawler");
+        Assert_True(utils_ground_nav_volume::Get_IsBuilt_ForProfile(_ThirdVolume, CrawlerTag),
+            "the keyed fallback publishes its requested profile variant beside the default");
 
         _ThirdStatus = utils_ground_nav_volume::Get_CookStatus(_ThirdVolume);
 
-        Assert_True(_ThirdStatus == ECk_GroundNav_CookStatus::RuntimeOnly,
-            f"a volume refused before its cook key was ever resolved reports RuntimeOnly, because no cooked field was looked for on its behalf (got {_ThirdStatus})");
+        Assert_True(_ThirdStatus == ECk_GroundNav_CookStatus::MissingCook,
+            f"the keyed variant volume found no complete cook bundle and honestly reports MissingCook before its runtime fallback (got {_ThirdStatus})");
     }
 
     //------------------------------------------------------------------------
@@ -451,7 +454,6 @@ class ACk_AutoTest_GroundNav_Cook_DuplicateCookKeyIsRefused_Actor : ACk_AutoTest
         TArray<FString> Out;
         Out.Add("already carries the cook key");
         Out.Add("already carries its cook key");
-        Out.Add("a cooked field carries one profile");
         return Out;
     }
 }
