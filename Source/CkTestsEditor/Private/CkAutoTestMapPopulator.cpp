@@ -93,7 +93,7 @@ auto
     else
     {
         // Already loaded (e.g. on hot-reload of this subsystem) — sync at next opportunity.
-        Defer_SyncToNextTick();
+        Defer_SyncToNextTick(/*bInForceFullSync=*/false);
     }
 }
 
@@ -127,12 +127,16 @@ auto
     OnAssetRegistryFilesLoaded()
     -> void
 {
-    Defer_SyncToNextTick();
+    // Boot path. Not forced: if the maps on disk already match the discovered test
+    // classes there is nothing to do, and loading them to find that out is the 4.89 s
+    // this deferral used to cost every editor boot.
+    Defer_SyncToNextTick(/*bInForceFullSync=*/false);
 }
 
 auto
     UCkAutoTestMapPopulator::
-    Defer_SyncToNextTick()
+    Defer_SyncToNextTick(
+        bool bInForceFullSync)
     -> void
 {
     // FTSTicker is always available regardless of editor init state, unlike
@@ -140,12 +144,12 @@ auto
     // before the timer manager has been constructed (early in UEditorEngine::Init).
     auto WeakSelf = TWeakObjectPtr<UCkAutoTestMapPopulator>{this};
     FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
-        [WeakSelf](float /*DeltaSeconds*/)
+        [WeakSelf, bInForceFullSync](float /*DeltaSeconds*/)
         {
             if (auto* Self = WeakSelf.Get();
                 ck::IsValid(Self, ck::IsValid_Policy_NullptrOnly{}))
             {
-                Self->Sync_AllConfigs();
+                Self->Sync_AllConfigs_Internal(bInForceFullSync);
             }
             return false; // one-shot — don't re-tick
         }));
@@ -161,14 +165,31 @@ auto
     // Defer to next tick — calling SpawnActor / SavePackages from inside the AS engine's
     // post-compile callback risks re-entrancy issues, and deferring also coalesces bursts
     // of compiles into a single sync pass.
-    Defer_SyncToNextTick();
+    //
+    // Not forced. A recompile that changed the test-class set is exactly what the
+    // asset-registry pre-check detects (the wanted set no longer matches what is on
+    // disk), so it falls through to the full pass on its own; a recompile that changed
+    // something else no longer drags two maps into memory.
+    Defer_SyncToNextTick(/*bInForceFullSync=*/false);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
 
 void UCkAutoTestMapPopulator::Sync_AllConfigs()
 {
-    ck::tests_editor::Log(TEXT("[CkAutoTest Populator] === Sync_AllConfigs ==="));
+    // Public entry point == explicit request (console command, Blueprint). Force the
+    // full pass; the caller asked for the real thing.
+    Sync_AllConfigs_Internal(/*bInForceFullSync=*/true);
+}
+
+auto
+    UCkAutoTestMapPopulator::
+    Sync_AllConfigs_Internal(
+        bool bInForceFullSync)
+    -> void
+{
+    ck::tests_editor::Log(TEXT("[CkAutoTest Populator] === Sync_AllConfigs (force={}) ==="),
+        bInForceFullSync ? FString{TEXT("yes")} : FString{TEXT("no")});
 
     const auto Configs = Discover_AllConfigs();
     if (Configs.Num() == 0)
@@ -184,7 +205,7 @@ void UCkAutoTestMapPopulator::Sync_AllConfigs()
 
     for (auto* Config : Configs)
     {
-        const auto Result = Sync_Config_Internal(Config);
+        const auto Result = Sync_Config_Internal(Config, bInForceFullSync);
         TotalSpawned += Result.Spawned;
         TotalRemoved += Result.Removed;
         TotalRelabeled += Result.Relabeled;
@@ -198,7 +219,8 @@ void UCkAutoTestMapPopulator::Sync_AllConfigs()
 
 FCkAutoTestSyncResult UCkAutoTestMapPopulator::Sync_Config(UCkAutoTestMapConfig* InConfig)
 {
-    return Sync_Config_Internal(InConfig);
+    // Public entry point == explicit request. See Sync_AllConfigs.
+    return Sync_Config_Internal(InConfig, /*bInForceFullSync=*/true);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -232,7 +254,8 @@ auto
 auto
     UCkAutoTestMapPopulator::
     Sync_Config_Internal(
-        UCkAutoTestMapConfig* InConfig)
+        UCkAutoTestMapConfig* InConfig,
+        bool                  bInForceFullSync)
     -> FCkAutoTestSyncResult
 {
     auto Result = FCkAutoTestSyncResult{};
@@ -252,6 +275,47 @@ auto
         Result.bSkipped = true;
         Result.SkipReason = TEXT("TargetMap is unset");
         return Result;
+    }
+
+    // ---- Pre-check: can we answer "already correct" without loading the map? --------
+    //
+    // Loading the target map IS the cost of a populator pass (BusterBlock: 4.89 s of
+    // blocked game-thread time across two configs, every editor boot, to report no
+    // changes). Explicit requests skip the pre-check and always do the real thing.
+    //
+    // This wanted set is scoped to the pre-check DELIBERATELY, and the real sync below
+    // recomputes its own after the world is resolved. Discover_TestClasses answers from
+    // the classes currently in memory, and loading the target map can ADD one: a
+    // Blueprint subclass of ACk_AutoTestRunner has no generated class until its package
+    // is loaded, which for a placed wrapper happens as part of the level load. Reusing a
+    // pre-load snapshot for the real sync would classify such a wrapper as unwanted and
+    // DELETE it, external package and all. (The project forbids Blueprint tests, but a
+    // policy is not a guard, and the failure mode here destroys a tracked asset.) In the
+    // pre-check the same blind spot is harmless and self-correcting: the class shows up
+    // as an on-disk orphan, which falls through to the full pass, which then sees it.
+    if (NOT bInForceFullSync)
+    {
+        const auto PrecheckWantedClasses = Discover_TestClasses(InConfig);
+
+        auto ReasonToLoad = FString{};
+        if (Is_AlreadyInSync_FromAssetRegistry(InConfig, PrecheckWantedClasses, ReasonToLoad))
+        {
+            ck::tests_editor::Log(
+                TEXT("[CkAutoTest Populator] [{}] Already in sync on disk — {} wrapper(s) verified ")
+                TEXT("from the asset registry, target map not loaded. Run `Ck.SyncAutoTestMaps` to ")
+                TEXT("force the full load-and-sync pass."),
+                InConfig->Get_DisplayName(), PrecheckWantedClasses.Num());
+
+            Result.AlreadyPresent = PrecheckWantedClasses.Num();
+            return Result;
+        }
+
+        // Not silent: whichever condition sent us to the slow path is named, so a 5-second
+        // boot pause is always attributable to a stated reason rather than looking like
+        // the pre-check simply does not work.
+        ck::tests_editor::Log(
+            TEXT("[CkAutoTest Populator] [{}] Loading the target map — {}"),
+            InConfig->Get_DisplayName(), ReasonToLoad);
     }
 
     // Resolve the world to sync against. If the target map is the currently-open
@@ -290,6 +354,9 @@ auto
     const auto WasDirtyOnEntry = Package->IsDirty();
 
     // ---- Build "wanted" set --------------------------------------------------------
+    //
+    // Computed HERE, after the world is resolved, not reused from the pre-check above —
+    // see the comment there for why a pre-load snapshot must never drive a deletion.
     const auto WantedClasses = Discover_TestClasses(InConfig);
     auto WantedSet = TSet<UClass*>{};
     WantedSet.Append(WantedClasses);
@@ -320,10 +387,7 @@ auto
     // uniform display state without a separate maintenance pass.
     const auto Compute_ExpectedLabel = [](const UClass* InClass) -> FString
     {
-        auto Label = InClass->GetName();
-        if (Label.EndsWith(TEXT("_Actor"), ESearchCase::IgnoreCase))
-        { Label.LeftChopInline(FString(TEXT("_Actor")).Len(), EAllowShrinking::No); }
-        return Label;
+        return Compute_ExpectedLabelForClass(InClass);
     };
 
     // ---- Pre-flight: bail with a loud notification if the .umap is locked ------------
@@ -636,8 +700,7 @@ auto
                     DesiredWrapperClassPaths.Contains(Asset.AssetClassPath))
                 { continue; }
 
-                auto ExpectedLabel = WrapperClassName;
-                ExpectedLabel.LeftChopInline(FString(TEXT("_Actor")).Len(), EAllowShrinking::No);
+                const auto ExpectedLabel = Compute_ExpectedLabelForClassName(WrapperClassName);
 
                 auto SavedActorLabel = FString{};
                 if (NOT Asset.GetTagValue(TEXT("ActorLabel"), SavedActorLabel) ||
@@ -883,6 +946,286 @@ auto
     }
 
     return Result;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCkAutoTestMapPopulator::
+    Compute_ExpectedLabelForClassName(
+        const FString& InClassName)
+    -> FString
+{
+    auto Label = InClassName;
+    if (Label.EndsWith(TEXT("_Actor"), ESearchCase::IgnoreCase))
+    { Label.LeftChopInline(FString(TEXT("_Actor")).Len(), EAllowShrinking::No); }
+    return Label;
+}
+
+auto
+    UCkAutoTestMapPopulator::
+    Compute_ExpectedLabelForClass(
+        const UClass* InClass)
+    -> FString
+{
+    if (ck::Is_NOT_Valid(InClass, ck::IsValid_Policy_NullptrOnly{}))
+    { return FString{}; }
+
+    return Compute_ExpectedLabelForClassName(InClass->GetName());
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCkAutoTestMapPopulator::
+    Is_AlreadyInSync_FromAssetRegistry(
+        UCkAutoTestMapConfig*  InConfig,
+        const TArray<UClass*>& InWantedClasses,
+        FString&               OutReasonToLoad)
+    -> bool
+{
+    OutReasonToLoad.Reset();
+
+    if (ck::Is_NOT_Valid(InConfig, ck::IsValid_Policy_NullptrOnly{}))
+    {
+        OutReasonToLoad = TEXT("null config");
+        return false;
+    }
+
+    const auto TargetWorldPath = InConfig->TargetMap.ToSoftObjectPath().GetLongPackageName();
+    if (TargetWorldPath.IsEmpty())
+    {
+        OutReasonToLoad = TEXT("target map path could not be resolved");
+        return false;
+    }
+
+    // The live editor world, and any already-resident copy of the target package, are
+    // authoritative over what is on disk -- they may carry unsaved edits the registry
+    // cannot see. Both are also nearly free to sync (Path A does no load; Path B's
+    // LoadPackage returns the resident package), so there is nothing to win by guessing.
+    if (ck::IsValid(GEditor, ck::IsValid_Policy_NullptrOnly{}))
+    {
+        if (const auto* EditorWorld = GEditor->GetEditorWorldContext().World();
+            ck::IsValid(EditorWorld, ck::IsValid_Policy_NullptrOnly{}) &&
+            EditorWorld->GetPackage()->GetName().Equals(TargetWorldPath, ESearchCase::IgnoreCase))
+        {
+            OutReasonToLoad = TEXT("target map is the open editor world (in-memory state is authoritative)");
+            return false;
+        }
+    }
+
+    if (FindPackage(nullptr, *TargetWorldPath) != nullptr)
+    {
+        OutReasonToLoad = TEXT("target map is already resident in memory (no load cost, and it may hold unsaved edits)");
+        return false;
+    }
+
+    const auto ExternalActorRoot = ULevel::GetExternalActorsPath(TargetWorldPath);
+    if (ExternalActorRoot.IsEmpty())
+    {
+        OutReasonToLoad = TEXT("no external-actor root could be derived for the target map");
+        return false;
+    }
+
+    // One folder scan, not a package load. The registry's initial scan has already
+    // completed by the time any sync runs (the boot path is triggered off
+    // OnFilesLoaded), so this is normally a no-op against cached data.
+    auto& AssetRegistry = FAssetRegistryModule::GetRegistry();
+    AssetRegistry.ScanSynchronous({ExternalActorRoot}, {});
+
+    auto ExternalActorAssets = TArray<FAssetData>{};
+    AssetRegistry.GetAssetsByPath(*ExternalActorRoot, ExternalActorAssets,
+        /*bRecursive=*/true, /*bIncludeOnlyOnDiskAssets=*/true);
+
+    if (ExternalActorAssets.IsEmpty())
+    {
+        // Either the level does not use external actors (its actors live inside the .umap,
+        // which the registry cannot enumerate per-actor), or it has never been populated.
+        // Both need the real pass, and both are one-time costs rather than the every-boot
+        // steady state this pre-check exists to remove.
+        OutReasonToLoad = ck::Format_UE(
+            TEXT("no external-actor packages under '{}' (non-OFPA level, or not yet populated)"),
+            ExternalActorRoot);
+        return false;
+    }
+
+    const auto AutoTestRunnerNativeClassPath = ACk_AutoTestRunner::StaticClass()->GetPathName();
+    const auto RootPrefix                    = ExternalActorRoot + TEXT("/");
+
+    // Placed wrapper classes, counted so duplicates are detected the same way
+    // Predict_Delta detects them in the loaded world.
+    auto PlacedCountByClassPath = TMap<FTopLevelAssetPath, int32>{};
+    auto PlacedLabelByClassPath = TMap<FTopLevelAssetPath, FString>{};
+
+    for (const FAssetData& Asset : ExternalActorAssets)
+    {
+        if (NOT Asset.PackageName.ToString().StartsWith(RootPrefix, ESearchCase::CaseSensitive))
+        { continue; }
+
+        auto SavedActorMetaDataClass = FString{};
+        if (NOT Asset.GetTagValue(TEXT("ActorMetaDataClass"), SavedActorMetaDataClass))
+        {
+            // A package under this map's root whose class metadata we cannot read. The
+            // full pass has an opinion about these (the unloadable-wrapper preview), so
+            // we must not skip past one silently.
+            OutReasonToLoad = ck::Format_UE(
+                TEXT("external-actor package '{}' has no readable ActorMetaDataClass"),
+                Asset.PackageName.ToString());
+            return false;
+        }
+
+        // Not an AutoTest wrapper (the level's floor, lights, whatever else it holds).
+        // Only the wrapper population is the populator's business.
+        if (SavedActorMetaDataClass != AutoTestRunnerNativeClassPath)
+        { continue; }
+
+        ++PlacedCountByClassPath.FindOrAdd(Asset.AssetClassPath);
+
+        auto SavedActorLabel = FString{};
+        Asset.GetTagValue(TEXT("ActorLabel"), SavedActorLabel);
+        PlacedLabelByClassPath.Add(Asset.AssetClassPath, SavedActorLabel);
+    }
+
+    if (PlacedCountByClassPath.IsEmpty())
+    {
+        OutReasonToLoad = TEXT("no AutoTest wrapper packages found on disk for this map");
+        return false;
+    }
+
+    // ---- Wanted vs placed ----------------------------------------------------------
+    for (const UClass* Class : InWantedClasses)
+    {
+        if (ck::Is_NOT_Valid(Class, ck::IsValid_Policy_NullptrOnly{}))
+        {
+            OutReasonToLoad = TEXT("a discovered test class was invalid");
+            return false;
+        }
+
+        const auto  ClassPath = Class->GetClassPathName();
+        const auto* Count     = PlacedCountByClassPath.Find(ClassPath);
+
+        if (Count == nullptr)
+        {
+            OutReasonToLoad = ck::Format_UE(TEXT("test '{}' has no wrapper on disk (needs spawning)"),
+                Class->GetName());
+            return false;
+        }
+
+        if (*Count != 1)
+        {
+            OutReasonToLoad = ck::Format_UE(TEXT("test '{}' has {} wrappers on disk (needs de-duplicating)"),
+                Class->GetName(), *Count);
+            return false;
+        }
+
+        const auto ExpectedLabel = Compute_ExpectedLabelForClass(Class);
+        if (const auto* SavedLabel = PlacedLabelByClassPath.Find(ClassPath);
+            SavedLabel == nullptr || NOT SavedLabel->Equals(ExpectedLabel, ESearchCase::CaseSensitive))
+        {
+            OutReasonToLoad = ck::Format_UE(
+                TEXT("wrapper for '{}' has label '{}', expected '{}' (needs relabelling)"),
+                Class->GetName(), SavedLabel != nullptr ? *SavedLabel : FString{}, ExpectedLabel);
+            return false;
+        }
+    }
+
+    // Anything placed that is no longer wanted -- a deleted or renamed test -- is an
+    // orphan the full pass removes.
+    auto WantedClassPaths = TSet<FTopLevelAssetPath>{};
+    for (const UClass* Class : InWantedClasses)
+    {
+        if (ck::IsValid(Class, ck::IsValid_Policy_NullptrOnly{}))
+        { WantedClassPaths.Add(Class->GetClassPathName()); }
+    }
+
+    auto UnloadableStalePackages = TArray<FString>{};
+
+    for (const auto& Pair : PlacedCountByClassPath)
+    {
+        if (WantedClassPaths.Contains(Pair.Key))
+        { continue; }
+
+        // Two very different things reach here, and conflating them makes this pre-check
+        // useless on any project that has ever hot-reloaded an AngelScript test.
+        //
+        //  1. A LIVE runner class that this config does not want -- a test moved between
+        //     plugins, a wrapper placed in the wrong map. The full pass sees it in
+        //     Level->Actors, destroys it and deletes its external package. Genuinely
+        //     actionable, so load the map.
+        //
+        //  2. A wrapper for a class that no longer exists, or whose slot was taken by a
+        //     newer version. AngelScript renames a replaced class with a timestamp suffix
+        //     (observed on this project: `Ck_AutoTestProbeLockTolerance260514215407_Actor`),
+        //     so the package survives on disk pointing at a dead class. That actor cannot be
+        //     constructed -- it is the `Failed to load Actor for External Actor Package`
+        //     error every boot logs -- so it never enters Level->Actors and the full pass's
+        //     orphan sweep structurally cannot see it. The only code that can is the
+        //     unloadable-wrapper pass, and that is PREVIEW-ONLY unless
+        //     Ck.AutoTest.Populator.CleanupUnloadableWrappers is explicitly set.
+        //
+        // Treating (2) as a reason to load makes the load PERMANENT: the map is loaded every
+        // boot to reach a preview that changes nothing, and the stale package is never
+        // cleaned, so the condition never clears. So (2) does not force a load while cleanup
+        // is off -- but the preview is still emitted below, because losing the diagnostic
+        // would be the silent early-return the tenets forbid.
+        const auto bClassIsLiveRunner =
+            Is_LiveTestRunnerSubclass(FindObject<UClass>(Pair.Key),
+                                      ACk_AutoTestRunner::StaticClass());
+
+        if (bClassIsLiveRunner)
+        {
+            OutReasonToLoad = ck::Format_UE(
+                TEXT("wrapper class '{}' is on disk but not wanted by this config (needs removing)"),
+                Pair.Key.ToString());
+            return false;
+        }
+
+        if (ck_autotest_map_populator::GCleanupUnloadableWrappers.GetValueOnGameThread() != 0)
+        {
+            // Cleanup is authorized, so the full pass CAN act on this. Load.
+            OutReasonToLoad = ck::Format_UE(
+                TEXT("unloadable stale wrapper '{}' on disk and cleanup is enabled (needs deleting)"),
+                Pair.Key.ToString());
+            return false;
+        }
+
+        UnloadableStalePackages.Add(Pair.Key.ToString());
+    }
+
+    if (NOT UnloadableStalePackages.IsEmpty() &&
+        NOT _StaleWrapperPreviewReported.Contains(InConfig->Get_DisplayName()))
+    {
+        _StaleWrapperPreviewReported.Add(InConfig->Get_DisplayName());
+
+        // Display, not Warning, and once per config per editor session.
+        //
+        // Not Warning: this reports a property of what is on disk, not a fault in the run,
+        // and UE's automation framework promotes warnings emitted during a test run into a
+        // yellow result attributed to whichever test happened to be ticking -- the exact
+        // hazard Plugins/GitLink/CLAUDE.md documents for EIK's TickTracker warning. The
+        // populator's pass lands in editor frame 1, alongside "Ready to start automation",
+        // so a Warning here would randomly yellow an unrelated test on every lane of every
+        // suite run. Display is visible in a headless log and carries no such promotion.
+        //
+        // Once per session: the pre-check runs again on every AngelScript post-compile, and
+        // the condition cannot change between passes without the map being edited.
+        //
+        // Note this preview is NEW information, not a relocation of the full pass's own --
+        // that one additionally requires the class name to contain "_AutoTest_", which the
+        // offender on this project (`Ck_AutoTestProbeLockTolerance...`) does not, so it was
+        // never reported at all and the `Failed to load Actor` errors went unexplained.
+        ck::tests_editor::Display(
+            TEXT("[CkAutoTest Populator] [{}] Preview: {} unloadable stale AutoTest wrapper package(s) ")
+            TEXT("under '{}' point at classes that no longer exist (first: '{}'). They cannot be ")
+            TEXT("represented by an actor, so no sync pass can remove them implicitly. Set ")
+            TEXT("Ck.AutoTest.Populator.CleanupUnloadableWrappers=1 and run `Ck.SyncAutoTestMaps` to ")
+            TEXT("authorize deleting them. Until then they are also the cause of the ")
+            TEXT("`Failed to load Actor for External Actor Package` errors on every load of this map."),
+            InConfig->Get_DisplayName(), UnloadableStalePackages.Num(), ExternalActorRoot,
+            UnloadableStalePackages[0]);
+    }
+
+    return true;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
