@@ -4,6 +4,7 @@
 
 #include "Engine/World.h"
 
+#include "CkCore/Algorithms/CkAlgorithms.h"
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
 #include "CkEcs/Handle/CkHandle.h"
 #include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
@@ -168,6 +169,19 @@ bool FCkTest_JoltBody_Lifecycle_ChurnThousandReturnsToBaseline::RunTest(const FS
                 Num, GBaseline);
         }),
         TEXT("all 1000 bodies removed after entity destruction")));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
+        FCk_NetAutoTest_Assertion::CreateLambda([this]() -> bool
+        {
+            const auto AllEntitiesDestroyed = ck::algo::AllOf(GEntities,
+                [](const FCk_Handle& InEntity)
+            {
+                return ck::Is_NOT_Valid(InEntity);
+            });
+            return TestTrue(TEXT("the final destruction batch invalidates every destroyed entity handle"),
+                AllEntitiesDestroyed);
+        }),
+        TEXT("all 1000 entity handles invalid after final destruction batch")));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
     return true;

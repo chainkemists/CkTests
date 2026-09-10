@@ -21,6 +21,7 @@ namespace ck_tests_unreal_component_transform
     {
         FCk_Handle_Transform OwnerTransform;
         FCk_Handle_UnrealComponent ComponentHandle;
+        FCk_Handle_UnrealComponent PendingComponentHandle;
         TWeakObjectPtr<USceneComponent> SceneComponent;
         const FTransform DesiredTransform = FTransform{
             FRotator{10.0, 20.0, 30.0},
@@ -31,6 +32,9 @@ namespace ck_tests_unreal_component_transform
         const FTransform MovedTransform = FTransform{
             FRotator{25.0, -35.0, 15.0},
             FVector{-400.0, 500.0, 600.0}};
+        const FTransform FollowupTransform = FTransform{
+            FRotator{-10.0, 15.0, -25.0},
+            FVector{700.0, -800.0, 900.0}};
         IConsoleVariable* CpuWorkCVar = nullptr;
         FString CpuWorkPreviousValue;
         EConsoleVariableFlags CpuWorkPreviousPriority = ECVF_SetByConstructor;
@@ -73,6 +77,141 @@ namespace ck_tests_unreal_component_transform
     private:
         TSharedRef<FTestState> _State;
     };
+}
+
+namespace ck_tests_unreal_component_transform
+{
+    auto QueueEnableTransformPush(FAutomationTestBase* InTest) -> void
+    {
+        auto State = MakeShared<FTestState>();
+
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(1, TEXT("/Engine/Maps/Entry")));
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(1, 30.0f));
+
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+            FCk_NetAutoTest_ServerAction::CreateLambda([InTest, State](UWorld* InWorld) -> void
+            {
+                auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld);
+                State->OwnerTransform = UCk_Utils_Transform_UE::Add(
+                    Owner, State->DesiredTransform, ECk_Replication::DoesNotReplicate);
+                State->ComponentHandle = UCk_Utils_UnrealComponent_UE::Add(
+                    Owner,
+                    UCk_Utils_UnrealComponent_UE::Make_Params(
+                        USceneComponent::StaticClass(), ECk_UnrealComponent_TickPolicy::DoNotTick,
+                        TEXT("EnableTransformPushTest")));
+                State->PendingComponentHandle = UCk_Utils_UnrealComponent_UE::Add(
+                    Owner,
+                    UCk_Utils_UnrealComponent_UE::Make_Params(
+                        USceneComponent::StaticClass(), ECk_UnrealComponent_TickPolicy::DoNotTick,
+                        TEXT("EnableTransformPushPendingTest")));
+                UCk_Utils_UnrealComponent_UE::Request_DisableTransformPush(State->PendingComponentHandle, {});
+                InTest->TestFalse(TEXT("setup-pending component cannot preflight transform-push enable"),
+                    UCk_Utils_UnrealComponent_UE::Get_CanEnableTransformPush(State->PendingComponentHandle));
+                UCk_Utils_UnrealComponent_UE::Request_EnableTransformPush(State->PendingComponentHandle, {});
+                InTest->TestTrue(TEXT("setup-pending rejection retains disabled transform-push state"),
+                    State->PendingComponentHandle.Has<ck::FTag_UnrealComponent_TransformPushDisabled>());
+
+                auto InvalidComponentHandle = FCk_Handle_UnrealComponent{};
+                InTest->TestFalse(TEXT("invalid component cannot preflight transform-push enable"),
+                    UCk_Utils_UnrealComponent_UE::Get_CanEnableTransformPush(InvalidComponentHandle));
+                const auto InvalidResult = UCk_Utils_UnrealComponent_UE::Request_EnableTransformPush(
+                    InvalidComponentHandle, {});
+                InTest->TestTrue(TEXT("invalid transform-push enable remains an invalid handle"),
+                    ck::Is_NOT_Valid(InvalidResult));
+            })));
+
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(5));
+
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+            FCk_NetAutoTest_ServerAction::CreateLambda([InTest, State](UWorld*) -> void
+            {
+                InTest->TestTrue(TEXT("setup-pending rejection did not partially enable after setup"),
+                    State->PendingComponentHandle.Has<ck::FTag_UnrealComponent_TransformPushDisabled>());
+
+                auto* StaticComponent = Cast<USceneComponent>(
+                    UCk_Utils_UnrealComponent_UE::Get_Component(State->PendingComponentHandle));
+                if (ck::Is_NOT_Valid(StaticComponent))
+                {
+                    InTest->AddError(TEXT("setup did not create the static rejection scene component"));
+                    return;
+                }
+
+                StaticComponent->SetMobility(EComponentMobility::Static);
+                InTest->TestFalse(TEXT("static scene component cannot preflight transform-push enable"),
+                    UCk_Utils_UnrealComponent_UE::Get_CanEnableTransformPush(State->PendingComponentHandle));
+                UCk_Utils_UnrealComponent_UE::Request_EnableTransformPush(State->PendingComponentHandle, {});
+                InTest->TestTrue(TEXT("static scene rejection retains disabled transform-push state"),
+                    State->PendingComponentHandle.Has<ck::FTag_UnrealComponent_TransformPushDisabled>());
+
+                auto* Component = Cast<USceneComponent>(
+                    UCk_Utils_UnrealComponent_UE::Get_Component(State->ComponentHandle));
+                if (ck::Is_NOT_Valid(Component))
+                {
+                    InTest->AddError(TEXT("setup did not create the primary scene component"));
+                    return;
+                }
+
+                State->SceneComponent = Component;
+                InTest->TestTrue(TEXT("valid scene component can preflight transform-push enable"),
+                    UCk_Utils_UnrealComponent_UE::Get_CanEnableTransformPush(State->ComponentHandle));
+                UCk_Utils_UnrealComponent_UE::Request_DisableTransformPush(State->ComponentHandle, {});
+                Component->SetWorldTransform(State->ExternalDrift);
+                UCk_Utils_Transform_UE::Request_SetTransform(State->OwnerTransform,
+                    FCk_Request_Transform_SetTransform{State->MovedTransform}, {});
+            })));
+
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(2));
+
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+            FCk_NetAutoTest_ServerAction::CreateLambda([InTest, State](UWorld*) -> void
+            {
+                auto* Component = State->SceneComponent.Get();
+                if (ck::Is_NOT_Valid(Component))
+                {
+                    InTest->AddError(TEXT("scene component became invalid while transform push was disabled"));
+                    return;
+                }
+
+                InTest->TestTrue(TEXT("disabled transform push parks the component despite owner movement"),
+                    Component->GetComponentTransform().Equals(State->ExternalDrift));
+                InTest->TestTrue(TEXT("disabled parking retains the opt-out tag"),
+                    State->ComponentHandle.Has<ck::FTag_UnrealComponent_TransformPushDisabled>());
+
+                UCk_Utils_UnrealComponent_UE::Request_EnableTransformPush(State->ComponentHandle, {});
+                const auto EcsTransform = UCk_Utils_Transform_UE::Get_EntityCurrentTransform(State->OwnerTransform);
+                InTest->TestTrue(TEXT("enable synchronizes immediately without a later transform request"),
+                    Component->GetComponentTransform().Equals(EcsTransform));
+                InTest->TestFalse(TEXT("successful immediate synchronization removes the disabled tag"),
+                    State->ComponentHandle.Has<ck::FTag_UnrealComponent_TransformPushDisabled>());
+
+                UCk_Utils_UnrealComponent_UE::Request_EnableTransformPush(State->ComponentHandle, {});
+                InTest->TestFalse(TEXT("repeated enable remains idempotently enabled"),
+                    State->ComponentHandle.Has<ck::FTag_UnrealComponent_TransformPushDisabled>());
+
+                Component->SetWorldTransform(State->ExternalDrift);
+                UCk_Utils_Transform_UE::Request_SetTransform(State->OwnerTransform,
+                    FCk_Request_Transform_SetTransform{State->FollowupTransform}, {});
+            })));
+
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(2));
+
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(InTest,
+            FCk_NetAutoTest_Assertion::CreateLambda([InTest, State]() -> bool
+            {
+                const auto* Component = State->SceneComponent.Get();
+                const auto IsValidComponent = ck::IsValid(Component);
+                InTest->TestTrue(TEXT("scene component remains valid for post-enable propagation"), IsValidComponent);
+                if (NOT IsValidComponent)
+                { return true; }
+
+                InTest->TestTrue(TEXT("enabled transform push resumes normal later propagation"),
+                    Component->GetComponentTransform().Equals(State->FollowupTransform));
+                return true;
+            }),
+            TEXT("enabled transform push resumes subsequent propagation")));
+
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
+    }
 }
 
 namespace ck_tests_unreal_component_transform
@@ -244,6 +383,11 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkUnrealComponent_TransformPropagation_DirtyOwnersOnly::RunTest(const FString& Parameters)
 {
+    AddExpectedError(TEXT("Cannot enable transform-push on UnrealComponent"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/-1);
+    AddExpectedError(TEXT("Cannot enable transform-push on invalid UnrealComponent"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/-1);
+    ck_tests_unreal_component_transform::QueueEnableTransformPush(this);
     ck_tests_unreal_component_transform::QueueTransformPropagation(this, {});
     return true;
 }
