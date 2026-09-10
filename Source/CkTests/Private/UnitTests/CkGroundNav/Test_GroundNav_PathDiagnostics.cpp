@@ -277,6 +277,12 @@ bool FCkTest_GroundNav_PathDiagnostics_ConstructedWithNoWorldIsAllValues::RunTes
     TestEqual(TEXT("and no plan has been dated"),
         Fresh.Get_LastPlanWorldTime().Get_Seconds(), 0.0);
 
+    const auto FreshPathResult = FCk_GroundNavPath_Result{};
+    TestFalse(TEXT("a result that has not run provider work has no search duration"),
+        FreshPathResult.Get_HasSearchDuration());
+    TestEqual(TEXT("and its unavailable duration stays at the neutral value"),
+        FreshPathResult.Get_SearchDurationMs(), 0.0f);
+
     // A COPY is taken and read on its own: outliving the thing that produced it is the entire reason
     // the fragment is a value, so the copy has to answer everything the original does.
     const auto Copy = FFragment_GroundNavPath_Diagnostics{Fresh};
@@ -346,6 +352,11 @@ bool FCkTest_GroundNav_PathDiagnostics_StampedValuesMatchThePlannerTheyWereCopie
         Do_Teardown(Fixture);
         return false;
     }
+
+    TestTrue(TEXT("a published ready path reports that provider search work was measured"),
+        Published.Get_HasSearchDuration());
+    TestTrue(TEXT("a measured search duration is finite and may legitimately be zero"),
+        FMath::IsFinite(Published.Get_SearchDurationMs()) && Published.Get_SearchDurationMs() >= 0.0f);
 
     // Moved off zero BEFORE the pass runs, so the date it writes is a claim about which clock it read.
     Set_WorldTime(Fixture, kFirstPlanWorldSeconds);

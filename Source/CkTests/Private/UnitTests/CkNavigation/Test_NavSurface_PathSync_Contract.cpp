@@ -22,11 +22,19 @@
 // UnitTests/CkGroundNav/Test_GroundNav_Facade_Equivalence.cpp instead.
 
 #include "CkNavigation/NavSurface/CkNavSurface_Fragment_Data.h"
+#include "CkNavigation/Nav/CkNav_Algorithm.h"
+#include "CkNavigation/Nav/CkNav_Fragment.h"
+#include "CkNavigation/Nav/CkNav_Fragment_Data.h"
 #include "CkNavigation/NavSurface/CkNavSurface_ProviderTable.h"
 #include "CkNavigation/NavSurface/CkNavSurface_Utils.h"
 #include "CkNavigation/NavSurface/Recast/CkNavSurface_RecastAdapter.h"
 
 #include "../CkUnitTest_Common.h"
+
+#include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
+#include "CkEcs/World/CkEcsWorld.h"
+
+#include <UObject/UnrealType.h>
 
 #include <Engine/World.h>
 
@@ -95,6 +103,28 @@ namespace ck_test_nav_surface_pathsync
         { };
 
         return Table;
+    }
+
+    auto Set_QueryDurationForLifecycleTest(
+        FCk_Nav_PathResult& InOutResult,
+        float               InDurationMs) -> bool
+    {
+        auto* DiagnosticsProperty = FindFProperty<FStructProperty>(
+            FCk_Nav_PathResult::StaticStruct(), TEXT("_Diagnostics"));
+        if (DiagnosticsProperty == nullptr)
+        { return false; }
+
+        auto* Diagnostics = DiagnosticsProperty->ContainerPtrToValuePtr<FCk_Nav_PathDiagnostics>(&InOutResult);
+        auto* DurationProperty = FindFProperty<FFloatProperty>(
+            FCk_Nav_PathDiagnostics::StaticStruct(), TEXT("_LastQueryDurationMs"));
+        auto* AvailableProperty = FindFProperty<FBoolProperty>(
+            FCk_Nav_PathDiagnostics::StaticStruct(), TEXT("_HasQueryDuration"));
+        if (DurationProperty == nullptr || AvailableProperty == nullptr)
+        { return false; }
+
+        DurationProperty->SetPropertyValue_InContainer(Diagnostics, InDurationMs);
+        AvailableProperty->SetPropertyValue_InContainer(Diagnostics, true);
+        return true;
     }
 }
 
@@ -194,6 +224,75 @@ bool FCkTest_NavSurfacePathSync_NoWorldDataAnswersNoProvider::RunTest(const FStr
         FacadeWall.Get_Status(), ECk_NavSurface_QueryStatus::NoProvider);
 
     World->DestroyWorld(InformEngineOfWorld);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_NavPathDiagnostics_DefaultQueryDurationIsUnavailable,
+    "CkTests.UnitTests.CkNavigation.Nav.PathDiagnostics.DefaultQueryDurationIsUnavailable",
+    kCkUnitTestFlags)
+
+bool FCkTest_NavPathDiagnostics_DefaultQueryDurationIsUnavailable::RunTest(const FString& Parameters)
+{
+    const auto Diagnostics = FCk_Nav_PathDiagnostics{};
+
+    TestFalse(TEXT("a fresh diagnostics value does not pretend that provider work was measured"),
+        Diagnostics.Get_HasQueryDuration());
+    TestEqual(TEXT("and its unavailable duration has the neutral value"),
+        Diagnostics.Get_LastQueryDurationMs(), 0.0f);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_NavPathDiagnostics_LifecycleClearsStaleQueryDuration,
+    "CkTests.UnitTests.CkNavigation.Nav.PathDiagnostics.LifecycleClearsStaleQueryDuration",
+    kCkUnitTestFlags)
+
+bool FCkTest_NavPathDiagnostics_LifecycleClearsStaleQueryDuration::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_nav_surface_pathsync;
+
+    auto EcsWorld = ck::FEcsWorld{};
+    auto Entity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(EcsWorld.Get_Registry());
+    if (NOT TestTrue(TEXT("the lifecycle fixture creates an entity"), ck::IsValid(Entity)))
+    { return false; }
+
+    auto& Result = Entity.AddOrGet<FCk_Nav_PathResult>();
+    if (NOT TestTrue(TEXT("the reflected test seam can seed a prior measured result"),
+        Set_QueryDurationForLifecycleTest(Result, 3.25f)))
+    { return false; }
+
+    FCk_Nav_Algorithm::MarkPathPending(Entity, 11);
+    TestFalse(TEXT("a pending request cannot inherit a prior query duration"),
+        Result.Get_Diagnostics().Get_HasQueryDuration());
+    TestEqual(TEXT("and resets the stale duration to neutral"),
+        Result.Get_Diagnostics().Get_LastQueryDurationMs(), 0.0f);
+
+    if (NOT TestTrue(TEXT("the test can seed another prior measured result before failure"),
+        Set_QueryDurationForLifecycleTest(Result, 6.5f)))
+    { return false; }
+
+    FCk_Nav_Algorithm::FailPath(Entity, ECk_Nav_PathFailReason::NoNavData, 12);
+    TestFalse(TEXT("a no-work failure cannot inherit a prior query duration"),
+        Result.Get_Diagnostics().Get_HasQueryDuration());
+    TestEqual(TEXT("and clears its stale duration"),
+        Result.Get_Diagnostics().Get_LastQueryDurationMs(), 0.0f);
+
+    if (NOT TestTrue(TEXT("the test can seed another prior measured result before abandon"),
+        Set_QueryDurationForLifecycleTest(Result, 9.75f)))
+    { return false; }
+
+    FCk_Nav_Algorithm::AbandonPath(Entity, 13);
+    TestFalse(TEXT("an abandoned request cannot inherit a prior query duration"),
+        Result.Get_Diagnostics().Get_HasQueryDuration());
+    TestEqual(TEXT("and clears its stale duration"),
+        Result.Get_Diagnostics().Get_LastQueryDurationMs(), 0.0f);
+
     return true;
 }
 
