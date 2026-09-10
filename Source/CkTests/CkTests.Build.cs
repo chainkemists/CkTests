@@ -5,6 +5,9 @@ public class CkTests : CkModuleRules
 {
     public CkTests(ReadOnlyTargetRules Target) : base(Target)
     {
+        // The matched navigation harness emits raw, provider-labelled evidence records.
+        PrivateDependencyModuleNames.Add("Json");
+
         PrivateIncludePaths.AddRange(new string[] {
             // ... add other private include paths required here ...
         });
@@ -37,6 +40,8 @@ public class CkTests : CkModuleRules
             "CoreUObject",
             "DeveloperSettings",
             "Engine",
+            // Public fixture config derives from UNavigationSystemModuleConfig.
+            "NavigationSystem",
             "Projects",
             "GameplayTags",
             "FunctionalTesting",
