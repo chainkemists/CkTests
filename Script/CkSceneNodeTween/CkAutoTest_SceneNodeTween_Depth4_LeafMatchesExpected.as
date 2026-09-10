@@ -23,6 +23,10 @@ class UCk_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected : UCk_AutoTest_Base
     private const float32 TweenDurationSec = 0.4f;
     private const float32 DriftToleranceCm = 1.0f;
 
+    // The world-space fixture root the tween drives. It is a plain Transform with no
+    // SceneNodeParent, so it is a legitimate world-space tween target; RootNode below stays
+    // as the first SceneNode link, which keeps every node's layer index unchanged.
+    private FCk_Handle_Transform _TweenTargetTH;
     private FCk_Handle_Transform _RootTH;
     private TArray<FCk_Handle_SceneNode> _Chain;
     private TArray<FTransform> _LocalOffsets;
@@ -45,6 +49,8 @@ class UCk_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected : UCk_AutoTest_Base
             FinishFailure("Failed to add Transform feature to parent entity");
             return;
         }
+
+        _TweenTargetTH = ParentTransform;
 
         auto RootNode = utils_scene_node::Create(ParentTransform, FTransform::Identity);
         if (ck::Is_NOT_Valid(RootNode))
@@ -75,7 +81,7 @@ class UCk_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected : UCk_AutoTest_Base
         }
 
         _Tween = utils_tween::Create_TweenEntityLocation(
-            _RootTH, TweenEndLocation, TweenDurationSec,
+            _TweenTargetTH, TweenEndLocation, TweenDurationSec,
             ECk_TweenEasing::Linear,
             ECk_TweenLoopType::None,
             0, 0.0f,
@@ -92,7 +98,7 @@ class UCk_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto RootXform = utils_transform::Get_EntityCurrentTransform(_RootTH);
+        auto RootXform = utils_transform::Get_EntityCurrentTransform(_TweenTargetTH);
         auto Acc = RootXform;
         for (int32 i = 0; i < _LocalOffsets.Num(); ++i)
         {

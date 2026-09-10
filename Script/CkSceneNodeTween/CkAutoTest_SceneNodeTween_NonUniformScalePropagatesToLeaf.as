@@ -31,6 +31,10 @@ class UCk_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf : UCk_AutoTest
     private const float32 TweenDurationSec = 0.4f;
     private const float32 DriftToleranceCm = 1.0f;
 
+    // The world-space fixture root the tween drives. It is a plain Transform with no
+    // SceneNodeParent, so it is a legitimate world-space tween target; RootNode below stays
+    // as the first SceneNode link, which keeps every node's layer index unchanged.
+    private FCk_Handle_Transform _TweenTargetTH;
     private FCk_Handle_Transform _RootTH;
     private FCk_Handle_SceneNode _Child;
     private FCk_Handle_Tween _Tween;
@@ -54,6 +58,8 @@ class UCk_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf : UCk_AutoTest
             return;
         }
 
+        _TweenTargetTH = ParentTransform;
+
         auto RootNode = utils_scene_node::Create(ParentTransform, FTransform::Identity);
         if (ck::Is_NOT_Valid(RootNode))
         {
@@ -71,7 +77,7 @@ class UCk_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf : UCk_AutoTest
         }
 
         _Tween = utils_tween::Create_TweenEntityLocation(
-            _RootTH, TweenEndLocation, TweenDurationSec,
+            _TweenTargetTH, TweenEndLocation, TweenDurationSec,
             ECk_TweenEasing::Linear,
             ECk_TweenLoopType::None,
             0, 0.0f,
@@ -88,7 +94,7 @@ class UCk_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf : UCk_AutoTest
     {
         if (IsFinished()) { return; }
 
-        auto RootXform = utils_transform::Get_EntityCurrentTransform(_RootTH);
+        auto RootXform = utils_transform::Get_EntityCurrentTransform(_TweenTargetTH);
         auto ChildLocal = FTransform(FRotator::ZeroRotator, ChildLocalLocation, FVector::OneVector);
         auto Expected = (ChildLocal * RootXform).GetLocation();
         auto Actual = utils_transform::Get_EntityCurrentLocation(_Child.As_Transform());

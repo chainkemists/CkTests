@@ -78,8 +78,13 @@ class UCk_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp : UCk
             _ChildBEntity,
             FCk_Delegate_OnBeginDestroy(this, n"OnChildBDestroyed"));
 
+        // Driven on the world-space fixture root (a plain Transform, no SceneNodeParent) rather
+        // than on RootNode: a world-space tween on a parent-driven SceneNode is refused by design,
+        // which used to make this test die at creation instead of exercising the destroy cascade.
+        // The tween's own lifetime owner is _ParentEntity, so the mid-flight destroy below still
+        // tears down an ACTIVELY WRITING tween - which is the regression this test exists for.
         _Tween = utils_tween::Create_TweenEntityLocation(
-            RootTH, FVector(300.0f, 0.0f, 0.0f), TweenDurationSec,
+            ParentTransform, FVector(300.0f, 0.0f, 0.0f), TweenDurationSec,
             ECk_TweenEasing::Linear,
             ECk_TweenLoopType::None,
             0, 0.0f,
