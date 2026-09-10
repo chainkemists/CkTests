@@ -17,4 +17,5 @@ class ACk_GroundNavGym_Markup_GameMode : ACkTests_Gym_Base_GameMode
 {
     default PlayerControllerClass = ACk_GroundNavGym_Markup_PlayerController;
     default DefaultPawnClass = ACk_Gym_Base_Pawn;
+    default HUDClass = ACk_NavigationGym_Presentation_HUD;
 }

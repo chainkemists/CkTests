@@ -1,4 +1,4 @@
-class ACk_GroundNavGym_Links_PlayerController : ACk_Gym_Base_PlayerController
+class ACk_GroundNavGym_Links_PlayerController : ACk_NavigationGym_Presentation_PlayerController
 {
     // ---- Where the scene stands ------------------------------------------------------------------
     //
@@ -209,6 +209,11 @@ class ACk_GroundNavGym_Links_PlayerController : ACk_Gym_Base_PlayerController
     {
         return _Origin + k_SceneOffset + InLocal;
     }
+
+    FVector Get_PresentationCentre() override { return Get_ScenePoint(FVector(0.0, 0.0, 125.0)); }
+    FVector Get_PresentationExtent() override { return FVector(700.0, 700.0, 175.0); }
+    FString Get_PresentationCaption() override { return "A ladder up and drop down make the isolated deck reachable in one direction each."; }
+    void Request_PresentationBaselineView() override { DoBringPlayerToViewpoint(); }
 
     // ---- The links volume ------------------------------------------------------------------------
 
@@ -505,7 +510,8 @@ class ACk_GroundNavGym_Links_PlayerController : ACk_Gym_Base_PlayerController
         // BY VALUE, and AS rejects a const value handed to a non-const value parameter.
         FString Caption = k_Caption;
 
-        CkGroundNavDemo::Draw_WorldCaption(Get_ScenePoint(k_CaptionLocal), Caption);
+        if (Get_PresentationMode() != ECkNavigationGym_PresentationMode::Hero)
+        { CkGroundNavDemo::Draw_WorldCaption(Get_ScenePoint(k_CaptionLocal), Caption); }
     }
 
     // ---- The verdict ---------------------------------------------------------------------------------
@@ -738,6 +744,7 @@ class ACk_GroundNavGym_Links_PlayerController : ACk_Gym_Base_PlayerController
             Get_LinksAreEnabled(), "enabled", "disabled"));
 
         Rows.Add(CkGroundNavDemo::Get_DrawModeRow(_DrawModeIndex));
+        Append_PresentationControls(Rows);
 
         return Rows;
     }
@@ -745,6 +752,8 @@ class ACk_GroundNavGym_Links_PlayerController : ACk_Gym_Base_PlayerController
     void Request_ControlActivated(int32 InRowIndex) override
     {
         if (HasAuthority() == false)
+        { return; }
+        if (Request_HandlePresentationControl(InRowIndex))
         { return; }
 
         if (InRowIndex == k_Row_LinksToggle)

@@ -1,4 +1,4 @@
-class ACk_GroundNavGym_Markup_PlayerController : ACk_Gym_Base_PlayerController
+class ACk_GroundNavGym_Markup_PlayerController : ACk_NavigationGym_Presentation_PlayerController
 {
     // ---- The scene -------------------------------------------------------------------------------
     //
@@ -171,6 +171,11 @@ class ACk_GroundNavGym_Markup_PlayerController : ACk_Gym_Base_PlayerController
     {
         return _Origin + k_SceneOffset + InLocal;
     }
+
+    FVector Get_PresentationCentre() override { return Get_ScenePoint(FVector(0.0, 0.0, -100.0)); }
+    FVector Get_PresentationExtent() override { return FVector(1800.0, 1000.0, 100.0); }
+    FString Get_PresentationCaption() override { return "Painted markup blocks direct lanes and sends walkers through one open gap."; }
+    void Request_PresentationBaselineView() override { DoBringPlayerToViewpoint(); }
 
     private bool DoBuildScene()
     {
@@ -414,7 +419,8 @@ class ACk_GroundNavGym_Markup_PlayerController : ACk_Gym_Base_PlayerController
 
         DoDraw_Strip();
 
-        CkGroundNavDemo::Draw_WorldCaption(Get_ScenePoint(k_CaptionPoint), Get_Caption());
+        if (Get_PresentationMode() != ECkNavigationGym_PresentationMode::Hero)
+        { CkGroundNavDemo::Draw_WorldCaption(Get_ScenePoint(k_CaptionPoint), Get_Caption()); }
     }
 
     // The painted box, drawn each frame at zero duration so the reader sees WHERE the routes bend and
@@ -537,6 +543,7 @@ class ACk_GroundNavGym_Markup_PlayerController : ACk_Gym_Base_PlayerController
             ck::IsValid(_Markup), "painted", "clear", false, _Field.Get_IsBuilt()));
 
         Rows.Add(CkGroundNavDemo::Get_DrawModeRow(_DrawModeIndex));
+        Append_PresentationControls(Rows);
 
         return Rows;
     }
@@ -544,6 +551,8 @@ class ACk_GroundNavGym_Markup_PlayerController : ACk_Gym_Base_PlayerController
     void Request_ControlActivated(int32 InRowIndex) override
     {
         if (HasAuthority() == false)
+        { return; }
+        if (Request_HandlePresentationControl(InRowIndex))
         { return; }
 
         if (InRowIndex == k_Row_Paint)

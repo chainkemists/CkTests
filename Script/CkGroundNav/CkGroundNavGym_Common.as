@@ -133,6 +133,7 @@ namespace CkGroundNavGym
             return nullptr;
         }
 
+        CkNavigationGymPresentation::Request_RegisterActor(BoxActor);
         return BoxActor;
     }
 
@@ -177,6 +178,7 @@ namespace CkGroundNavGym
             return nullptr;
         }
 
+        CkNavigationGymPresentation::Request_RegisterActor(Floor);
         return Floor;
     }
 

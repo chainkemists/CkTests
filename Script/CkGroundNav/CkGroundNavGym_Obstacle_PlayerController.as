@@ -1,4 +1,4 @@
-class ACk_GroundNavGym_Obstacle_PlayerController : ACk_Gym_Base_PlayerController
+class ACk_GroundNavGym_Obstacle_PlayerController : ACk_NavigationGym_Presentation_PlayerController
 {
     // ---- Where the scene stands ------------------------------------------------------------------
     //
@@ -194,6 +194,11 @@ class ACk_GroundNavGym_Obstacle_PlayerController : ACk_Gym_Base_PlayerController
     {
         return _Origin + k_SceneOffset + InLocal;
     }
+
+    FVector Get_PresentationCentre() override { return Get_ScenePoint(FVector(0.0, 0.0, 100.0)); }
+    FVector Get_PresentationExtent() override { return FVector(1800.0, 700.0, 300.0); }
+    FString Get_PresentationCaption() override { return "A dropped obstacle reveals the difference between a stale field and local repair."; }
+    void Request_PresentationBaselineView() override { DoBringPlayerToViewpoint(); }
 
     private bool DoBuildScene()
     {
@@ -517,7 +522,8 @@ class ACk_GroundNavGym_Obstacle_PlayerController : ACk_Gym_Base_PlayerController
             CkGroundNavDemo::Draw_GoalPost(_PostsEast[Index], f"E{Index}", CkGroundNavDemo::Get_WalkerColor(Index));
         }
 
-        CkGroundNavDemo::Draw_WorldCaption(Get_ScenePoint(FVector(0.0, 0.0, 700.0)), Get_Caption());
+        if (Get_PresentationMode() != ECkNavigationGym_PresentationMode::Hero)
+        { CkGroundNavDemo::Draw_WorldCaption(Get_ScenePoint(FVector(0.0, 0.0, 700.0)), Get_Caption()); }
 
         DoDraw_BoxFootprint();
     }
@@ -665,6 +671,7 @@ class ACk_GroundNavGym_Obstacle_PlayerController : ACk_Gym_Base_PlayerController
             _AutoRepair, "on - the field follows the box", "off - a drop leaves the field STALE"));
 
         Rows.Add(CkGroundNavDemo::Get_DrawModeRow(_DrawModeIndex));
+        Append_PresentationControls(Rows);
 
         return Rows;
     }
@@ -672,6 +679,8 @@ class ACk_GroundNavGym_Obstacle_PlayerController : ACk_Gym_Base_PlayerController
     void Request_ControlActivated(int32 InRowIndex) override
     {
         if (HasAuthority() == false)
+        { return; }
+        if (Request_HandlePresentationControl(InRowIndex))
         { return; }
 
         if (InRowIndex == k_Row_Box)

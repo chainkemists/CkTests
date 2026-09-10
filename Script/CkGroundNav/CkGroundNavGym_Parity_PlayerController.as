@@ -1,4 +1,4 @@
-class ACk_GroundNavGym_Parity_PlayerController : ACk_Gym_Base_PlayerController
+class ACk_GroundNavGym_Parity_PlayerController : ACk_NavigationGym_Presentation_PlayerController
 {
     // ---- Where the scene stands ------------------------------------------------------------------
     //
@@ -183,6 +183,11 @@ class ACk_GroundNavGym_Parity_PlayerController : ACk_Gym_Base_PlayerController
     {
         return _Origin + k_SceneOffset + InLocal;
     }
+
+    FVector Get_PresentationCentre() override { return Get_ScenePoint(FVector(0.0, 0.0, 125.0)); }
+    FVector Get_PresentationExtent() override { return FVector(1800.0, 1200.0, 175.0); }
+    FString Get_PresentationCaption() override { return "The same walkers weave four pillars while GroundNav and Recast answer in turn."; }
+    void Request_PresentationBaselineView() override { DoBringPlayerToViewpoint(); }
 
     // ---- The field --------------------------------------------------------------------------------
 
@@ -371,7 +376,8 @@ class ACk_GroundNavGym_Parity_PlayerController : ACk_Gym_Base_PlayerController
             CkGroundNavDemo::Draw_GoalPost(_PostsEast[Index], f"W{Index} east", Color);
         }
 
-        CkGroundNavDemo::Draw_WorldCaption(Get_ScenePoint(FVector(0.0, 0.0, 900.0)), Get_Caption());
+        if (Get_PresentationMode() != ECkNavigationGym_PresentationMode::Hero)
+        { CkGroundNavDemo::Draw_WorldCaption(Get_ScenePoint(FVector(0.0, 0.0, 900.0)), Get_Caption()); }
     }
 
     // ---- The verdict ------------------------------------------------------------------------------
@@ -459,6 +465,7 @@ class ACk_GroundNavGym_Parity_PlayerController : ACk_Gym_Base_PlayerController
 
         // LAST, on every demo gym.
         Rows.Add(CkGroundNavDemo::Get_DrawModeRow(_DrawModeIndex));
+        Append_PresentationControls(Rows);
 
         return Rows;
     }
@@ -466,6 +473,8 @@ class ACk_GroundNavGym_Parity_PlayerController : ACk_Gym_Base_PlayerController
     void Request_ControlActivated(int32 InRowIndex) override
     {
         if (HasAuthority() == false)
+        { return; }
+        if (Request_HandlePresentationControl(InRowIndex))
         { return; }
 
         if (InRowIndex == k_Row_Provider)
