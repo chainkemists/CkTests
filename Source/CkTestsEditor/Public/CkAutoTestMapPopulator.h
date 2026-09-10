@@ -115,6 +115,31 @@ enum class ECk_AutoTestWipeFloorDecision : uint8
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// --------------------------------------------------------------------------------------------------------------------
+
+// Everything the destructive half needs that the half above it computed. A struct rather than
+// seven more parameters, and passed const because none of it is the destructive half's to change --
+// the one thing that IS mutable travels separately as FCkAutoTestSyncResult&.
+struct CKTESTSEDITOR_API FCk_AutoTestSyncContext
+{
+    UWorld*   World   = nullptr;
+    UPackage* Package = nullptr;
+
+    // The set the floor was asked about. Recomputed after the world resolved, never reused
+    // from the pre-check -- a pre-load snapshot must not drive a deletion.
+    TArray<UClass*> WantedClasses;
+    TSet<UClass*>   WantedSet;
+
+    // Placed wrapper actors, by class. Read-only here: the destructive half decides what to
+    // remove from it, never what is in it.
+    TMap<UClass*, TArray<AActor*>> CurrentByClass;
+
+    bool bWasLoadedFresh  = false;
+    bool bWasDirtyOnEntry = false;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+
 struct CKTESTSEDITOR_API FCk_AutoTestWipeFloorVerdict
 {
     // Defaults to NotEvaluated, NOT Proceed. Adding the enum value without changing THIS line
@@ -300,6 +325,18 @@ public:
     Get_WrapperPackageKind(
         const FAssetData& InAsset) -> ECk_AutoTestWrapperPackageKind;
 
+    // Does this decision authorise the destructive half to run?
+    //
+    // Pure and public so it can be tested in BOTH directions. That matters more than it looks:
+    // the failure this protects against is the check being weakened -- inverted, widened to
+    // include NotEvaluated -- and a test that only ever feeds it positive values stays green
+    // through exactly that. This session shipped one fix that was inert while its comments read
+    // correctly; a predicate asserted in one direction is the same trap.
+    static auto
+    Get_IsPositiveDecision(
+        ECk_AutoTestWipeFloorDecision InDecision) -> bool;
+
+
 private:
     // Both public entry points above are EXPLICIT requests (a user at the console, a
     // designer's Blueprint), so they force the full load-and-sync pass. The automatic
@@ -341,6 +378,28 @@ private:
     Sync_Config_Internal(
         UCkAutoTestMapConfig* InConfig,
         bool                  bInForceFullSync) -> FCkAutoTestSyncResult;
+
+    // EVERY destructive line in this subsystem lives here, and nothing else does.
+    //
+    // That containment is the guarantee, and it is the one thing a per-site guard could not
+    // buy: a destructive line added anywhere inside this function inherits the entry check with
+    // nothing to remember, and the floor cannot be moved below a site because it is in another
+    // function entirely.
+    //
+    // The verdict is a PARAMETER rather than a bare bool so the signature names what authorises
+    // the call. It is not a capability: the decision field is public and this function's only
+    // possible callers are members of this class, so nothing stops a member passing a
+    // hand-built verdict. An earlier version wrapped it in a move-only token with a private
+    // constructor and claimed that closed the gap -- review established it did not (a public
+    // minting function plus a public field is a public constructor with extra steps), and the
+    // claim was deleted rather than weakened. The entry ensure is the guard; the type is
+    // documentation.
+    auto
+    DoApply_Sync(
+        const FCk_AutoTestWipeFloorVerdict& InVerdict,
+        UCkAutoTestMapConfig*          InConfig,
+        const FCk_AutoTestSyncContext& InContext,
+        FCkAutoTestSyncResult&         InOutResult) -> void;
 
     // Cheap pre-check: can we conclude "this config's map is already correct" WITHOUT
     // loading it?
