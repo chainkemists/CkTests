@@ -284,7 +284,7 @@ auto
     }
     _WipeRefusalReported.Add(Key);
 
-    ck::tests_editor::Notify_Error(TEXT("{}"), InVerdict.Explanation);
+    ck::tests_editor::Notify_Error_Detailed(InVerdict.Headline, InVerdict.Explanation);
 }
 
 auto
@@ -365,6 +365,9 @@ auto
         Verdict.Reason = ck::Format_UE(
             TEXT("authorised wipe of {} wrapper(s) for '{}' with no discovered test classes"),
             InNumAssociatedWrappers, InMapPackageName);
+        Verdict.Headline = ck::Format_UE(
+            TEXT("[CkAutoTest Populator] AUTHORISED wipe of {} wrappers in '{}'. See the Output Log."),
+            InNumAssociatedWrappers, FPackageName::GetShortName(InMapPackageName));
         Verdict.Explanation = ck::Format_UE(
             TEXT("[CkAutoTest Populator] [{}] Ck.AutoTest.Populator.AllowUnrecognizedWipe is SET and this "
                  "is a forced pass -- PROCEEDING to remove all {} AutoTest wrapper(s) belonging to '{}' "
@@ -377,6 +380,18 @@ auto
     Verdict.Reason = ck::Format_UE(
         TEXT("discovery found NO test classes for this config while {} AutoTest wrapper(s) belong to '{}'"),
         InNumAssociatedWrappers, InMapPackageName);
+    // Toast: what happened, that nothing was lost, and where the rest is. No CVar name,
+    // no recipe -- see FCk_AutoTestWipeFloorVerdict::Headline.
+    //
+    // Short NAME, not the package path: the toast is a narrow column, and
+    // "/Game/BusterBlock/Map/AutoTests/AutoTests_BB_MAP" spends about a quarter of the
+    // readable line on a prefix identical for every config. The full path is in the
+    // explanation, where width costs nothing.
+    Verdict.Headline = ck::Format_UE(
+        TEXT("[CkAutoTest Populator] REFUSED to sync '{}': no test classes discovered, but {} "
+             "wrappers belong to it. Nothing was changed - see the Output Log."),
+        FPackageName::GetShortName(InMapPackageName), InNumAssociatedWrappers);
+
     Verdict.Explanation = ck::Format_UE(
         TEXT("[CkAutoTest Populator] [{}] REFUSED to sync: discovery found no test classes at all, but {} "
              "AutoTest wrapper(s) belong to '{}'. {} Nothing was changed. {} If every test really was "
