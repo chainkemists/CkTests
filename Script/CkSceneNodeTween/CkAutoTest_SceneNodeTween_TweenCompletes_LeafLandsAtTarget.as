@@ -28,6 +28,10 @@ class UCk_AutoTest_SceneNodeTween_TweenCompletes_LeafLandsAtTarget : UCk_AutoTes
     private const float32 PositionToleranceCm = 1.0f;
     private const float32 TweenDurationSec = 0.3f;
 
+    // The world-space fixture root the tween drives. It is a plain Transform with no
+    // SceneNodeParent, so it is a legitimate world-space tween target; RootNode below stays
+    // as the first SceneNode link, which keeps every node's layer index unchanged.
+    private FCk_Handle_Transform _TweenTargetTH;
     private FCk_Handle_Transform _RootTH;
     private FCk_Handle_SceneNode _Child;
     private FCk_Handle_Tween _Tween;
@@ -48,6 +52,8 @@ class UCk_AutoTest_SceneNodeTween_TweenCompletes_LeafLandsAtTarget : UCk_AutoTes
             return;
         }
 
+        _TweenTargetTH = ParentTransform;
+
         auto RootNode = utils_scene_node::Create(ParentTransform, FTransform::Identity);
         if (ck::Is_NOT_Valid(RootNode))
         {
@@ -65,7 +71,7 @@ class UCk_AutoTest_SceneNodeTween_TweenCompletes_LeafLandsAtTarget : UCk_AutoTes
         }
 
         _Tween = utils_tween::Create_TweenEntityLocation(
-            _RootTH, RootEnd, TweenDurationSec,
+            _TweenTargetTH, RootEnd, TweenDurationSec,
             ECk_TweenEasing::Linear,
             ECk_TweenLoopType::None,
             0, 0.0f,

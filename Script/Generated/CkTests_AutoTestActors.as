@@ -7985,6 +7985,19 @@ class ACk_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf_Actor : ACk_Au
     }
 }
 
+class ACk_AutoTest_SceneNodeTween_OffsetTween_LeafTracksEveryFrame_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_SceneNodeTween_OffsetTween_LeafTracksEveryFrame");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;
