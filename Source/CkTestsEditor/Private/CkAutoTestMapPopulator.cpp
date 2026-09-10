@@ -47,6 +47,25 @@ namespace ck_autotest_map_populator
         TEXT("Default is preview-only because these packages can be tracked binary assets."),
         ECVF_Default);
 
+    // The bounded escape hatch for the wipe floor.
+    //
+    // Deliberately NOT bInForceFullSync. "Force" means "do the real load-and-sync
+    // instead of trusting the cheap pre-check" -- a statement about which PATH to take,
+    // which every console invocation makes and which says nothing about authorising
+    // destruction. Reusing it as the authorisation would leave the console path, the
+    // more dangerous of the two, permanently unfloored: `Ck.SyncAutoTestMaps` typed by
+    // someone who just wanted a resync would carry the authority to delete the corpus.
+    //
+    // Separate CVar, default off, matching the GCleanupUnloadableWrappers precedent
+    // directly above: destructive-by-default is opt-in, once, out loud.
+    static TAutoConsoleVariable<int32> GAllowUnrecognizedWipe(
+        TEXT("Ck.AutoTest.Populator.AllowUnrecognizedWipe"),
+        0,
+        TEXT("Authorise the AutoTest map populator to remove EVERY wrapper belonging to a map when it ")
+        TEXT("discovers no test classes at all. Default is to refuse: an empty wanted set is far more ")
+        TEXT("likely to mean discovery broke than that every test was deleted at once."),
+        ECVF_Default);
+
     static FAutoConsoleCommand GSyncCommand(
         TEXT("Ck.SyncAutoTestMaps"),
         TEXT("Force a sync of every UCkAutoTestMapConfig against the currently-open editor world."),
@@ -202,6 +221,7 @@ auto
     auto TotalRemoved = int32{0};
     auto TotalRelabeled = int32{0};
     auto TotalSkipped = int32{0};
+    auto TotalRefused = int32{0};
 
     for (auto* Config : Configs)
     {
@@ -210,17 +230,231 @@ auto
         TotalRemoved += Result.Removed;
         TotalRelabeled += Result.Relabeled;
         if (Result.bSkipped) { ++TotalSkipped; }
+        if (Result.bRefused) { ++TotalRefused; }
     }
 
+    // Refusals are counted separately and NOT folded into "skipped". The summary line is
+    // the only trace of this pass a headless log keeps, and a refused wipe reported as a
+    // skip reads as "nothing to do" -- the untruth the third outcome exists to prevent.
     ck::tests_editor::Log(
-        TEXT("[CkAutoTest Populator] Done — {} configs, {} spawned, {} removed, {} relabeled, {} skipped."),
-        Configs.Num(), TotalSpawned, TotalRemoved, TotalRelabeled, TotalSkipped);
+        TEXT("[CkAutoTest Populator] Done — {} configs, {} spawned, {} removed, {} relabeled, {} skipped, ")
+        TEXT("{} REFUSED."),
+        Configs.Num(), TotalSpawned, TotalRemoved, TotalRelabeled, TotalSkipped, TotalRefused);
 }
 
 FCkAutoTestSyncResult UCkAutoTestMapPopulator::Sync_Config(UCkAutoTestMapConfig* InConfig)
 {
     // Public entry point == explicit request. See Sync_AllConfigs.
     return Sync_Config_Internal(InConfig, /*bInForceFullSync=*/true);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCkAutoTestMapPopulator::
+    Get_WouldWipeUnrecognizedWrappers(
+        int32 InNumWantedClasses,
+        int32 InNumAssociatedWrappers)
+    -> bool
+{
+    // See the header for why this is `wanted == 0` and not a ratio.
+    return InNumWantedClasses == 0 && InNumAssociatedWrappers > 0;
+}
+
+auto
+    UCkAutoTestMapPopulator::
+    DoReport_Refusal(
+        UCkAutoTestMapConfig*                InConfig,
+        const FCk_AutoTestWipeFloorVerdict&  InVerdict)
+    -> void
+{
+    // Latched per config per editor session, on the same reasoning as the stale-wrapper
+    // preview above: the boot runs Sync_AllConfigs TWICE back to back and the automatic
+    // sync re-runs on every AngelScript post-compile, so an unlatched toast would stack up
+    // several deep for one unchanged condition and train the reader to dismiss it.
+    //
+    // Only the NOTIFICATION is latched. The refusal itself, Result.bRefused, and the
+    // "N REFUSED" count in the summary line happen on every pass -- so the machine-readable
+    // record stays complete while the human-facing alarm fires once.
+    const auto Key = InConfig->Get_DisplayName();
+    if (_WipeRefusalReported.Contains(Key))
+    {
+        ck::tests_editor::Log(TEXT("{} (already reported this session)"), InVerdict.Explanation);
+        return;
+    }
+    _WipeRefusalReported.Add(Key);
+
+    ck::tests_editor::Notify_Error(TEXT("{}"), InVerdict.Explanation);
+}
+
+auto
+    UCkAutoTestMapPopulator::
+    Get_WipeAuthorisation(
+        bool bInIsForcedPass)
+    -> bool
+{
+    // The CVar is read HERE, once; the rule itself lives in Get_IsWipeAuthorised so it can
+    // be tested without touching global console state.
+    return Get_IsWipeAuthorised(
+        ck_autotest_map_populator::GAllowUnrecognizedWipe.GetValueOnGameThread() != 0,
+        bInIsForcedPass);
+}
+
+auto
+    UCkAutoTestMapPopulator::
+    Get_IsWipeAuthorised(
+        bool bInCVarSet,
+        bool bInIsForcedPass)
+    -> bool
+{
+    // BOTH, deliberately. See the header: a CVar can outlive the intent that set it, and
+    // forcing is a statement about which path to take, not consent to destruction.
+    return bInCVarSet && bInIsForcedPass;
+}
+
+auto
+    UCkAutoTestMapPopulator::
+    Evaluate_WipeFloor(
+        const FString& InConfigDisplayName,
+        const FString& InMapPackageName,
+        int32          InNumWantedClasses,
+        int32          InNumAssociatedWrappers,
+        int32          InNumResidentWrapperActors,
+        bool           bInWipeAuthorised)
+    -> FCk_AutoTestWipeFloorVerdict
+{
+    auto Verdict = FCk_AutoTestWipeFloorVerdict{};
+
+    if (NOT Get_WouldWipeUnrecognizedWrappers(InNumWantedClasses, InNumAssociatedWrappers))
+    { return Verdict; }
+
+    // What a sync would ACTUALLY have done, branched on residency rather than asserted.
+    //
+    // Only a resident wrapper class produces an actor the orphan sweep can destroy and a
+    // package it can source-control-delete. When the classes are ABSENT -- the state the
+    // on-disk count exists to cover -- a sync would have removed nothing at all: no actors
+    // for the sweep, the unloadable cleanup is preview-only unless separately authorised,
+    // and the stranded pass cannot see a package that never loaded an object.
+    //
+    // Saying "this would have deleted your files" in that second state would be a scarier
+    // sentence than the truth, and a refusal that overstates its own stakes is no more
+    // trustworthy than one that hides them.
+    const auto ClassesAreResident = InNumResidentWrapperActors > 0;
+
+    const auto WouldHaveDone = ClassesAreResident
+        ? ck::Format_UE(
+            TEXT("Syncing would have removed all {} of them from the level and source-control-deleted "
+                 "their files."), InNumResidentWrapperActors)
+        : FString{TEXT("None of their classes are resident, so a sync would not have deleted them today "
+                       "-- but it also cannot repopulate the map, and the moment those classes load "
+                       "again the orphan sweep would remove every one of them.")};
+
+    // Deliberately does NOT tell the reader to check whether AngelScript compiled. It
+    // cannot produce this state: a failed initial compile blocks engine init or exits, and
+    // a failed hot reload keeps the old code and never broadcasts PostCompile, so the
+    // populator is not called at all. An earlier version of this message said otherwise
+    // and would have sent whoever hit it to look in the one place that is provably fine.
+    const auto LikelyCause =
+        TEXT("This almost always means DISCOVERY broke rather than that the tests were deleted -- check "
+             "that this config's ClassScanRoot still matches the on-disk source path of its test classes, "
+             "and that the plugin holding them has not been renamed or moved.");
+
+    if (bInWipeAuthorised)
+    {
+        Verdict.Decision = ECk_AutoTestWipeFloorDecision::ProceedAuthorised;
+        Verdict.Reason = ck::Format_UE(
+            TEXT("authorised wipe of {} wrapper(s) for '{}' with no discovered test classes"),
+            InNumAssociatedWrappers, InMapPackageName);
+        Verdict.Explanation = ck::Format_UE(
+            TEXT("[CkAutoTest Populator] [{}] Ck.AutoTest.Populator.AllowUnrecognizedWipe is SET and this "
+                 "is a forced pass -- PROCEEDING to remove all {} AutoTest wrapper(s) belonging to '{}' "
+                 "even though discovery found no test classes."),
+            InConfigDisplayName, InNumAssociatedWrappers, InMapPackageName);
+        return Verdict;
+    }
+
+    Verdict.Decision = ECk_AutoTestWipeFloorDecision::Refuse;
+    Verdict.Reason = ck::Format_UE(
+        TEXT("discovery found NO test classes for this config while {} AutoTest wrapper(s) belong to '{}'"),
+        InNumAssociatedWrappers, InMapPackageName);
+    Verdict.Explanation = ck::Format_UE(
+        TEXT("[CkAutoTest Populator] [{}] REFUSED to sync: discovery found no test classes at all, but {} "
+             "AutoTest wrapper(s) belong to '{}'. {} Nothing was changed. {} If every test really was "
+             "deleted on purpose, set Ck.AutoTest.Populator.AllowUnrecognizedWipe=1 AND run "
+             "`Ck.SyncAutoTestMaps` -- both are required, so a CVar left in an .ini can never make an "
+             "automatic boot sync do this."),
+        InConfigDisplayName, InNumAssociatedWrappers, InMapPackageName, WouldHaveDone, LikelyCause);
+
+    return Verdict;
+}
+
+auto
+    UCkAutoTestMapPopulator::
+    Get_WrapperPackageKind(
+        const FAssetData& InAsset)
+    -> ECk_AutoTestWrapperPackageKind
+{
+    auto SavedActorMetaDataClass = FString{};
+    if (NOT InAsset.GetTagValue(TEXT("ActorMetaDataClass"), SavedActorMetaDataClass))
+    { return ECk_AutoTestWrapperPackageKind::UnreadableMetadata; }
+
+    // Resolved and tested with IsChildOf rather than string-compared to
+    // ACk_AutoTestRunner's exact path: ActorMetaDataClass records the nearest NATIVE
+    // parent, so an exact match would stop recognising every wrapper the day someone
+    // adds a native ACk_AutoTestRunner subclass.
+    //
+    // A recorded class that no longer resolves is NotAWrapper rather than
+    // UnreadableMetadata: the metadata was perfectly readable, it just names a class this
+    // build does not have. Calling that "unreadable" would send the pre-check down the
+    // full-pass path forever for a package it can already describe.
+    const auto* SavedNativeClass = FindObject<UClass>(nullptr, *SavedActorMetaDataClass);
+    return SavedNativeClass != nullptr && SavedNativeClass->IsChildOf(ACk_AutoTestRunner::StaticClass())
+        ? ECk_AutoTestWrapperPackageKind::Wrapper
+        : ECk_AutoTestWrapperPackageKind::NotAWrapper;
+}
+
+auto
+    UCkAutoTestMapPopulator::
+    Count_WrapperPackagesOnDisk(
+        const FString& InMapPackageName)
+    -> int32
+{
+    const auto ExternalActorRoot = ULevel::GetExternalActorsPath(InMapPackageName);
+    if (ExternalActorRoot.IsEmpty())
+    { return 0; }
+
+    auto& AssetRegistry = FAssetRegistryModule::GetRegistry();
+    AssetRegistry.ScanSynchronous({ExternalActorRoot}, {});
+
+    auto ExternalActorAssets = TArray<FAssetData>{};
+    AssetRegistry.GetAssetsByPath(*ExternalActorRoot, ExternalActorAssets,
+        /*bRecursive=*/true, /*bIncludeOnlyOnDiskAssets=*/true);
+
+    const auto RootPrefix = ExternalActorRoot + TEXT("/");
+
+    auto Count = int32{0};
+    for (const FAssetData& Asset : ExternalActorAssets)
+    {
+        if (NOT Asset.PackageName.ToString().StartsWith(RootPrefix, ESearchCase::CaseSensitive))
+        { continue; }
+
+        // UnreadableMetadata counts. This number exists to answer "is there anything here
+        // that a wipe would destroy", and a package under an AutoTests map's external-actor
+        // root whose metadata will not read is exactly the case where guessing "no" is the
+        // expensive guess. Counting it can only make the floor refuse where it might have
+        // proceeded, and the escape hatch covers that.
+        switch (Get_WrapperPackageKind(Asset))
+        {
+            case ECk_AutoTestWrapperPackageKind::Wrapper:
+            case ECk_AutoTestWrapperPackageKind::UnreadableMetadata:
+                ++Count;
+                break;
+            case ECk_AutoTestWrapperPackageKind::NotAWrapper:
+                break;
+        }
+    }
+
+    return Count;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -296,6 +530,50 @@ auto
     if (NOT bInForceFullSync)
     {
         const auto PrecheckWantedClasses = Discover_TestClasses(InConfig);
+
+        // ---- WIPE FLOOR, before the pre-check and before any load -------------------
+        //
+        // Same DECISION as the full pass below -- Evaluate_WipeFloor owns it -- asked here
+        // as well because reaching the full pass costs a map load. Broken discovery is not
+        // a one-shot event: the automatic sync re-runs on boot AND on every AngelScript
+        // post-compile, and the boot itself runs Sync_AllConfigs twice back to back, so
+        // "load two maps, then refuse" would be a 4.9 s tax per pass on the developer
+        // already fighting whatever broke discovery. Refusing from disk evidence costs one
+        // cached registry query.
+        //
+        // The full pass keeps the same check regardless. That one is the authoritative
+        // floor: it sits above every destructive site, it sees the loaded actors as well as
+        // the packages (so it covers a non-OFPA map, whose actors live in the .umap and are
+        // invisible here), and it is the ONLY floor on the forced path, which does not run
+        // this branch at all.
+        //
+        // Note this site can never AUTHORISE a wipe: Get_WipeAuthorisation requires a
+        // forced pass, and this branch is the unforced one. So the verdict here is only
+        // ever Proceed or Refuse, and an authorised wipe always goes through the full pass
+        // -- which is what stops an authorised unforced pass falling through into the
+        // pre-check with an empty wanted set and reporting "Already in sync".
+        if (const auto TargetWorldPath = InConfig->TargetMap.ToSoftObjectPath().GetLongPackageName();
+            NOT TargetWorldPath.IsEmpty())
+        {
+            // Resident-actor count is 0 by construction: nothing is loaded yet. That is not
+            // a guess the message has to make -- it is what "before any load" means, and
+            // Evaluate_WipeFloor words the consequence accordingly.
+            const auto Verdict = Evaluate_WipeFloor(
+                InConfig->Get_DisplayName(),
+                TargetWorldPath,
+                PrecheckWantedClasses.Num(),
+                Count_WrapperPackagesOnDisk(TargetWorldPath),
+                /*InNumResidentWrapperActors=*/0,
+                Get_WipeAuthorisation(/*bInIsForcedPass=*/false));
+
+            if (Verdict.Decision == ECk_AutoTestWipeFloorDecision::Refuse)
+            {
+                Result.bRefused = true;
+                Result.RefusalReason = Verdict.Reason;
+                DoReport_Refusal(InConfig, Verdict);
+                return Result;
+            }
+        }
 
         auto ReasonToLoad = FString{};
         if (Is_AlreadyInSync_FromAssetRegistry(InConfig, PrecheckWantedClasses, ReasonToLoad))
@@ -375,6 +653,74 @@ auto
 
             CurrentByClass.FindOrAdd(Actor->GetClass()).Add(Actor);
         }
+    }
+
+    // ---- WIPE FLOOR: refuse a pass that recognises nothing --------------------------
+    //
+    // Four sites below this line destroy something: the duplicate removal, the orphan
+    // sweep, the unloadable-wrapper cleanup (separately CVar-gated) and the
+    // stranded-external cleanup (ungated). Three of them decide what to destroy by
+    // subtracting the wanted set from what exists, so an EMPTY wanted set makes all three
+    // conclude "destroy everything"; the fourth is wanted-driven and inert when nothing is
+    // wanted, but it is below the floor too and that is the point -- the guard is placed
+    // by position, not by enumerating which sites happen to be dangerous today.
+    //
+    // Refusing once, above all of them, rather than guarding each: a floor repeated N
+    // times is N chances to drift apart, and the N+1th destructive site would arrive
+    // unguarded.
+    //
+    // Counting BOTH evidence sources is also load-bearing. On-disk packages alone read
+    // zero for a non-OFPA level, whose actors live inside the .umap. Loaded actors alone
+    // read zero for a map whose wrapper classes are absent -- and while that state cannot
+    // currently destroy anything (a class that did not load leaves no actor for the sweep
+    // and no object for the stranded pass), it is still a state in which this pass must
+    // not claim the map is in sync, and it is reachable on a host built without
+    // AngelScript or with AS roots that exclude the plugin holding the tests. The floor
+    // takes the larger of the two so it is true above the union.
+    const auto NumPlacedWrapperActors = [&]()
+    {
+        auto Count = int32{0};
+        for (const auto& Pair : CurrentByClass)
+        { Count += Pair.Value.Num(); }
+        return Count;
+    }();
+
+    // Both inputs are computed unconditionally, not lazily behind the predicate's own
+    // first clause. The registry scan is a no-op against cached data (the registry's
+    // initial scan has completed before any sync runs) and the full pass repeats it a few
+    // hundred lines below regardless, so there is nothing to save -- while a lazily-zeroed
+    // input would silently defeat any future widening of the predicate.
+    const auto NumAssociatedWrappers = FMath::Max(
+        NumPlacedWrapperActors,
+        Count_WrapperPackagesOnDisk(Package->GetName()));
+
+    const auto Verdict = Evaluate_WipeFloor(
+        InConfig->Get_DisplayName(),
+        Package->GetName(),
+        WantedClasses.Num(),
+        NumAssociatedWrappers,
+        NumPlacedWrapperActors,
+        Get_WipeAuthorisation(bInForceFullSync));
+
+    switch (Verdict.Decision)
+    {
+        case ECk_AutoTestWipeFloorDecision::Refuse:
+        {
+            Result.bRefused = true;
+            Result.RefusalReason = Verdict.Reason;
+            DoReport_Refusal(InConfig, Verdict);
+            return Result;
+        }
+        case ECk_AutoTestWipeFloorDecision::ProceedAuthorised:
+        {
+            // Announced at the moment of USE, not just of setting. Warning rather than
+            // Notify_Error: a human asked for this on this very command, so it is a record,
+            // not an alarm.
+            ck::tests_editor::Warning(TEXT("{}"), Verdict.Explanation);
+            break;
+        }
+        case ECk_AutoTestWipeFloorDecision::Proceed:
+        { break; }
     }
 
     // ---- Spawn missing classes + relabel stale ones ---------------------------------
@@ -1062,8 +1408,11 @@ auto
         if (NOT Asset.PackageName.ToString().StartsWith(RootPrefix, ESearchCase::CaseSensitive))
         { continue; }
 
-        auto SavedActorMetaDataClass = FString{};
-        if (NOT Asset.GetTagValue(TEXT("ActorMetaDataClass"), SavedActorMetaDataClass))
+        // Classification is Get_WrapperPackageKind's job, not this loop's -- see its header
+        // comment. What differs here is only what each answer MEANS to the pre-check.
+        const auto Kind = Get_WrapperPackageKind(Asset);
+
+        if (Kind == ECk_AutoTestWrapperPackageKind::UnreadableMetadata)
         {
             // A package under this map's root whose class metadata we cannot read. The
             // full pass has an opinion about these (the unloadable-wrapper preview), so
@@ -1076,14 +1425,7 @@ auto
 
         // Not an AutoTest wrapper (the level's floor, lights, whatever else it holds).
         // Only the wrapper population is the populator's business.
-        //
-        // Resolved and tested with IsChildOf rather than string-compared to
-        // ACk_AutoTestRunner's exact path: ActorMetaDataClass records the nearest NATIVE
-        // parent, so the day someone adds a native ACk_AutoTestRunner subclass, an exact
-        // match would stop recognising those wrappers entirely -- the pre-check would report
-        // "no wrapper on disk", and load the map every boot forever.
-        const auto* SavedNativeClass = FindObject<UClass>(nullptr, *SavedActorMetaDataClass);
-        if (SavedNativeClass == nullptr || NOT SavedNativeClass->IsChildOf(ACk_AutoTestRunner::StaticClass()))
+        if (Kind == ECk_AutoTestWrapperPackageKind::NotAWrapper)
         { continue; }
 
         ++PlacedCountByClassPath.FindOrAdd(Asset.AssetClassPath);
@@ -1099,22 +1441,19 @@ auto
         return false;
     }
 
-    // ---- HAZARD, NOT FIXED HERE: a total wipe is reachable and nothing floors it ----
+    // NOTE: an EMPTY InWantedClasses never reaches here, and the reason is structural
+    // rather than a rule someone has to remember. The only caller is Sync_Config_Internal's
+    // UNFORCED branch, which floors that case first; and the floor cannot be waived on that
+    // branch, because Get_WipeAuthorisation requires a forced pass. (An earlier version of
+    // this note was FALSE for exactly that reason -- the authorisation was a bare CVar, so
+    // setting it in an .ini let an empty wanted set reach this function, which then returned
+    // TRUE and made the caller log "Already in sync on disk — 0 wrapper(s) verified" about a
+    // map holding hundreds of them.)
     //
-    // If the wanted set comes back EMPTY while wrappers exist on disk, every one of them is an
-    // orphan by the rules below and the full pass destroys all ~1,400 actors and SCC-deletes
-    // their packages. An empty wanted set far more likely means discovery broke -- an
-    // AngelScript compile failure this boot, or a ClassScanRoot that stopped matching (this
-    // file records that happening at the Discover_TestClasses warning) -- than that every test
-    // was deleted at once.
-    //
-    // This pre-existed the pre-check and the pre-check does not worsen it: before, the full
-    // pass ran unconditionally and would do the same. It is NOT fixed here because the honest
-    // fix does not fit in this function -- the refusal has to be a third outcome that reaches
-    // FCkAutoTestSyncResult (returning "in sync" would make the caller log a false
-    // "Already in sync" line), and it has to cover the FORCED path too, which is the more
-    // dangerous one: `Ck.SyncAutoTestMaps` after a failed AS compile wipes the map today.
-    // Recorded as an open item rather than half-done.
+    // What it protects: reaching this point with nothing wanted falls through to the
+    // unloadable-wrapper preview below, which asserts those packages "point at classes that
+    // no longer exist" -- a cause it has not established when discovery simply found
+    // nothing -- and then hands out the recipe that DELETES them all.
 
     // ---- Wanted vs placed ----------------------------------------------------------
     for (const UClass* Class : InWantedClasses)
