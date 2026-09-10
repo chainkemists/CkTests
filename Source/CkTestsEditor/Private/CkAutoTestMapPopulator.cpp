@@ -326,7 +326,12 @@ auto
     auto Verdict = FCk_AutoTestWipeFloorVerdict{};
 
     if (NOT Get_WouldWipeUnrecognizedWrappers(InNumWantedClasses, InNumAssociatedWrappers))
-    { return Verdict; }
+    {
+        // Explicit, not defaulted: the default is NotEvaluated so that only a verdict this
+        // function actually produced can satisfy a destructive site.
+        Verdict.Decision = ECk_AutoTestWipeFloorDecision::Proceed;
+        return Verdict;
+    }
 
     // What a sync would ACTUALLY have done, branched on residency rather than asserted.
     //
@@ -365,9 +370,6 @@ auto
         Verdict.Reason = ck::Format_UE(
             TEXT("authorised wipe of {} wrapper(s) for '{}' with no discovered test classes"),
             InNumAssociatedWrappers, InMapPackageName);
-        Verdict.Headline = ck::Format_UE(
-            TEXT("[CkAutoTest Populator] AUTHORISED wipe of {} wrappers in '{}'. See the Output Log."),
-            InNumAssociatedWrappers, FPackageName::GetShortName(InMapPackageName));
         Verdict.Explanation = ck::Format_UE(
             TEXT("[CkAutoTest Populator] [{}] Ck.AutoTest.Populator.AllowUnrecognizedWipe is SET and this "
                  "is a forced pass -- PROCEEDING to remove all {} AutoTest wrapper(s) belonging to '{}' "
@@ -738,6 +740,29 @@ auto
         { break; }
     }
 
+    // NOTE on what protects the destructive sites ~270 lines below, stated with the limits
+    // review found, because the first version of this comment overclaimed on three counts.
+    //
+    // Each destructive site re-asserts that `Verdict` holds a POSITIVE decision. That buys:
+    //
+    //   * a compile error if this block moves below a site -- `Verdict` is declared here, so
+    //     a site below it names nothing. NOT a guarantee of position: the natural response to
+    //     that error is to hoist the declaration and assign later, which compiles. That hole
+    //     is why the decision enum defaults to NotEvaluated and why the sites check for a
+    //     positive value rather than for `!= Refuse` -- a hoisted default now fails the check
+    //     instead of passing it.
+    //   * a runtime ensure ON THE PASS WHERE DISCOVERY ACTUALLY COLLAPSED, if the Refuse
+    //     `return Result` above is ever deleted. It does NOT detect that deletion on a healthy
+    //     pass, where the decision is Proceed and the check learns nothing. It converts a wipe
+    //     into an ensure and an early return; it is not a refactor detector.
+    //
+    // And it does NOT solve the N+1 problem the floor's own comment above raises. A destructive
+    // site added ABOVE this block, or one that simply does not name `Verdict`, inherits neither
+    // property. These lines are position ASSERTIONS for the two sites that exist today, not
+    // floors -- the floor is the single decision above. The structural closure (a move-only
+    // clearance token that the destructive half cannot be entered without) is recorded as owed
+    // rather than claimed here.
+
     // ---- Spawn missing classes + relabel stale ones ---------------------------------
     //
     // The expected Outliner label is the wrapper's class name with the conventional
@@ -950,6 +975,23 @@ auto
     // Capture external packages BEFORE DestroyActor — GetExternalPackage() returns
     // null after the actor is gone. Non-OFPA actors leave the list empty (the call
     // no-ops), preserving the original behavior for that path.
+    // Positive decision, not `!= Refuse`: see the NOTE above. A default-constructed verdict
+    // reads NotEvaluated and must fail here.
+    CK_ENSURE_IF_NOT(Verdict.Decision == ECk_AutoTestWipeFloorDecision::Proceed ||
+                     Verdict.Decision == ECk_AutoTestWipeFloorDecision::ProceedAuthorised,
+        TEXT("[CkAutoTest Populator] [{}] The orphan sweep was reached without a positive wipe-floor "
+             "verdict. Refusing to sweep -- this is the pass that would have destroyed every AutoTest "
+             "wrapper belonging to this map."),
+        InConfig->Get_DisplayName())
+    {
+        // The recovery must reach the CONSUMER, or the summary line reports "0 REFUSED" for a
+        // pass that refused -- loud to whoever sees the ensure, silent in the record. This is
+        // the same tenet-8 untruth the third outcome exists to prevent.
+        Result.bRefused = true;
+        Result.RefusalReason = TEXT("orphan sweep reached without a positive wipe-floor verdict");
+        return Result;
+    }
+
     auto OrphanedExternalPackages = TArray<UPackage*>{};
     auto ExternalPackagesQueuedForDeletion = TSet<FName>{};
     for (const auto& Pair : CurrentByClass)
@@ -1008,6 +1050,20 @@ auto
     // external package with no usable Asset Registry metadata remains untouched.
     if (bIsOFPA)
     {
+        // "Survives absent classes" is the registry-driven unloadable-wrapper scan specifically;
+        // the stranded pass reads loaded objects and cannot see a package that never loaded one.
+        CK_ENSURE_IF_NOT(Verdict.Decision == ECk_AutoTestWipeFloorDecision::Proceed ||
+                         Verdict.Decision == ECk_AutoTestWipeFloorDecision::ProceedAuthorised,
+            TEXT("[CkAutoTest Populator] [{}] The package-level cleanup passes were reached without a "
+                 "positive wipe-floor verdict. The unloadable-wrapper scan reads the asset registry, so "
+                 "it deletes packages whose classes never loaded. Refusing to clean up."),
+            InConfig->Get_DisplayName())
+        {
+            Result.bRefused = true;
+            Result.RefusalReason = TEXT("package cleanup reached without a positive wipe-floor verdict");
+            return Result;
+        }
+
         auto LiveExternalPackageNames = TSet<FName>{};
         if (auto* Level = CurrentWorld->PersistentLevel.Get();
             ck::IsValid(Level, ck::IsValid_Policy_NullptrOnly{}))

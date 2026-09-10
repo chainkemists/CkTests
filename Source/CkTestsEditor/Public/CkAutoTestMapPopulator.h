@@ -93,6 +93,14 @@ enum class ECk_AutoTestWrapperPackageKind : uint8
 
 enum class ECk_AutoTestWipeFloorDecision : uint8
 {
+    // No floor has run. The DEFAULT, deliberately, and it is the whole reason this value
+    // exists: with `Proceed` as the default, a default-constructed verdict declared above
+    // the destructive sites both compiles and satisfies a `!= Refuse` check -- so the
+    // natural response to the compile error those sites raise (hoist the declaration, assign
+    // later) silently defeats the guard it was raised by. Sites therefore check for a
+    // POSITIVE decision, never for "not Refuse".
+    NotEvaluated = 0,
+
     // Nothing about this pass looks like a wipe. Carry on.
     Proceed,
 
@@ -109,12 +117,17 @@ enum class ECk_AutoTestWipeFloorDecision : uint8
 
 struct CKTESTSEDITOR_API FCk_AutoTestWipeFloorVerdict
 {
-    ECk_AutoTestWipeFloorDecision Decision = ECk_AutoTestWipeFloorDecision::Proceed;
+    // Defaults to NotEvaluated, NOT Proceed. Adding the enum value without changing THIS line
+    // left the fail-open default fully in place while looking fixed -- caught only because the
+    // property is asserted rather than assumed.
+    ECk_AutoTestWipeFloorDecision Decision = ECk_AutoTestWipeFloorDecision::NotEvaluated;
 
     // Short, for FCkAutoTestSyncResult::RefusalReason. Empty when Proceed.
     FString Reason;
 
-    // The SHORT line, for the Slate toast. Empty when Proceed.
+    // The SHORT line, for the Slate toast. Set ONLY on Refuse -- that is the only decision
+    // that raises a toast. ProceedAuthorised reports through a Warning carrying Explanation,
+    // and Proceed reports nothing, so a Headline on either would be a field nothing reads.
     //
     // Separate from Explanation because a Slate notification silently clips a long
     // message, mid-token: the first version of this refusal rendered as
