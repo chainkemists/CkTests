@@ -114,8 +114,21 @@ struct CKTESTSEDITOR_API FCk_AutoTestWipeFloorVerdict
     // Short, for FCkAutoTestSyncResult::RefusalReason. Empty when Proceed.
     FString Reason;
 
-    // The full user-facing sentence for the toast (Refuse) or the warning
-    // (ProceedAuthorised). Empty when Proceed.
+    // The SHORT line, for the Slate toast. Empty when Proceed.
+    //
+    // Separate from Explanation because a Slate notification silently clips a long
+    // message, mid-token: the first version of this refusal rendered as
+    // "...set Ck.AutoTest.Populator.AllowUnrecogn AND run..." and truncated the exact
+    // console variable the reader has to type. The toast is a fading overlay and gets a
+    // summary; the Message Log and Output Log hold and get everything.
+    //
+    // It deliberately does NOT carry the CVar name or the recovery recipe. Half a CVar
+    // name is worse than none -- it looks copyable and is not -- so the toast points at
+    // the Output Log and the log carries the instruction in full.
+    FString Headline;
+
+    // The full user-facing text, for the Message Log row and the Output Log. Empty when
+    // Proceed.
     //
     // Built HERE rather than at the call sites because it makes a claim about
     // consequences that is only true in one of the two states this floor catches, and a
