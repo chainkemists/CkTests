@@ -67,6 +67,24 @@ class UCk_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward
             HighestNavmeshY = CandidateY;
         }
 
+        // The coarse sweep finds the correct Recast island but not its actual
+        // polygon edge. Refine from its last in-mesh sample so the fixture is
+        // anchored to the provider's real boundary rather than a 50cm grid.
+        const auto RefinementEndY = HighestNavmeshY + 100.0;
+        for (float64 CandidateY = HighestNavmeshY + 1.0;
+            CandidateY <= RefinementEndY;
+            CandidateY += 1.0)
+        {
+            const auto Result = Do_ProjectOntoSurface(
+                FVector(0.0, CandidateY, 0.0),
+                FVector(5.0f, 5.0f, 300.0f));
+            const auto Projects = Result.Get_Status() == ECk_NavSurface_QueryStatus::Success;
+            if (!Projects ||
+                (Result.Get_Location() - FVector(0.0, CandidateY, 0.0)).Size2D() > 2.0f)
+            { break; }
+            HighestNavmeshY = CandidateY;
+        }
+
         Assert_True(
             HighestNavmeshY >= 300.0,
             f"clearance fixture requires a north navmesh boundary, highest projected Y={HighestNavmeshY}");
@@ -95,7 +113,7 @@ class UCk_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward
         const auto InwardProjects = InwardResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
         Assert_True(
             InwardProjects &&
-                (InwardResult.Get_Location() - FVector(0.0, _CenterlineY - 150.0, 0.0)).Size() <= 2.0f,
+                (InwardResult.Get_Location() - FVector(0.0, _CenterlineY - 150.0, 0.0)).Size2D() <= 2.0f,
             "the ribbon must have navmesh room inward from the discovered boundary");
 
         const auto OutsideResult = Do_ProjectOntoSurface(
