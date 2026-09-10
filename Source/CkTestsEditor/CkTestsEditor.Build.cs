@@ -24,6 +24,7 @@ public class CkTestsEditor : CkModuleRules
             "MessageLog",
             "SourceControl",
             "Landscape",
+            "NavigationSystem",
 
             "CkCore",
             "CkEcs",
