@@ -13,6 +13,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
     private FCk_Handle_Queue           _Queue;
     private FCk_Handle_Queue           _SecondQueue;
     private FVector                    _Spawn;
+    private FVector                    _InitialQueueTarget;
     private int32                      _InitialAssignmentRevision = 0;
     private int32                      _InitialEpisode = 0;
     private int32                      _InitialCorrelation = 0;
@@ -100,7 +101,11 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         Add_Step("compose an isolated queue and CrowdAgent", n"Step_ComposeQueueAndAgent");
         Add_Step_WaitUntil("queue setup completes", n"Check_QueueReady");
         Add_Step("join through the Crowd queue adapter", n"Step_RequestJoin");
-        Add_Step_WaitUntil("adapter owns the initial Crowd move episode", n"Check_InitialMoveIssued");
+        // Recast starts this episode through the asynchronous nav request seam.
+        // At high PIE frame rates the default 240 polls are barely one second,
+        // which is shorter than the already-established Crowd adapter movement
+        // budget and turns a still-pending real request into a false timeout.
+        Add_Step_WaitUntil("adapter owns the initial Crowd move episode", n"Check_InitialMoveIssued", 1200);
         Add_Step_WaitUntil("initial adapter-owned movement reaches meaningful forward speed", n"Check_InitialMoveCruising");
         Add_Step("reflow the live queue assignment along the active movement direction", n"Step_RequestContinuousReflow");
         Add_Step_WaitUntil("live queue reflow retargets without a physical hard stop", n"Check_ContinuousReflowRetargeted");
@@ -243,7 +248,11 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         const auto TargetResult = Do_ProjectOntoSurface(FVector(600.0f, 0.0f, 0.0f), FVector(100.0f, 100.0f, 300.0f));
         const bool SpawnIsNavigable = SpawnResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
         const bool TargetIsNavigable = TargetResult.Get_Status() == ECk_NavSurface_QueryStatus::Success;
-        if (SpawnIsNavigable) { _Spawn = SpawnResult.Get_Location(); }
+        if (SpawnIsNavigable && TargetIsNavigable)
+        {
+            _Spawn = SpawnResult.Get_Location();
+            _InitialQueueTarget = TargetResult.Get_Location();
+        }
         auto Result = OutResult;
         Result.Set(SpawnIsNavigable && TargetIsNavigable);
     }
@@ -263,7 +272,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         _QueueOwner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         _SecondQueueOwner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(_QueueOwner,
-            FTransform(FRotator::ZeroRotator, FVector(1000.0f, 0.0f, 0.0f), FVector::OneVector),
+            FTransform(FRotator::ZeroRotator, _InitialQueueTarget, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
         utils_transform::Add(_SecondQueueOwner,
             FTransform(FRotator::ZeroRotator, FVector(400.0f, -250.0f, 0.0f), FVector::OneVector),
@@ -340,7 +349,8 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         const auto Episode = _Agent.Get_ActiveMoveEpisode();
         const auto Correlation = _Agent.Get_ActiveMoveCorrelationId();
         const bool InitialRolesAreReserved = HasSnapshot && HasFollowerSnapshot
-            && Snapshot.Get_Rank() == 0 && FollowerSnapshot.Get_Rank() == 1;
+            && Snapshot.Get_Rank() == 0 && FollowerSnapshot.Get_Rank() == 1
+            && Snapshot.Get_TargetWorldTransform().GetLocation().Equals(_InitialQueueTarget, 1.0f);
         if (InitialRolesAreReserved && Snapshot.Get_AssignmentRevision() > 0 && Episode > 0 && Correlation > 0)
         {
             _InitialAssignmentRevision = Snapshot.Get_AssignmentRevision();
