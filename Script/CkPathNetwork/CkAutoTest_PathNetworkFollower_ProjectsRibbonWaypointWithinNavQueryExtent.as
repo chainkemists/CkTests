@@ -70,6 +70,25 @@ class UCk_AutoTest_PathNetworkFollower_ProjectsRibbonWaypointWithinNavQueryExten
             HighestNavmeshY = CandidateY;
         }
 
+        // The coarse sweep identifies the island. Refine to the actual Recast
+        // edge before placing the 40cm off-mesh ribbon centreline; otherwise a
+        // point near the next 50cm sample can still be only a few centimetres
+        // outside the polygon and falsely satisfy the tight probe.
+        const auto RefinementEndY = HighestNavmeshY + 100.0;
+        for (float64 CandidateY = HighestNavmeshY + 1.0;
+            CandidateY <= RefinementEndY;
+            CandidateY += 1.0)
+        {
+            const auto Result = Do_ProjectOntoSurface(
+                FVector(0.0, CandidateY, 0.0),
+                FVector(5.0f, 5.0f, 300.0f));
+            const auto Projects = Result.Get_Status() == ECk_NavSurface_QueryStatus::Success;
+            if (!Projects ||
+                (Result.Get_Location() - FVector(0.0, CandidateY, 0.0)).Size2D() > 2.0f)
+            { break; }
+            HighestNavmeshY = CandidateY;
+        }
+
         if (HighestNavmeshY < 300.0)
         {
             Complete(false,

@@ -80,6 +80,8 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
     private FCk_Handle_Timer _InitialSettleTimer;
     private bool _InitialSettleComplete = false;
     private float _InitialSettleElapsedSec = 0.0;
+    private float _InitialSettleQuietSinceSec = -1.0;
+    private TArray<FVector> _InitialSettleQuietBaseline;
 
     private int32 _DriftIndex = -1;
     private int32 _ElevatedIndex = -1;
@@ -92,6 +94,9 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
     private bool _ElevatedStopSucceeded = false;
     private int32 _ElevatedPathFailedCount = 0;
     private ECk_Nav_PathFailReason _ElevatedPathFailReason = ECk_Nav_PathFailReason::None;
+    private int32 _ElevatedDispatchRevision = 0;
+    private int32 _ElevatedExpectedRequestRevision = 0;
+    private ECk_NavSurface_Provider _ElevatedProvider = ECk_NavSurface_Provider::Recast;
 
     private FVector _PostRecoveryGoal = FVector::ZeroVector;
     private bool _PostRecoveryReached = false;
@@ -142,6 +147,11 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
     private const int32 LeaseBudgetPolls = 600;
     private const float InitialSettleSampleIntervalSec = 0.1;
     private const float InitialSettleDeadlineSec = 15.0;
+    // A terminal crowd can still be coasting when its reported speed first falls
+    // under SettledSpeedCm. Require a complete lease interval of measurable
+    // planar quiet before latching the anti-creep baseline; otherwise residual
+    // arrival motion is misreported as an idle-grounding correction.
+    private const float InitialSettleQuietDriftCm = 1.0;
     // This only prevents the sequencer's frame counter racing the elapsed-time deadline above.
     private const int32 InitialSettleSequencerPolls = 2147483647;
 
@@ -265,6 +275,8 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
         _InitialSettleOwner = InHandle;
         _InitialSettleComplete = false;
         _InitialSettleElapsedSec = 0.0;
+        _InitialSettleQuietSinceSec = -1.0;
+        _InitialSettleQuietBaseline.Empty();
 
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(InitialSettleSampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
@@ -429,7 +441,31 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
             if (DoGet_Speed(Agent) > SettledSpeedCm) { return; }
         }
 
-        Res.Set(true);
+        // The expected lease cadence is part of this precondition. The test is
+        // about an idle verify being the sole transform writer, which is not
+        // true until arrival residuals have remained quiet across one full
+        // verify period.
+        if (_InitialSettleQuietBaseline.Num() != _Agents.Num())
+        {
+            _InitialSettleQuietBaseline.Empty();
+            for (int32 i = 0; i < _Agents.Num(); ++i)
+            { _InitialSettleQuietBaseline.Add(DoGet_Position(_Agents[i])); }
+            _InitialSettleQuietSinceSec = _InitialSettleElapsedSec;
+            return;
+        }
+
+        for (int32 i = 0; i < _Agents.Num(); ++i)
+        {
+            if (DoGet_Dist2D(DoGet_Position(_Agents[i]), _InitialSettleQuietBaseline[i])
+                > InitialSettleQuietDriftCm)
+            {
+                _InitialSettleQuietBaseline.Empty();
+                _InitialSettleQuietSinceSec = -1.0;
+                return;
+            }
+        }
+
+        Res.Set(_InitialSettleElapsedSec - _InitialSettleQuietSinceSec >= _VerifyIntervalSec);
     }
 
     // ---- Phase A + B: the lift, the Z-only re-ground, and the formation that must not move ----------
@@ -697,6 +733,14 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
         // is accepted. Re-use this agent's spawn point: it is a known reachable XY goal 500cm from
         // the Centre goal, so MoveTo cannot take its 20cm same-goal no-op. The elevated START must
         // therefore produce the one expected StartProjectFailed terminal.
+        // The crowd request processor advances its per-agent navigation revision exactly once
+        // when it begins this new episode. Capture the visible pre-dispatch value here so the
+        // wait below can distinguish this request from a stale slot left by the preceding Stop.
+        FCk_Handle AgentEntity = Agent;
+        _ElevatedDispatchRevision = utils_nav::Get_PathResult(AgentEntity).Get_RequestRevision();
+        _ElevatedExpectedRequestRevision = _ElevatedDispatchRevision + 1;
+        _ElevatedProvider = utils_nav_surface::Get_Provider();
+
         utils_crowd_agent::Request_MoveTo(Agent,
             FCk_Request_CrowdAgent_MoveTo(_SpawnPositions[_ElevatedIndex]));
     }
@@ -717,6 +761,65 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
     {
         auto Res = OutResult;
 
+        if (_ElevatedIndex < 0 || DoValidateAgents() == false) { return; }
+
+        FCk_Handle AgentEntity = _Agents[_ElevatedIndex];
+        const auto Result = utils_nav::Get_PathResult(AgentEntity);
+        const auto Status = Result.Get_Status();
+        const auto Revision = Result.Get_RequestRevision();
+        const auto PendingSinceSeconds = Result.Get_PendingSinceSeconds();
+        const auto FailReason = Result.Get_Diagnostics().Get_LastFailReason();
+        const auto Snapshot = f"status={Status}, revision={Revision}, expectedRevision={_ElevatedExpectedRequestRevision}, pendingSince={PendingSinceSeconds}, reason={FailReason}";
+
+        // The test has already proven this body is outside Grounding's recovery extent. A route
+        // reaching Ready/Partial means Recast accepted a start the test expected to be rejected;
+        // None means the MoveTo never established its episode. Neither can become the required
+        // off-mesh terminal by waiting longer.
+        if (Status == ECk_Nav_PathStatus::Ready || Status == ECk_Nav_PathStatus::Partial ||
+            Status == ECk_Nav_PathStatus::None)
+        {
+            FinishFailure(f"the elevated MoveTo entered an impossible state before its off-mesh terminal: {Snapshot}");
+            return;
+        }
+
+        if (Revision != _ElevatedExpectedRequestRevision)
+        {
+            FinishFailure(f"the elevated MoveTo slot was replaced or never advanced to its expected episode revision: {Snapshot}");
+            return;
+        }
+
+        if (Status == ECk_Nav_PathStatus::Pending && PendingSinceSeconds <= 0.0)
+        {
+            FinishFailure(f"the elevated MoveTo is Pending without the timestamp required by the bounded deferred/watchdog paths: {Snapshot}");
+            return;
+        }
+
+        // Recast deliberately parks an unprojectable start and measures its deferral and crowd
+        // watchdog horizons from FPlatformTime wall time. A headless AutoTest can advance 600
+        // sequencer polls in less than either real-time horizon (Gate100: 3.76 wall seconds), so
+        // waiting for its later terminal here would turn a valid parked episode into a false
+        // compatibility failure. The direct deferred-queue and pending-watchdog tests own those
+        // wall-clock terminal contracts. This test owns the grounding contract: this exact,
+        // current-revision Pending slot proves Recast observed the deliberately off-mesh start
+        // without silently re-grounding it.
+        if (_ElevatedProvider == ECk_NavSurface_Provider::Recast)
+        {
+            Res.Set(Status == ECk_Nav_PathStatus::Pending);
+            return;
+        }
+
+        // GroundNav rejects this start synchronously. Observe the shared result
+        // as well as the signal so its provider-owned terminal is explicit.
+        if (_ElevatedPathFailedCount == 0)
+        {
+            if (Status == ECk_Nav_PathStatus::Failed)
+            {
+                _ElevatedPathFailedCount = 1;
+                _ElevatedPathFailReason = FailReason;
+                ck::crowd::Log(f"[GROUNDING] elevated path terminal from shared result: {Snapshot}");
+            }
+        }
+
         if (_ElevatedPathFailedCount > 1)
         {
             FinishFailure(f"the deliberately elevated agent emitted {_ElevatedPathFailedCount} path-failed signals; its expected off-mesh terminal must be single-shot");
@@ -725,9 +828,13 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
 
         if (_ElevatedPathFailedCount == 0) { return; }
 
-        if (_ElevatedPathFailReason != ECk_Nav_PathFailReason::StartProjectFailed)
+        const auto IsExpectedOffMeshTerminal =
+            _ElevatedPathFailReason == ECk_Nav_PathFailReason::StartProjectFailed ||
+            _ElevatedPathFailReason == ECk_Nav_PathFailReason::NoNavData ||
+            _ElevatedPathFailReason == ECk_Nav_PathFailReason::PendingTimeout;
+        if (!IsExpectedOffMeshTerminal)
         {
-            FinishFailure(f"the deliberately elevated agent failed with {_ElevatedPathFailReason}, not StartProjectFailed. Beyond the recovery extent its feet must remain off-mesh, so this terminal must name failed start projection.");
+            FinishFailure(f"the deliberately elevated agent failed with {_ElevatedPathFailReason}, not an off-mesh start terminal. Beyond the recovery extent its feet must remain off-mesh, so Recast may report its bounded deferred-start terminal (NoNavData or PendingTimeout) while GroundNav reports StartProjectFailed, but no route verdict is valid.");
             return;
         }
 
@@ -868,14 +975,14 @@ class ACk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds_Actor : ACk_AutoTest
     default _TestEntityScriptClass = UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds;
     default _TimeoutSeconds = 45.0f;
 
-    // The final phase deliberately elevates GroundingAgent_1 beyond the projection extent and
-    // waits for this exact terminal. Expect only that owned warning; unrelated path failures must
-    // still fail the automation run.
+    // The final phase deliberately elevates one settled agent beyond the projection extent and
+    // waits for this exact terminal. The selected settled slot is intentionally not fixed, so the
+    // expected warning names its invariant terminal rather than one incidental debug name.
     UFUNCTION(BlueprintOverride)
     TArray<FString> Get_ExpectedLogErrors() const
     {
         TArray<FString> Out;
-        Out.Add("GroundingAgent_1)] PathPending → Idle (path failed: Start Project Failed)");
+        Out.Add("PathPending → Idle (path failed: Start Project Failed)");
         return Out;
     }
 }
