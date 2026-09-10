@@ -73,6 +73,55 @@ namespace ck::tests_editor
     }
 #endif
 
+    // Notify_Error's two-channel cousin: a SHORT line for the toast, the full text for
+    // the Message Log row and the Output Log.
+    //
+    // Why this exists: a Slate notification silently CLIPS a long message, and it clips
+    // mid-token. An ~800-character refusal rendered as a toast that ended
+    // "...set Ck.AutoTest.Populator.AllowUnrecogn AND run..." -- truncating the exact
+    // console variable the reader has to type. A recovery instruction that cannot be read
+    // is not a recovery instruction, so the ephemeral channel gets a summary and the
+    // channels that can hold it get everything.
+    //
+    // Verified against the alternative before adding this: the log line was complete, so
+    // the loss is in the toast rendering, not in the formatting.
+#if WITH_EDITOR
+    inline auto Notify_Error_Detailed(const FString& InToastText, const FString& InDetailText) -> bool
+    {
+        if (auto& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>(TEXT("MessageLog"));
+            MessageLogModule.IsRegisteredLogListing(LogCategory) == false)
+        {
+            auto InitOptions = FMessageLogInitializationOptions{};
+            InitOptions.bShowFilters = true;
+
+            MessageLogModule.RegisterLogListing(LogCategory, FText::FromName(LogCategory), InitOptions);
+        }
+
+        // The Message Log row is the PERSISTENT backstop, so it carries the full text --
+        // it is a scrollable list, not a fading overlay, and it auto-pops on Error.
+        auto EditorInfo = FMessageLog{LogCategory};
+        EditorInfo.Error(FText::FromString(InDetailText));
+
+        auto Info = FNotificationInfo{FText::FromString(InToastText)};
+        Info.bFireAndForget  = true;
+        Info.bUseThrobber    = false;
+        Info.FadeOutDuration = 0.5f;
+        Info.ExpireDuration  = 20.0f;
+        Info.Image           = FAppStyle::Get().GetBrush(TEXT("Icons.Error"));
+
+        FSlateNotificationManager::Get().AddNotification(Info);
+
+        Error(TEXT("{}"), InDetailText);
+        return true;
+    }
+#else
+    inline auto Notify_Error_Detailed(const FString& InToastText, const FString& InDetailText) -> bool
+    {
+        Error(TEXT("{}"), InDetailText);
+        return true;
+    }
+#endif
+
     // Lighter-weight cousin of Notify_Error: surfaces "we did a thing you should
     // probably know about" — not "something broke." Differentiated styling so it
     // can't be mistaken for an error at a glance:

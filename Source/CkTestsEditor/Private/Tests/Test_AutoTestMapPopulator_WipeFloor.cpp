@@ -198,6 +198,36 @@ bool FCkTest_AutoTestPopulator_WipeFloor_DecisionAndWording::RunTest(const FStri
             Absent.Explanation.Contains(TEXT("source-control-deleted")));
     }
 
+    // THE TOAST/LOG SPLIT. A Slate notification silently clips a long message MID-TOKEN --
+    // observed live: an ~800-character refusal rendered as
+    // "...set Ck.AutoTest.Populator.AllowUnrecogn AND run..." with the console variable
+    // truncated. The log line was complete, so the loss is in the toast, not the format.
+    //
+    // Half a CVar name is worse than none: it looks copyable and is not. So the headline
+    // must stay short, must NOT carry the recipe, and must say where the recipe is; the
+    // explanation must carry it in full.
+    {
+        const auto Verdict = Evaluate(0, 533, 0, /*bInAuthorised=*/false);
+
+        // 180 rather than a generous bound: the observed clip happened on ~800 chars in a
+        // narrow column, and a limit that only rules out the disaster leaves room to drift
+        // back toward it. The current headline is ~150.
+        TestTrue(TEXT("The toast headline is short enough to render without clipping"),
+            Verdict.Headline.Len() < 180);
+        TestTrue(TEXT("The full explanation is the long one"),
+            Verdict.Explanation.Len() > Verdict.Headline.Len());
+
+        TestFalse(TEXT("The headline does NOT carry the CVar name (it would be clipped)"),
+            Verdict.Headline.Contains(TEXT("AllowUnrecognizedWipe")));
+        TestTrue(TEXT("The explanation DOES carry the full CVar name and value"),
+            Verdict.Explanation.Contains(TEXT("Ck.AutoTest.Populator.AllowUnrecognizedWipe=1")));
+
+        TestTrue(TEXT("The headline says nothing was changed"),
+            Verdict.Headline.Contains(TEXT("Nothing was changed")));
+        TestTrue(TEXT("The headline points at the channel that has the rest"),
+            Verdict.Headline.Contains(TEXT("Output Log")));
+    }
+
     // And it must not send the reader to a cause that cannot produce this state. A failed
     // AngelScript compile blocks engine init or exits, and a failed hot reload never
     // broadcasts PostCompile -- so the populator is not called at all. The first version of
