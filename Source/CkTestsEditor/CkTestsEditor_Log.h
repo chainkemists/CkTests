@@ -2,6 +2,7 @@
 
 #include "CkCore/Log/CkLog.h"
 #include "CkCore/Format/CkFormat.h"
+#include "CkCore/Ensure/CkEnsure.h"
 
 #if WITH_EDITOR
 #include <Styling/AppStyle.h>
@@ -17,10 +18,63 @@ namespace ck::tests_editor
 {
     CK_DEFINE_LOG_FUNCTIONS(CkTestsEditor);
 
+    // The one body behind both error notifiers. Private by convention (the DoRaise_ prefix):
+    // callers use Notify_Error or Notify_Error_Detailed.
+    //
+    // It exists so the registration, the toast styling and the Output Log line live in ONE
+    // place -- they used to be copied into each public function, which is two places to keep
+    // ExpireDuration, the icon and the listing options in step.
+    //
+    // Styling note: Info.Image is set directly rather than calling SetCompletionState(CS_Fail)
+    // afterwards. SetCompletionState starts an internal "task complete" fade timer that
+    // overrides ExpireDuration, collapsing a 20s toast to ~1-2s.
+#if WITH_EDITOR
+    inline auto DoRaise_Error(const FString& InToastText, const FString& InDetailText) -> bool
+    {
+        if (auto& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>(TEXT("MessageLog"));
+            MessageLogModule.IsRegisteredLogListing(LogCategory) == false)
+        {
+            auto InitOptions = FMessageLogInitializationOptions{};
+            InitOptions.bShowFilters = true;
+
+            MessageLogModule.RegisterLogListing(LogCategory, FText::FromName(LogCategory), InitOptions);
+        }
+
+        // The Message Log row carries the FULL text: it is a scrollable list rather than a
+        // fading overlay, so length is free there. It does NOT auto-open -- FMessageLog::Flush
+        // only calls AddMessages, and the listing surfaces via FMessageLog::Open/Notify, which
+        // nothing here calls. It is a backstop for someone who opens Window -> Message Log.
+        // Do not "fix" that with Notify(): it raises the engine's own toast on top of ours.
+        auto EditorInfo = FMessageLog{LogCategory};
+        EditorInfo.Error(FText::FromString(InDetailText));
+
+        auto Info = FNotificationInfo{FText::FromString(InToastText)};
+        Info.bFireAndForget  = true;
+        Info.bUseThrobber    = false;
+        Info.FadeOutDuration = 0.5f;
+        Info.ExpireDuration  = 20.0f;
+        Info.Image           = FAppStyle::Get().GetBrush(TEXT("Icons.Error"));
+
+        FSlateNotificationManager::Get().AddNotification(Info);
+
+        Error(TEXT("{}"), InDetailText);
+        return true;
+    }
+#else
+    inline auto DoRaise_Error(const FString& InToastText, const FString& InDetailText) -> bool
+    {
+        Error(TEXT("{}"), InDetailText);
+        return true;
+    }
+#endif
+
     // Surfaces an error simultaneously on three editor channels so it cannot be missed:
     //   1. Slate toast (bottom-right, red error icon, ~20s) — gets the user's attention.
-    //   2. Message Log row under the "CkTestsEditor" listing — auto-pops on Error so the
-    //      diagnostic stays visible after the toast fades.
+    //   2. Message Log row under the "CkTestsEditor" listing — persists after the toast fades.
+    //      It does NOT auto-open: FMessageLog::Flush only calls AddMessages, and the listing
+    //      surfaces only via FMessageLog::Open/Notify, neither of which is called here. So it
+    //      is a backstop for someone who opens Window -> Message Log, not a second alarm. Do
+    //      not "fix" that by calling Notify() — that raises the engine's own toast on top.
     //   3. Output Log Error line via ck::tests_editor::Error — for CI and headless capture.
     // Returns true when the notification fired so callers can keep the predicate shape of
     // CK_LOG_ERROR_NOTIFY_IF_NOT (e.g. `if (Notify_Error(...)) { return; }`).
@@ -34,35 +88,19 @@ namespace ck::tests_editor
     template <typename... TArgs>
     auto Notify_Error(const TCHAR* InFmt, TArgs&&... InArgs) -> bool
     {
+        // One body, in Notify_Error_Detailed. This used to be a second copy of the same
+        // registration + toast setup, which is a split-brain mirror by any reading: two
+        // places to keep ExpireDuration, the icon and the listing options in step.
+        // Same string to both channels -- the pre-existing behaviour, unchanged.
+        //
+        // NOT routed through Notify_Error_Detailed's length guard, and not truncated to fit:
+        // truncating here would cut mid-token, which is precisely the defect that motivated
+        // the two-channel split. The six remaining call sites in this plugin are 151-353 chars
+        // of literal plus a substituted path and several are very likely clipping today;
+        // converting them means writing a headline for each, which is a separate change.
+        // Measured lengths are recorded in the campaign's F24.
         const auto& FormattedString = ck::Format_UE(InFmt, Forward<TArgs>(InArgs)...);
-        const auto& FormattedText   = FText::FromString(FormattedString);
-
-        if (auto& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>(TEXT("MessageLog"));
-            MessageLogModule.IsRegisteredLogListing(LogCategory) == false)
-        {
-            auto InitOptions = FMessageLogInitializationOptions{};
-            InitOptions.bShowFilters = true;
-
-            MessageLogModule.RegisterLogListing(LogCategory, FText::FromName(LogCategory), InitOptions);
-        }
-
-        auto EditorInfo = FMessageLog{LogCategory};
-        EditorInfo.Error(FormattedText);
-
-        auto Info = FNotificationInfo{FormattedText};
-        Info.bFireAndForget  = true;
-        Info.bUseThrobber    = false;
-        Info.FadeOutDuration = 0.5f;
-        // Long enough to read a multi-sentence message that includes a file path
-        // and a recovery action without sprinting. The Message Log row persists
-        // indefinitely under the "CkTestsEditor" listing as a backstop.
-        Info.ExpireDuration  = 20.0f;
-        Info.Image           = FAppStyle::Get().GetBrush(TEXT("Icons.Error"));
-
-        FSlateNotificationManager::Get().AddNotification(Info);
-
-        Error(TEXT("{}"), FormattedString);
-        return true;
+        return DoRaise_Error(FormattedString, FormattedString);
     }
 #else
     template <typename... TArgs>
@@ -85,49 +123,28 @@ namespace ck::tests_editor
     //
     // Verified against the alternative before adding this: the log line was complete, so
     // the loss is in the toast rendering, not in the formatting.
-#if WITH_EDITOR
     inline auto Notify_Error_Detailed(const FString& InToastText, const FString& InDetailText) -> bool
     {
-        if (auto& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>(TEXT("MessageLog"));
-            MessageLogModule.IsRegisteredLogListing(LogCategory) == false)
-        {
-            auto InitOptions = FMessageLogInitializationOptions{};
-            InitOptions.bShowFilters = true;
+        // Catches the one regression the unit tests structurally cannot see. Every assertion on
+        // the split reads Evaluate_WipeFloor's struct; none observes the ROUTING, so reverting a
+        // call site to (Explanation, Explanation) leaves them all green and puts the clipping
+        // straight back. Slate rendering is not testable headlessly -- this is.
+        CK_ENSURE(NOT (InToastText.Equals(InDetailText, ESearchCase::CaseSensitive) &&
+                       InDetailText.Len() > 250),
+            TEXT("Notify_Error_Detailed was given the SAME text for the toast and the detail, and it "
+                 "is {} characters. A Slate toast clips a long message mid-token -- that is the whole "
+                 "reason this two-channel function exists. Pass a short headline for the toast."),
+            InDetailText.Len());
 
-            MessageLogModule.RegisterLogListing(LogCategory, FText::FromName(LogCategory), InitOptions);
-        }
-
-        // The Message Log row is the PERSISTENT backstop, so it carries the full text --
-        // it is a scrollable list, not a fading overlay, and it auto-pops on Error.
-        auto EditorInfo = FMessageLog{LogCategory};
-        EditorInfo.Error(FText::FromString(InDetailText));
-
-        auto Info = FNotificationInfo{FText::FromString(InToastText)};
-        Info.bFireAndForget  = true;
-        Info.bUseThrobber    = false;
-        Info.FadeOutDuration = 0.5f;
-        Info.ExpireDuration  = 20.0f;
-        Info.Image           = FAppStyle::Get().GetBrush(TEXT("Icons.Error"));
-
-        FSlateNotificationManager::Get().AddNotification(Info);
-
-        Error(TEXT("{}"), InDetailText);
-        return true;
+        return DoRaise_Error(InToastText, InDetailText);
     }
-#else
-    inline auto Notify_Error_Detailed(const FString& InToastText, const FString& InDetailText) -> bool
-    {
-        Error(TEXT("{}"), InDetailText);
-        return true;
-    }
-#endif
 
     // Lighter-weight cousin of Notify_Error: surfaces "we did a thing you should
     // probably know about" — not "something broke." Differentiated styling so it
     // can't be mistaken for an error at a glance:
     //   - Toast uses the blue info icon, ~12s expire.
-    //   - Message Log row is added at Info severity; the listing does NOT auto-pop
-    //     on Info (only on Error), so it's available if the user looks but never
+    //   - Message Log row is added at Info severity. The listing never auto-opens at any
+    //     severity (see Notify_Error), so it is available if the user looks but never
     //     steals focus.
     //   - Output Log line routes through Display (user-facing screen log level)
     //     rather than Error.
