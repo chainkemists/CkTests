@@ -137,8 +137,44 @@ bool FCkTest_AutoTestPopulator_WipeFloor_DecisionAndWording::RunTest(const FStri
     const auto Evaluate = [](int32 InWanted, int32 InAssociated, int32 InResident, bool bInAuthorised)
     {
         return UCkAutoTestMapPopulator::Evaluate_WipeFloor(
-            TEXT("TestConfig"), TEXT("/Game/Map/AutoTests"), InWanted, InAssociated, InResident, bInAuthorised);
+            // The LONGEST real target, not a short stub: the headline embeds the map's short
+            // name, so a stub path pins 152 chars while production is 159 (AutoTests_BB_MAP)
+            // and 166 (AutoTests_CkTests_Level). Pinning the short one would leave the bound
+            // untested against anything real.
+            TEXT("TestConfig"), TEXT("/Game/CkTests/AutoTests/AutoTests_CkTests_Level"),
+            InWanted, InAssociated, InResident, bInAuthorised);
     };
+
+    // THE FAIL-CLOSED DEFAULT. This is what makes the destructive sites' guards undefeatable
+    // by the obvious edit: review found that with Proceed as the enum's default, a
+    // default-constructed verdict hoisted above those sites both compiles AND satisfies a
+    // `!= Refuse` check -- so the natural response to the compile error (hoist the
+    // declaration, assign later) silently defeated the guard that raised it.
+    //
+    // Asserted here rather than proven by a throwaway mutation because it is a property that
+    // must keep holding: someone reordering this enum, or giving the struct a different
+    // default, breaks the guards without touching them.
+    {
+        const auto Untouched = FCk_AutoTestWipeFloorVerdict{};
+        TestTrue(TEXT("A verdict no floor produced reads NotEvaluated"),
+            Untouched.Decision == ECk_AutoTestWipeFloorDecision::NotEvaluated);
+        TestFalse(TEXT("NotEvaluated is not one of the positive decisions the sites accept"),
+            Untouched.Decision == ECk_AutoTestWipeFloorDecision::Proceed ||
+            Untouched.Decision == ECk_AutoTestWipeFloorDecision::ProceedAuthorised);
+        TestTrue(TEXT("An untouched verdict carries no wording to report"),
+            Untouched.Headline.IsEmpty() && Untouched.Explanation.IsEmpty());
+    }
+
+    // And the floor never LEAVES a verdict unevaluated -- every path assigns a real decision,
+    // so NotEvaluated genuinely means "no floor ran" rather than "the floor had no opinion".
+    {
+        TestFalse(TEXT("A healthy pass returns a real decision, not NotEvaluated"),
+            Evaluate(531, 531, 531, false).Decision == ECk_AutoTestWipeFloorDecision::NotEvaluated);
+        TestFalse(TEXT("An empty map returns a real decision, not NotEvaluated"),
+            Evaluate(0, 0, 0, false).Decision == ECk_AutoTestWipeFloorDecision::NotEvaluated);
+        TestFalse(TEXT("A refusing pass returns a real decision, not NotEvaluated"),
+            Evaluate(0, 533, 533, false).Decision == ECk_AutoTestWipeFloorDecision::NotEvaluated);
+    }
 
     // Unauthorised: refuse, and carry a reason the caller can record.
     {
@@ -209,10 +245,15 @@ bool FCkTest_AutoTestPopulator_WipeFloor_DecisionAndWording::RunTest(const FStri
     {
         const auto Verdict = Evaluate(0, 533, 0, /*bInAuthorised=*/false);
 
-        // 180 rather than a generous bound: the observed clip happened on ~800 chars in a
-        // narrow column, and a limit that only rules out the disaster leaves room to drift
-        // back toward it. The current headline is ~150.
-        TestTrue(TEXT("The toast headline is short enough to render without clipping"),
+        // A DRIFT RATCHET, not a rendering bound -- nothing measures what Slate can fit. What
+        // is known: 159 chars rendered cleanly in five lines, ~800 clipped mid-token. 180 is
+        // the fixed template (143 chars with a 3-digit count) plus 37 for a map short name;
+        // the longest real one today is "AutoTests_CkTests_Level" at 23. So the slack has a
+        // stated purpose and a map name past ~37 chars trips this deliberately.
+        //
+        // Named for what a Len() can actually establish. The earlier name claimed the headline
+        // "renders without clipping", which no headless assertion can know.
+        TestTrue(TEXT("The toast headline stays within the agreed length budget"),
             Verdict.Headline.Len() < 180);
         TestTrue(TEXT("The full explanation is the long one"),
             Verdict.Explanation.Len() > Verdict.Headline.Len());
