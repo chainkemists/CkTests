@@ -1,4 +1,4 @@
-class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerController
+class ACk_PathNetworkGym_Following_PlayerController : ACk_NavigationGym_Presentation_PlayerController
 {
     private FCk_Handle _OwnerHandle;
     private TArray<FCk_Handle_CrowdAgent> _Agents;
@@ -12,6 +12,11 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
     private const float k_SpawnX = 500.0;
     private const float k_AgentZ = 0.0;
     private const float k_HalfWidth = 90.0;
+
+    FVector Get_PresentationCentre() override { return FVector::ZeroVector; }
+    FVector Get_PresentationExtent() override { return FVector(1500.0, 1500.0, 250.0); }
+    FString Get_PresentationCaption() override { return "Six sidewalk scenarios show following, passing, shortcuts, junctions and live rebuilds."; }
+    void Request_PresentationBaselineView() override { Request_PresentationFrame(); }
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
@@ -85,6 +90,7 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         }
         Floor.SetActorScale3D(FVector(30.0, 30.0, 0.5));
         FinishSpawningActor(Floor);
+        CkNavigationGymPresentation::Request_RegisterActor(Floor);
     }
 
     // ---- Scenario construction ---------------------------------------------------------------------
@@ -282,11 +288,14 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Restart every follower"));
         Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Rebuild the lane swap"));
         Rows.Add(CkGym_Control::Action(EKeys::Z, "Z", "Clear"));
+        Append_PresentationControls(Rows);
         return Rows;
     }
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
+        if (Request_HandlePresentationControl(InRowIndex))
+        { return; }
         if (InRowIndex == 0) { RestartAllScenarios(); }
         else if (InRowIndex == 1) { RebuildLaneSwap(); }
         else if (InRowIndex == 2) { ClearAllScenarios(); }
