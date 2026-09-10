@@ -40,6 +40,9 @@ class ACkGym_ControlPanelHUD : AHUD
     // the only other writer.
     private bool _ModeLoaded = false;
 
+    ECkGym_ControlPanel_Mode Get_EffectivePanelMode(ACk_Gym_Base_PlayerController InPC)
+    { return _PanelMode; }
+
     private bool _LeftShiftDown = false;
     private bool _RightShiftDown = false;
 
@@ -99,7 +102,7 @@ class ACkGym_ControlPanelHUD : AHUD
             const float MaxWidth = Math::Min(Style.MaxWidth, float(SizeX) * 0.45f);
 
             Switchboard.Request_SetControlPanel(PC.Get_ControlPanelTitle(), Rows,
-                FVector2D(Style.X, Style.Y), MaxWidth, _PanelMode, Suppressed);
+                FVector2D(Style.X, Style.Y), MaxWidth, Get_EffectivePanelMode(PC), Suppressed);
         }
 
         if (Suppressed)
