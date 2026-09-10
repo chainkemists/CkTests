@@ -740,28 +740,99 @@ auto
         { break; }
     }
 
-    // NOTE on what protects the destructive sites ~270 lines below, stated with the limits
-    // review found, because the first version of this comment overclaimed on three counts.
+    // WHAT PROTECTS THE DESTRUCTIVE HALF, and -- as important -- what does not.
     //
-    // Each destructive site re-asserts that `Verdict` holds a POSITIVE decision. That buys:
+    // It used to be POSITION: the floor sat above the destructive sites and that was the whole
+    // guarantee. Nothing enforces position, and two attempts to enforce it failed:
     //
-    //   * a compile error if this block moves below a site -- `Verdict` is declared here, so
-    //     a site below it names nothing. NOT a guarantee of position: the natural response to
-    //     that error is to hoist the declaration and assign later, which compiles. That hole
-    //     is why the decision enum defaults to NotEvaluated and why the sites check for a
-    //     positive value rather than for `!= Refuse` -- a hoisted default now fails the check
-    //     instead of passing it.
-    //   * a runtime ensure ON THE PASS WHERE DISCOVERY ACTUALLY COLLAPSED, if the Refuse
-    //     `return Result` above is ever deleted. It does NOT detect that deletion on a healthy
-    //     pass, where the decision is Proceed and the check learns nothing. It converts a wipe
-    //     into an ensure and an early return; it is not a refactor detector.
+    //   1. Nothing at all. A refactor could move a destructive site above the floor and no test
+    //      would notice -- the predicate, the decision and the classifier are each covered, and
+    //      every one of those tests stays green.
+    //   2. Per-site ensures asserting the verdict. The natural response to the compile error
+    //      they raise -- hoist the declaration, assign later -- satisfied them too (closed by
+    //      the NotEvaluated default), and they never covered the N+1 case at all: a site added
+    //      above the floor, or one not naming the verdict, inherited nothing.
     //
-    // And it does NOT solve the N+1 problem the floor's own comment above raises. A destructive
-    // site added ABOVE this block, or one that simply does not name `Verdict`, inherits neither
-    // property. These lines are position ASSERTIONS for the two sites that exist today, not
-    // floors -- the floor is the single decision above. The structural closure (a move-only
-    // clearance token that the destructive half cannot be entered without) is recorded as owed
-    // rather than claimed here.
+    // What actually fixed it is CONTAINMENT, not the guard: every destructive line now lives in
+    // DoApply_Sync and nothing else does. A line added anywhere inside it inherits the entry
+    // check with nothing to remember, and there is no floor inside that body to move below.
+    //
+    // A move-only clearance token was built here first and then REMOVED. It claimed the type
+    // system enforced "the floor ran"; review established it enforced only "an expression of
+    // this type was passed" -- the minting function was public and the verdict's decision field
+    // is public, so it was a public constructor with extra steps. It cost ~120 lines of comments
+    // asserting a guarantee the code did not have. The verdict parameter names the authorisation
+    // in the signature; the entry ensure is the guard; the containment is the guarantee.
+
+    // Hand the destructive half the verdict and everything it needs.
+    auto Context = FCk_AutoTestSyncContext{};
+    Context.World            = CurrentWorld;
+    Context.Package          = Package;
+    Context.WantedClasses    = WantedClasses;
+    Context.WantedSet        = WantedSet;
+    Context.CurrentByClass   = CurrentByClass;
+    Context.bWasLoadedFresh  = bWasLoadedFresh;
+    Context.bWasDirtyOnEntry = WasDirtyOnEntry;
+
+    DoApply_Sync(Verdict, InConfig, Context, Result);
+
+    return Result;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCkAutoTestMapPopulator::
+    Get_IsPositiveDecision(
+        ECk_AutoTestWipeFloorDecision InDecision)
+    -> bool
+{
+    return InDecision == ECk_AutoTestWipeFloorDecision::Proceed ||
+           InDecision == ECk_AutoTestWipeFloorDecision::ProceedAuthorised;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCkAutoTestMapPopulator::
+    DoApply_Sync(
+        const FCk_AutoTestWipeFloorVerdict& InVerdict,
+        UCkAutoTestMapConfig*               InConfig,
+        const FCk_AutoTestSyncContext& InContext,
+        FCkAutoTestSyncResult&         InOutResult)
+    -> void
+{
+    // THE guard. Everything destructive is below it, and this is the only way in.
+    //
+    // A non-positive verdict reaches here only if the floor above was bypassed or its
+    // Refuse-return deleted -- so refuse, and say so in the RECORD as well as the log, or the
+    // summary reports "0 REFUSED" for a pass that refused.
+    //
+    // PRESERVES a reason the floor already set rather than overwriting it: the floor knows why
+    // it refused and this function does not, and replacing a specific reason with a generic one
+    // is a quieter version of the untruth the third outcome exists to prevent.
+    CK_ENSURE_IF_NOT(Get_IsPositiveDecision(InVerdict.Decision),
+        TEXT("[CkAutoTest Populator] [{}] The destructive half was entered with a verdict that "
+             "authorises nothing. Refusing every pass below."),
+        InConfig->Get_DisplayName())
+    {
+        InOutResult.bRefused = true;
+        if (InOutResult.RefusalReason.IsEmpty())
+        { InOutResult.RefusalReason = TEXT("destructive half entered without a positive wipe-floor verdict"); }
+        return;
+    }
+
+    // Aliases, so the moved body below is textually what it was before the split. The diff for
+    // this change should read as a MOVE, not as six hundred lines of rewrite -- that is what
+    // makes it reviewable at all.
+    auto*       CurrentWorld    = InContext.World;
+    auto*       Package         = InContext.Package;
+    const auto& WantedClasses   = InContext.WantedClasses;
+    const auto& WantedSet       = InContext.WantedSet;
+    const auto& CurrentByClass  = InContext.CurrentByClass;
+    const auto  bWasLoadedFresh = InContext.bWasLoadedFresh;
+    const auto  WasDirtyOnEntry = InContext.bWasDirtyOnEntry;
+    auto&       Result          = InOutResult;
 
     // ---- Spawn missing classes + relabel stale ones ---------------------------------
     //
@@ -883,7 +954,7 @@ auto
                 Result.bSkipped = true;
                 Result.SkipReason = ck::Format_UE(
                     TEXT("Target map is read-only on disk: {}"), MapFilePath);
-                return Result;
+                return;
             }
 
             // Auto-checkout succeeded — SCC silently cleared the read-only bit
@@ -975,22 +1046,6 @@ auto
     // Capture external packages BEFORE DestroyActor — GetExternalPackage() returns
     // null after the actor is gone. Non-OFPA actors leave the list empty (the call
     // no-ops), preserving the original behavior for that path.
-    // Positive decision, not `!= Refuse`: see the NOTE above. A default-constructed verdict
-    // reads NotEvaluated and must fail here.
-    CK_ENSURE_IF_NOT(Verdict.Decision == ECk_AutoTestWipeFloorDecision::Proceed ||
-                     Verdict.Decision == ECk_AutoTestWipeFloorDecision::ProceedAuthorised,
-        TEXT("[CkAutoTest Populator] [{}] The orphan sweep was reached without a positive wipe-floor "
-             "verdict. Refusing to sweep -- this is the pass that would have destroyed every AutoTest "
-             "wrapper belonging to this map."),
-        InConfig->Get_DisplayName())
-    {
-        // The recovery must reach the CONSUMER, or the summary line reports "0 REFUSED" for a
-        // pass that refused -- loud to whoever sees the ensure, silent in the record. This is
-        // the same tenet-8 untruth the third outcome exists to prevent.
-        Result.bRefused = true;
-        Result.RefusalReason = TEXT("orphan sweep reached without a positive wipe-floor verdict");
-        return Result;
-    }
 
     auto OrphanedExternalPackages = TArray<UPackage*>{};
     auto ExternalPackagesQueuedForDeletion = TSet<FName>{};
@@ -1050,19 +1105,6 @@ auto
     // external package with no usable Asset Registry metadata remains untouched.
     if (bIsOFPA)
     {
-        // "Survives absent classes" is the registry-driven unloadable-wrapper scan specifically;
-        // the stranded pass reads loaded objects and cannot see a package that never loaded one.
-        CK_ENSURE_IF_NOT(Verdict.Decision == ECk_AutoTestWipeFloorDecision::Proceed ||
-                         Verdict.Decision == ECk_AutoTestWipeFloorDecision::ProceedAuthorised,
-            TEXT("[CkAutoTest Populator] [{}] The package-level cleanup passes were reached without a "
-                 "positive wipe-floor verdict. The unloadable-wrapper scan reads the asset registry, so "
-                 "it deletes packages whose classes never loaded. Refusing to clean up."),
-            InConfig->Get_DisplayName())
-        {
-            Result.bRefused = true;
-            Result.RefusalReason = TEXT("package cleanup reached without a positive wipe-floor verdict");
-            return Result;
-        }
 
         auto LiveExternalPackageNames = TSet<FName>{};
         if (auto* Level = CurrentWorld->PersistentLevel.Get();
@@ -1248,14 +1290,14 @@ auto
         ck::tests_editor::VeryVerbose(
             TEXT("[CkAutoTest Populator] [{}] No changes — {} wrappers in sync."),
             InConfig->Get_DisplayName(), Result.AlreadyPresent);
-        return Result;
+        return;
     }
 
     // ---- Auto-save guard ------------------------------------------------------------
     if (NOT InConfig->bAutoSaveOnSync)
     {
         ck::tests_editor::Log(TEXT("[CkAutoTest Populator] Auto-save disabled by config — leaving map dirty for manual save."));
-        return Result;
+        return;
     }
 
     // Path A's safety check: don't silently commit a user's in-flight edits.
@@ -1266,7 +1308,7 @@ auto
         ck::tests_editor::Warning(
             TEXT("[CkAutoTest Populator] [{}] Map was dirty before sync — leaving for manual save (unrelated edits would be silently committed otherwise)."),
             InConfig->Get_DisplayName());
-        return Result;
+        return;
     }
 
     auto bSaved = false;
@@ -1362,7 +1404,7 @@ auto
         }
     }
 
-    return Result;
+    return;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

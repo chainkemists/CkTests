@@ -123,6 +123,36 @@ bool FCkTest_AutoTestPopulator_WipeFloor_RecognisesWrapperPackages::RunTest(cons
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// THE ENTRY PREDICATE for the destructive half. Asserted in BOTH directions, which is the
+// point: the failure mode is this check being weakened -- inverted, or widened to admit
+// NotEvaluated -- and a test that only ever feeds it positive values stays green through
+// exactly that. This session shipped one fix that was inert while its comments read correctly.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_AutoTestPopulator_WipeFloor_PositiveDecisionIsNarrow,
+    "Ck.AutoTest.Populator.WipeFloor.PositiveDecisionIsNarrow",
+    ck_autotest_populator_wipefloor_tests::kFlags)
+
+bool FCkTest_AutoTestPopulator_WipeFloor_PositiveDecisionIsNarrow::RunTest(const FString& Parameters)
+{
+    const auto IsPositive = &UCkAutoTestMapPopulator::Get_IsPositiveDecision;
+
+    TestTrue(TEXT("Proceed authorises the destructive half"),
+        IsPositive(ECk_AutoTestWipeFloorDecision::Proceed));
+    TestTrue(TEXT("ProceedAuthorised authorises the destructive half"),
+        IsPositive(ECk_AutoTestWipeFloorDecision::ProceedAuthorised));
+
+    // The two that must NOT pass. Refuse is the floor saying no; NotEvaluated is no floor
+    // having run at all, which is what a bypassed or removed floor looks like from here.
+    TestFalse(TEXT("Refuse does NOT authorise the destructive half"),
+        IsPositive(ECk_AutoTestWipeFloorDecision::Refuse));
+    TestFalse(TEXT("NotEvaluated does NOT authorise the destructive half"),
+        IsPositive(ECk_AutoTestWipeFloorDecision::NotEvaluated));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
 // The DECISION, not just the predicate. This is the half review found unpinned: the rule
 // was single-sourced from the start but its handling was not, and the drift it produced was
 // a real defect -- an authorised UNFORCED pass fell past the floor into the pre-check with
