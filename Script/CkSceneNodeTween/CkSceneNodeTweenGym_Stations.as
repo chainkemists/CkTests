@@ -62,6 +62,10 @@ class UCk_EntityScript_SceneNodeTweenGym_SimpleStation : UCk_GenericEntityScript
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
+    // The world-space station root the tween drives. RootTH below stays the first SceneNode
+    // link so the displayed chain depth is unchanged; a world-space tween aimed at RootTH is
+    // refused by design (it is parent-driven), which left every station visually frozen.
+    FCk_Handle_Transform TweenTargetTH;
     FCk_Handle_Transform RootTH;
     FCk_Handle_SceneNode Child;
     FVector RootStart;
@@ -95,6 +99,8 @@ class UCk_EntityScript_SceneNodeTweenGym_SimpleStation : UCk_GenericEntityScript
         utils_handle::Set_DebugName(InHandle, n"SceneNodeTweenGym_Simple_Station");
 
         RootStart = InitialTransform.Translation;
+
+        TweenTargetTH = TH;
 
         auto RootNode = utils_scene_node::Create(TH, FTransform::Identity);
         RootTH = RootNode.As_Transform();
@@ -138,7 +144,7 @@ class UCk_EntityScript_SceneNodeTweenGym_SimpleStation : UCk_GenericEntityScript
     {
         auto End = RootStart + FVector(0.0f, Amplitude, 0.0f);
         RootTween = utils_tween::Create_TweenEntityLocation(
-            RootTH, End, Duration,
+            TweenTargetTH, End, Duration,
             ECk_TweenEasing::InOutSine, ECk_TweenLoopType::Yoyo, -1, 0.0f);
         if (!AutoRunning) { utils_tween::Pause(RootTween); }
     }
@@ -236,6 +242,10 @@ class UCk_EntityScript_SceneNodeTweenGym_ChainStation : UCk_GenericEntityScript_
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
+    // The world-space station root the tween drives. RootTH below stays the first SceneNode
+    // link so the displayed chain depth is unchanged; a world-space tween aimed at RootTH is
+    // refused by design (it is parent-driven), which left every station visually frozen.
+    FCk_Handle_Transform TweenTargetTH;
     FCk_Handle_Transform RootTH;
     FCk_Handle_SceneNode NodeA;
     FCk_Handle_SceneNode NodeB;
@@ -273,6 +283,8 @@ class UCk_EntityScript_SceneNodeTweenGym_ChainStation : UCk_GenericEntityScript_
         utils_entity_tag::Add(InHandle, n"TAG_SceneNodeTweenGym_Station");
         utils_handle::Set_DebugName(InHandle, n"SceneNodeTweenGym_Chain_Station");
         RootStart = InitialTransform.Translation;
+
+        TweenTargetTH = TH;
 
         auto RootNode = utils_scene_node::Create(TH, FTransform::Identity);
         RootTH = RootNode.As_Transform();
@@ -313,7 +325,7 @@ class UCk_EntityScript_SceneNodeTweenGym_ChainStation : UCk_GenericEntityScript_
         LeafShape = utils_pmg_basic_shapes::DrawFilledSphere(B.GetLocation(), 25.0f, 12, 12, LeafColorCached, true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
 
         auto End = RootStart + FVector(0.0f, Amplitude, 0.0f);
-        RootTween = utils_tween::Create_TweenEntityLocation(RootTH, End, Duration, ECk_TweenEasing::InOutSine, ECk_TweenLoopType::Yoyo, -1, 0.0f);
+        RootTween = utils_tween::Create_TweenEntityLocation(TweenTargetTH, End, Duration, ECk_TweenEasing::InOutSine, ECk_TweenLoopType::Yoyo, -1, 0.0f);
         if (!AutoRunning) { utils_tween::Pause(RootTween); }
     }
 
@@ -422,6 +434,10 @@ class UCk_EntityScript_SceneNodeTweenGym_DeepStation : UCk_GenericEntityScript_U
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
+    // The world-space station root the tween drives. RootTH below stays the first SceneNode
+    // link so the displayed chain depth is unchanged; a world-space tween aimed at RootTH is
+    // refused by design (it is parent-driven), which left every station visually frozen.
+    FCk_Handle_Transform TweenTargetTH;
     FCk_Handle_Transform RootTH;
     TArray<FCk_Handle_SceneNode> Chain;     // 5 links, Chain.Last() is the leaf
     TArray<FTransform> LocalOffsets;         // matching local transforms per link
@@ -453,6 +469,8 @@ class UCk_EntityScript_SceneNodeTweenGym_DeepStation : UCk_GenericEntityScript_U
         utils_entity_tag::Add(InHandle, n"TAG_SceneNodeTweenGym_Station");
         utils_handle::Set_DebugName(InHandle, n"SceneNodeTweenGym_Deep_Station");
         RootStart = InitialTransform.Translation;
+
+        TweenTargetTH = TH;
 
         auto RootNode = utils_scene_node::Create(TH, FTransform::Identity);
         RootTH = RootNode.As_Transform();
@@ -515,7 +533,7 @@ class UCk_EntityScript_SceneNodeTweenGym_DeepStation : UCk_GenericEntityScript_U
         LeafShape = utils_pmg_basic_shapes::DrawFilledSphere(LeafExpected, 22.0f, 12, 12, LeafColorCached, true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
 
         auto End = RootStart + FVector(0.0f, Amplitude, 0.0f);
-        RootTween = utils_tween::Create_TweenEntityLocation(RootTH, End, Duration, ECk_TweenEasing::InOutSine, ECk_TweenLoopType::Yoyo, -1, 0.0f);
+        RootTween = utils_tween::Create_TweenEntityLocation(TweenTargetTH, End, Duration, ECk_TweenEasing::InOutSine, ECk_TweenLoopType::Yoyo, -1, 0.0f);
         if (!AutoRunning) { utils_tween::Pause(RootTween); }
     }
 
