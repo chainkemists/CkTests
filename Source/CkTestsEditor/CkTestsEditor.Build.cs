@@ -7,6 +7,8 @@ public class CkTestsEditor : CkModuleRules
     {
         PublicDependencyModuleNames.AddRange(new string[]
         {
+            "CoreUObject",
+            "Engine",
             "Slate",
             "SlateCore",
             "EditorStyle",
@@ -25,7 +27,11 @@ public class CkTestsEditor : CkModuleRules
 
             "CkCore",
             "CkEcs",
+            "CkEntitySpawner",
+            "CkGroundNav",
             "CkLog",
+            "CkPathNetwork",
+            "CkShapes",
             "CkTests",
         });
     }
