@@ -78,13 +78,17 @@ class UCk_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp : UCk
             _ChildBEntity,
             FCk_Delegate_OnBeginDestroy(this, n"OnChildBDestroyed"));
 
-        // Driven on the world-space fixture root (a plain Transform, no SceneNodeParent) rather
-        // than on RootNode: a world-space tween on a parent-driven SceneNode is refused by design,
-        // which used to make this test die at creation instead of exercising the destroy cascade.
-        // The tween's own lifetime owner is _ParentEntity, so the mid-flight destroy below still
-        // tears down an ACTIVELY WRITING tween - which is the regression this test exists for.
-        _Tween = utils_tween::Create_TweenEntityLocation(
-            ParentTransform, FVector(300.0f, 0.0f, 0.0f), TweenDurationSec,
+        // The OFFSET API, aimed at RootNode. A world-space tween on a parent-driven SceneNode is
+        // refused by design, which is what used to make this test die at creation instead of
+        // exercising the destroy cascade. Driving the offset keeps the tween parented UNDER
+        // RootNode, so the mid-flight destroy still tears down the full two-level chain this test
+        // was written for - and it is the production shape (a furniture pivot under an actor).
+        //
+        // It also covers something nothing else does: Request_UpdateOffset has no validity guard
+        // of its own, so ApplyValueToTransform's target check is the only thing standing between a
+        // dying node and a request landing on it.
+        _Tween = utils_tween::Create_TweenSceneNodeOffsetLocation(
+            RootNode, FVector(300.0f, 0.0f, 0.0f), TweenDurationSec,
             ECk_TweenEasing::Linear,
             ECk_TweenLoopType::None,
             0, 0.0f,

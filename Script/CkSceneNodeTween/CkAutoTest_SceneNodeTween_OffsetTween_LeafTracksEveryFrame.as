@@ -19,6 +19,13 @@
 //      is a real player-visible defect (furniture that snaps instead of
 //      animating) with, until now, no detector.
 //
+//   NOTE ON SENSITIVITY. The drift bound below is absolute (1cm), so it pins
+//   "not frozen" at any frame rate, but it can only see a genuine ONE-FRAME lag
+//   below roughly 100fps: at 100cm/s a single frame of lag is 100 * dt cm, which
+//   falls under the tolerance once dt < 0.01s. Headless nullrhi runs can exceed
+//   that. The freeze mode this test was written for is orders of magnitude larger
+//   and is caught regardless.
+//
 //   2. PROPAGATION UNDER A MOVING OFFSET. A leaf parented to the tweened node
 //      must track the composed expectation on EVERY sampled frame, not just
 //      after the tween completes. SceneNode propagation is sparse - nodes are
@@ -46,8 +53,14 @@ class UCk_AutoTest_SceneNodeTween_OffsetTween_LeafTracksEveryFrame : UCk_AutoTes
 
     // 1.0s rather than the ~0.25s the gameplay call sites use: a full-suite run
     // spreads tests across concurrent editors, so a fixed number of seconds buys
-    // far fewer frames than it does in isolation. At 1.0s the progression
-    // assertion below still holds at any frame time under ~0.33s.
+    // far fewer frames than it does in isolation.
+    //
+    // A fixed sample count is NOT safe here even at 1.0s. The intermediate window is
+    // Y in [-9, 89], i.e. 0.98s of the tween, and the first tick is skipped, so
+    // reaching 3 intermediate samples needs a frame time under ~0.247s - not the
+    // ~0.33s an earlier revision of this comment claimed. A 250ms frame while a
+    // sibling lane loads a map is not exotic, so the assertion is expressed relative
+    // to how many samples actually landed while the tween was playing instead.
     private const float32 TweenDurationSec = 1.0f;
     private const float32 DriftToleranceCm = 1.0f;
     private const float32 EndToleranceCm = 1.0f;
@@ -71,6 +84,7 @@ class UCk_AutoTest_SceneNodeTween_OffsetTween_LeafTracksEveryFrame : UCk_AutoTes
     private float32 _MaxDrift = 0.0f;
     private int32 _SampleCount = 0;
     private int32 _IntermediateSamples = 0;
+    private int32 _PlayingSamples = 0;
     private bool _TweenComplete = false;
 
     // How far each end of the chain actually travelled, in world space, while the tween ran.
@@ -234,6 +248,8 @@ class UCk_AutoTest_SceneNodeTween_OffsetTween_LeafTracksEveryFrame : UCk_AutoTes
         // Progression: the pivot must be caught strictly between its endpoints.
         // Y is the only axis the tween moves, so a sample that is neither closed
         // nor open is genuine intermediate motion.
+        if (!_TweenComplete) { _PlayingSamples += 1; }
+
         auto PivotOffsetY = utils_scene_node::Get_Offset_Location(_PivotNode).Y;
         auto IsAtClosed = Math::Abs(PivotOffsetY - PivotClosedLocal.Y) < EndToleranceCm;
         auto IsAtOpen = Math::Abs(PivotOffsetY - PivotOpenLocal.Y) < EndToleranceCm;
@@ -275,8 +291,13 @@ class UCk_AutoTest_SceneNodeTween_OffsetTween_LeafTracksEveryFrame : UCk_AutoTes
 
         Assert_True(_TweenComplete, "Tween OnComplete must fire before the final assert");
 
-        Assert_True(_IntermediateSamples >= MinIntermediateSamples,
-            f"Offset tween must be observed mid-motion on at least {MinIntermediateSamples} frames over its {TweenDurationSec}s duration - a tween that reaches its end value in one frame is a snap, not an animation (intermediate samples: {_IntermediateSamples} of {_SampleCount})");
+        // Frame-rate invariant: ask for MinIntermediateSamples, but never for more than the
+        // samples that actually landed during playback. A snap to the end value yields ZERO
+        // intermediate samples whenever at least two samples landed, so this still catches the
+        // defect it exists for without failing a lane that simply ran slowly.
+        auto RequiredIntermediate = Math::Min(MinIntermediateSamples, _PlayingSamples - 1);
+        Assert_True(_IntermediateSamples >= RequiredIntermediate,
+            f"Offset tween must be observed mid-motion - a tween that reaches its end value in one frame is a snap, not an animation (intermediate samples: {_IntermediateSamples}, required {RequiredIntermediate}, samples while playing {_PlayingSamples} of {_SampleCount} total)");
 
         auto FinalOffset = utils_scene_node::Get_Offset_Location(_PivotNode);
         Assert_True(Math::Abs(FinalOffset.Y - PivotOpenLocal.Y) < EndToleranceCm,
@@ -285,8 +306,12 @@ class UCk_AutoTest_SceneNodeTween_OffsetTween_LeafTracksEveryFrame : UCk_AutoTes
         Assert_True(_MaxDrift < DriftToleranceCm,
             f"Leaf world location must track the pivot's composed world transform within {DriftToleranceCm}cm on EVERY sampled frame - a leaf that only catches up after the tween ends is a stalled propagation (max drift observed: {_MaxDrift}cm; world travel during the tween: pivot {_PivotWorldTravel}cm vs leaf {_LeafWorldTravel}cm; largest single-frame jump: pivot {_MaxPivotStep}cm vs leaf {_MaxLeafStep}cm)");
 
-        Assert_True(_CompSamples >= MinIntermediateSamples,
-            f"The pivot's component must have been sampled on several frames (got {_CompSamples})");
+        // Same frame-rate-invariance reasoning as the progression assertion: this exists only to
+        // stop _MaxCompMismatch reading a vacuous 0, so it must prove the component WAS measured
+        // without demanding a sample count a slow lane cannot deliver.
+        auto RequiredCompSamples = Math::Min(MinIntermediateSamples, _SampleCount - 1);
+        Assert_True(_CompSamples >= RequiredCompSamples && _CompSamples > 0,
+            f"The pivot's component must have been sampled while the tween ran, or the mismatch below is vacuous (got {_CompSamples}, required {RequiredCompSamples}, total samples {_SampleCount})");
 
         Assert_True(_MaxCompMismatch < DriftToleranceCm,
             f"The pivot's UnrealComponent must mirror the pivot's ECS world transform within {DriftToleranceCm}cm on EVERY sampled frame - a component that stops following is furniture frozen on screen while the ECS thinks it moved (max mismatch observed: {_MaxCompMismatch}cm over {_CompSamples} samples)");
