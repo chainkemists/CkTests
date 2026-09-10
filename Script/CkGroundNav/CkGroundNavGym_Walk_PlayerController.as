@@ -1,4 +1,4 @@
-class ACk_GroundNavGym_Walk_PlayerController : ACk_Gym_Base_PlayerController
+class ACk_GroundNavGym_Walk_PlayerController : ACk_NavigationGym_Presentation_PlayerController
 {
     // ---- Where the scene stands ------------------------------------------------------------------
     //
@@ -217,6 +217,11 @@ class ACk_GroundNavGym_Walk_PlayerController : ACk_Gym_Base_PlayerController
     {
         return _Origin + k_SceneOffset + InLocal;
     }
+
+    FVector Get_PresentationCentre() override { return Get_ScenePoint(FVector(0.0, -450.0, 50.0)); }
+    FVector Get_PresentationExtent() override { return FVector(1800.0, 1650.0, 250.0); }
+    FString Get_PresentationCaption() override { return "Pillars, slopes and an unreachable island make route decisions visible."; }
+    void Request_PresentationBaselineView() override { DoBringPlayerToViewpoint(); }
 
     // ---- The volume ------------------------------------------------------------------------------
 
@@ -460,7 +465,8 @@ class ACk_GroundNavGym_Walk_PlayerController : ACk_Gym_Base_PlayerController
             CkGroundNavDemo::Draw_GoalPost(_PostPoints[Index], _PostLabels[Index], Color);
         }
 
-        CkGroundNavDemo::Draw_WorldCaption(Get_ScenePoint(k_CaptionPoint), Get_Caption());
+        if (Get_PresentationMode() != ECkNavigationGym_PresentationMode::Hero)
+        { CkGroundNavDemo::Draw_WorldCaption(Get_ScenePoint(k_CaptionPoint), Get_Caption()); }
     }
 
     // ---- The verdict ----------------------------------------------------------------------------------
@@ -627,6 +633,7 @@ class ACk_GroundNavGym_Walk_PlayerController : ACk_Gym_Base_PlayerController
 
         Rows.Add(CkGym_Control::Cycle(EKeys::One, "1", "Walkers on the scene", Get_WalkerCountLabel()));
         Rows.Add(CkGroundNavDemo::Get_DrawModeRow(_DrawModeIndex));
+        Append_PresentationControls(Rows);
 
         return Rows;
     }
@@ -634,6 +641,8 @@ class ACk_GroundNavGym_Walk_PlayerController : ACk_Gym_Base_PlayerController
     void Request_ControlActivated(int32 InRowIndex) override
     {
         if (HasAuthority() == false)
+        { return; }
+        if (Request_HandlePresentationControl(InRowIndex))
         { return; }
 
         if (InRowIndex == k_Row_WalkerCount)

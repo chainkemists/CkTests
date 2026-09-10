@@ -1,4 +1,4 @@
-class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerController
+class ACk_GroundNavGym_TuningRange_PlayerController : ACk_NavigationGym_Presentation_PlayerController
 {
     // ---- Where the scene stands ------------------------------------------------------------------
     //
@@ -476,6 +476,11 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     {
         return _Origin + k_SceneOffset + InLocal;
     }
+
+    FVector Get_PresentationCentre() override { return Get_ScenePoint(FVector(100.0, 0.0, 150.0)); }
+    FVector Get_PresentationExtent() override { return FVector(1300.0, 1200.0, 150.0); }
+    FString Get_PresentationCaption() override { return "One compact range makes bake and agent-profile choices legible."; }
+    void Request_PresentationBaselineView() override { DoBringPlayerToViewpoint(); }
 
     // ---- The tuning volume -------------------------------------------------------------------------
 
@@ -999,6 +1004,7 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
         Rows.Add(CkGym_Control::Header("FIELD - the volume the Verdict reads (re-minted by every key above)"));
         Rows.Add(CkGym_Control::Status("Field", _Field.Get_FieldStatusText(), _Field.Get_IsBuilt() == false));
         Rows.Add(CkGym_Control::Status("Surface", CkGroundNavGym::Get_SurfaceStatusText()));
+        Append_PresentationControls(Rows);
 
         return Rows;
     }
@@ -1006,6 +1012,8 @@ class ACk_GroundNavGym_TuningRange_PlayerController : ACk_Gym_Base_PlayerControl
     void Request_ControlActivated(int32 InRowIndex) override
     {
         if (HasAuthority() == false)
+        { return; }
+        if (Request_HandlePresentationControl(InRowIndex))
         { return; }
 
         if (InRowIndex == k_Row_Bake)
