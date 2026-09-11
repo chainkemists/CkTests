@@ -23,6 +23,7 @@
 
 #include "CkNavigation/CkNavigation_Log.h"
 #include "CkNavigation/NavSurface/CkNavFilterDefinition_Registry.h"
+#include "CkNavigation/NavSurface/CkNavSurface_AreaPolicy.h"
 #include "CkNavigation/NavSurface/CkNavSurface_Fragment_Data.h"
 #include "CkNavigation/NavSurface/CkNavSurface_Utils.h"
 #include "CkNavigation/Settings/CkNav_ProjectSettings.h"
@@ -668,6 +669,9 @@ bool FCkTest_GroundNav_Facade_FilteredEquivalence::RunTest(const FString& Parame
     { return false; }
 
     auto Definition = FCk_NavFilter_Definition{};
+    ck::nav_surface::Register_AreaPolicy(
+        TAG_CkTests_GroundNav_Facade_Area,
+        FCk_NavSurface_AreaPolicy{ECk_NavSurface_AreaPolicyKind::Cost, 1.0f});
     Definition.Set_ExcludedAreaTags(
         FGameplayTagContainer{TAG_CkTests_GroundNav_Facade_Area.GetTag()});
 

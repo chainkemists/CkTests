@@ -65,7 +65,7 @@ namespace ck_test_groundnav_platesplitatmarkup
     using ck::groundnav::FCk_GroundNav_PathQuery;
     using ck::groundnav::FCk_GroundNav_Plate;
     using ck::groundnav::FCk_GroundNav_PlateField;
-    using ck::groundnav::Get_CompiledFilterTables;
+    using ck::groundnav::TryGet_CompiledFilterTables;
     using ck::groundnav::Get_FlatPlateIndex;
     using ck::groundnav::Get_IsMarkupCoveringCell;
     using ck::groundnav::Get_Path;
@@ -384,13 +384,16 @@ bool FCkTest_GroundNav_PlateSplitAtMarkup_ExcludingFilterDeniesOnlyTheRecordsPla
 
     const auto Published = FCk_GroundNav_FieldPtr{Field};
 
-    const auto& Tables = Get_CompiledFilterTables(
+    const auto* Tables = TryGet_CompiledFilterTables(
         Published, TAG_Nav_Filter_Crowd_AvoidStandingCrowds, FCk_Nav_QueryFilterOverlay{});
 
-    ck::groundnav::Display(TEXT("[PLATE-SPLIT] the excluding filter refuses [{}] plates of [{}] tiles"),
-        Tables._Denied.Num(), Field->_Tiles.Num());
+    if (NOT TestNotNull(TEXT("the registered standing-crowd filter compiles"), Tables))
+    { return false; }
 
-    if (NOT TestTrue(TEXT("the filter refuses something"), Tables._Denied.Num() > 0))
+    ck::groundnav::Display(TEXT("[PLATE-SPLIT] the excluding filter refuses [{}] plates of [{}] tiles"),
+        Tables->_Denied.Num(), Field->_Tiles.Num());
+
+    if (NOT TestTrue(TEXT("the filter refuses something"), Tables->_Denied.Num() > 0))
     { return false; }
 
     // Denied is exactly the labelled set, over the WHOLE field: a plate in an outer tile carries no
@@ -407,10 +410,10 @@ bool FCkTest_GroundNav_PlateSplitAtMarkup_ExcludingFilterDeniesOnlyTheRecordsPla
             const auto FlatPlate = Get_FlatPlateIndex(*Field, TileIndex, PlateIndex);
             const auto IsLabelled = Get_PlateCarriesTheRecordsTag(Plates, PlateIndex);
 
-            if (IsLabelled && NOT Tables._Denied.Contains(FlatPlate))
+            if (IsLabelled && NOT Tables->_Denied.Contains(FlatPlate))
             { ++LabelledButAdmitted; }
 
-            if (NOT IsLabelled && Tables._Denied.Contains(FlatPlate))
+            if (NOT IsLabelled && Tables->_Denied.Contains(FlatPlate))
             { ++DeniedButUnlabelled; }
         }
     }
@@ -427,7 +430,7 @@ bool FCkTest_GroundNav_PlateSplitAtMarkup_ExcludingFilterDeniesOnlyTheRecordsPla
     { return false; }
 
     auto FilteredQuery = Make_RouteQuery();
-    FilteredQuery._Cost._DeniedPlates = Tables._Denied;
+    FilteredQuery._Cost._DeniedPlates = Tables->_Denied;
 
     const auto Filtered = Get_Path(Published, FilteredQuery);
 
@@ -442,7 +445,7 @@ bool FCkTest_GroundNav_PlateSplitAtMarkup_ExcludingFilterDeniesOnlyTheRecordsPla
 
     for (const auto FlatPlate : Filtered._PlateCorridor)
     {
-        if (Tables._Denied.Contains(FlatPlate))
+        if (Tables->_Denied.Contains(FlatPlate))
         { CorridorHoldsADeniedPlate = true; }
     }
 
@@ -504,15 +507,18 @@ bool FCkTest_GroundNav_PlateSplitAtMarkup_OneTileDiscKeepsAFilteredDetour::RunTe
     TestEqual(TEXT("no cell outside the disc is labelled"), UncoveredButLabelled, 0);
 
     const auto Published = FCk_GroundNav_FieldPtr{Field};
-    const auto& Tables = Get_CompiledFilterTables(
+    const auto* Tables = TryGet_CompiledFilterTables(
         Published, TAG_Nav_Filter_Crowd_AvoidStandingCrowds, FCk_Nav_QueryFilterOverlay{});
+
+    if (NOT TestNotNull(TEXT("the registered standing-crowd filter compiles"), Tables))
+    { return false; }
 
     auto Query = FCk_GroundNav_PathQuery{};
     Query._Start = FVector{100.0, 250.0, kGroundZ};
     Query._Goal = FVector{400.0, 250.0, kGroundZ};
     Query._VerticalToleranceUu = kRouteVerticalToleranceUu;
     Query._Agent._RadiusUu = kNoRadius;
-    Query._Cost._DeniedPlates = Tables._Denied;
+    Query._Cost._DeniedPlates = Tables->_Denied;
 
     const auto Filtered = Get_Path(Published, Query);
     TestEqual(TEXT("the excluding filter routes around the one-tile disc"),
@@ -521,7 +527,7 @@ bool FCkTest_GroundNav_PlateSplitAtMarkup_OneTileDiscKeepsAFilteredDetour::RunTe
     auto CorridorUsesDeniedPlate = false;
     for (const auto FlatPlate : Filtered._PlateCorridor)
     {
-        if (Tables._Denied.Contains(FlatPlate))
+        if (Tables->_Denied.Contains(FlatPlate))
         { CorridorUsesDeniedPlate = true; }
     }
     TestFalse(TEXT("the detour never enters a disc-labelled plate"), CorridorUsesDeniedPlate);
