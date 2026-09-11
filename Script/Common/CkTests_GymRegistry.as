@@ -74,6 +74,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Replication",        ACk_ReplicationGym_GameMode,             "", "CkEcs");
         CkGym_Cycler::RegisterProjectGym("Scene Node",         ACk_SceneNodeGym_GameMode,               "", "CkEcsExt");
         CkGym_Cycler::RegisterProjectGym("Scene Node + Tween", ACk_SceneNodeTweenGym_GameMode,          "", "CkEcsExt");
+        CkGym_Cycler::RegisterProjectGym("Selection",          ACk_SelectionGym_GameMode,               "", "CkSelection");
         CkGym_Cycler::RegisterProjectGym("Solid Outline",      ACk_UsfOutlineGym_GameMode,              "", "CkUsf");
         CkGym_Cycler::RegisterProjectGym("Station Showcase",   ACk_StationShowcaseGym_GameMode,         "", "CkTests");
         CkGym_Cycler::RegisterProjectGym("State Machine",      ACk_SmTest_GymGameMode,                  "", "CkStateMachine");
