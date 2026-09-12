@@ -19,7 +19,7 @@ namespace ck_tests_ui_tabs
 {
     auto Markup() -> FString
     {
-        return TEXT("<ui version=\"1\"><region name=\"main\"><tabs id=\"tabs\" value-bind=\"active\" changed=\"activate\"><tab id=\"overview\" key=\"overview\" label=\"Overview\"><column id=\"overview-body\"><text id=\"overview-copy\">Overview panel</text></column></tab><tab id=\"properties\" key=\"properties\" label=\"Properties\" enabled-bind=\"enabled\"><column id=\"properties-body\"><text id=\"properties-copy\">Properties panel</text></column></tab></tabs></region></ui>");
+        return TEXT("<ui version=\"1\"><region name=\"main\"><tabs id=\"tabs\" value-bind=\"active\" changed=\"activate\"><tab id=\"overview\" key=\"overview\" label=\"Overview\"><column id=\"overview-body\"><text id=\"overview-copy\">Overview panel</text></column></tab><tab id=\"properties\" key=\"properties\" label=\"Properties\" enabled-bind=\"enabled\" visible-bind=\"visible\"><column id=\"properties-body\"><text id=\"properties-copy\">Properties panel</text></column></tab></tabs></region></ui>");
     }
 
     auto MarkupWithProbe() -> FString
@@ -124,6 +124,7 @@ auto FCkUiTabs_Runtime::RunTest(const FString&) -> bool
 
     FString Active = TEXT("overview");
     bool Enabled = true;
+    bool Visible = true;
     bool Accept = true;
     int32 ActivationCalls = 0;
     int32 ProbeFactoryCalls = 0;
@@ -132,6 +133,7 @@ auto FCkUiTabs_Runtime::RunTest(const FString&) -> bool
     auto Data = FCkUiView::FDataBindings{};
     Data.String.Add(TEXT("active"), TAttribute<FString>::CreateLambda([&Active]() { return Active; }));
     Data.Visibility.Add(TEXT("enabled"), TAttribute<bool>::CreateLambda([&Enabled]() { return Enabled; }));
+    Data.Visibility.Add(TEXT("visible"), TAttribute<bool>::CreateLambda([&Visible]() { return Visible; }));
     Data.StringChanged.Add(TEXT("activate"), FCkUiOnStringChanged::CreateLambda([&Active, &Accept, &ActivationCalls](const FString& InKey)
     {
         ++ActivationCalls;
@@ -218,6 +220,18 @@ auto FCkUiTabs_Runtime::RunTest(const FString&) -> bool
     TestTrue(TEXT("Disabled header has no selection callback or panel drift"), !Properties->IsEnabled() && Active == TEXT("overview") && ActivationCalls == CallsBeforeDisabled && !IsCollapsed(OverviewBody.ToSharedRef()));
     Enabled = true;
     Tick(Slate);
+
+    Active = TEXT("overview");
+    Visible = false;
+    Tick(Slate);
+    const int32 CallsBeforeHidden = ActivationCalls;
+    TestTrue(TEXT("Hidden tab removes its header and keeps its panel collapsed"),
+        IsCollapsed(Properties.ToSharedRef()) && IsCollapsed(PropertiesBody.ToSharedRef()));
+    Click(Properties.ToSharedRef());
+    TestEqual(TEXT("Hidden tab cannot dispatch activation"), ActivationCalls, CallsBeforeHidden);
+    Visible = true;
+    Tick(Slate);
+    TestFalse(TEXT("Restored tab reuses and reveals its retained header"), IsCollapsed(Properties.ToSharedRef()));
 
     const int64 Revision = View->GetRevision();
     if (!TestTrue(TEXT("Compatible tabs reload succeeds"), View->TryReload(Markup(), TEXT(""), TEXT("UiTabsCompatibleReload")).Succeeded)) { return false; }
