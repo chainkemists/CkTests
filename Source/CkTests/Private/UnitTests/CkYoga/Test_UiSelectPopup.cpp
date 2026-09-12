@@ -233,7 +233,8 @@ auto FCkUiSelectPopup_Reload::RunTest(const FString&) -> bool
         const FVector2D Position = Geometry.LocalToAbsolute(Geometry.GetLocalSize() * 0.5f);
         const TSet<FKey> PressedButtons{EKeys::LeftMouseButton};
         const FPointerEvent Down(0, FSlateApplication::CursorPointerIndex, Position, Position, PressedButtons, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
-        const FPointerEvent Up(0, FSlateApplication::CursorPointerIndex, Position, Position, TSet<FKey>{}, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
+        const TSet<FKey> UpButtons;
+        const FPointerEvent Up(0, FSlateApplication::CursorPointerIndex, Position, Position, UpButtons, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
         const TSharedPtr<SWidget> CaptorBeforeClick = Fixture.Slate.GetCursorUser()->GetPointerCaptor(FSlateApplication::CursorPointerIndex);
         TestTrue(TEXT("Slate routes a real pointer-down to the rendered Beta popup row"), Fixture.Slate.ProcessMouseButtonDownEvent(PopupWindow->GetNativeWindow(), Down));
         TestTrue(TEXT("Slate routes the matching pointer-up to release the native click"), Fixture.Slate.ProcessMouseButtonUpEvent(Up));
@@ -250,7 +251,8 @@ auto FCkUiSelectPopup_Reload::RunTest(const FString&) -> bool
         const FGeometry StaleGeometry = StaleBeta->GetCachedGeometry();
         const FVector2D StalePosition = StaleGeometry.LocalToAbsolute(StaleGeometry.GetLocalSize() * 0.5f);
         const FPointerEvent StaleDown(0, FSlateApplication::CursorPointerIndex, StalePosition, StalePosition, PressedButtons, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
-        const FPointerEvent StaleUp(0, FSlateApplication::CursorPointerIndex, StalePosition, StalePosition, TSet<FKey>{}, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
+        const TSet<FKey> StaleUpButtons;
+        const FPointerEvent StaleUp(0, FSlateApplication::CursorPointerIndex, StalePosition, StalePosition, StaleUpButtons, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
         if (!TestTrue(TEXT("Removing the selected row publishes before stale pointer routing"), Fixture.Collection->TrySetRecords({Record(TEXT("a"), TEXT("Alpha restored"))}).Succeeded)) { return false; }
         TestTrue(TEXT("Stale rendered row still receives the queued pointer event"), Fixture.Slate.ProcessMouseButtonDownEvent(Fixture.PopupWindow->GetNativeWindow(), StaleDown));
         Fixture.Slate.ProcessMouseButtonUpEvent(StaleUp);

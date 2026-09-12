@@ -97,6 +97,7 @@ namespace ck_tests_resource_inspector
     auto ContainsText(const TSharedRef<SWidget>& InRoot, const FString& InText) -> bool
     {
         if (InRoot->GetTypeAsString() == TEXT("STextBlock") && StaticCastSharedRef<STextBlock>(InRoot)->GetText().ToString() == InText) { return true; }
+        if (InRoot->GetTypeAsString() == TEXT("SCkFlexText") && StaticCastSharedRef<SCkFlexText>(InRoot)->GetText().ToString() == InText) { return true; }
         const FChildren* Children = InRoot->GetChildren();
         if (Children == nullptr) { return false; }
         for (int32 Index = 0; Index < Children->Num(); ++Index)
@@ -106,9 +107,22 @@ namespace ck_tests_resource_inspector
         return false;
     }
 
+    auto CountExactTextBlocks(const TSharedRef<SWidget>& InRoot, const FString& InText) -> int32
+    {
+        int32 Count = InRoot->GetTypeAsString() == TEXT("STextBlock") && StaticCastSharedRef<STextBlock>(InRoot)->GetText().ToString() == InText ? 1 : 0;
+        const FChildren* Children = InRoot->GetChildren();
+        if (Children == nullptr) { return Count; }
+        for (int32 Index = 0; Index < Children->Num(); ++Index)
+        {
+            Count += CountExactTextBlocks(ConstCastSharedRef<SWidget>(Children->GetChildAt(Index)), InText);
+        }
+        return Count;
+    }
+
     auto FindButton(const TSharedRef<SWidget>& InRoot) -> TSharedPtr<SButton>
     {
-        if (InRoot->GetTypeAsString() == TEXT("SButton")) { return StaticCastSharedRef<SButton>(InRoot); }
+        const FString& Type = InRoot->GetTypeAsString();
+        if (Type == TEXT("SButton") || Type == TEXT("SCkUiStyledButton")) { return StaticCastSharedRef<SButton>(InRoot); }
         const FChildren* Children = InRoot->GetChildren();
         if (Children == nullptr) { return nullptr; }
         for (int32 Index = 0; Index < Children->Num(); ++Index)
@@ -134,8 +148,10 @@ namespace ck_tests_resource_inspector
     {
         const FGeometry Geometry = InButton->GetCachedGeometry();
         const FVector2D Position = Geometry.GetAbsolutePosition() + Geometry.GetAbsoluteSize() * 0.5f;
-        const FPointerEvent Down{0, Position, Position, TSet<FKey>{EKeys::LeftMouseButton}, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{}};
-        const FPointerEvent Up{0, Position, Position, TSet<FKey>{}, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{}};
+        const TSet<FKey> DownButtons{EKeys::LeftMouseButton};
+        const FPointerEvent Down{0, Position, Position, DownButtons, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{}};
+        const TSet<FKey> UpButtons;
+        const FPointerEvent Up{0, Position, Position, UpButtons, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{}};
         FWidgetPath Path;
         FSlateApplication& Slate = FSlateApplication::Get();
         if (!Slate.GeneratePathToWidgetUnchecked(InButton, Path)) { return false; }
@@ -263,6 +279,22 @@ auto FCkResourceInspector_ModelView::RunTest(const FString&) -> bool
             TestTrue(TEXT("Category publication exposes coherent material records before observers run"), CategoryPublicationCalls == 1 && bCategoryPublicationIsCoherent);
             TestTrue(TEXT("Category publication rejects nested model mutations without changing its published snapshot"), bCategoryPublicationRejectsReentrancy);
 
+            const TSharedPtr<SWidget> CollapseNavigationTag = FindTagged(Model->GetRoot(), TEXT("collapse-navigation"));
+            const TSharedPtr<SButton> CollapseNavigationButton = CollapseNavigationTag.IsValid() ? FindButton(CollapseNavigationTag.ToSharedRef()) : nullptr;
+            const TOptional<FString> SelectedCategoryBeforeCollapse = Navigation->GetSelectedKey();
+            const FString CategoryBeforeCollapse = Model->GetCategory();
+            const FString QueryBeforeCollapse = Model->GetQuery();
+            const int32 RecordCountBeforeCollapse = Collection->GetRecords().Num();
+            if (!TestTrue(TEXT("Authored collapse-all button resolves through the production view"), CollapseNavigationButton.IsValid())) { return false; }
+            TestTrue(TEXT("Native pointer collapse-all dispatches its production action"), Click(CollapseNavigationButton.ToSharedRef()));
+            Tick(Slate);
+            TestTrue(TEXT("Collapse-all clears retained expansion without replacing the navigation tree or mutating category data"),
+                Navigation->GetExpandedKeys().IsEmpty() && View->GetTree(TEXT("inspector-dialog/content/navigation")) == Navigation
+                && Navigation->GetSelectedKey() == SelectedCategoryBeforeCollapse && Model->GetCategory() == CategoryBeforeCollapse
+                && Model->GetQuery() == QueryBeforeCollapse && Collection->GetRecords().Num() == RecordCountBeforeCollapse);
+            TestTrue(TEXT("Native category tree re-expands its root after collapse-all coverage"), Navigation->TrySetExpanded(TEXT("all"), true));
+            Tick(Slate);
+
             Search->SetText(FText::FromString(TEXT("Resource_00005")));
             Tick(Slate);
             TestEqual(TEXT("Material category combined with native search isolates Resource_00005"), Table->GetVisibleRecordCount(), 1);
@@ -300,6 +332,10 @@ auto FCkResourceInspector_ModelView::RunTest(const FString&) -> bool
             Tick(Slate);
             TestTrue(TEXT("Category scenario restores all category, empty query, and default resource count before existing coverage"),
                 Model->GetCategory() == TEXT("all") && Model->GetQuery().IsEmpty() && Collection->GetRecords().Num() == 12 && Table->GetVisibleRecordCount() == 12);
+            const FString SelectedNavigationWidePath = FPaths::Combine(CaptureDirectory, TEXT("Wide_SelectedNav_960x640.png"));
+            CaptureError.Reset();
+            TestTrue(*FString::Printf(TEXT("Selected-navigation wide Resource Inspector capture writes: %s"), *CaptureError),
+                SaveCapture(Slate, Model->GetRoot(), SelectedNavigationWidePath, CaptureError));
 
             const TSharedPtr<const FCkUiRecord> Selected = Collection->FindRecord(TEXT("resource-00005"));
             if (!TestTrue(TEXT("Deterministic selected resource exists"), Selected.IsValid())) { return false; }
@@ -308,7 +344,6 @@ auto FCkResourceInspector_ModelView::RunTest(const FString&) -> bool
             const TSharedPtr<SWidget> DetailTitleTag = FindTagged(Model->GetRoot(), TEXT("selected-title"));
             const TSharedPtr<SCkFlexText> DetailTitle = DetailTitleTag.IsValid() ? FindFlexText(DetailTitleTag.ToSharedRef()) : nullptr;
             TestTrue(TEXT("Selection updates the authored details through the production callback"), DetailTitle.IsValid() && DetailTitle->GetText().ToString() == TEXT("Resource_00005"));
-
             Search->SetText(FText::FromString(TEXT("Resource_00005")));
             Tick(Slate);
             TestEqual(TEXT("Native search SetText writes through its authored text binding"), Model->GetQuery(), FString(TEXT("Resource_00005")));
@@ -344,9 +379,12 @@ auto FCkResourceInspector_ModelView::RunTest(const FString&) -> bool
 
             const TSharedPtr<SButton> SizeHeader = FindHeaderButton(Table.ToSharedRef(), TEXT("Size"));
             if (!TestTrue(TEXT("Numeric size column exposes its native sortable header"), SizeHeader.IsValid())) { return false; }
+            TestEqual(TEXT("Sortable headers expose four inactive glyphs before the first routed sort"), CountExactTextBlocks(Table.ToSharedRef(), TEXT("↕")), 4);
             if (!TestTrue(TEXT("Numeric size header handles its native click"), Click(SizeHeader.ToSharedRef()))) { return false; }
             Tick(Slate);
             TestTrue(TEXT("Native numeric size sort orders bytes rather than formatted size text"), !List->GetItems().IsEmpty() && List->GetItems()[0]->GetKey() == TEXT("resource-00000"));
+            TestTrue(TEXT("Routed Size sort exposes one ascending glyph and three inactive glyphs"),
+                CountExactTextBlocks(Table.ToSharedRef(), TEXT("↑")) == 1 && CountExactTextBlocks(Table.ToSharedRef(), TEXT("↕")) == 3);
 
             const TSharedPtr<const FCkUiRecord> RetainedSelection = Collection->FindRecord(TEXT("resource-00005"));
             if (!TestTrue(TEXT("Retained selection record survives scenario expansion"), RetainedSelection.IsValid() && Table->TrySelectKey(RetainedSelection->GetKey(), true))) { return false; }
@@ -371,6 +409,8 @@ auto FCkResourceInspector_ModelView::RunTest(const FString&) -> bool
             Tick(Slate);
             TestEqual(TEXT("Installed valid reload advances publication revision"), View->GetRevision(), AcceptedRevision + 1);
             TestTrue(TEXT("Installed valid reload retains table and list identity"), View->GetTable(TEXT("inspector-dialog/content/resources")) == Table && Table->GetList() == List);
+            TestTrue(TEXT("Installed valid reload retains the active ascending Size sort glyph"),
+                CountExactTextBlocks(Table.ToSharedRef(), TEXT("↑")) == 1 && CountExactTextBlocks(Table.ToSharedRef(), TEXT("↕")) == 3);
             TestTrue(TEXT("Installed valid reload retains navigation tree identity, native tree, category selection, and expansion"),
                 View->GetTree(TEXT("inspector-dialog/content/navigation")) == Navigation && Navigation->GetTree() == NativeNavigation &&
                 Model->GetCategory() == TEXT("material") && Navigation->GetSelectedKey().IsSet() &&
@@ -378,6 +418,70 @@ auto FCkResourceInspector_ModelView::RunTest(const FString&) -> bool
             const TSharedPtr<SWidget> ReloadedSearchTag = FindTagged(Model->GetRoot(), TEXT("query"));
             const TSharedPtr<SSearchBox> ReloadedSearch = ReloadedSearchTag.IsValid() ? FindSearchBox(ReloadedSearchTag.ToSharedRef()) : nullptr;
             TestTrue(TEXT("Installed valid reload retains search identity, model query, and selected key"), ReloadedSearch == Search && Model->GetQuery() == TEXT("Resource_00005") && Table->GetSelectedKey().IsSet() && Table->GetSelectedKey().GetValue() == TEXT("resource-00005"));
+            const TSharedPtr<SWidget> AppMark = FindTagged(Model->GetRoot(), TEXT("app-mark"));
+            const TSharedPtr<SWidget> AppMarkPlate = FindTagged(Model->GetRoot(), TEXT("app-mark-rails"));
+            const TSharedPtr<SWidget> AppMarkRailAnchor = FindTagged(Model->GetRoot(), TEXT("app-mark-rail-anchor"));
+            const TSharedPtr<SWidget> AppMarkLeftRail = FindTagged(Model->GetRoot(), TEXT("app-mark-rail-left"));
+            const TSharedPtr<SWidget> AppMarkRightRail = FindTagged(Model->GetRoot(), TEXT("app-mark-rail-right"));
+            const TSharedPtr<SWidget> AppProject = FindTagged(Model->GetRoot(), TEXT("app-project"));
+            const TSharedPtr<SWidget> AppStatus = FindTagged(Model->GetRoot(), TEXT("app-status"));
+            const TSharedPtr<SWidget> NavigationFooter = FindTagged(Model->GetRoot(), TEXT("navigation-footer"));
+            const TSharedPtr<SWidget> ResourceToolbar = FindTagged(Model->GetRoot(), TEXT("resource-toolbar"));
+            const auto HasVisibleGeometry = [](const TSharedPtr<SWidget>& InWidget) -> bool
+            {
+                return InWidget.IsValid() && InWidget->GetVisibility().IsVisible()
+                    && InWidget->GetCachedGeometry().GetLocalSize().X > 0.0f && InWidget->GetCachedGeometry().GetLocalSize().Y > 0.0f;
+            };
+            const auto IsFullyContainedBy = [](const TSharedPtr<SWidget>& InParent, const TSharedPtr<SWidget>& InChild) -> bool
+            {
+                if (!InParent.IsValid() || !InChild.IsValid()) { return false; }
+                const FGeometry& ParentGeometry = InParent->GetCachedGeometry();
+                const FGeometry& ChildGeometry = InChild->GetCachedGeometry();
+                const FVector2D Start = ParentGeometry.AbsoluteToLocal(ChildGeometry.GetAbsolutePosition());
+                const FVector2D End = ParentGeometry.AbsoluteToLocal(ChildGeometry.LocalToAbsolute(ChildGeometry.GetLocalSize()));
+                const FVector2D ParentSize = ParentGeometry.GetLocalSize();
+                return Start.X >= -1.0f && Start.Y >= -1.0f && End.X <= ParentSize.X + 1.0f && End.Y <= ParentSize.Y + 1.0f;
+            };
+            const auto HasHorizontalEdgeAlignment = [](const TSharedPtr<SWidget>& InParent, const TSharedPtr<SWidget>& InLeftChild,
+                const TSharedPtr<SWidget>& InRightChild) -> bool
+            {
+                if (!InParent.IsValid() || !InLeftChild.IsValid() || !InRightChild.IsValid()) { return false; }
+                const FGeometry& ParentGeometry = InParent->GetCachedGeometry();
+                const FGeometry& LeftGeometry = InLeftChild->GetCachedGeometry();
+                const FGeometry& RightGeometry = InRightChild->GetCachedGeometry();
+                const float LeftStart = ParentGeometry.AbsoluteToLocal(LeftGeometry.GetAbsolutePosition()).X;
+                const float LeftEnd = ParentGeometry.AbsoluteToLocal(LeftGeometry.LocalToAbsolute(LeftGeometry.GetLocalSize())).X;
+                const float RightStart = ParentGeometry.AbsoluteToLocal(RightGeometry.GetAbsolutePosition()).X;
+                const float RightEnd = ParentGeometry.AbsoluteToLocal(RightGeometry.LocalToAbsolute(RightGeometry.GetLocalSize())).X;
+                return ParentGeometry.GetLocalSize().X >= 7.0f
+                    && FMath::IsNearlyEqual(LeftStart, 0.0f, 1.0f)
+                    && FMath::IsNearlyEqual(ParentGeometry.GetLocalSize().X - RightEnd, 0.0f, 1.0f)
+                    && LeftGeometry.GetLocalSize().X > 1.0f && RightGeometry.GetLocalSize().X > 1.0f
+                    && RightStart - LeftEnd >= 3.0f;
+            };
+            const auto HasAuthoredText = [&Model](const FName InTag, const FString& InText) -> bool
+            {
+                const TSharedPtr<SWidget> Tagged = FindTagged(Model->GetRoot(), InTag);
+                const TSharedPtr<SCkFlexText> Text = Tagged.IsValid() ? FindFlexText(Tagged.ToSharedRef()) : nullptr;
+                return Text.IsValid() && Text->GetText().ToString() == InText;
+            };
+            TestTrue(TEXT("Compatible reload retains visible app-mark geometry"), HasVisibleGeometry(AppMark));
+            TestTrue(TEXT("Compatible reload retains both authored geometric app-mark rails without the retired glyph"),
+                AppMark.IsValid() && HasVisibleGeometry(AppMarkPlate) && HasVisibleGeometry(AppMarkRailAnchor)
+                && HasVisibleGeometry(AppMarkLeftRail) && HasVisibleGeometry(AppMarkRightRail)
+                && !ContainsText(AppMark.ToSharedRef(), FString::Chr(0x25eb)));
+            TestTrue(TEXT("Compatible reload contains two edge-aligned rails inside the app-mark plate"),
+                IsFullyContainedBy(AppMark, AppMarkPlate) && IsFullyContainedBy(AppMarkPlate, AppMarkLeftRail)
+                && IsFullyContainedBy(AppMarkPlate, AppMarkRightRail)
+                && HasHorizontalEdgeAlignment(AppMarkPlate, AppMarkLeftRail, AppMarkRightRail));
+            TestTrue(TEXT("Compatible reload retains visible project geometry"), HasVisibleGeometry(AppProject));
+            TestTrue(TEXT("Compatible reload retains visible status geometry"), HasVisibleGeometry(AppStatus));
+            TestTrue(TEXT("Compatible reload retains visible navigation-footer geometry"), HasVisibleGeometry(NavigationFooter));
+            TestTrue(TEXT("Compatible reload retains visible resource-toolbar geometry"), HasVisibleGeometry(ResourceToolbar));
+            TestTrue(TEXT("Compatible reload retains the authored project breadcrumb"), HasAuthoredText(TEXT("app-project-text"), TEXT("CkTests / ResourceInspector")));
+            TestTrue(TEXT("Compatible reload retains the authored connection status"), HasAuthoredText(TEXT("app-status-text"), TEXT("Connected / Local session")));
+            TestTrue(TEXT("Compatible reload retains the authored navigation title"), HasAuthoredText(TEXT("navigation-title"), TEXT("RESOURCE SETS")));
+            TestTrue(TEXT("Compatible reload retains the authored navigation footer copy"), HasAuthoredText(TEXT("navigation-catalog"), TEXT("/ sample catalog")));
 
             TestTrue(TEXT("Native all-resources selection restores the default category after retained-reload coverage"), Navigation->TrySelectKey(FString(TEXT("all")), true));
             Tick(Slate);

@@ -20,34 +20,40 @@
     <dialog id="inspector-dialog" open-bind="clear-pins-dialog-open" dismiss="cancel-clear-pins">
       <slot name="content">
     <column id="inspector-root" class="app">
-      <row id="app-header" class="app-header"><text id="app-title" class="app-title">Resource Inspector</text><menu-button id="inspector-actions-button" menu="inspector-actions" label="Actions" /></row>
+      <row id="app-header" class="app-header">
+        <row id="app-brand" class="app-brand"><row id="app-mark" class="app-mark"><overlay id="app-mark-rails" class="app-mark-rails"><row id="app-mark-rail-anchor" class="app-mark-rail-anchor"></row><row id="app-mark-rail-left" class="app-mark-rail app-mark-rail-left"></row><row id="app-mark-rail-right" class="app-mark-rail app-mark-rail-right"></row></overlay></row><text id="app-title" class="app-title">Resource Inspector</text></row>
+        <row id="app-project" class="app-project"><text id="app-project-text" class="app-project-text">CkTests / ResourceInspector</text></row>
+        <row id="app-header-spacer" class="fill"></row>
+        <row id="app-status" class="app-status"><row id="app-status-dot" class="app-status-dot"></row><text id="app-status-text" class="app-status-text">Connected / Local session</text></row>
+        <menu-button id="inspector-actions-button" menu="inspector-actions" label="..." class="header-overflow" />
+      </row>
       <column id="layout-error-banner" visible="has-layout-error" class="layout-error">
         <text id="layout-error" bind="layout-error" class="layout-error-text" />
       </column>
       <splitter id="resource-splitter" direction="horizontal" class="fill">
         <column id="navigation-pane" class="navigation-pane">
-          <text id="navigation-title" class="navigation-title">Categories</text>
-          <tree id="navigation" bind="navigation" context-menu="category-context" selection-action="select-category" row-height="26" class="fill">
+          <text id="navigation-title" class="navigation-title">RESOURCE SETS</text>
+          <row id="navigation-tools" class="navigation-tools"><button id="collapse-navigation" action="collapse-navigation" class="button navigation-collapse-button">Collapse all</button></row>
+          <tree id="navigation" bind="navigation" context-menu="category-context" selection-action="select-category" row-height="26" class="fill navigation-tree">
             <row id="category-row" class="category-row"><text id="category-label" bind-field="label" class="category-label" /></row>
           </tree>
+          <row id="navigation-footer" class="navigation-footer"><text id="navigation-count" bind="header-count" class="navigation-footer-text" /><text id="navigation-catalog" class="navigation-footer-text"> / sample catalog</text></row>
         </column>
         <column id="resource-pane" class="resource-pane">
           <row id="resource-toolbar" class="toolbar">
-            <search id="query" bind="query" placeholder="Filter resources…" class="fill" />
+            <search id="query" bind="query" placeholder-bind="resource-search-placeholder" class="fill" />
+            <select id="category-select" value-bind="category" options-bind="category-options" changed="select-category-key" class="category-select" />
             <row id="header-count-wrap" class="count"><text id="header-count" bind="header-count" class="count-text" /></row>
           </row>
-          <row id="category-filter" class="toolbar">
-            <text id="category-filter-label" class="count-text">Category</text>
-            <select id="category-select" value-bind="category" options-bind="category-options" changed="select-category-key" class="fill" />
-          </row>
           <row id="scenario-actions" class="scenario-actions">
-            <button id="rows-0" action="rows-0">Empty</button>
-            <button id="rows-1" action="rows-1">One</button>
-            <button id="rows-12" action="rows-12">Sample</button>
-            <button id="rows-1000" action="rows-1000">1k</button>
-            <button id="rows-10000" action="rows-10000">10k</button>
-            <button id="preview-loading" action="preview-loading">Loading</button>
-            <button id="preview-error" action="preview-error">Error</button>
+            <button id="rows-0" action="rows-0" class="button scenario-button">Empty</button>
+            <button id="rows-1" action="rows-1" class="button scenario-button">One</button>
+            <button id="rows-12" action="rows-12" class="button scenario-button accent-button">Sample</button>
+            <button id="rows-1000" action="rows-1000" class="button scenario-button">1k</button>
+            <button id="rows-10000" action="rows-10000" class="button scenario-button">10k</button>
+            <button id="preview-loading" action="preview-loading" class="button scenario-button">Loading</button>
+            <button id="preview-error" action="preview-error" class="button scenario-button">Error</button>
+            <button id="toggle-long-labels" action="toggle-long-labels" class="button scenario-button">Toggle long labels</button>
           </row>
           <row id="scenario-count" class="toolbar scenario-count">
             <text id="scenario-count-label" class="count-text">Resource count</text>
@@ -56,11 +62,11 @@
           </row>
           <overlay id="resource-overlay" class="fill">
             <scroll id="resource-scroll" direction="horizontal" visible="resource-ready" class="fill">
-              <table id="resources" bind="resources" context-menu="resource-context" filter-bind="query" selection-action="select-resource" row-height="22" class="resource-table">
-                <table-column id="name-column" label="Name" sort-field="name" class="name-column"><row id="name-cell-wrap" class="cell-wrap"><text id="name-cell" bind-field="name" class="cell-text" /></row></table-column>
-                <table-column id="kind-column" label="Kind" sort-field="kind" class="kind-column"><row id="kind-cell-wrap" class="cell-wrap"><text id="kind-cell" bind-field="kind" class="cell-text" /></row></table-column>
-                <table-column id="size-column" label="Size" sort-field="size-bytes" class="size-column"><row id="size-cell-wrap" class="cell-wrap"><text id="size-cell" bind-field="size" class="cell-text right" /></row></table-column>
-                <table-column id="state-column" label="State" sort-field="state" class="state-column"><row id="state-cell-wrap" class="cell-wrap"><text id="state-cell" bind-field="state" class="cell-text" /></row></table-column>
+              <table id="resources" bind="resources" context-menu="resource-context" filter-bind="query" selection-action="select-resource" row-height="26" class="resource-table">
+                <table-column id="name-column" label-bind="resource-name-column-label" sort-field="name" class="name-column table-header"><row id="name-cell-wrap" class="cell-wrap"><text id="name-cell" bind-field="name" class="cell-text" /></row></table-column>
+                <table-column id="kind-column" label="Kind" sort-field="kind" class="kind-column table-header"><row id="kind-cell-wrap" class="cell-wrap"><text id="kind-cell" bind-field="kind" class="cell-text" /></row></table-column>
+                <table-column id="size-column" label="Size" sort-field="size-bytes" class="size-column table-header"><row id="size-cell-wrap" class="cell-wrap"><text id="size-cell" bind-field="size" class="cell-text right" /></row></table-column>
+                <table-column id="state-column" label="State" sort-field="state" class="state-column table-header"><row id="state-cell-wrap" class="cell-wrap"><status-pill id="state-cell" label-field="state" foreground-field="state-foreground" outline-field="state-outline" class="state-pill" /></row></table-column>
               </table>
             </scroll>
             <column id="resource-empty" visible="resource-empty" class="empty-overlay">
@@ -69,36 +75,39 @@
             <column id="resource-loading" visible="resource-loading" class="state-overlay">
               <text id="resource-loading-title" class="state-title">Loading resources</text>
               <text id="resource-loading-copy" class="state-copy">Loading preview. Your current dataset and selection are retained.</text>
-              <button id="finish-loading" action="show-resources">Show resources</button>
+              <button id="finish-loading" action="show-resources" class="button">Show resources</button>
             </column>
             <column id="resource-failure" visible="resource-error" class="state-overlay">
               <text id="resource-failure-title" class="state-error-title">Resources could not be loaded</text>
               <text id="resource-failure-copy" class="state-copy">Failure preview. Return to your retained dataset to continue inspecting.</text>
-              <button id="recover-resources" action="show-resources">Show resources</button>
+              <button id="recover-resources" action="show-resources" class="button">Show resources</button>
             </column>
           </overlay>
         </column>
         <column id="detail-pane" class="detail-pane">
           <text id="selected-title" bind="selected-title" class="detail-title" />
           <row id="detail-toolbar" class="toolbar scenario-actions">
-            <button id="pin-selected-resource" action="pin-selected-resource" enabled-bind="has-selection">Pin snapshot</button>
-            <button id="clear-selection" action="clear-selection">Clear</button>
-            <button id="close" action="close">Close</button>
+            <button id="pin-selected-resource" action="pin-selected-resource" enabled-bind="has-selection" class="button">Pin snapshot</button>
+            <button id="clear-selection" action="clear-selection" class="button">Clear</button>
+            <button id="close" action="close" class="button">Close</button>
           </row>
           <scroll id="detail-scroll" direction="vertical" class="fill">
-            <tabs id="detail-tabs" value-bind="detail-tab" changed="select-detail-tab" class="fill">
+            <tabs id="detail-tabs" value-bind="detail-tab" changed="select-detail-tab" class="fill detail-tabs">
               <tab id="overview-panel" key="overview" label="Overview" class="detail-content">
-                <text id="selected-detail" bind="selected-detail" class="detail-copy" />
+                <column id="resource-summary" class="detail-summary-card">
+                  <text id="resource-summary-heading" class="detail-summary-heading">RESOURCE SUMMARY</text>
+                  <text id="selected-detail" bind="selected-detail" class="detail-copy" />
+                </column>
                 <column id="pinned-snapshots-section" class="pinned-snapshots-section">
                   <text id="pinned-snapshots-heading" class="pinned-snapshots-heading">Pinned snapshots</text>
                   <text id="pinned-snapshots-retention" class="pinned-snapshots-retention">Snapshots are retained until removed. They are captured values, not live resource data.</text>
-                  <button id="request-clear-pins" action="request-clear-pins" enabled-bind="has-pins">Clear pinned snapshots</button>
+                  <button id="request-clear-pins" action="request-clear-pins" enabled-bind="has-pins" class="button">Clear pinned snapshots</button>
                   <repeat id="pinned-snapshots" bind="pinned-snapshots" class="pinned-snapshots-list">
                     <column id="pinned-snapshot-card" class="pinned-snapshot-card">
                       <text id="pinned-snapshot-name" bind-field="heading" class="detail-copy" />
                       <row id="pinned-snapshot-header" class="pinned-snapshot-header">
-                        <button id="toggle-pinned-snapshot" item-action="toggle-pinned-snapshot" class="pinned-snapshot-toggle">Details</button>
-                        <button id="remove-pinned-snapshot" item-action="remove-pinned-snapshot" class="pinned-snapshot-remove">Remove</button>
+                        <button id="toggle-pinned-snapshot" item-action="toggle-pinned-snapshot" class="button pinned-snapshot-toggle">Details</button>
+                        <button id="remove-pinned-snapshot" item-action="remove-pinned-snapshot" class="button pinned-snapshot-remove">Remove</button>
                       </row>
                       <text id="pinned-snapshot-details" bind-field="details" visible-field="expanded" class="pinned-snapshot-details" />
                     </column>
@@ -134,8 +143,8 @@
           <text id="clear-pins-title" class="detail-title">Clear pinned snapshots?</text>
           <text id="clear-pins-copy" class="detail-copy">This removes all pinned snapshots from this session. Your resources, selection and session note are retained.</text>
           <row id="clear-pins-actions" class="scenario-actions">
-            <button id="cancel-clear-pins" action="cancel-clear-pins">Cancel</button>
-            <button id="confirm-clear-pins" action="confirm-clear-pins">Clear snapshots</button>
+            <button id="cancel-clear-pins" action="cancel-clear-pins" class="button">Cancel</button>
+            <button id="confirm-clear-pins" action="confirm-clear-pins" class="button accent-button">Clear snapshots</button>
           </row>
         </column>
       </slot>

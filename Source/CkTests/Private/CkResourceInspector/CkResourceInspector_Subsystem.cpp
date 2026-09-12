@@ -1,5 +1,6 @@
 #include "CkResourceInspector/CkResourceInspector_Subsystem.h"
 #include "CkResourceInspectorModel.h"
+#include "CkCapabilityGalleryModel.h"
 #include "CkTests/CkTests_Log.h"
 #include "CkSlateLayout/SCkUiSurface.h"
 #include "CkCore/Validation/CkIsValid.h"
@@ -52,6 +53,18 @@ void UCkResourceInspector_Subsystem::Initialize(FSubsystemCollectionBase& InColl
             if (Inspector->Get_IsOpen()) { Inspector->Request_Close(); }
             else { Inspector->Request_Open(); }
         }));
+    static FAutoConsoleCommandWithWorld GalleryCommand(TEXT("ck.CapabilityGallery.Open"),
+        TEXT("Open the authored capability gallery for the world's first local player."),
+        FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* InWorld)
+        {
+            const UGameInstance* Instance = IsValid(InWorld) ? InWorld->GetGameInstance() : nullptr;
+            ULocalPlayer* Player = IsValid(Instance) ? Instance->GetLocalPlayerByIndex(0) : nullptr;
+            if (IsValid(Player))
+            {
+                if (UCkResourceInspector_Subsystem* Inspector = Player->GetSubsystem<UCkResourceInspector_Subsystem>())
+                { Inspector->Request_OpenCapabilityGallery(); }
+            }
+        }));
 }
 
 void UCkResourceInspector_Subsystem::Deinitialize()
@@ -80,7 +93,8 @@ bool UCkResourceInspector_Subsystem::DoEnsureInputLayer()
 
 bool UCkResourceInspector_Subsystem::Request_Open()
 {
-    if (Get_IsOpen()) { return true; }
+    if (_Model.IsValid() && Get_IsOpen()) { return true; }
+    if (Get_IsOpen()) { Request_Close(); }
     ULocalPlayer* Player = GetLocalPlayer();
     UGameViewportClient* Viewport = IsValid(Player) ? Player->ViewportClient.Get() : nullptr;
     APlayerController* Controller = IsValid(Player) ? Player->GetPlayerController(GetWorld()) : nullptr;
@@ -112,6 +126,7 @@ bool UCkResourceInspector_Subsystem::Request_Open()
     }
 
     _Model = MoveTemp(Candidate);
+    _ActiveView = _Model->GetView();
     _RootWidget = _Model->GetRoot();
     _Viewport = Viewport;
     _MountedPlayer = Player;
@@ -131,6 +146,48 @@ bool UCkResourceInspector_Subsystem::Request_Open()
     Viewport->AddViewportWidgetForPlayer(Player, _RootWidget.ToSharedRef(), ck_resource_inspector::ViewportZOrder);
     if (const auto Search = ck_resource_inspector::FindSearch(_RootWidget.ToSharedRef()); Search.IsValid())
     { FSlateApplication::Get().SetUserFocus(_SlateUserIndex, Search, EFocusCause::SetDirectly); }
+    _PollTicker = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateUObject(this, &ThisClass::DoPollFiles), 0.5f);
+    return true;
+}
+
+bool UCkResourceInspector_Subsystem::Request_OpenCapabilityGallery()
+{
+    if (_GalleryModel.IsValid() && Get_IsOpen()) { return true; }
+    const bool ReplacingOpenHost = Get_IsOpen();
+    ULocalPlayer* Player = GetLocalPlayer();
+    UGameViewportClient* Viewport = IsValid(Player) ? Player->ViewportClient.Get() : nullptr;
+    APlayerController* Controller = IsValid(Player) ? Player->GetPlayerController(GetWorld()) : nullptr;
+    const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("CkTests"));
+    if (!IsValid(Viewport) || !IsValid(Controller) || !Plugin.IsValid() || !FSlateApplication::IsInitialized()) { return false; }
+    const TSharedPtr<FSlateUser> User = Player->GetSlateUser();
+    if (!User.IsValid()) { return false; }
+    TSharedPtr<FCkCapabilityGalleryModel> Candidate;
+    FString Failure;
+    if (!FCkCapabilityGalleryModel::TryCreate(FSimpleDelegate::CreateUObject(this, &ThisClass::Request_Close), Candidate, Failure, User->GetUserIndex()))
+    { ck::tests::Warning(TEXT("[CapabilityGallery] model rejected: {}"), Failure); return false; }
+    const FString Resources = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Resources/CapabilityGallery"));
+    const FCkUiLoadResult Loaded = Candidate->GetView()->ReloadFiles(FPaths::Combine(Resources, TEXT("CapabilityGallery.ui.html")), FPaths::Combine(Resources, TEXT("CapabilityGallery.ui.css")));
+    if (!Loaded.Succeeded) { for (const FString& Error : Loaded.Errors) { ck::tests::Warning(TEXT("[CapabilityGallery] {}"), Error); } return false; }
+    // Candidate parsing and installed-resource loading must leave an accepted inspector intact on failure.
+    // An already-open host has an admitted layer; a closed host admits its layer before publication.
+    if (!ReplacingOpenHost && !DoEnsureInputLayer())
+    {
+        ck::tests::Warning(TEXT("[CapabilityGallery] local input source unavailable or inspector priority occupied"));
+        return false;
+    }
+    if (ReplacingOpenHost)
+    {
+        Request_Close();
+    }
+    _GalleryModel = MoveTemp(Candidate);
+    _ActiveView = _GalleryModel->GetView();
+    _RootWidget = _GalleryModel->GetRoot();
+    _Viewport = Viewport; _MountedPlayer = Player; _Controller = Controller; _SlateUserIndex = User->GetUserIndex();
+    _PreviousFocus = FSlateApplication::Get().GetUserFocusedWidget(_SlateUserIndex);
+    _PreviousMouseCapture = static_cast<uint8>(Viewport->GetMouseCaptureMode()); _PreviousMouseLock = static_cast<uint8>(Viewport->GetMouseLockMode()); _PreviousShowCursor = Controller->bShowMouseCursor;
+    UCk_Utils_InputLayer_UE::Request_AddCapture(_InputLayer, FCk_Request_InputLayer_AddCapture{UCk_Utils_InputLayer_UE::Make_CatchAllCapture(ECk_InputLayer_CaptureBehavior::Consume)}, {});
+    _OwnsInputCapture = true; _OwnsMouseState = true; Viewport->SetMouseCaptureMode(EMouseCaptureMode::NoCapture); Viewport->SetMouseLockMode(EMouseLockMode::DoNotLock); Controller->SetShowMouseCursor(true);
+    Viewport->AddViewportWidgetForPlayer(Player, _RootWidget.ToSharedRef(), ck_resource_inspector::ViewportZOrder);
     _PollTicker = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateUObject(this, &ThisClass::DoPollFiles), 0.5f);
     return true;
 }
@@ -169,6 +226,8 @@ void UCkResourceInspector_Subsystem::Request_Close()
     }
     _RootWidget.Reset();
     _Model.Reset();
+    _GalleryModel.Reset();
+    _ActiveView.Reset();
     _PreviousFocus.Reset();
     _Viewport.Reset();
     _MountedPlayer.Reset();
@@ -180,7 +239,7 @@ void UCkResourceInspector_Subsystem::Request_Close()
 
 bool UCkResourceInspector_Subsystem::DoPollFiles(float InDeltaTime)
 {
-    if (!_Model.IsValid()) { return false; }
-    _Model->GetView()->PollFiles();
+    if (!_ActiveView.IsValid()) { return false; }
+    _ActiveView->PollFiles();
     return true;
 }

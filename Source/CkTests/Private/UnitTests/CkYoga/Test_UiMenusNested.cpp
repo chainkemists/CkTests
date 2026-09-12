@@ -98,7 +98,8 @@ namespace ck_tests_ui_menus_nested
         if (!InWindow->GetNativeWindow().IsValid()) { return; }
         const FGeometry Geometry = InText->GetCachedGeometry();
         const FVector2D Position = Geometry.LocalToAbsolute(Geometry.GetLocalSize() * 0.5f);
-        const FPointerEvent Move(0, FSlateApplication::CursorPointerIndex, Position, Position, TSet<FKey>{}, EKeys::Invalid, 0.0f, FModifierKeysState{});
+        const TSet<FKey> MoveButtons;
+        const FPointerEvent Move(0, FSlateApplication::CursorPointerIndex, Position, Position, MoveButtons, EKeys::Invalid, 0.0f, FModifierKeysState{});
         InSlate.SetCursorPos(Position);
         InSlate.ProcessMouseMoveEvent(Move);
         Tick(InSlate);
@@ -128,9 +129,12 @@ namespace ck_tests_ui_menus_nested
         if (!InWindow->GetNativeWindow().IsValid()) { return false; }
         const FGeometry Geometry = InText->GetCachedGeometry();
         const FVector2D Position = Geometry.LocalToAbsolute(Geometry.GetLocalSize() * 0.5f);
-        const FPointerEvent Move(0, FSlateApplication::CursorPointerIndex, Position, Position, TSet<FKey>{}, EKeys::Invalid, 0.0f, FModifierKeysState{});
-        const FPointerEvent Down(0, FSlateApplication::CursorPointerIndex, Position, Position, TSet<FKey>{EKeys::LeftMouseButton}, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
-        const FPointerEvent Up(0, FSlateApplication::CursorPointerIndex, Position, Position, TSet<FKey>{}, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
+        const TSet<FKey> MoveButtons;
+        const FPointerEvent Move(0, FSlateApplication::CursorPointerIndex, Position, Position, MoveButtons, EKeys::Invalid, 0.0f, FModifierKeysState{});
+        const TSet<FKey> DownButtons{EKeys::LeftMouseButton};
+        const FPointerEvent Down(0, FSlateApplication::CursorPointerIndex, Position, Position, DownButtons, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
+        const TSet<FKey> UpButtons;
+        const FPointerEvent Up(0, FSlateApplication::CursorPointerIndex, Position, Position, UpButtons, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
         InSlate.SetCursorPos(Position);
         InSlate.ProcessMouseMoveEvent(Move);
         const bool DownHandled = InSlate.ProcessMouseButtonDownEvent(InWindow->GetNativeWindow(), Down);

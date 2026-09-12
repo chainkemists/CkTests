@@ -21,10 +21,15 @@ public class CkTests : CkModuleRules
         // Direct C API integration coverage lives in this module's private unit-test source.
         PrivateDependencyModuleNames.Add("CkYoga");
         PrivateDependencyModuleNames.Add("CkSlateLayout");
+        PrivateDependencyModuleNames.Add("AppFramework"); // Exercise native color-picker behavior through authored controls.
         PrivateDependencyModuleNames.Add("ImageCore");
 
         RuntimeDependencies.Add(Path.Combine(PluginDirectory, "Resources", "ResourceInspector", "ResourceInspector.ui.html"), StagedFileType.NonUFS);
         RuntimeDependencies.Add(Path.Combine(PluginDirectory, "Resources", "ResourceInspector", "ResourceInspector.ui.css"), StagedFileType.NonUFS);
+        RuntimeDependencies.Add(Path.Combine(PluginDirectory, "Resources", "CapabilityGallery", "CapabilityGallery.ui.html"), StagedFileType.NonUFS);
+        RuntimeDependencies.Add(Path.Combine(PluginDirectory, "Resources", "CapabilityGallery", "CapabilityGallery.ui.css"), StagedFileType.NonUFS);
+        RuntimeDependencies.Add(Path.Combine(PluginDirectory, "Resources", "CapabilityGallery", "Templates", "GalleryStarter.ui.html"), StagedFileType.NonUFS);
+        RuntimeDependencies.Add(Path.Combine(PluginDirectory, "Resources", "CapabilityGallery", "Templates", "GalleryStarter.ui.css"), StagedFileType.NonUFS);
 
         PublicDependencyModuleNames.AddRange(new string[]
         {
@@ -132,6 +137,9 @@ public class CkTests : CkModuleRules
             "CkUsf",
             "CkVariables",
             "CkVoiceChat",
+            // The VisualLod arbiter-tuner PIE fixture creates real domain-tagged arbiters and members
+            // through the public runtime utilities; do not rely on the debugger's transitive link.
+            "CkVisualLod",
             "CkVoxelNav",
             "CkWatermark",
         });
@@ -146,6 +154,32 @@ public class CkTests : CkModuleRules
                 // The Jolt incremental-cook planner and index remap are pure functions living in the
                 // editor cooker; their tests link against it directly.
                 "CkJoltEditor",
+                // The Intent Input HUD PIE fixture includes the authored debugger control and
+                // waits for its real runtime LocalPlayer subsystem. Keep both Editor-only so
+                // CkTests does not pull developer diagnostics into game/package targets.
+                "CkIntentDebugger",
+                "CkInputHudOverlay",
+                "CkDebuggerCommon",
+                // The PIE fixture mounts the real authored arbiter-tuners surface from its debugger host.
+                "CkVisualLodDebugger",
+                // The Dialog PIE fixture mounts the real four-region debugger window and routes its commands
+                // through the active PIE player controller.
+                "CkDialogDebugger",
+                "CkDialog",
+                // The Aggro PIE fixture mounts the real retained authored debugger surface over authority-world data.
+                "CkAggroDebugger",
+                // The AI roster PIE fixture mounts the real authored roster over public Crowd-agent state.
+                "CkAiDebugger",
+                // The GOAP Squad PIE fixture mounts the production authored table over a real planner roster.
+                "CkGoapDebugger",
+                // The Save debugger authored-navigation fixture opens an actual snapshot file through the
+                // editor debugger window; keep the diagnostic host editor-only.
+                "CkSaveDebugger",
+                // The UI-debugger History PIE fixture mounts the real Slate debugger and drives
+                // its events through the public per-player UI layout subsystem.
+                "CommonUI",
+                "CkUI",
+                "CkUIDebugger",
             });
         }
     }

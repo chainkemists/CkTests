@@ -247,4 +247,58 @@ auto FCkUiNumberInput_Integer::RunTest(const FString&) -> bool
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiNumberInput_FractionalDigits,
+    "Ck.UiAuthoring.NumberInput.FractionalDigits",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+auto FCkUiNumberInput_FractionalDigits::RunTest(const FString&) -> bool
+{
+    using namespace ck_tests_ui_number_input;
+    if (!FSlateApplication::IsInitialized()) { AddError(TEXT("Fractional numeric input requires Slate.")); return false; }
+    FFixture Fixture;
+    Fixture.Value = 1.2345678f;
+    if (!TestTrue(TEXT("Default formatter editor mounts"), Fixture.Initialize())) { return false; }
+    const FString DefaultDisplay = FString::Printf(TEXT("%.9g"), static_cast<double>(Fixture.Value));
+    TestEqual(TEXT("Omitted fractional-digits preserves round-trip display"), Fixture.Input->GetText().ToString(), DefaultDisplay);
+
+    const int32 ChangedBeforeFormatting = Fixture.ChangedCalls;
+    const int32 CommittedBeforeFormatting = Fixture.CommittedCalls;
+    const float ValueBeforeFormatting = Fixture.Value;
+    const TSharedPtr<SEditableTextBox> Input = Fixture.Input;
+    if (!TestTrue(TEXT("Fixed fractional presentation reload succeeds"), Fixture.View->TryReload(Markup(TEXT("fractional-digits=\"2\"")), TEXT(""), TEXT("NumberFixedFractionalDigits")).Succeeded)) { return false; }
+    Tick(Fixture.Slate);
+    TestTrue(TEXT("Fixed display rounds only presentation without model mutation"), Fixture.Input == Input && Fixture.Input->GetText().ToString() == TEXT("1.23")
+        && Fixture.Value == ValueBeforeFormatting && Fixture.ChangedCalls == ChangedBeforeFormatting && Fixture.CommittedCalls == CommittedBeforeFormatting);
+
+    Fixture.Value = 4.5f;
+    Tick(Fixture.Slate);
+    TestTrue(TEXT("Fixed fractional presentation follows live model values without an edit callback"), Fixture.Input->GetText().ToString() == TEXT("4.50")
+        && Fixture.ChangedCalls == ChangedBeforeFormatting && Fixture.CommittedCalls == CommittedBeforeFormatting);
+    const float ValueBeforeDraft = Fixture.Value;
+
+    if (!TestTrue(TEXT("Fixed formatter accepts a live draft"), Fixture.Replace(TEXT("3.45678")))) { return false; }
+    const TSharedPtr<SWidget> Focus = Fixture.Slate.GetUserFocusedWidget(0);
+    if (!TestTrue(TEXT("Fractional precision reload accepts active draft"), Fixture.View->TryReload(Markup(TEXT("fractional-digits=\"4\"")), TEXT(""), TEXT("NumberDraftFractionalDigits")).Succeeded)) { return false; }
+    Tick(Fixture.Slate);
+    TestTrue(TEXT("Precision reload retains identity focus draft and authoritative model"), Fixture.Input == Input && Fixture.Slate.GetUserFocusedWidget(0) == Focus
+        && Fixture.Input->GetText().ToString() == TEXT("3.45678") && Fixture.Value == ValueBeforeDraft);
+
+    const int64 Revision = Fixture.View->GetRevision();
+    for (const FString Invalid : {FString(TEXT("fractional-digits=\"2.5\"")), FString(TEXT("fractional-digits=\"7\""))})
+    {
+        TestFalse(TEXT("Invalid fractional-digits reload rejects atomically"), Fixture.View->TryReload(Markup(Invalid), TEXT(""), TEXT("NumberInvalidFractionalDigits")).Succeeded);
+        TestTrue(TEXT("Invalid fractional-digits preserves revision native draft focus and model"), Fixture.View->GetRevision() == Revision
+            && Fixture.Input == Input && Fixture.Slate.GetUserFocusedWidget(0) == Focus && Fixture.Input->GetText().ToString() == TEXT("3.45678") && Fixture.Value == ValueBeforeDraft);
+    }
+
+    FFixture IntegerFixture;
+    IntegerFixture.Value = 2.0f;
+    if (!TestTrue(TEXT("Integer formatter accepts zero fractional digits"), IntegerFixture.Initialize(TEXT("kind=\"integer\" fractional-digits=\"0\"")))) { return false; }
+    const int64 IntegerRevision = IntegerFixture.View->GetRevision();
+    TestFalse(TEXT("Integer formatter rejects nonzero fractional digits"), IntegerFixture.View->TryReload(Markup(TEXT("kind=\"integer\" fractional-digits=\"1\"")), TEXT(""), TEXT("NumberIntegerFractionalDigits")).Succeeded);
+    TestTrue(TEXT("Integer fractional rejection preserves accepted native editor and revision"), IntegerFixture.View->GetRevision() == IntegerRevision
+        && FindInput(IntegerFixture.Region.ToSharedRef()) == IntegerFixture.Input && IntegerFixture.Input->GetText().ToString() == TEXT("2"));
+    return true;
+}
+
 #endif

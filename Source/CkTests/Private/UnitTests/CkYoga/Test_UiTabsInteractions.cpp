@@ -268,10 +268,12 @@ auto FCkUiTabs_HiddenSliderCapture::RunTest(const FString&) -> bool
         && Fixture.Events[1].Phase == ECkUiInteractionPhase::Cancel);
     TestEqual(TEXT("Hidden slider cancellation does not dispatch Changed"), Fixture.ChangedCalls, ChangedCallsBeforeHide);
 
+    const TSet<FKey> LateMoveButtons{EKeys::LeftMouseButton};
     const FPointerEvent LateMove(0, FSlateApplication::CursorPointerIndex, LatePointerPosition, LatePointerPosition,
-        TSet<FKey>{EKeys::LeftMouseButton}, EKeys::Invalid, 0.0f, FModifierKeysState{});
+        LateMoveButtons, EKeys::Invalid, 0.0f, FModifierKeysState{});
+    const TSet<FKey> LateUpButtons;
     const FPointerEvent LateUp(0, FSlateApplication::CursorPointerIndex, LatePointerPosition, LatePointerPosition,
-        TSet<FKey>{}, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
+        LateUpButtons, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
     Fixture.Slate.ProcessMouseMoveEvent(LateMove);
     Fixture.Slate.ProcessMouseButtonUpEvent(LateUp);
     Tick(Fixture.Slate);

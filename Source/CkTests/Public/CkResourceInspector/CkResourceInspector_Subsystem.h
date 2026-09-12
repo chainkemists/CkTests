@@ -7,6 +7,8 @@
 #include "CkResourceInspector_Subsystem.generated.h"
 
 class FCkResourceInspectorModel;
+class FCkCapabilityGalleryModel;
+class FCkUiView;
 class SWidget;
 class UGameViewportClient;
 class APlayerController;
@@ -25,6 +27,9 @@ public:
     bool Request_Open();
 
     UFUNCTION(BlueprintCallable, Category = "Ck|Tests|Resource Inspector")
+    bool Request_OpenCapabilityGallery();
+
+    UFUNCTION(BlueprintCallable, Category = "Ck|Tests|Resource Inspector")
     void Request_Close();
 
     UFUNCTION(BlueprintPure, Category = "Ck|Tests|Resource Inspector")
@@ -35,6 +40,8 @@ private:
     bool DoEnsureInputLayer();
 
     TSharedPtr<FCkResourceInspectorModel> _Model;
+    TSharedPtr<FCkCapabilityGalleryModel> _GalleryModel;
+    TSharedPtr<FCkUiView> _ActiveView;
     TSharedPtr<SWidget> _RootWidget;
     TWeakPtr<SWidget> _PreviousFocus;
     TWeakObjectPtr<UGameViewportClient> _Viewport;

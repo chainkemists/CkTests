@@ -27,7 +27,8 @@ namespace ck_tests_resource_inspector_repeat
 
     auto FindButton(const TSharedRef<SWidget>& InRoot, const FName InTag) -> TSharedPtr<SButton>
     {
-        if (InRoot->GetTag() == InTag && InRoot->GetTypeAsString() == TEXT("SButton")) { return StaticCastSharedRef<SButton>(InRoot); }
+        const FString& Type = InRoot->GetTypeAsString();
+        if (InRoot->GetTag() == InTag && (Type == TEXT("SButton") || Type == TEXT("SCkUiStyledButton"))) { return StaticCastSharedRef<SButton>(InRoot); }
         const FChildren* Children = InRoot->GetChildren();
         for (int32 Index = 0; Children != nullptr && Index < Children->Num(); ++Index)
         {

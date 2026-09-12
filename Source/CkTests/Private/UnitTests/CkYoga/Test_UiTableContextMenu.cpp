@@ -48,7 +48,8 @@ auto FCkUiTableContextMenu::RunTest(const FString&) -> bool
     {
         const auto List = Table->GetList();
         const FVector2D Position = List->GetCachedGeometry().LocalToAbsolute(FVector2D{10, 10});
-        const FPointerEvent RightUp{0, Position, Position, TSet<FKey>{}, EKeys::RightMouseButton, 0.0f, FModifierKeysState{}};
+        const TSet<FKey> RightUpButtons;
+        const FPointerEvent RightUp{0, Position, Position, RightUpButtons, EKeys::RightMouseButton, 0.0f, FModifierKeysState{}};
         List->OnMouseButtonUp(List->GetCachedGeometry(), RightUp);
         Slate.DismissAllMenus();
     };

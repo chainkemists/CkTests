@@ -1,6 +1,7 @@
 #include "CkSlateLayout/CkUiCollection.h"
 
 #include "Misc/AutomationTest.h"
+#include "Styling/SlateBrush.h"
 
 #include <limits>
 
@@ -26,6 +27,20 @@ namespace ck_tests_ui_collection
 
     auto Create(TSharedPtr<FCkUiCollection>& OutCollection) -> bool { return FCkUiCollection::TryCreate(Schema(), OutCollection).Succeeded && OutCollection.IsValid(); }
     auto HasError(const FCkUiLoadResult& InResult) -> bool { return !InResult.Errors.IsEmpty(); }
+
+    auto FindNumber(const TSharedPtr<FCkUiCollection>& InCollection, const FString& InKey) -> const FCkUiFieldValue*
+    {
+        if (!InCollection.IsValid()) { return nullptr; }
+        const TSharedPtr<const FCkUiRecord> Found = InCollection->FindRecord(InKey);
+        return Found.IsValid() ? Found->FindField(TEXT("rank")) : nullptr;
+    }
+
+    struct FObservedBrush final : FSlateBrush
+    {
+        explicit FObservedBrush(FSimpleDelegate InOnDestroyed) : OnDestroyed(MoveTemp(InOnDestroyed)) {}
+        ~FObservedBrush() { OnDestroyed.ExecuteIfBound(); }
+        FSimpleDelegate OnDestroyed;
+    };
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiCollection_Mutation,
@@ -160,6 +175,255 @@ auto FCkUiCollection_ValidationAndScale::RunTest(const FString&) -> bool
         TestTrue(*FString::Printf(TEXT("Data-only collection accepts %d records"), Count), Result.Succeeded);
         TestEqual(*FString::Printf(TEXT("Data-only collection stores %d records"), Count), Collection->GetRecords().Num(), Count);
     }
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiCollection_BatchMutation,
+    "Ck.UiAuthoring.Collection.AtomicBatchMutation",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+auto FCkUiCollection_BatchMutation::RunTest(const FString&) -> bool
+{
+    using namespace ck_tests_ui_collection;
+    TSharedPtr<FCkUiCollection> First;
+    TSharedPtr<FCkUiCollection> Second;
+    if (!TestTrue(TEXT("First batch fixture creates"), Create(First)) || !TestTrue(TEXT("Second batch fixture creates"), Create(Second))) { return false; }
+    if (!TestTrue(TEXT("First batch baseline commits"), First->TrySetRecords({Record(TEXT("first"), TEXT("First"))}).Succeeded)
+        || !TestTrue(TEXT("Second batch baseline commits"), Second->TrySetRecords({Record(TEXT("second"), TEXT("Second"))}).Succeeded)) { return false; }
+
+    int32 FirstNotifications = 0;
+    int32 SecondNotifications = 0;
+    bool FirstSawCompletePublication = false;
+    bool SecondSawCompletePublication = false;
+    bool MutationDuringPeerNotificationRejected = false;
+    bool UnchangedPeerMutationRejected = false;
+    First->OnChanged().AddLambda([&]
+    {
+        ++FirstNotifications;
+        const FCkUiFieldValue* FirstRank = FindNumber(First, TEXT("first"));
+        const FCkUiFieldValue* SecondRank = FindNumber(Second, TEXT("second"));
+        if (First->GetRevision() == 2 && Second->GetRevision() == 2
+            && FirstRank != nullptr && FirstRank->Number == 10.0f && SecondRank != nullptr && SecondRank->Number == 20.0f)
+        {
+            FirstSawCompletePublication = true;
+            MutationDuringPeerNotificationRejected = !Second->TrySetRecords({Record(TEXT("reentrant"), TEXT("no"))}).Succeeded;
+        }
+        if (First->GetRevision() == 3 && Second->GetRevision() == 2
+            && FirstRank != nullptr && FirstRank->Number == 11.0f && SecondRank != nullptr && SecondRank->Number == 20.0f)
+        {
+            UnchangedPeerMutationRejected = !Second->TrySetRecords({Record(TEXT("reentrant-unchanged"), TEXT("no"))}).Succeeded;
+        }
+    });
+    Second->OnChanged().AddLambda([&]
+    {
+        ++SecondNotifications;
+        const FCkUiFieldValue* FirstRank = FindNumber(First, TEXT("first"));
+        const FCkUiFieldValue* SecondRank = FindNumber(Second, TEXT("second"));
+        if (First->GetRevision() == 2 && Second->GetRevision() == 2
+            && FirstRank != nullptr && FirstRank->Number == 10.0f && SecondRank != nullptr && SecondRank->Number == 20.0f)
+        {
+            SecondSawCompletePublication = true;
+        }
+    });
+
+    auto Batch = TArray<FCkUiCollectionUpdate>{};
+    Batch.Add({First, {Record(TEXT("first"), TEXT("First changed"), 10.0f)}});
+    Batch.Add({Second, {Record(TEXT("second"), TEXT("Second changed"), 20.0f)}});
+    if (!TestTrue(TEXT("Two collection batch commits"), FCkUiCollection::TrySetRecordsBatch(MoveTemp(Batch)).Succeeded)) { return false; }
+    TestTrue(TEXT("Every batch notification observes every published participant"), FirstSawCompletePublication && SecondSawCompletePublication);
+    TestTrue(TEXT("A participant rejects mutation during another participant notification"), MutationDuringPeerNotificationRejected);
+    TestEqual(TEXT("Changed batch notifies first once"), FirstNotifications, 1);
+    TestEqual(TEXT("Changed batch notifies second once"), SecondNotifications, 1);
+
+    auto ChangedWithUnchangedPeer = TArray<FCkUiCollectionUpdate>{};
+    ChangedWithUnchangedPeer.Add({First, {Record(TEXT("first"), TEXT("First peer changed"), 11.0f)}});
+    ChangedWithUnchangedPeer.Add({Second, {Record(TEXT("second"), TEXT("Second changed"), 20.0f)}});
+    TestTrue(TEXT("Changed participant with unchanged peer commits"), FCkUiCollection::TrySetRecordsBatch(MoveTemp(ChangedWithUnchangedPeer)).Succeeded);
+    TestTrue(TEXT("Unchanged batch participant rejects mutation during peer notification"), UnchangedPeerMutationRejected);
+    TestEqual(TEXT("Changed participant receives its second notification"), FirstNotifications, 2);
+    TestEqual(TEXT("Unchanged participant receives no notification"), SecondNotifications, 1);
+
+    bool OldPayloadReleased = false;
+    bool OldPayloadSawCommittedState = false;
+    TSharedPtr<FObservedBrush> OldBrush = MakeShared<FObservedBrush>(FSimpleDelegate::CreateLambda([&]
+    {
+        OldPayloadReleased = true;
+        const FCkUiFieldValue* FirstRank = FindNumber(First, TEXT("first"));
+        const FCkUiFieldValue* SecondRank = FindNumber(Second, TEXT("second"));
+        OldPayloadSawCommittedState = FirstRank != nullptr && SecondRank != nullptr && FirstRank->Number == 13.0f && SecondRank->Number == 21.0f
+            && !First->TrySetRecords({Record(TEXT("destructor-reentrant"), TEXT("no"))}).Succeeded;
+    }));
+    auto RecordWithImage = Record(TEXT("first"), TEXT("First with image"), 12.0f);
+    RecordWithImage.Fields.Add(TEXT("icon"), FCkUiFieldValue{.Kind = ECkUiFieldKind::Image, .Image = OldBrush});
+    TestTrue(TEXT("Image payload baseline commits"), First->TrySetRecords({MoveTemp(RecordWithImage)}).Succeeded);
+    OldBrush.Reset();
+    auto ReleasePayloadBatch = TArray<FCkUiCollectionUpdate>{};
+    ReleasePayloadBatch.Add({First, {Record(TEXT("first"), TEXT("First payload released"), 13.0f)}});
+    ReleasePayloadBatch.Add({Second, {Record(TEXT("second"), TEXT("Second payload changed"), 21.0f)}});
+    TestTrue(TEXT("Batch releases old image payload after publication"), FCkUiCollection::TrySetRecordsBatch(MoveTemp(ReleasePayloadBatch)).Succeeded);
+    TestTrue(TEXT("Old payload destructs while guards retain both committed states"), OldPayloadReleased && OldPayloadSawCommittedState);
+
+    const int64 FirstRevision = First->GetRevision();
+    const int64 SecondRevision = Second->GetRevision();
+    auto InvalidSecond = Record(TEXT("second"), TEXT("Invalid"), 30.0f);
+    InvalidSecond.Fields.FindChecked(TEXT("rank")).Number = std::numeric_limits<float>::quiet_NaN();
+    auto InvalidBatch = TArray<FCkUiCollectionUpdate>{};
+    InvalidBatch.Add({First, {Record(TEXT("first"), TEXT("Must not publish"), 99.0f)}});
+    InvalidBatch.Add({Second, {MoveTemp(InvalidSecond)}});
+    const FCkUiLoadResult Rejected = FCkUiCollection::TrySetRecordsBatch(MoveTemp(InvalidBatch));
+    TestFalse(TEXT("Invalid second participant rejects the entire batch"), Rejected.Succeeded);
+    TestTrue(TEXT("Invalid second participant reports an error"), HasError(Rejected));
+    const FCkUiFieldValue* FirstRejectedRank = FindNumber(First, TEXT("first"));
+    const FCkUiFieldValue* SecondRejectedRank = FindNumber(Second, TEXT("second"));
+    TestTrue(TEXT("Invalid second participant leaves both records unchanged"), FirstRejectedRank != nullptr && FirstRejectedRank->Number == 13.0f
+        && SecondRejectedRank != nullptr && SecondRejectedRank->Number == 21.0f);
+    TestEqual(TEXT("Invalid second participant preserves first revision"), First->GetRevision(), FirstRevision);
+    TestEqual(TEXT("Invalid second participant preserves second revision"), Second->GetRevision(), SecondRevision);
+    TestEqual(TEXT("Invalid second participant emits no first notification"), FirstNotifications, 4);
+    TestEqual(TEXT("Invalid second participant emits no second notification"), SecondNotifications, 2);
+
+    auto DuplicateBatch = TArray<FCkUiCollectionUpdate>{};
+    DuplicateBatch.Add({First, {Record(TEXT("first"), TEXT("Duplicate"))}});
+    DuplicateBatch.Add({First, {Record(TEXT("first"), TEXT("Duplicate again"))}});
+    TestFalse(TEXT("Duplicate batch participant rejects"), FCkUiCollection::TrySetRecordsBatch(MoveTemp(DuplicateBatch)).Succeeded);
+    auto NullBatch = TArray<FCkUiCollectionUpdate>{};
+    NullBatch.Add({nullptr, {Record(TEXT("null"), TEXT("Null"))}});
+    TestFalse(TEXT("Null batch participant rejects"), FCkUiCollection::TrySetRecordsBatch(MoveTemp(NullBatch)).Succeeded);
+    TestEqual(TEXT("Duplicate and null rejection preserve first revision"), First->GetRevision(), FirstRevision);
+    TestEqual(TEXT("Duplicate and null rejection preserve second revision"), Second->GetRevision(), SecondRevision);
+    TestEqual(TEXT("Duplicate and null rejection emit no first notification"), FirstNotifications, 4);
+    TestEqual(TEXT("Duplicate and null rejection emit no second notification"), SecondNotifications, 2);
+
+    auto UnchangedBatch = TArray<FCkUiCollectionUpdate>{};
+    UnchangedBatch.Add({First, {Record(TEXT("first"), TEXT("First payload released"), 13.0f)}});
+    UnchangedBatch.Add({Second, {Record(TEXT("second"), TEXT("Second payload changed"), 21.0f)}});
+    TestTrue(TEXT("Unchanged batch succeeds"), FCkUiCollection::TrySetRecordsBatch(MoveTemp(UnchangedBatch)).Succeeded);
+    TestEqual(TEXT("Unchanged batch preserves first revision"), First->GetRevision(), FirstRevision);
+    TestEqual(TEXT("Unchanged batch preserves second revision"), Second->GetRevision(), SecondRevision);
+    TestEqual(TEXT("Unchanged batch emits no first notification"), FirstNotifications, 4);
+    TestEqual(TEXT("Unchanged batch emits no second notification"), SecondNotifications, 2);
+    TestTrue(TEXT("Empty batch succeeds"), FCkUiCollection::TrySetRecordsBatch({}).Succeeded);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiCollection_ChildCollections,
+    "Ck.UiAuthoring.Collection.ChildCollectionsAtomicity",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+auto FCkUiCollection_ChildCollections::RunTest(const FString&) -> bool
+{
+    using namespace ck_tests_ui_collection;
+    const auto ChildFields = TArray<FCkUiFieldSchema>{{TEXT("name"), ECkUiFieldKind::Text}};
+    const auto SchemaWithChildren = FCkUiCollectionSchema{
+        .Fields = {{TEXT("title"), ECkUiFieldKind::Text}},
+        .Children = {{.Name = TEXT("bands"), .Fields = ChildFields}}};
+    TSharedPtr<FCkUiCollection> Collection;
+    if (!TestTrue(TEXT("Hierarchical schema creates"), FCkUiCollection::TryCreateHierarchical(SchemaWithChildren, Collection).Succeeded)) { return false; }
+    const auto MakeChild = [](const FString& Key, const FString& Name)
+    {
+        FCkUiRecordData Result; Result.Key = Key;
+        Result.Fields.Add(TEXT("name"), FCkUiFieldValue{.Kind = ECkUiFieldKind::Text, .Text = FText::FromString(Name)});
+        return Result;
+    };
+    const auto MakeParent = [&MakeChild](const FString& Title, TArray<FCkUiRecordData> Bands)
+    {
+        FCkUiRecordData Result; Result.Key = TEXT("crowd-0");
+        Result.Fields.Add(TEXT("title"), FCkUiFieldValue{.Kind = ECkUiFieldKind::Text, .Text = FText::FromString(Title)});
+        Result.Children.Add(TEXT("bands"), MoveTemp(Bands));
+        return Result;
+    };
+    if (!TestTrue(TEXT("Empty declared child collection commits"), Collection->TrySetRecords({MakeParent(TEXT("Crowd"), {})}).Succeeded)) { return false; }
+    const TSharedPtr<const FCkUiRecord> Parent = Collection->FindRecord(TEXT("crowd-0"));
+    const TSharedPtr<const FCkUiCollection> EmptyBands = Parent.IsValid() ? Parent->FindChildCollection(TEXT("bands")) : nullptr;
+    TestTrue(TEXT("Declared empty child model is retained"), EmptyBands.IsValid() && EmptyBands->GetRecords().IsEmpty());
+    if (!TestTrue(TEXT("Child records commit"), Collection->TrySetRecords({MakeParent(TEXT("Crowd"), {MakeChild(TEXT("band-0"), TEXT("Near"))})}).Succeeded)) { return false; }
+    const TSharedPtr<const FCkUiCollection> Bands = Parent->FindChildCollection(TEXT("bands"));
+    const TSharedPtr<const FCkUiRecord> Band = Bands.IsValid() ? Bands->FindRecord(TEXT("band-0")) : nullptr;
+    TestTrue(TEXT("Surviving parent and child models retain identity"), Collection->FindRecord(TEXT("crowd-0")) == Parent && Parent->FindChildCollection(TEXT("bands")) == Bands && Band.IsValid());
+    const int64 StableRevision = Collection->GetRevision();
+    TestTrue(TEXT("Identical recursive data is a no-op"), Collection->TrySetRecords({MakeParent(TEXT("Crowd"), {MakeChild(TEXT("band-0"), TEXT("Near"))})}).Succeeded);
+    TestEqual(TEXT("Recursive no-op preserves root revision"), Collection->GetRevision(), StableRevision);
+    TestTrue(TEXT("Recursive no-op preserves child record identity"), Parent->FindChildCollection(TEXT("bands")) == Bands && Bands->FindRecord(TEXT("band-0")) == Band);
+    const int64 Revision = Collection->GetRevision();
+    auto Duplicate = MakeParent(TEXT("Rejected"), {MakeChild(TEXT("same"), TEXT("A")), MakeChild(TEXT("same"), TEXT("B"))});
+    TestFalse(TEXT("Duplicate child keys reject atomically"), Collection->TrySetRecords({MoveTemp(Duplicate)}).Succeeded);
+    TestEqual(TEXT("Duplicate child rejection preserves root revision"), Collection->GetRevision(), Revision);
+    TestTrue(TEXT("Duplicate child rejection preserves identities"), Collection->FindRecord(TEXT("crowd-0")) == Parent && Parent->FindChildCollection(TEXT("bands")) == Bands && Bands->FindRecord(TEXT("band-0")) == Band);
+    auto Missing = MakeParent(TEXT("Missing"), {}); Missing.Children.Reset();
+    TestFalse(TEXT("Missing declared child collection rejects"), Collection->TrySetRecords({MoveTemp(Missing)}).Succeeded);
+    auto Undeclared = MakeParent(TEXT("Undeclared"), {}); Undeclared.Children.Add(TEXT("other"), {});
+    TestFalse(TEXT("Undeclared child collection rejects"), Collection->TrySetRecords({MoveTemp(Undeclared)}).Succeeded);
+    auto WrongKind = MakeParent(TEXT("Wrong"), {MakeChild(TEXT("bad"), TEXT("Bad"))});
+    WrongKind.Children.FindChecked(TEXT("bands"))[0].Fields.FindChecked(TEXT("name")).Kind = ECkUiFieldKind::Number;
+    TestFalse(TEXT("Malformed descendant kind rejects atomically"), Collection->TrySetRecords({MoveTemp(WrongKind)}).Succeeded);
+    TSharedPtr<FCkUiCollection> Untouched = Collection;
+    auto TooManyChildren = FCkUiCollectionSchema{.Fields = {{TEXT("title"), ECkUiFieldKind::Text}}};
+    for (int32 Index = 0; Index < 129; ++Index) { TooManyChildren.Children.Add({.Name = FString::Printf(TEXT("child%d"), Index), .Fields = ChildFields}); }
+    TestFalse(TEXT("More than 128 child schemas rejects"), FCkUiCollection::TryCreateHierarchical(MoveTemp(TooManyChildren), Untouched).Succeeded);
+    TestTrue(TEXT("Child-count schema rejection preserves output"), Untouched == Collection);
+    auto TooDeep = FCkUiCollectionSchema{.Fields = {{TEXT("title"), ECkUiFieldKind::Text}}};
+    FCkUiChildCollectionSchema* Cursor = nullptr;
+    for (int32 Index = 0; Index < 33; ++Index)
+    {
+        if (Cursor == nullptr) { TooDeep.Children.Add({.Name = TEXT("child"), .Fields = ChildFields}); Cursor = &TooDeep.Children.Last(); }
+        else { Cursor->Children.Add({.Name = TEXT("child"), .Fields = ChildFields}); Cursor = &Cursor->Children.Last(); }
+    }
+    TestFalse(TEXT("More than 32 nested child schemas rejects"), FCkUiCollection::TryCreateHierarchical(MoveTemp(TooDeep), Untouched).Succeeded);
+    TestTrue(TEXT("Child-depth schema rejection preserves output"), Untouched == Collection);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiCollection_ChildCollectionNotificationOrder,
+    "Ck.UiAuthoring.Collection.ChildCollectionsNotificationOrder",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+auto FCkUiCollection_ChildCollectionNotificationOrder::RunTest(const FString&) -> bool
+{
+    const auto Fields = TArray<FCkUiFieldSchema>{{TEXT("value"), ECkUiFieldKind::Text}};
+    const auto Schema = FCkUiCollectionSchema{.Fields = {{TEXT("value"), ECkUiFieldKind::Text}}, .Children = {
+        {.Name = TEXT("a"), .Fields = Fields}, {.Name = TEXT("b"), .Fields = Fields}}};
+    TSharedPtr<FCkUiCollection> Root;
+    if (!TestTrue(TEXT("Two-child schema creates"), FCkUiCollection::TryCreateHierarchical(Schema, Root).Succeeded)) { return false; }
+    const auto Leaf = [](const FString& Key, const FString& Value)
+    { FCkUiRecordData Data; Data.Key = Key; Data.Fields.Add(TEXT("value"), FCkUiFieldValue{.Kind = ECkUiFieldKind::Text, .Text = FText::FromString(Value)}); return Data; };
+    const auto Parent = [&Leaf](const FString& ValueA, const FString& ValueB)
+    { FCkUiRecordData Data = Leaf(TEXT("root"), TEXT("root")); Data.Children.Add(TEXT("a"), {Leaf(TEXT("a"), ValueA)}); Data.Children.Add(TEXT("b"), {Leaf(TEXT("b"), ValueB)}); return Data; };
+    if (!TestTrue(TEXT("Two-child baseline commits"), Root->TrySetRecords({Parent(TEXT("old-a"), TEXT("old-b"))}).Succeeded)) { return false; }
+    const TSharedPtr<const FCkUiRecord> RootRecord = Root->FindRecord(TEXT("root"));
+    const TSharedPtr<const FCkUiCollection> A = RootRecord->FindChildCollection(TEXT("a"));
+    const TSharedPtr<const FCkUiCollection> B = RootRecord->FindChildCollection(TEXT("b"));
+    const TSharedPtr<const FCkUiRecord> ARecord = A->FindRecord(TEXT("a"));
+    const TSharedPtr<const FCkUiRecord> BRecord = B->FindRecord(TEXT("b"));
+    auto Order = TArray<FString>{};
+    bool RootSeesB = false;
+    bool ASeesB = false;
+    bool RootCallbackMutationRejected = false;
+    bool ChildCallbackMutationRejected = false;
+    Root->OnChanged().AddLambda([&]
+    {
+        Order.Add(TEXT("root"));
+        RootSeesB = B->FindRecord(TEXT("b"))->FindField(TEXT("value"))->Text.ToString() == TEXT("new-b");
+        RootCallbackMutationRejected = !Root->TrySetRecords({Parent(TEXT("x"), TEXT("y"))}).Succeeded;
+    });
+    A->OnChanged().AddLambda([&]
+    {
+        Order.Add(TEXT("a"));
+        ASeesB = B->FindRecord(TEXT("b"))->FindField(TEXT("value"))->Text.ToString() == TEXT("new-b");
+        ChildCallbackMutationRejected = !Root->TrySetRecords({Parent(TEXT("x"), TEXT("y"))}).Succeeded;
+    });
+    B->OnChanged().AddLambda([&] { Order.Add(TEXT("b")); });
+    const int64 RootRevision = Root->GetRevision();
+    const int64 ARevision = A->GetRevision();
+    const int64 BRevision = B->GetRevision();
+    TestTrue(TEXT("Two-child update commits"), Root->TrySetRecords({Parent(TEXT("new-a"), TEXT("new-b"))}).Succeeded);
+    TestTrue(TEXT("Callbacks see complete hierarchy and reject root reentry"),
+        RootSeesB && ASeesB && RootCallbackMutationRejected && ChildCallbackMutationRejected);
+    TestTrue(TEXT("Parent-before-child notification order is deterministic"), Order == TArray<FString>{TEXT("root"), TEXT("a"), TEXT("b")});
+    TestTrue(TEXT("Stable root and both child records survive"), Root->FindRecord(TEXT("root")) == RootRecord && RootRecord->FindChildCollection(TEXT("a")) == A && RootRecord->FindChildCollection(TEXT("b")) == B && A->FindRecord(TEXT("a")) == ARecord && B->FindRecord(TEXT("b")) == BRecord);
+    TestTrue(TEXT("All three revisions update once"), Root->GetRevision() == RootRevision + 1 && A->GetRevision() == ARevision + 1 && B->GetRevision() == BRevision + 1);
+    Order.Reset(); auto Invalid = Parent(TEXT("bad-a"), TEXT("bad-b")); Invalid.Children.FindChecked(TEXT("b"))[0].Fields.FindChecked(TEXT("value")).Kind = ECkUiFieldKind::Number;
+    TestFalse(TEXT("Invalid descendant rejects"), Root->TrySetRecords({MoveTemp(Invalid)}).Succeeded);
+    TestTrue(TEXT("Invalid descendant preserves revisions identities values and notifications"), Order.IsEmpty() && Root->GetRevision() == RootRevision + 1 && A->GetRevision() == ARevision + 1 && B->GetRevision() == BRevision + 1 && A->FindRecord(TEXT("a")) == ARecord && B->FindRecord(TEXT("b")) == BRecord && BRecord->FindField(TEXT("value"))->Text.ToString() == TEXT("new-b"));
     return true;
 }
 
