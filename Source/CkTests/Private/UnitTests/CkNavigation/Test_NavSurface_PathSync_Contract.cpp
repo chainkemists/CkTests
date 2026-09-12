@@ -81,6 +81,9 @@ namespace ck_test_nav_surface_pathsync
         Table._ProviderHealth = [](UWorld*)
         { return ECk_NavSurface_ProviderHealth::NoData; };
 
+        Table._IsSurfaceQueryable = [](UWorld*)
+        { return false; };
+
         Table._IsBuildInProgress = [](UWorld*)
         { return false; };
 
@@ -167,6 +170,26 @@ bool FCkTest_NavSurfacePathSync_BothCapabilitiesAreRequiredTableEntries::RunTest
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_PathNetwork_NavSurfaceQueryabilityIsARequiredTableEntry,
+    "CkTests.UnitTests.CkPathNetwork.NavSurfaceQueryabilityIsARequiredTableEntry",
+    kCkUnitTestFlags)
+
+bool FCkTest_PathNetwork_NavSurfaceQueryabilityIsARequiredTableEntry::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_nav_surface_pathsync;
+
+    auto Table = Make_CompleteTable();
+    Table._IsSurfaceQueryable.Reset();
+
+    TestFalse(TEXT("a table that cannot report whether its surface is queryable is NOT a provider"),
+        Table.Get_IsComplete());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_NavSurfacePathSync_NoWorldDataAnswersNoProvider,
     "CkTests.UnitTests.CkNavigation.NavSurfacePathSync.NoWorldDataAnswersNoProvider",
     kCkUnitTestFlags)
@@ -193,6 +216,9 @@ bool FCkTest_NavSurfacePathSync_NoWorldDataAnswersNoProvider::RunTest(const FStr
     TestEqual(TEXT("a world with no navmesh answers a path query NoProvider"),
         PathResult.Get_Status(), ECk_NavSurface_QueryStatus::NoProvider);
 
+    TestFalse(TEXT("a world with no navmesh has no queryable Recast surface"),
+        ck::nav_surface_recast::Get_IsSurfaceQueryable(World));
+
     TestEqual(TEXT("and answers it with no waypoints rather than a plausible route"),
         PathResult.Get_Waypoints().Num(), 0);
 
@@ -210,6 +236,9 @@ bool FCkTest_NavSurfacePathSync_NoWorldDataAnswersNoProvider::RunTest(const FStr
 
     // The same two questions through the neutral surface, which is what a consumer actually calls.
     UCk_Utils_NavSurface_UE::Request_SetProvider(World, ECk_NavSurface_Provider::Recast);
+
+    TestFalse(TEXT("the facade reports the unavailable Recast surface as not queryable"),
+        UCk_Utils_NavSurface_UE::Get_IsSurfaceQueryable(World));
 
     const auto FacadePath = UCk_Utils_NavSurface_UE::Try_FindPathSync(
         World, FCk_NavSurface_PathQuery{FVector::ZeroVector, FVector{1000.0, 0.0, 0.0}});
