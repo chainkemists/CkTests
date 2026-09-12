@@ -5,18 +5,8 @@
 // The one test that pins the BEHAVIOUR of the script-object copy in
 // Request_ResetToArchetype. Every other pooled subject declares its members
 // UPROPERTY(), so the reflected FProperty sweep restores them and those tests
-// stay green even if the script copy is removed entirely - they execute that
-// call without asserting anything it does.
-//
-// ScriptOnlyValue has no UPROPERTY, so no FProperty exists for it and the
-// reflected sweep cannot see it. Only asCScriptObject::PerformCopy resets it.
-// A recycled instance that resumes its previous life's ScriptOnlyValue is the
-// exact defect a precompiled-script-cache boot used to produce, when the copy
-// was resolved by name and that registration had been deleted as unused.
-//
-// ReflectedValue rides along as the CONTROL that keeps a red legible: both
-// stale means the whole reset regressed; only ScriptOnlyValue stale means the
-// script copy specifically did.
+// stay green with the script copy removed entirely. ScriptOnlyValue is invisible
+// to that sweep; ReflectedValue is the control that keeps a red legible.
 
 class UCk_AutoTest_ObjectPooling_RecycleResetsScriptOnlyMembers : UCk_AutoTest_Base
 {
@@ -40,7 +30,6 @@ class UCk_AutoTest_ObjectPooling_RecycleResetsScriptOnlyMembers : UCk_AutoTest_B
             "acquire #1: a fresh instance must start at the archetype default");
         if (IsFinished()) { return; }
 
-        // stomp BOTH: the script-only member is the subject, the reflected one is the control
         Obj1.ScriptOnlyValue = 42;
         Obj1.ReflectedValue = 42;
 
@@ -53,8 +42,6 @@ class UCk_AutoTest_ObjectPooling_RecycleResetsScriptOnlyMembers : UCk_AutoTest_B
             utils_object::Request_CreateNewObject_Pooled(
                 this, UCk_ObjectPoolingTest_ScriptOnlyMemberObject, nullptr, PoolParams));
 
-        // identity FIRST: without it a fresh instance would satisfy every assertion below and
-        // the test would pass while proving nothing about recycling
         Assert_True(Obj2 == Obj1,
             "acquire #2: the pool must re-issue the SAME instance (pointer identity) - otherwise the reset assertions below are vacuous");
         if (IsFinished()) { return; }
