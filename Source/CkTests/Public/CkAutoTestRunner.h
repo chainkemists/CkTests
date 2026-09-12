@@ -106,8 +106,7 @@ public:
 
 public:
     virtual auto PrepareTest() -> void override;
-    // Gates the engine's StartTest - and therefore the TimeLimit clock - on the AS test entity
-    // actually existing. See the .cpp for why the default (unconditionally true) is wrong here.
+    // Gates the engine's StartTest - and so the TimeLimit clock - on the AS test entity existing.
     virtual auto IsReady_Implementation() -> bool override;
     virtual auto Tick(float DeltaSeconds) -> void override;
     virtual auto FinishTest(EFunctionalTestResult TestResult, const FString& Message) -> void override;
@@ -165,11 +164,10 @@ private:
     void Install_ExpectedLogErrors();
 
     // Out-of-subtree entity leak detection. Destroy_RunnerEntity cascades only the runner's own
-    // lifetime subtree, so anything a test parents to the world's TransientEntity or to an
-    // ActorRelay channel escapes teardown and survives into every later test in the shared PIE
-    // world. UCk_AutoTest_Base::Track_ForCleanup is how a test declares such a root - and six tests
-    // in one campaign forgot to. These two turn "an unrelated test breaks 155 tests later" into a
-    // finding named on the test that leaked. See the .cpp for what is deliberately NOT flagged.
+    // lifetime subtree, so anything a test parents to the world's TransientEntity or to an ActorRelay
+    // channel survives into every later test in the shared PIE world unless the test declares it via
+    // UCk_AutoTest_Base::Track_ForCleanup. These name the test that leaked instead of the one that
+    // then breaks. See the .cpp for what is deliberately NOT flagged.
     void Capture_EntityBaseline();
     auto Get_EntityLeaks() const -> TArray<FString>;
 
