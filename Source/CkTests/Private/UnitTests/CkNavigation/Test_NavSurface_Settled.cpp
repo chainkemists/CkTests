@@ -79,6 +79,9 @@ namespace ck_test_nav_surface_settled
         Table._ProviderHealth = [](UWorld*)
         { return ECk_NavSurface_ProviderHealth::NoData; };
 
+        Table._IsSurfaceQueryable = [](UWorld*)
+        { return false; };
+
         Table._IsBuildInProgress = [](UWorld*)
         { return false; };
 
@@ -117,7 +120,7 @@ bool FCkTest_NavSurfaceSettled_TableIsIncompleteWithoutTheSettledEntry::RunTest(
     // Asked of the table directly rather than through Register_Provider: registration REFUSES an
     // incomplete table with an ensure, and an ensure is a failure to this harness even when it is the
     // behaviour under test.
-    TestFalse(TEXT("fifteen of sixteen capabilities is not a provider"), Table.Get_IsComplete());
+    TestFalse(TEXT("sixteen of seventeen capabilities is not a provider"), Table.Get_IsComplete());
 
     Table._IsSurfaceSettled = [](UWorld*)
     { return false; };
