@@ -286,8 +286,7 @@ class ACk_SelectionGym_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Numbered(4, "Moving and respawn", _ActiveScenario == 4));
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Rebuild active scenario"));
         Rows.Add(CkGym_Control::Action(EKeys::X, "X", "Delete and respawn target", _ActiveScenario == 4));
-        Rows.Add(CkGym_Control::Action(EKeys::O, "O", "Enable Debug Overlay"));
-        Rows.Add(CkGym_Control::Action(EKeys::P, "P", "Open overlay settings"));
+        Rows.Add(CkGym_Control::Status("Overlay", "[,] toggle | [Shift+,] or [Shift+P] settings"));
         return Rows;
     }
 
@@ -299,10 +298,6 @@ class ACk_SelectionGym_PlayerController : ACk_Gym_Base_PlayerController
         { DoSelectScenario(_ActiveScenario); }
         else if (InRowIndex == 8)
         { DoDeleteAndRespawn(); }
-        else if (InRowIndex == 9)
-        { System::ExecuteConsoleCommand("ck.DebugOverlay 1"); }
-        else if (InRowIndex == 10)
-        { System::ExecuteConsoleCommand("ck.DebugOverlay.Settings"); }
     }
 
     private FString DoGetScenarioLabel() const
