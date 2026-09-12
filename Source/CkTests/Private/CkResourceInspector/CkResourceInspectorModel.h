@@ -35,6 +35,9 @@ public:
     auto SetSessionNoteLocked(bool InLocked) -> void { _SessionNoteLocked = InLocked; }
     bool HasSessionNoteError() const { return !_SessionNoteError.IsEmpty(); }
     bool IsClearPinsDialogOpen() const { return _ClearPinsDialogOpen; }
+    bool IsLongLabels() const { return _bLongLabels; }
+    auto GetSearchPlaceholder() const -> FText;
+    auto GetNameColumnLabel() const -> FText;
 
 private:
     explicit FCkResourceInspectorModel(FSimpleDelegate InClose) : _Close(MoveTemp(InClose)) {}
@@ -78,6 +81,7 @@ private:
     FString _DetailTab = TEXT("overview");
     FString _PresentationState = TEXT("ready");
     int32 _RowCount = 12;
+    bool _bLongLabels = false;
     uint64 _NextActivitySequence = 1;
     TArray<FCkUiRecordData> _ActivityRecords;
     TArray<FString> _QueuedActivityMessages;

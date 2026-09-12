@@ -86,7 +86,8 @@ namespace ck_tests_ui_scroll_overlay
 
     auto MouseWheel(const float InDelta) -> FPointerEvent
     {
-        return FPointerEvent(0, FVector2D{160.0f, 120.0f}, FVector2D{160.0f, 120.0f}, TSet<FKey>{}, EKeys::Invalid, InDelta, FModifierKeysState{});
+        static const TSet<FKey> NoButtons;
+        return FPointerEvent(0, FVector2D{160.0f, 120.0f}, FVector2D{160.0f, 120.0f}, NoButtons, EKeys::Invalid, InDelta, FModifierKeysState{});
     }
 
     auto FindTagged(const TSharedRef<SWidget>& InRoot, const FName InTag) -> TSharedPtr<SWidget>

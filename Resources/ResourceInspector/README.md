@@ -11,6 +11,7 @@ owns its mounted widget and file-polling ticker.
 
 - Use Empty, One, Sample, 1k and 10k to change the collection size. Enter a custom Resource count to choose any size from 0 to 10000; Enter or focus loss commits the value. Counts round to whole numbers and clamp to that interval.
 - Loading and Error are deterministic presentation previews. They hide the inventory while retaining its dataset, selection, search, notes, pins and activity. Show resources restores the ready presentation. These previews do not start background jobs or simulate a network request.
+- Toggle long labels switches the native search placeholder and Name column header between their default and long `NSLOCTEXT` values. It leaves the dataset, selection and query unchanged.
 - Expand All resources in Categories and select a kind to filter the inventory.
   Search applies within that category; selecting All resources restores the full
   scenario without discarding the search. Scenario buttons preserve the category.

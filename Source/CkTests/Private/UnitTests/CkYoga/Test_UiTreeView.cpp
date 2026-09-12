@@ -15,11 +15,19 @@
 namespace ck_tests_ui_tree_view
 {
     struct FWindowScope final { explicit FWindowScope(FSlateApplication& InSlate) : Slate(InSlate) {} ~FWindowScope() { if (Window.IsValid()) { Slate.DestroyWindowImmediately(Window.ToSharedRef()); } } FSlateApplication& Slate; TSharedPtr<SWindow> Window; };
+    struct FHostKeyProbe final : TSharedFromThis<FHostKeyProbe>
+    {
+        explicit FHostKeyProbe(TSharedRef<int32> InCalls) : Calls(MoveTemp(InCalls)) {}
+        auto OnKeyDown(const FGeometry&, const FKeyEvent&) -> FReply { ++*Calls; return FReply::Handled(); }
+        TSharedRef<int32> Calls;
+    };
     auto Tick(FSlateApplication& InSlate) -> void { InSlate.PumpMessages(); InSlate.Tick(); InSlate.Tick(); }
-    auto Schema() -> TArray<FCkUiFieldSchema> { return {{TEXT("name"), ECkUiFieldKind::Text}, {TEXT("rank"), ECkUiFieldKind::Number}}; }
-    auto Node(const FString& InKey, TOptional<FString> InParent = {}, const FString& InName = TEXT("node"), float InRank = 0.0f) -> FCkUiTreeNodeData
-    { FCkUiTreeNodeData Result; Result.Key = InKey; Result.ParentKey = MoveTemp(InParent); Result.Fields.Add(TEXT("name"), FCkUiFieldValue{.Kind=ECkUiFieldKind::Text,.Text=FText::FromString(InName)}); Result.Fields.Add(TEXT("rank"), FCkUiFieldValue{.Kind=ECkUiFieldKind::Number,.Number=InRank}); return Result; }
+    auto Schema() -> TArray<FCkUiFieldSchema> { return {{TEXT("name"), ECkUiFieldKind::Text}, {TEXT("rank"), ECkUiFieldKind::Number}, {TEXT("visible"), ECkUiFieldKind::Bool}}; }
+    auto Node(const FString& InKey, TOptional<FString> InParent = {}, const FString& InName = TEXT("node"), float InRank = 0.0f, const bool bVisible = true) -> FCkUiTreeNodeData
+    { FCkUiTreeNodeData Result; Result.Key = InKey; Result.ParentKey = MoveTemp(InParent); Result.Fields.Add(TEXT("name"), FCkUiFieldValue{.Kind=ECkUiFieldKind::Text,.Text=FText::FromString(InName)}); Result.Fields.Add(TEXT("rank"), FCkUiFieldValue{.Kind=ECkUiFieldKind::Number,.Number=InRank}); Result.Fields.Add(TEXT("visible"), FCkUiFieldValue{.Kind=ECkUiFieldKind::Bool,.Bool=bVisible}); return Result; }
     auto Markup() -> FString { return TEXT("<ui version=\"1\"><region name=\"main\"><column id=\"root\"><tree id=\"tree\" class=\"fill\" bind=\"tree\" filter-bind=\"query\" selection-action=\"selected\" row-height=\"24\"><row id=\"cell\"><text id=\"name\" bind-field=\"name\"/></row></tree></column></region></ui>"); }
+    auto ContextMarkup() -> FString { return TEXT("<ui version=\"1\"><menu id=\"tree-menu\"><menu-item key=\"inspect\" label=\"Inspect\" action=\"inspect\"/></menu><region name=\"main\"><column id=\"root\"><tree id=\"tree\" class=\"fill\" bind=\"tree\" filter-bind=\"query\" selection-action=\"selected\" context-menu=\"tree-menu\" row-height=\"24\"><row id=\"cell\"><text id=\"name\" bind-field=\"name\"/></row></tree></column></region></ui>"); }
+    auto ProjectionMarkup() -> FString { return TEXT("<ui version=\"1\"><region name=\"main\"><column id=\"root\"><tree id=\"tree\" class=\"fill\" bind=\"tree\" projection-field=\"visible\" selectable=\"false\" expand-on-row-click=\"true\" row-height=\"24\"><row id=\"cell\"><text id=\"name\" bind-field=\"name\"/></row></tree></column></region></ui>"); }
     auto Styles() -> FString { return TEXT(".fill { flex-grow: 1; }"); }
     auto Key(const FKey InKey) -> FKeyEvent { return FKeyEvent(InKey, FModifierKeysState{}, 0, false, 0, 0); }
 }
@@ -38,6 +46,7 @@ auto FCkUiTreeView_Runtime::RunTest(const FString&) -> bool
     Data.Trees.Add(TEXT("tree"), Model);
     Data.Text.Add(TEXT("query"), TAttribute<FText>::CreateLambda([&Query]() { return FText::FromString(Query); }));
     Data.TreeSelectionChanged.Add(TEXT("selected"), FOnCkUiTreeSelectionChanged::CreateLambda([&SelectionEvents](TOptional<FString>, ESelectInfo::Type) { ++SelectionEvents; }));
+    Data.ContextActions.Add(TEXT("inspect"), FOnCkUiContextAction::CreateLambda([](const FString&) {}));
     TSharedPtr<FCkUiView> View = FCkUiView::Create({}, {}, {}, FCoreStyle::GetDefaultFontStyle("Regular", 12), MoveTemp(Data));
     TSharedPtr<SWidget> Region = View->GetRegion(TEXT("main"));
     FSlateApplication& Slate = FSlateApplication::Get(); FWindowScope Scope{Slate};
@@ -51,12 +60,37 @@ auto FCkUiTreeView_Runtime::RunTest(const FString&) -> bool
     TestTrue(TEXT("Initial tree cells generate without error"), Tree->GetLastCellError().IsEmpty());
     const SCkUiTree::FNode Root = Model->FindNode(TEXT("root"));
     if (!TestTrue(TEXT("Root node exists"), Root.IsValid())) { return false; }
+    int32 HostKeyCalls = 0;
+    Tree->SetHostKeyDownHandler(FOnKeyDown::CreateLambda([&HostKeyCalls](const FGeometry&, const FKeyEvent&) { ++HostKeyCalls; return FReply::Handled(); }));
+    const FReply HostHandledReply = NativeTree->OnKeyDown(NativeTree->GetCachedGeometry(), Key(EKeys::F));
+    TestTrue(TEXT("Native host key hook handles an otherwise unhandled tree key"), HostHandledReply.IsEventHandled() && HostKeyCalls == 1);
+    Tree->SetHostKeyDownHandler(FOnKeyDown::CreateLambda([&HostKeyCalls](const FGeometry&, const FKeyEvent&) { ++HostKeyCalls; return FReply::Unhandled(); }));
+    const FReply HostUnhandledReply = NativeTree->OnKeyDown(NativeTree->GetCachedGeometry(), Key(EKeys::F));
+    TestTrue(TEXT("Unhandled native host key hook falls through to ordinary tree handling"), !HostUnhandledReply.IsEventHandled() && HostKeyCalls == 2);
+    const TSharedRef<int32> ExpiredHostCalls = MakeShared<int32>(0);
+    TSharedPtr<FHostKeyProbe> ExpiredHost = MakeShared<FHostKeyProbe>(ExpiredHostCalls);
+    Tree->SetHostKeyDownHandler(FOnKeyDown::CreateSP(ExpiredHost.ToSharedRef(), &FHostKeyProbe::OnKeyDown));
+    ExpiredHost.Reset();
+    const FReply ExpiredHostReply = NativeTree->OnKeyDown(NativeTree->GetCachedGeometry(), Key(EKeys::F));
+    TestTrue(TEXT("Expired native host owner leaves ordinary tree handling inert"), !ExpiredHostReply.IsEventHandled() && *ExpiredHostCalls == 0);
+    Tree->SetHostKeyDownHandler({});
+    TestFalse(TEXT("Unbound native host key hook leaves ordinary tree behavior intact"), NativeTree->OnKeyDown(NativeTree->GetCachedGeometry(), Key(EKeys::F)).IsEventHandled());
+    Tree->SetHostKeyDownHandler(FOnKeyDown::CreateLambda([&HostKeyCalls](const FGeometry&, const FKeyEvent&) { ++HostKeyCalls; return FReply::Handled(); }));
     NativeTree->SetSelection(Root, ESelectInfo::OnKeyPress);
     Slate.SetKeyboardFocus(NativeTree.ToSharedRef(), EFocusCause::SetDirectly);
+    const int32 HostCallsBeforeContextKey = HostKeyCalls;
+    if (!TestTrue(TEXT("Context-menu reload succeeds before key precedence"), View->TryReload(ContextMarkup(), Styles(), TEXT("UiTreeViewContextKey")).Succeeded)) { return false; }
+    Tick(Slate);
+    const FModifierKeysState Shift{true, false, false, false, false, false, false, false, false};
+    const FReply ContextReply = NativeTree->OnKeyDown(NativeTree->GetCachedGeometry(), FKeyEvent(EKeys::F10, Shift, 0, false, 0, 0));
+    TestTrue(TEXT("Authored Shift+F10 context menu precedes the native host key hook"), ContextReply.IsEventHandled() && HostKeyCalls == HostCallsBeforeContextKey);
+    Tree->ReleaseContextMenu();
+    Tree->SetHostKeyDownHandler({});
     const FReply ExpandReply = NativeTree->OnKeyDown(NativeTree->GetCachedGeometry(), Key(EKeys::Right)); Tick(Slate);
     TestTrue(TEXT("Native keyboard right expands the selected authored root"), ExpandReply.IsEventHandled() && Tree->GetExpandedKeys().Contains(TEXT("root")) && Tree->GetSelectedKey().IsSet() && Tree->GetSelectedKey().GetValue() == TEXT("root"));
     const FReply CollapseReply = NativeTree->OnKeyDown(NativeTree->GetCachedGeometry(), Key(EKeys::Left)); Tick(Slate);
     TestTrue(TEXT("Native keyboard left collapses the selected authored root"), CollapseReply.IsEventHandled() && !Tree->GetExpandedKeys().Contains(TEXT("root")));
+    Tree->SetHostKeyDownHandler(FOnKeyDown::CreateLambda([&HostKeyCalls](const FGeometry&, const FKeyEvent&) { ++HostKeyCalls; return FReply::Handled(); }));
     if (!TestTrue(TEXT("Public tree expansion restores root"), Tree->TrySetExpanded(TEXT("root"), true))) { return false; }
     Tick(Slate);
     if (!TestTrue(TEXT("Select unrelated root before hidden-selection filter"), Tree->TrySelectKey(FString(TEXT("other")), true))) { return false; }
@@ -90,15 +124,68 @@ auto FCkUiTreeView_Runtime::RunTest(const FString&) -> bool
     if (!TestTrue(TEXT("Accepted tree reload succeeds"), View->TryReload(Markup(), Styles() + TEXT(" .fill { padding: 1px; }"), TEXT("UiTreeViewReload")).Succeeded)) { return false; }
     Tick(Slate);
     TestTrue(TEXT("Accepted reload retains tree/native identity selection focus and expansion"), View->GetRevision() == Revision + 1 && View->GetTree(TEXT("tree")) == Tree && Tree->GetTree() == NativeTree && Slate.GetUserFocusedWidget(0) == FocusedBeforeReload && Tree->GetSelectedKey().IsSet() && Tree->GetSelectedKey().GetValue() == TEXT("node-00001") && Tree->GetExpandedKeys().Difference(ExpandedBeforeReload).Num() == 0 && ExpandedBeforeReload.Difference(Tree->GetExpandedKeys()).Num() == 0);
+    const int32 HostCallsBeforeRetainedReload = HostKeyCalls;
+    TestTrue(TEXT("Compatible reload retains the native host key hook"), NativeTree->OnKeyDown(NativeTree->GetCachedGeometry(), Key(EKeys::F)).IsEventHandled() && HostKeyCalls == HostCallsBeforeRetainedReload + 1);
     const int64 AcceptedRevision = View->GetRevision();
     const FString Invalid = Markup().Replace(TEXT("bind-field=\"name\""), TEXT("bind-field=\"rank\""));
     const FCkUiLoadResult Rejected = View->TryReload(Invalid, Styles(), TEXT("UiTreeViewInvalid"));
     TestFalse(TEXT("Wrong tree text field rejects before publication"), Rejected.Succeeded); TestTrue(TEXT("Rejected tree reload reports diagnostic"), !Rejected.Errors.IsEmpty());
     TestTrue(TEXT("Rejected tree reload retains tree identity and revision"), View->GetRevision() == AcceptedRevision && View->GetTree(TEXT("tree")) == Tree && Tree->GetTree() == NativeTree);
+    const int32 HostCallsBeforeRejectedReload = HostKeyCalls;
+    TestTrue(TEXT("Rejected reload retains the native host key hook"), NativeTree->OnKeyDown(NativeTree->GetCachedGeometry(), Key(EKeys::F)).IsEventHandled() && HostKeyCalls == HostCallsBeforeRejectedReload + 1);
+
+    if (!TestTrue(TEXT("Projection hierarchy publishes"), Model->TrySetNodes({Node(TEXT("root"), {}, TEXT("Root")), Node(TEXT("child"), FString(TEXT("root")), TEXT("Child")), Node(TEXT("other"), {}, TEXT("Other"))}).Succeeded)) { return false; }
+    Tick(Slate);
+    const SCkUiTree::FNode ProjectionRoot = Model->FindNode(TEXT("root"));
+    if (!TestTrue(TEXT("Projection root realizes before opt-in reload"), ProjectionRoot.IsValid() && Tree->TrySetExpanded(TEXT("root"), true))) { return false; }
+    Tick(Slate);
+    if (!TestTrue(TEXT("Projection root has a row"), NativeTree->WidgetFromItem(ProjectionRoot).IsValid())) { return false; }
+    const int32 EventsBeforeProjection = SelectionEvents;
+    if (!TestTrue(TEXT("Projection opt-in reload succeeds"), View->TryReload(ProjectionMarkup(), Styles(), TEXT("UiTreeViewProjection")).Succeeded)) { return false; }
+    Tick(Slate);
+    const TSharedPtr<ITableRow> ProjectionRow = NativeTree->WidgetFromItem(ProjectionRoot);
+    if (!TestTrue(TEXT("Projection reload retains the realized root row"), ProjectionRow.IsValid())) { return false; }
+    NativeTree->SetSelection(ProjectionRoot, ESelectInfo::OnMouseClick);
+    Tick(Slate);
+    TestTrue(TEXT("Non-selectable projection tree exposes no selection state or callback"), !Tree->GetSelectedKey().IsSet() && !Tree->TrySelectKey(FString(TEXT("root"))) && NativeTree->GetSelectedItems().Num() == 0 && SelectionEvents == EventsBeforeProjection);
+    if (!TestTrue(TEXT("Projection hides false root while retaining visible root expansion"), Model->TrySetNodes({Node(TEXT("root"), {}, TEXT("Root")), Node(TEXT("child"), FString(TEXT("root")), TEXT("Child")), Node(TEXT("other"), {}, TEXT("Other"), 0.0f, false)}).Succeeded)) { return false; }
+    Tick(Slate);
+    TestTrue(TEXT("Projection retains collection identity, realized row, and expansion without auto-expanding"), Model->FindNode(TEXT("root")) == ProjectionRoot && NativeTree->WidgetFromItem(ProjectionRoot) == ProjectionRow && Tree->GetVisibleNodeCount() == 2 && Tree->GetExpandedKeys().Contains(TEXT("root")) && Tree->GetTree() == NativeTree);
+    const int64 ProjectionRevision = View->GetRevision();
+    const TSet<FString> ProjectionExpansion = Tree->GetExpandedKeys();
+    const FCkUiLoadResult RejectedProjection = View->TryReload(ProjectionMarkup().Replace(TEXT("bind-field=\"name\""), TEXT("bind-field=\"rank\"")), Styles(), TEXT("UiTreeViewProjectionInvalid"));
+    TestFalse(TEXT("Invalid active projection reload rejects before publication"), RejectedProjection.Succeeded);
+    TestTrue(TEXT("Rejected active projection retains revision identity projection selection and expansion"),
+        View->GetRevision() == ProjectionRevision && View->GetTree(TEXT("tree")) == Tree && Tree->GetTree() == NativeTree
+        && Tree->GetVisibleNodeCount() == 2 && !Tree->GetSelectedKey().IsSet() && NativeTree->GetSelectedItems().Num() == 0
+        && Tree->GetExpandedKeys().Difference(ProjectionExpansion).Num() == 0 && ProjectionExpansion.Difference(Tree->GetExpandedKeys()).Num() == 0);
+    const TSharedPtr<SWidget> ProjectionRowWidget = ProjectionRow->AsWidget();
+    const FGeometry ProjectionGeometry = ProjectionRowWidget->GetCachedGeometry();
+    const FVector2D ProjectionPosition = ProjectionGeometry.LocalToAbsolute(ProjectionGeometry.GetLocalSize() * 0.5f);
+    const FPointerEvent LeftClick(0, FSlateApplication::CursorPointerIndex, ProjectionPosition, ProjectionPosition, TSet<FKey>{EKeys::LeftMouseButton}, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
+    Tree->TrySetExpanded(TEXT("root"), false);
+    const FReply ParentClick = ProjectionRowWidget->OnMouseButtonDown(ProjectionGeometry, LeftClick);
+    Tick(Slate);
+    TestTrue(TEXT("One unmodified parent row click toggles expansion exactly once"), ParentClick.IsEventHandled() && Tree->GetExpandedKeys().Contains(TEXT("root")));
+    const SCkUiTree::FNode ChildNode = Model->FindNode(TEXT("child"));
+    const TSharedPtr<ITableRow> ChildRow = NativeTree->WidgetFromItem(ChildNode);
+    if (!TestTrue(TEXT("Projection child row realizes"), ChildRow.IsValid())) { return false; }
+    const FGeometry ChildGeometry = ChildRow->AsWidget()->GetCachedGeometry();
+    const FVector2D ChildPosition = ChildGeometry.LocalToAbsolute(ChildGeometry.GetLocalSize() * 0.5f);
+    const FPointerEvent RightClick(0, FSlateApplication::CursorPointerIndex, ChildPosition, ChildPosition, TSet<FKey>{EKeys::RightMouseButton}, EKeys::RightMouseButton, 0.0f, FModifierKeysState{});
+    ChildRow->AsWidget()->OnMouseButtonDown(ChildGeometry, RightClick);
+    Tick(Slate);
+    TestTrue(TEXT("Child and right clicks do not change parent expansion"), Tree->GetExpandedKeys().Contains(TEXT("root")));
+    if (!TestTrue(TEXT("Projection excludes children of a false parent"), Model->TrySetNodes({Node(TEXT("root"), {}, TEXT("Root"), 0.0f, false), Node(TEXT("child"), FString(TEXT("root")), TEXT("Child")), Node(TEXT("other"), {}, TEXT("Other"))}).Succeeded)) { return false; }
+    Tick(Slate);
+    TestTrue(TEXT("Projection hides true descendants beneath false ancestors without pruning expansion"), Tree->GetVisibleNodeCount() == 1 && Tree->GetExpandedKeys().Contains(TEXT("root")));
+    if (!TestTrue(TEXT("Clearing projection reload succeeds"), View->TryReload(Markup(), Styles(), TEXT("UiTreeViewProjectionClear")).Succeeded)) { return false; }
+    Tick(Slate);
+    TestTrue(TEXT("Clearing projection restores full hierarchy and prior user expansion"), Tree->GetVisibleNodeCount() == 3 && Tree->GetExpandedKeys().Contains(TEXT("root")) && Tree->GetTree() == NativeTree);
     const FString OrdinaryIdCollision = TEXT("<ui version=\"1\"><region name=\"main\"><column id=\"tree\"><text id=\"ordinary\">ordinary</text></column></region></ui>");
     const FCkUiLoadResult KindChange = View->TryReload(OrdinaryIdCollision, TEXT(""), TEXT("UiTreeViewKindChange"));
     TestFalse(TEXT("Retained tree id cannot become an ordinary node"), KindChange.Succeeded);
-    TestTrue(TEXT("Retained tree kind change preserves pointer and revision"), View->GetRevision() == AcceptedRevision && View->GetTree(TEXT("tree")) == Tree);
+    TestTrue(TEXT("Retained tree kind change preserves pointer and revision"), View->GetRevision() == AcceptedRevision + 2 && View->GetTree(TEXT("tree")) == Tree);
     TWeakPtr<FCkUiView> WeakView = View;
     TWeakPtr<FCkUiTreeCollection> WeakModel = Model;
     Slate.DestroyWindowImmediately(Scope.Window.ToSharedRef()); Scope.Window.Reset();
@@ -126,9 +213,19 @@ auto FCkUiTreeView_Validation::RunTest(const FString&) -> bool
     const TSharedRef<FCkUiView> MissingFilter = FCkUiView::Create({}, {}, {}, {}, MoveTemp(MissingFilterData)); MissingFilter->GetRegion(TEXT("main"));
     const FCkUiLoadResult MissingFilterResult = MissingFilter->TryReload(Markup(), Styles(), TEXT("UiTreeMissingFilter"));
     TestFalse(TEXT("Missing tree filter binding rejects before factory"), MissingFilterResult.Succeeded); TestTrue(TEXT("Missing tree filter binding reports diagnostic"), !MissingFilterResult.Errors.IsEmpty());
+    const auto OptionalProjectionSchema = TArray<FCkUiFieldSchema>{{TEXT("name"), ECkUiFieldKind::Text}, {TEXT("visible"), ECkUiFieldKind::Bool, false}};
+    TSharedPtr<FCkUiTreeCollection> OptionalProjectionModel;
+    if (!TestTrue(TEXT("Optional projection tree model creates"), FCkUiTreeCollection::TryCreate(OptionalProjectionSchema, OptionalProjectionModel).Succeeded)) { return false; }
+    auto OptionalProjectionData = FCkUiView::FDataBindings{};
+    OptionalProjectionData.Trees.Add(TEXT("tree"), OptionalProjectionModel);
+    const TSharedRef<FCkUiView> OptionalProjectionView = FCkUiView::Create({}, {}, {}, {}, MoveTemp(OptionalProjectionData));
+    OptionalProjectionView->GetRegion(TEXT("main"));
+    const FCkUiLoadResult OptionalProjection = OptionalProjectionView->TryReload(ProjectionMarkup(), Styles(), TEXT("UiTreeOptionalProjection"));
+    TestFalse(TEXT("Optional Bool projection field rejects before factory"), OptionalProjection.Succeeded);
+    TestTrue(TEXT("Optional Bool projection field reports diagnostic"), !OptionalProjection.Errors.IsEmpty());
     auto Data = FCkUiView::FDataBindings{}; Data.Trees.Add(TEXT("tree"), Model); AddTreeAuxiliaryBindings(Data);
     const TSharedRef<FCkUiView> View = FCkUiView::Create({}, {}, {}, {}, MoveTemp(Data)); View->GetRegion(TEXT("main"));
-    for (const FString& Invalid : {Markup().Replace(TEXT("selection-action=\"selected\""), TEXT("selection-action=\"missing\"")), Markup().Replace(TEXT("<row id=\"cell\">"), TEXT("<row id=\"a\"><text id=\"x\" bind-field=\"name\"/></row><row id=\"b\">"))})
+    for (const FString& Invalid : {Markup().Replace(TEXT("selection-action=\"selected\""), TEXT("selection-action=\"missing\"")), Markup().Replace(TEXT("<row id=\"cell\">"), TEXT("<row id=\"a\"><text id=\"x\" bind-field=\"name\"/></row><row id=\"b\">")), ProjectionMarkup().Replace(TEXT("projection-field=\"visible\""), TEXT("projection-field=\"name\"")), ProjectionMarkup().Replace(TEXT("projection-field=\"visible\""), TEXT("projection-field=\"visible\" filter-bind=\"query\"")), ProjectionMarkup().Replace(TEXT("selectable=\"false\""), TEXT("selectable=\"false\" selection-action=\"selected\""))})
     { const FCkUiLoadResult Result=View->TryReload(Invalid,Styles(),TEXT("UiTreeInvalid")); TestFalse(TEXT("Malformed tree declaration rejects"),Result.Succeeded); TestTrue(TEXT("Malformed tree declaration reports diagnostic"),!Result.Errors.IsEmpty()); }
     return true;
 }

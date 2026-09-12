@@ -1,0 +1,369 @@
+<ui version="1">
+  <template name="bound-metric">
+    <param name="title" type="text" />
+    <param name="value" type="text-binding" />
+    <column id="metric" class="metric">
+      <text id="metric-title" text-param="title" class="eyebrow" />
+      <text id="metric-value" bind-param="value" class="metric-value" />
+    </column>
+  </template>
+  <menu id="gallery-actions">
+    <menu-item key="reset" label="Reset gallery state" action="gallery-reset" />
+    <menu-item key="toggle-enabled" label="Toggle enabled state" action="gallery-toggle-enabled" />
+    <submenu key="dialog" label="Dialog" menu="dialog-actions" />
+    <separator key="reload-divider" />
+    <menu-item key="rejected-reload" label="Attempt rejected reload" action="gallery-rejected-reload" />
+  </menu>
+  <menu id="dialog-actions">
+    <menu-item key="show" label="Show composition dialog" action="gallery-show-dialog" />
+    <menu-item key="dismiss" label="Dismiss composition dialog" action="gallery-dismiss-dialog" />
+  </menu>
+  <menu id="gallery-context-actions">
+    <menu-item key="inspect" label="Inspect item" action="gallery-context-inspect" />
+  </menu>
+  <region name="main">
+    <dialog id="gallery-dialog" open-bind="gallery-dialog-open" dismiss="gallery-dismiss-dialog">
+      <slot name="content">
+        <column id="gallery-root" class="gallery-root">
+          <column id="gallery-shell" class="fill gallery-shell">
+            <column id="gallery-header" class="header">
+              <column id="gallery-heading">
+                <text id="gallery-title" bind="gallery-title" class="title" />
+              </column>
+              <row id="gallery-header-actions" class="header-actions">
+                <menu-button id="gallery-actions-button" menu="gallery-actions" label="Actions" />
+                <button id="gallery-close" action="gallery-close">Close</button>
+              </row>
+            </column>
+            <column id="gallery-error-banner" visible="gallery-error-visible" class="error-banner">
+              <text id="gallery-error" bind="gallery-error" class="error-text" />
+            </column>
+            <tabs id="gallery-pages" value-bind="gallery-page" changed="select-gallery-page" class="fill gallery-tabs">
+              <tab id="layout-page" key="layout" label="Layout" class="page">
+                <scroll id="layout-scroll" direction="vertical" class="fill">
+                  <column id="layout-content" class="page-content">
+                    <text id="layout-description" class="description">Rows, columns, overlays, bound text, colors and images use the production layout renderer.</text>
+                    <row id="layout-metrics" class="metric-row">
+                      <use template="bound-metric" id="layout-bound-text" title="Live text" value-bind="gallery-text" />
+                      <use template="bound-metric" id="layout-committed-text" title="Committed text" value-bind="gallery-committed-text" />
+                      <use template="bound-metric" id="layout-selection" title="Selection" value-bind="gallery-selection" />
+                    </row>
+                    <overlay id="layout-preview" class="preview">
+                      <column id="layout-preview-content" visible="gallery-layout-preview-populated" class="preview-content">
+                        <text id="gallery-color-label" bind="gallery-color-label" class="eyebrow" />
+                        <button id="gallery-color-probe" action="gallery-reset" color-bind="gallery-color" tooltip-bind="gallery-tooltip">Bound color probe</button>
+                        <image id="gallery-image" bind="gallery-image" class="image-preview" />
+                        <text id="gallery-image-label" bind="gallery-image-label" class="description" />
+                      </column>
+                      <column id="layout-disabled-overlay" visible="gallery-layout-preview-disabled-overlay" class="state-overlay">
+                        <text id="layout-disabled-copy" class="description">Read-only model state is visible without replacing the layout.</text>
+                      </column>
+                    </overlay>
+                    <column id="layout-lab" class="layout-lab">
+                      <text id="layout-lab-title" class="eyebrow">Inspectable layout and text lab</text>
+                      <text id="layout-lab-copy" class="description">These static probes use row and column direction, spacing, growth, shrink, sizing, alignment, wrapping, and truncation.</text>
+                      <row id="layout-preview-actions" class="wrap-row">
+                        <button id="layout-toggle-preview" action="gallery-toggle-layout-preview">Toggle preview content</button>
+                        <text id="layout-preview-status" bind="gallery-layout-preview-status" class="description" />
+                      </row>
+                      <row id="layout-direction-row" class="layout-direction-row">
+                        <column id="layout-direction-row-first" class="layout-direction-block"><text id="layout-direction-row-first-label" class="description">Row first: 6px padding</text></column>
+                        <column id="layout-direction-row-second" class="layout-direction-block"><text id="layout-direction-row-second-label" class="description">Row second: 12px gap</text></column>
+                      </row>
+                      <column id="layout-direction-column" class="layout-direction-column">
+                        <column id="layout-direction-column-first" class="layout-direction-block"><text id="layout-direction-column-first-label" class="description">Column first</text></column>
+                        <column id="layout-direction-column-second" class="layout-direction-block"><text id="layout-direction-column-second-label" class="description">Column second</text></column>
+                      </column>
+                      <row id="layout-grow-row" class="layout-grow-row">
+                        <column id="layout-grow-primary" class="layout-grow-primary"><text id="layout-grow-primary-label" class="description">Grow 2</text></column>
+                        <column id="layout-grow-secondary" class="layout-grow-secondary"><text id="layout-grow-secondary-label" class="description">Grow 1</text></column>
+                      </row>
+                      <row id="layout-width-row" class="layout-width-row">
+                        <column id="layout-width-fixed" class="layout-width-fixed"><text id="layout-width-fixed-label" class="description">Fixed 96px</text></column>
+                        <column id="layout-width-flexible" class="layout-width-flexible"><text id="layout-width-flexible-label" class="description">Flexible remainder</text></column>
+                      </row>
+                      <row id="layout-shrink-row" class="layout-shrink-row">
+                        <text id="layout-shrink-left" class="layout-shrink-copy">Shrinkable long-left-identifier-0123456789</text>
+                        <text id="layout-shrink-right" class="layout-shrink-copy">Shrinkable long-right-identifier-0123456789</text>
+                      </row>
+                      <row id="layout-bounds-row" class="layout-bounds-row">
+                        <column id="layout-bounds-probe" class="layout-bounds-probe"><text id="layout-bounds-probe-label" class="description">Min 180px, max 300px</text></column>
+                      </row>
+                      <column id="layout-alignment-column" class="layout-alignment-column">
+                        <column id="layout-alignment-horizontal" class="layout-alignment-horizontal"><text id="layout-alignment-horizontal-label" class="description">Horizontally centered</text></column>
+                      </column>
+                      <row id="layout-alignment-row" class="layout-alignment-row">
+                        <column id="layout-alignment-vertical" class="layout-alignment-vertical"><text id="layout-alignment-vertical-label" class="description">Vertically centered</text></column>
+                      </row>
+                      <text id="layout-wrap-label" class="layout-wrap-label">Wrapping permits this deliberately-long-unbroken-layout-identifier-0123456789 to break anywhere in its narrow allocated width.</text>
+                      <text id="layout-ellipsis-label" class="layout-ellipsis-label">Nowrap ellipsis clips this deliberately-long-unbroken-layout-identifier-0123456789 within a narrow allocated width.</text>
+                    </column>
+                  </column>
+                </scroll>
+              </tab>
+              <tab id="forms-page" key="forms" label="Forms" class="page">
+                <scroll id="forms-scroll" direction="vertical" class="fill">
+                  <column id="forms-content" class="page-content">
+                    <text id="forms-description" class="description">These are retained native controls with model-owned values and callbacks.</text>
+                    <column id="text-form" class="card">
+                      <text id="text-form-title" class="eyebrow">Text input</text>
+                      <text-input id="gallery-edit-text" value-bind="gallery-edit-text" changed="gallery-edit-text-changed" committed="gallery-edit-text-committed" enabled-bind="gallery-enabled" read-only-bind="gallery-read-only" placeholder="Type a value and commit it" error-bind="gallery-text-error" />
+                      <text id="gallery-text-error" bind="gallery-text-error" visible="gallery-text-error-visible" class="error-text" />
+                      <row id="text-form-state" class="metric-row">
+                        <column id="text-draft-length" class="metric">
+                          <text id="text-draft-length-label" class="description">Draft length</text>
+                          <text id="gallery-text-length" bind="gallery-text-length" class="metric-value" />
+                        </column>
+                        <column id="text-committed-value" class="metric">
+                          <text id="text-committed-value-label" class="description">Committed text</text>
+                          <text id="gallery-committed-text" bind="gallery-committed-text" class="metric-value" />
+                        </column>
+                        <column id="text-validation-status" class="metric">
+                          <text id="text-validation-status-label" class="description">Last action</text>
+                          <text id="forms-text-status" bind="gallery-status" class="metric-value" />
+                        </column>
+                      </row>
+                      <row id="text-form-actions" class="wrap-row">
+                        <button id="gallery-load-invalid-draft" action="gallery-load-invalid-draft">Load 65-char invalid draft</button>
+                        <button id="gallery-recover-valid-draft" action="gallery-recover-valid-draft">Recover valid draft</button>
+                        <button id="gallery-commit-edit-text" action="gallery-commit-edit-text">Commit draft</button>
+                      </row>
+                    </column>
+                    <row id="form-toggles" class="wrap-row">
+                      <text id="gallery-read-only-label" class="description">Read-only form controls</text>
+                      <checkbox id="gallery-read-only" value-bind="gallery-read-only" changed="gallery-checkbox-changed" />
+                      <button id="toggle-enabled" action="gallery-toggle-enabled">Toggle enabled</button>
+                      <button id="toggle-read-only" action="gallery-toggle-read-only">Toggle read-only</button>
+                    </row>
+                    <column id="number-form" class="card">
+                      <text id="number-form-title" class="eyebrow">Number input and slider</text>
+                      <number-input id="gallery-number" value-bind="gallery-number" changed="gallery-number-changed" committed="gallery-number-committed" enabled-bind="gallery-enabled" read-only-bind="gallery-read-only" kind="float" min="0" max="100" placeholder="0 to 100" />
+                      <text id="forms-number-guidance" class="description">Type 12junk and press Enter to see the native numeric parser reject the draft; type 42 and press Enter to recover.</text>
+                      <text id="forms-number-accepted" bind="gallery-number-accepted" class="description" />
+                      <text id="forms-number-proposal" bind="gallery-number-proposal" class="description" />
+                      <text id="forms-number-status" bind="gallery-status" class="description" />
+                      <text id="gallery-slider-style" class="description">Custom slider style: teal bar, gold thumb, 18px thumb, 6px bar; hover and disabled colors are authored.</text>
+                      <slider id="gallery-slider" value-bind="gallery-slider" interaction="gallery-slider-interaction" enabled-bind="gallery-enabled" read-only-bind="gallery-read-only" min="0" max="100" step="5" class="wide-slider" />
+                    </column>
+                    <column id="select-form" class="card">
+                      <text id="select-form-title" class="eyebrow">Select options</text>
+                      <select id="gallery-select" value-bind="gallery-select" options-bind="gallery-options" changed="gallery-select-changed" placeholder-bind="gallery-select-placeholder" enabled-bind="gallery-enabled" class="select-control" />
+                      <row id="forms-select-actions" class="wrap-row">
+                        <button id="forms-select-empty" action="gallery-select-empty">Empty options</button>
+                        <button id="forms-select-restore" action="gallery-select-restore">Restore options</button>
+                      </row>
+                      <text id="forms-select-options-count" bind="gallery-select-options-count" class="description" />
+                      <text id="forms-select-selected-key" bind="gallery-select-selected-key" class="description" />
+                      <text id="forms-select-options-status" bind="gallery-select-options-status" class="description" />
+                    </column>
+                  </column>
+                </scroll>
+              </tab>
+              <tab id="data-page" key="data" label="Data" class="page">
+                <scroll id="data-scroll" direction="vertical" class="fill">
+                  <column id="data-content" class="page-content">
+                  <text id="data-description" class="description">Search, typed rows, sortable columns, stable-key selection and bounded native table realization.</text>
+                  <row id="data-toolbar" class="wrap-row">
+                    <search id="gallery-query" bind="gallery-query" placeholder="Filter records and navigation" class="fill" />
+                    <button id="toggle-empty" action="gallery-toggle-empty">Toggle empty state</button>
+                  </row>
+                  <column id="data-collection-lab" class="card">
+                    <text id="data-collection-lab-title" class="eyebrow">Table collection state lab</text>
+                    <text id="data-collection-lab-copy" class="description">Publish deterministic typed datasets without changing the independent repeat demonstration.</text>
+                    <row id="data-count-actions" class="wrap-row">
+                      <button id="data-count-0" action="gallery-data-count-0">0 rows</button>
+                      <button id="data-count-1" action="gallery-data-count-1">1 row</button>
+                      <button id="data-count-12" action="gallery-data-count-12">12 rows</button>
+                      <button id="data-count-1000" action="gallery-data-count-1000">1,000 rows</button>
+                      <button id="data-count-10000" action="gallery-data-count-10000">10,000 rows</button>
+                    </row>
+                    <row id="data-record-state" class="wrap-row">
+                      <text id="gallery-record-count" bind="gallery-record-count" class="description" />
+                      <text id="gallery-selected-key" bind="gallery-selected-key" class="description" />
+                      <text id="gallery-context-action-count" bind="gallery-context-action-count" class="description" />
+                      <text id="gallery-context-action-key" bind="gallery-context-action-key" class="description" />
+                    </row>
+                    <row id="data-selection-actions" class="wrap-row">
+                      <button id="data-reverse" action="gallery-data-reverse">Reverse rows</button>
+                      <button id="data-update-selected" action="gallery-data-update-selected" enabled-bind="gallery-has-selection">Update selected</button>
+                      <button id="data-remove-selected" action="gallery-data-remove-selected" enabled-bind="gallery-has-selection">Remove selected</button>
+                      <button id="data-reinsert-selected" action="gallery-data-reinsert-selected" enabled-bind="gallery-can-reinsert-selected">Reinsert selected</button>
+                    </row>
+                  </column>
+                  <splitter id="data-splitter" direction="horizontal" class="data-splitter">
+                    <column id="navigation-panel" class="navigation-panel">
+                      <text id="navigation-heading" class="eyebrow">Navigation tree</text>
+                      <tree id="gallery-navigation" bind="gallery-navigation" filter-bind="gallery-query" selection-action="gallery-select-navigation" row-height="24" class="fill">
+                        <row id="navigation-row" class="tree-row"><text id="navigation-label" bind-field="label" /></row>
+                      </tree>
+                    </column>
+                    <overlay id="records-overlay" class="fill">
+                      <scroll id="records-scroll" direction="horizontal" class="fill">
+                        <table id="gallery-records" bind="gallery-records" filter-bind="gallery-query" selection-action="gallery-select-record" context-menu="gallery-context-actions" row-height="24" class="records-table">
+                          <table-column id="record-name" label="Name" sort-field="name" class="name-column"><text id="record-name-value" bind-field="name" color-field="color" tooltip-field="tooltip" /></table-column>
+                          <table-column id="record-text" label="Text" sort-field="text" class="text-column"><text id="record-text-value" bind-field="text" /></table-column>
+                        </table>
+                      </scroll>
+                      <column id="records-empty" visible="gallery-empty" class="state-overlay"><text id="records-empty-copy" class="description">The same table and collection remain mounted while the empty state is shown.</text></column>
+                    </overlay>
+                  </splitter>
+                  </column>
+                </scroll>
+              </tab>
+              <tab id="collections-page" key="collections" label="Repeats" class="page">
+                <scroll id="collections-scroll" direction="vertical" class="fill">
+                  <column id="collections-content" class="page-content">
+                    <text id="collections-description" class="description">Reverse, edit, remove and restore cards while keeping each card's state. The table data stays independent, and the tree lab keeps keyed hierarchy mutations inspectable.</text>
+                    <row id="repeat-lab-actions" class="wrap-row">
+                      <button id="repeat-reverse" action="gallery-repeat-reverse">Reverse cards</button>
+                      <button id="repeat-update-record-zero" action="gallery-repeat-update">Update record-0</button>
+                      <button id="repeat-remove-record-zero" action="gallery-repeat-remove">Remove record-0</button>
+                      <button id="repeat-reinsert" action="gallery-repeat-reinsert">Reinsert removed card</button>
+                      <button id="repeat-reset" action="gallery-repeat-reset">Reset repeat lab</button>
+                    </row>
+                    <text id="repeat-lab-status" bind="gallery-status" class="description" />
+                    <repeat id="gallery-repeat-items" bind="gallery-repeat-items" direction="horizontal" class="repeat-grid">
+                      <column id="repeat-card" class="card repeat-card">
+                        <button id="repeat-toggle" bind-field="name" color-field="color" tooltip-field="tooltip" item-action="gallery-repeat-toggle" />
+                        <text id="repeat-text" bind-field="text" class="description" />
+                        <column id="repeat-expanded" visible-field="expanded" class="expanded-details"><text id="repeat-tooltip" bind-field="tooltip" class="description" /></column>
+                      </column>
+                    </repeat>
+                    <column id="tree-lab-card" class="card">
+                      <text id="tree-lab-title" class="eyebrow">Keyed tree mutation lab</text>
+                      <text id="tree-lab-copy" class="description">Insert Gamma, reverse root children, remove the selected node, then reinsert or reset the native tree.</text>
+                      <row id="tree-lab-actions" class="wrap-row">
+                        <button id="tree-lab-insert" action="gallery-tree-insert">Insert Gamma</button>
+                        <button id="tree-lab-reverse" action="gallery-tree-reverse">Reverse children</button>
+                        <button id="tree-lab-remove-selected" action="gallery-tree-remove-selected">Remove selected</button>
+                        <button id="tree-lab-reinsert" action="gallery-tree-reinsert">Reinsert removed</button>
+                        <button id="tree-lab-reset" action="gallery-tree-reset">Reset tree lab</button>
+                      </row>
+                      <row id="tree-lab-state" class="wrap-row">
+                        <text id="tree-lab-status" bind="gallery-tree-status" class="description" />
+                        <text id="tree-lab-count" bind="gallery-tree-count" class="description" />
+                        <text id="tree-lab-selection" bind="gallery-tree-selection" class="description" />
+                        <text id="tree-lab-context-action-count" bind="gallery-context-action-count" class="description" />
+                        <text id="tree-lab-context-action-key" bind="gallery-context-action-key" class="description" />
+                      </row>
+                      <tree id="gallery-tree-lab" bind="gallery-tree-lab" selection-action="gallery-tree-selected" context-menu="gallery-context-actions" row-height="24" class="tree-lab">
+                        <row id="tree-lab-row" class="tree-lab-row"><text id="tree-lab-label" bind-field="label" class="description" /></row>
+                      </tree>
+                    </column>
+                  </column>
+                </scroll>
+              </tab>
+              <tab id="commands-page" key="commands" label="Menus" class="page">
+                <scroll id="commands-scroll" direction="vertical" class="fill">
+                  <column id="commands-content" class="page-content">
+                    <text id="commands-description" class="description">Commands dispatch through named host actions. The menu uses native Slate menus, not browser emulation.</text>
+                    <row id="command-actions" class="wrap-row">
+                      <menu-button id="commands-menu" menu="gallery-actions" label="Open command menu" />
+                      <button id="commands-reset" action="gallery-reset">Reset state</button>
+                      <button id="commands-dialog" action="gallery-show-dialog">Open dialog</button>
+                      <button id="commands-accept-reload" action="gallery-accepted-reload">Apply compatible reload</button>
+                      <button id="commands-reject" action="gallery-rejected-reload">Reject missing action</button>
+                      <button id="commands-reject-markup" action="gallery-rejected-reload-markup">Reject malformed markup</button>
+                      <button id="commands-reject-binding" action="gallery-rejected-reload-binding">Reject missing text binding</button>
+                      <button id="commands-reject-style" action="gallery-rejected-reload-style">Reject unsupported style</button>
+                    </row>
+                    <column id="command-state" class="card">
+                      <text id="command-state-title" class="eyebrow">Current host status</text>
+                      <text id="gallery-status" bind="gallery-status" class="description" />
+                      <text id="gallery-tooltip" bind="gallery-tooltip" class="description" />
+                    </column>
+                    <column id="reload-lab-state" class="card">
+                      <text id="reload-lab-title" class="eyebrow">Reload lab</text>
+                      <text id="reload-failure-kind" bind="gallery-reload-failure-kind" class="description" />
+                      <text id="reload-diagnostic" bind="gallery-reload-diagnostic" class="description" />
+                      <text id="reload-revision" bind="gallery-reload-revision" class="description" />
+                    </column>
+                    <column id="batch-lab" class="card">
+                      <text id="batch-lab-title" class="eyebrow">Atomic two-view reload</text>
+                      <text id="batch-lab-copy" class="description">Reload the gallery and its model-owned native preview together. A rejected second candidate leaves both accepted views unchanged.</text>
+                      <column id="batch-main-preview" class="batch-main-preview">
+                        <text id="batch-main-state" class="description">Batch main ready</text>
+                      </column>
+                      <row id="batch-actions" class="wrap-row">
+                        <button id="batch-accept" action="gallery-batch-accept">Accept both views</button>
+                        <button id="batch-reject-second" action="gallery-batch-reject-second">Reject second view</button>
+                      </row>
+                      <text id="batch-status" bind="gallery-batch-status" class="description" />
+                      <text id="batch-revisions" bind="gallery-batch-revisions" class="description" />
+                      <text id="batch-action-count" bind="gallery-batch-action-count" class="description" />
+                      <native id="gallery-batch-preview" bind="gallery-batch-preview" class="batch-preview" />
+                    </column>
+                  </column>
+                </scroll>
+              </tab>
+              <tab id="composition-page" key="composition" label="Compose" class="page">
+                <scroll id="composition-scroll" direction="vertical" class="fill">
+                  <column id="composition-content" class="page-content">
+                    <text id="composition-description" class="description">Templates and the registered dialog are composed from authored nodes. Unsupported browser-only patterns are stated explicitly.</text>
+                    <column id="composition-card" class="card">
+                      <text id="composition-title" class="eyebrow">Registered dialog slots</text>
+                      <text id="composition-copy" class="description">Open the dialog to inspect the content and body slot boundary, owner focus, and dismiss action.</text>
+                      <button id="composition-open" action="gallery-show-dialog">Open composition dialog</button>
+                    </column>
+                    <column id="nested-tabs-card" class="card">
+                      <text id="nested-tabs-title" class="eyebrow">Nested native tabs</text>
+                      <text id="nested-tabs-copy" class="description">This ordinary nested tabs control keeps selection and the Details draft in the model while the native control retains its headers.</text>
+                      <row id="nested-tabs-actions" class="wrap-row">
+                        <button id="nested-tabs-toggle-details" action="gallery-nested-tabs-toggle-details">Details enabled</button>
+                        <button id="nested-tabs-toggle-long-label" action="gallery-nested-tabs-toggle-long-label">Long Details label</button>
+                        <button id="nested-tabs-reset" action="gallery-nested-tabs-reset">Reset lab</button>
+                      </row>
+                      <tabs id="capability-nested-tabs" value-bind="gallery-nested-tabs-selection" changed="gallery-nested-tabs-selection-changed" class="nested-tabs">
+                        <tab id="nested-tabs-overview" key="overview" label="Overview" class="nested-tabs-panel">
+                          <text id="nested-tabs-overview-copy" class="description">Overview is always enabled, so it is the repair target when an active Details tab is disabled.</text>
+                        </tab>
+                        <tab id="nested-tabs-details" key="details" label-bind="gallery-nested-tabs-details-label" enabled-bind="gallery-nested-tabs-details-enabled" class="nested-tabs-panel">
+                          <text id="nested-tabs-details-copy" class="description">Type here, select another native tab, then return to verify that the model-owned draft remains available.</text>
+                          <text-input id="capability-nested-details-draft" value-bind="gallery-nested-tabs-draft" changed="gallery-nested-tabs-draft-changed" committed="gallery-nested-tabs-draft-committed" placeholder="Details draft" class="nested-tabs-draft" />
+                        </tab>
+                        <tab id="nested-tabs-history" key="history" label="History" class="nested-tabs-panel">
+                          <text id="nested-tabs-history-copy" class="description">History is a simple third panel for native header navigation and selection changes.</text>
+                        </tab>
+                      </tabs>
+                    </column>
+                    <column id="slot-probe-lab" class="card">
+                      <text id="slot-probe-title" class="eyebrow">Optional custom slot lifecycle</text>
+                      <text id="slot-probe-copy" class="description">A gallery-only retained factory mounts required content and optional authored details while reloads omit, reinsert, or reject the optional slot.</text>
+                      <row id="slot-probe-actions" class="wrap-row">
+                        <button id="slot-probe-omit-details" action="gallery-slot-probe-omit-details">Omit details</button>
+                        <button id="slot-probe-reinsert-details" action="gallery-slot-probe-reinsert-details">Reinsert details</button>
+                        <button id="slot-probe-reject-reload" action="gallery-slot-probe-reject-reload">Reject reload</button>
+                      </row>
+                      <text id="slot-probe-status" bind="gallery-slot-probe-status" class="description" />
+                      <text id="slot-probe-details-state" bind="gallery-slot-probe-details-state" class="description" />
+                      <text id="slot-probe-action-count" bind="gallery-slot-probe-action-count" class="description" />
+                      <text id="slot-probe-content-action-count" bind="gallery-slot-probe-content-action-count" class="description" />
+                      <gallery-slot-probe id="gallery-slot-probe" mode="ready" class="slot-probe">
+                        <slot name="content"><column id="slot-probe-content"><text id="slot-probe-content-copy" class="description">Required authored content stays mounted across every slot variant.</text><button id="slot-probe-content-action" action="gallery-slot-probe-content-action">Run content action</button></column></slot>
+                        <slot name="details"><scroll id="slot-probe-details" direction="vertical" class="slot-probe-details"><column id="slot-probe-details-content"><text id="slot-probe-details-copy" class="description">Optional authored details are mounted by the retained probe.</text><button id="slot-probe-details-action" action="gallery-slot-probe-details-action">Run details action</button></column></scroll></slot>
+                      </gallery-slot-probe>
+                    </column>
+                    <column id="unsupported-card" visible="gallery-unsupported-visible" class="unsupported-card">
+                      <text id="unsupported-title" class="eyebrow">Explicitly unsupported</text>
+                      <text id="gallery-unsupported-summary" bind="gallery-unsupported-summary" class="description" />
+                    </column>
+                  </column>
+                </scroll>
+              </tab>
+            </tabs>
+          </column>
+        </column>
+      </slot>
+      <slot name="body">
+        <column id="gallery-dialog-body" class="dialog-body">
+          <text id="dialog-title" class="title">Composition dialog</text>
+          <text id="dialog-copy" class="description">This modal uses the registered dialog's body slot. Its actions and focus belong to the configured host Slate user.</text>
+          <row id="dialog-actions" class="wrap-row">
+            <button id="dialog-dismiss" action="gallery-dismiss-dialog">Cancel</button>
+            <button id="dialog-confirm" action="gallery-confirm-dialog">Confirm</button>
+          </row>
+        </column>
+      </slot>
+    </dialog>
+  </region>
+</ui>

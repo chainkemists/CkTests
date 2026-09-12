@@ -37,10 +37,13 @@ namespace ck_tests_resource_inspector_menus
         if (Geometry.GetLocalSize().X <= 0 || Geometry.GetLocalSize().Y <= 0) { return false; }
         const FVector2D Position = Geometry.LocalToAbsolute(Geometry.GetLocalSize() * 0.5f);
         Slate.SetCursorPos(Position);
-        const FPointerEvent Move(0, FSlateApplication::CursorPointerIndex, Position, Position, TSet<FKey>{}, EKeys::Invalid, 0, FModifierKeysState{});
+        const TSet<FKey> MoveButtons;
+        const FPointerEvent Move(0, FSlateApplication::CursorPointerIndex, Position, Position, MoveButtons, EKeys::Invalid, 0, FModifierKeysState{});
         Slate.ProcessMouseMoveEvent(Move, true);
-        const FPointerEvent Down(0, FSlateApplication::CursorPointerIndex, Position, Position, TSet<FKey>{EKeys::LeftMouseButton}, EKeys::LeftMouseButton, 0, FModifierKeysState{});
-        const FPointerEvent Up(0, FSlateApplication::CursorPointerIndex, Position, Position, TSet<FKey>{}, EKeys::LeftMouseButton, 0, FModifierKeysState{});
+        const TSet<FKey> DownButtons{EKeys::LeftMouseButton};
+        const FPointerEvent Down(0, FSlateApplication::CursorPointerIndex, Position, Position, DownButtons, EKeys::LeftMouseButton, 0, FModifierKeysState{});
+        const TSet<FKey> UpButtons;
+        const FPointerEvent Up(0, FSlateApplication::CursorPointerIndex, Position, Position, UpButtons, EKeys::LeftMouseButton, 0, FModifierKeysState{});
         const bool Handled = Slate.ProcessMouseButtonDownEvent(Window->GetNativeWindow(), Down);
         Slate.ProcessMouseButtonUpEvent(Up);
         Tick(Slate);
@@ -81,8 +84,8 @@ auto FCkResourceInspector_Menus::RunTest(const FString&) -> bool
     if (!TestTrue(TEXT("Installed Actions menu uses the shared presenter"), Menu.IsValid())) { return false; }
     TestTrue(TEXT("Empty scenario sets up a real observable action result"), Model->TrySetRowCount(0, Error));
     Tick(Slate);
-    const auto Trigger = FindText(Menu.ToSharedRef(), TEXT("Actions"));
-    if (!TestTrue(TEXT("Native pointer opens the Actions menu"), Trigger.IsValid() && Click(Slate, Scope.Window.ToSharedRef(), Trigger.ToSharedRef()) && Menu->IsOpen())) { return false; }
+    const auto Trigger = FindText(Menu.ToSharedRef(), TEXT("..."));
+    if (!TestTrue(TEXT("Native pointer opens the overflow menu"), Trigger.IsValid() && Click(Slate, Scope.Window.ToSharedRef(), Trigger.ToSharedRef()) && Menu->IsOpen())) { return false; }
     const auto Content = Menu->GetFocusTransferTarget();
     const auto PopupWindow = Menu->GetMenuWindow();
     const auto Sample = Content.IsValid() ? FindText(Content.ToSharedRef(), TEXT("Load sample resources")) : nullptr;
@@ -92,8 +95,24 @@ auto FCkResourceInspector_Menus::RunTest(const FString&) -> bool
     TestEqual(TEXT("Authored action updates the actual virtualized table"), View->GetTable(TEXT("inspector-dialog/content/resources"))->GetVisibleRecordCount(), 12);
     TestFalse(TEXT("Command selection dismisses the menu"), Menu->IsOpen());
     const auto Table = View->GetTable(TEXT("inspector-dialog/content/resources"));
+    const int64 RevisionBeforeStylesheetReload = View->GetRevision();
+    const auto StylesheetReload = View->ReloadFiles(FPaths::Combine(Resources, TEXT("ResourceInspector.ui.html")), FPaths::Combine(Resources, TEXT("ResourceInspector.ui.css")));
+    if (!TestTrue(TEXT("Compatible installed stylesheet reload succeeds for the overflow menu"), StylesheetReload.Succeeded)) { return false; }
+    Tick(Slate);
+    const auto ReloadedMenu = View->GetMenuButton(TEXT("inspector-dialog/content/inspector-actions-button"));
+    TestTrue(TEXT("Compatible stylesheet reload retains the real overflow menu identity and closes its deferred popup"),
+        View->GetRevision() == RevisionBeforeStylesheetReload + 1 && ReloadedMenu == Menu && !Menu->IsOpen());
     const FString ResourceKey = Model->GetCollection()->GetRecords()[0]->GetKey();
     TestTrue(TEXT("Resource context target selects by stable key"), Table->TrySelectKey(ResourceKey, true));
+    if (!TestTrue(TEXT("Reloaded native overflow menu opens after a real selection"), Click(Slate, Scope.Window.ToSharedRef(), Menu.ToSharedRef()) && Menu->IsOpen())) { return false; }
+    const TSharedPtr<SWidget> ReloadedContent = Menu->GetFocusTransferTarget();
+    const TSharedPtr<SWindow> ReloadedPopup = Menu->GetMenuWindow();
+    const TSharedPtr<STextBlock> ClearSelection = ReloadedContent.IsValid() ? FindText(ReloadedContent.ToSharedRef(), TEXT("Clear selection")) : nullptr;
+    if (!TestTrue(TEXT("Reloaded overflow menu exposes its enabled selection command"), ClearSelection.IsValid() && ReloadedPopup.IsValid())) { return false; }
+    TestTrue(TEXT("Reloaded overflow menu command dispatches through the actual model"), Click(Slate, ReloadedPopup.ToSharedRef(), ClearSelection.ToSharedRef()));
+    TestFalse(TEXT("Reloaded overflow command clears the actual table selection"), Table->GetSelectedKey().IsSet());
+    TestFalse(TEXT("Reloaded overflow command dismisses the menu"), Menu->IsOpen());
+    TestTrue(TEXT("Resource context target reselects by stable key after overflow reload coverage"), Table->TrySelectKey(ResourceKey, true));
     Model->TrySetDetailTab(TEXT("overview"));
     Slate.SetUserFocus(0, Table->GetList(), EFocusCause::SetDirectly);
     const FKeyEvent ContextKey(EKeys::F10, FModifierKeysState(true, false, false, false, false, false, false, false, false), 0, false, 0, 0);

@@ -1,0 +1,24 @@
+.starter-root { padding: 16px; gap: 12px; flex-grow: 1; flex-shrink: 1; }
+.starter-toolbar { gap: 8px; vertical-align: center; }
+.starter-filter-row { gap: 8px; vertical-align: center; }
+.starter-dialog-actions { gap: 8px; vertical-align: center; }
+.starter-title { font-weight: bold; }
+.starter-details-title { font-weight: bold; }
+.starter-dialog-title { font-weight: bold; }
+.starter-status { color: #9aa4b2; flex-grow: 1; }
+.starter-selected-description { color: #9aa4b2; }
+.starter-record-description { color: #9aa4b2; }
+.starter-dialog-copy { color: #9aa4b2; }
+.starter-empty-copy { color: #9aa4b2; }
+.starter-workspace { gap: 12px; flex-grow: 1; flex-shrink: 1; min-height: 320px; }
+.starter-results-pane { gap: 8px; flex-grow: 2; min-width: 360px; }
+.starter-details-pane { gap: 8px; flex-grow: 1; min-width: 240px; padding: 12px; }
+.starter-filter { flex-grow: 1; flex-shrink: 1; }
+.starter-records-scroll { flex-grow: 1; flex-shrink: 1; }
+.starter-records { flex-grow: 1; flex-shrink: 1; }
+.starter-empty { padding: 20px; }
+.starter-dialog-body { padding: 20px; gap: 12px; min-width: 320px; }
+.starter-summary { gap: 4px; }
+.starter-name-column { flex-grow: 1; }
+.starter-record-name { font-weight: bold; }
+.starter-selected-name { font-weight: bold; }

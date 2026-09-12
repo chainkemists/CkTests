@@ -101,6 +101,14 @@ auto FCkUiAuthoringParser_PaddingTokens::RunTest(const FString&) -> bool
     TestEqual(TEXT("Four token padding maps bottom"), FourValue->Bottom, 3.0f);
     TestEqual(TEXT("Four token padding maps left"), FourValue->Left, 4.0f);
 
+    const TOptional<FMargin> ThreeValue = ParsePadding(TEXT(".panel { padding: var(--top) var(--horizontal) var(--bottom); }"),
+        {{TEXT("--top"), TEXT("1px")}, {TEXT("--horizontal"), TEXT("2px")}, {TEXT("--bottom"), TEXT("3px")}}, TEXT("Three token padding succeeds"));
+    if (!TestTrue(TEXT("Three-value token padding resolves"), ThreeValue.IsSet())) { return false; }
+    TestEqual(TEXT("Three token padding maps top"), ThreeValue->Top, 1.0f);
+    TestEqual(TEXT("Three token padding maps right"), ThreeValue->Right, 2.0f);
+    TestEqual(TEXT("Three token padding maps bottom"), ThreeValue->Bottom, 3.0f);
+    TestEqual(TEXT("Three token padding maps left"), ThreeValue->Left, 2.0f);
+
     const TOptional<FMargin> ShorthandToken = ParsePadding(TEXT(".panel { padding: var(--panel-padding); }"),
         {{TEXT("--panel-padding"), TEXT("2px 5px")}}, TEXT("Whole padding shorthand token succeeds"));
     if (!TestTrue(TEXT("Whole shorthand token padding resolves"), ShorthandToken.IsSet())) { return false; }
@@ -170,7 +178,7 @@ auto FCkUiAuthoringParser_Rejects::RunTest(const FString&) -> bool
     ExpectReject(TEXT("Scroll allows exactly one child"), TEXT("<ui version=\"1\"><region name=\"x\"><scroll id=\"results\"><text id=\"first\">One</text><text id=\"second\">Two</text></scroll></region></ui>"), TEXT(""), {});
     ExpectReject(TEXT("Text cannot mix literal and bound content"), TEXT("<ui version=\"1\"><region name=\"x\"><text id=\"summary\" bind=\"summary\">Summary</text></region></ui>"), TEXT(""), {});
     ExpectReject(TEXT("Visibility binding must be a name"), TEXT("<ui version=\"1\"><region name=\"x\"><text id=\"summary\" visible=\"not valid\">Summary</text></region></ui>"), TEXT(""), {});
-    ExpectReject(TEXT("Three value padding is outside subset"), ValidMarkup(), TEXT(".panel { padding: 1 2 3; }"), {});
+    ExpectReject(TEXT("Malformed three-value padding rejects"), ValidMarkup(), TEXT(".panel { padding: 1 2 invalid; }"), {});
     ExpectReject(TEXT("XML declaration rejected explicitly"), TEXT("<?xml version=\"1.0\"?><ui version=\"1\"><region name=\"x\"><text id=\"a\">x</text></region></ui>"), TEXT(""), {});
     ExpectReject(TEXT("Trailing XML garbage"), TEXT("<ui version=\"1\"><region name=\"x\"><text id=\"a\">x</text></region></ui> trailing"), TEXT(""), {});
     ExpectReject(TEXT("Second XML root"), TEXT("<ui version=\"1\"><region name=\"x\"><text id=\"a\">x</text></region></ui><ui version=\"1\"><region name=\"y\"><text id=\"b\">y</text></region></ui>"), TEXT(""), {});
@@ -206,6 +214,62 @@ auto FCkUiAuthoringParser_DynamicNodes::RunTest(const FString&) -> bool
     if (!TestEqual(TEXT("Scroll retains its sole child"), Scroll.Children.Num(), 1)) { return false; }
     TestEqual(TEXT("Bound text node kind"), Scroll.Children[0].Kind, ECkUiNodeKind::Text);
     TestEqual(TEXT("Text binding retained"), Scroll.Children[0].Binding, FString(TEXT("summary")));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiAuthoringParser_FontFamilySubset,
+    "Ck.UiAuthoring.Parser.FontFamilySubset", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+auto FCkUiAuthoringParser_FontFamilySubset::RunTest(const FString&) -> bool
+{
+    using namespace ck_tests_ui_document;
+    const auto Markup = TEXT("<ui version=\"1\"><region name=\"main\"><row id=\"row\"><text id=\"mono\" class=\"mono\">Mono</text><button id=\"sans\" class=\"sans\" action=\"apply\">Sans</button></row></region></ui>");
+    auto Document = FCkUiDocument{};
+    const auto Result = Parse(Markup, TEXT(".mono { font-family: monospace; } .sans { font-family: sans-serif; }"), {}, Document);
+    if (!TestTrue(TEXT("Supported font-family values parse"), Result.Succeeded)) { return false; }
+    const auto* Root = Document.Regions.Find(TEXT("main"));
+    if (!TestNotNull(TEXT("Font-family test root exists"), Root)) { return false; }
+    if (!TestEqual(TEXT("Font-family test root has two children"), Root->Children.Num(), 2)) { return false; }
+    TestTrue(TEXT("Monospace is represented"), Root->Children[0].Style.Monospace.IsSet() && Root->Children[0].Style.Monospace.GetValue());
+    TestTrue(TEXT("Sans-serif is represented"), Root->Children[1].Style.Monospace.IsSet() && !Root->Children[1].Style.Monospace.GetValue());
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiAuthoringParser_FontFamilyRejectsUnsupported,
+    "Ck.UiAuthoring.Parser.FontFamilyRejectsUnsupported", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+auto FCkUiAuthoringParser_FontFamilyRejectsUnsupported::RunTest(const FString&) -> bool
+{
+    using namespace ck_tests_ui_document;
+    auto Document = FCkUiDocument{};
+    const auto Result = Parse(TEXT("<ui version=\"1\"><region name=\"main\"><text id=\"label\">X</text></region></ui>"), TEXT(".label { font-family: serif; }"), {}, Document);
+    if (!TestFalse(TEXT("Unsupported font-family rejects"), Result.Succeeded)) { return false; }
+    auto UnsupportedNode = FCkUiDocument{};
+    const auto UnsupportedNodeResult = Parse(TEXT("<ui version=\"1\"><region name=\"main\"><column id=\"root\" class=\"mono\"/></region></ui>"), TEXT(".mono { font-family: monospace; }"), {}, UnsupportedNode);
+    return TestFalse(TEXT("Font-family on unsupported node rejects"), UnsupportedNodeResult.Succeeded);
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiAuthoringParser_ChildBind,
+    "Ck.UiAuthoring.Parser.ChildBindValidation",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+auto FCkUiAuthoringParser_ChildBind::RunTest(const FString&) -> bool
+{
+    using namespace ck_tests_ui_document;
+    const FString Valid = TEXT("<ui version=\"1\"><region name=\"main\"><repeat id=\"crowds\" bind=\"crowds\"><column id=\"crowd\"><repeat id=\"bands\" child-bind=\"bands\"><column id=\"band\"><text id=\"name\" bind-field=\"name\"/></column></repeat></column></repeat></region></ui>");
+    FCkUiDocument Document;
+    const FCkUiLoadResult Parsed = Parse(Valid, TEXT(""), {}, Document);
+    if (!TestTrue(TEXT("Nested repeat child-bind parses for the future renderer"), Parsed.Succeeded)) { return false; }
+    const FCkUiNode* Root = Document.Regions.Find(TEXT("main"));
+    if (!TestTrue(TEXT("Nested repeat produces the expected parent item shape"),
+        Root != nullptr && Root->Children.Num() == 1 && Root->Children[0].Children.Num() == 1)) { return false; }
+    TestEqual(TEXT("Nested repeat retains child binding"), Root->Children[0].Children[0].ChildBinding, FString{TEXT("bands")});
+    const auto Reject = [this](const FString& Name, const FString& Markup)
+    { FCkUiDocument Candidate; TestFalse(*Name, Parse(Markup, TEXT(""), {}, Candidate).Succeeded); };
+    Reject(TEXT("Root child-bind rejects"), TEXT("<ui version=\"1\"><region name=\"main\"><repeat id=\"x\" child-bind=\"children\"><column id=\"item\"/></repeat></region></ui>"));
+    Reject(TEXT("Non-repeat child-bind rejects"), TEXT("<ui version=\"1\"><region name=\"main\"><column id=\"x\" child-bind=\"children\"/></region></ui>"));
+    Reject(TEXT("Empty child-bind rejects"), TEXT("<ui version=\"1\"><region name=\"main\"><repeat id=\"x\" bind=\"x\"><column id=\"item\"><repeat id=\"y\" child-bind=\"\"><column id=\"child\"/></repeat></column></repeat></region></ui>"));
+    Reject(TEXT("Global and child bind conflict rejects"), TEXT("<ui version=\"1\"><region name=\"main\"><repeat id=\"x\" bind=\"x\"><column id=\"item\"><repeat id=\"y\" bind=\"y\" child-bind=\"children\"><column id=\"child\"/></repeat></column></repeat></region></ui>"));
     return true;
 }
 

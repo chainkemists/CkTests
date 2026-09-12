@@ -42,6 +42,8 @@ namespace ck_tests_resource_inspector_subsystem
         bool PrerequisitesReady = false;
         bool PreviousFocusAssigned = false;
         bool Opened = false;
+        bool GalleryOpened = false;
+        bool InspectorReopenedAfterGallery = false;
         bool TeardownOpened = false;
     };
 
@@ -249,6 +251,66 @@ bool FCkResourceInspector_SubsystemLifecycle::RunTest(const FString& Parameters)
             return true;
         }),
         TEXT("Resource Inspector close restores local UI state and removes capture")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([State](UWorld*) -> void
+        {
+            if (UCkResourceInspector_Subsystem* Inspector = State->Inspector.Get(); IsValid(Inspector))
+            {
+                State->GalleryOpened = Inspector->Request_OpenCapabilityGallery();
+            }
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForCondition(
+        FCk_NetAutoTest_Condition::CreateLambda([State]() -> bool
+        {
+            return State->GalleryOpened && State->Inspector.IsValid() && State->Inspector->Get_IsOpen();
+        }),
+        5.0f));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
+        FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
+        {
+            TestTrue(TEXT("The production gallery opens through the same local-player subsystem host"),
+                State->GalleryOpened && State->Inspector.IsValid() && State->Inspector->Get_IsOpen());
+            return true;
+        }),
+        TEXT("Capability Gallery opens through Resource Inspector subsystem ownership")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([State](UWorld*) -> void
+        {
+            if (UCkResourceInspector_Subsystem* Inspector = State->Inspector.Get(); IsValid(Inspector))
+            {
+                Inspector->Request_Close();
+                State->InspectorReopenedAfterGallery = Inspector->Request_Open();
+            }
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForCondition(
+        FCk_NetAutoTest_Condition::CreateLambda([State]() -> bool
+        {
+            const TSharedPtr<SWidget> Focused = State->SlateUserIndex != INDEX_NONE && FSlateApplication::IsInitialized()
+                ? FSlateApplication::Get().GetUserFocusedWidget(State->SlateUserIndex) : nullptr;
+            return State->InspectorReopenedAfterGallery && IsInspectorSearchFocus(Focused);
+        }),
+        5.0f));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
+        FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
+        {
+            TestTrue(TEXT("Closing the gallery permits the normal inspector to reopen"), State->InspectorReopenedAfterGallery);
+            return true;
+        }),
+        TEXT("Capability Gallery close returns exclusive host ownership")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([State](UWorld*) -> void
+        {
+            if (UCkResourceInspector_Subsystem* Inspector = State->Inspector.Get(); IsValid(Inspector))
+            {
+                Inspector->Request_Close();
+            }
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForCondition(
+        FCk_NetAutoTest_Condition::CreateLambda([State]() -> bool
+        {
+            return State->Inspector.IsValid() && !State->Inspector->Get_IsOpen();
+        }),
+        5.0f));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
         FCk_NetAutoTest_ServerAction::CreateLambda([State](UWorld* InWorld) -> void
         {

@@ -7,6 +7,8 @@
 #include "CkSlateLayout/CkUiSlider.h"
 #include "CkSlateLayout/CkUiSelect.h"
 #include "CkSlateLayout/CkUiDialog.h"
+#include "CkSlateLayout/CkUiStatusPill.h"
+#include "CkSlateLayout/SCkUiTree.h"
 #include "Styling/CoreStyle.h"
 
 namespace ck_resource_inspector
@@ -26,6 +28,27 @@ namespace ck_resource_inspector
         return FCkUiFieldValue{.Kind = ECkUiFieldKind::Text, .Text = FText::FromString(InValue)};
     }
 
+    auto ColorField(const FLinearColor InValue) -> FCkUiFieldValue
+    {
+        return FCkUiFieldValue{.Kind = ECkUiFieldKind::Color, .Color = InValue};
+    }
+
+    auto StateForeground(const FString& InState) -> FLinearColor
+    {
+        if (InState == TEXT("Ready")) { return FLinearColor(FColor::FromHex(TEXT("A2E6BD"))); }
+        if (InState == TEXT("Streaming")) { return FLinearColor(FColor::FromHex(TEXT("92CCFF"))); }
+        if (InState == TEXT("Cached")) { return FLinearColor(FColor::FromHex(TEXT("B8C5D1"))); }
+        return FLinearColor(FColor::FromHex(TEXT("FFCA87")));
+    }
+
+    auto StateOutline(const FString& InState) -> FLinearColor
+    {
+        if (InState == TEXT("Ready")) { return FLinearColor(FColor::FromHex(TEXT("38715D"))); }
+        if (InState == TEXT("Streaming")) { return FLinearColor(FColor::FromHex(TEXT("3D6990"))); }
+        if (InState == TEXT("Cached")) { return FLinearColor(FColor::FromHex(TEXT("526473"))); }
+        return FLinearColor(FColor::FromHex(TEXT("8C6134")));
+    }
+
     auto CategoryKind(const FString& InKey) -> const TCHAR*
     {
         if (InKey == TEXT("texture")) { return TEXT("Texture"); }
@@ -33,6 +56,20 @@ namespace ck_resource_inspector
         if (InKey == TEXT("static-mesh")) { return TEXT("Static Mesh"); }
         if (InKey == TEXT("shader")) { return TEXT("Shader"); }
         return nullptr;
+    }
+
+    auto SearchPlaceholder(const bool bLongLabels) -> FText
+    {
+        return bLongLabels
+            ? NSLOCTEXT("CkResourceInspector", "ResourceSearchPlaceholderLong", "Filter deterministic resources by display name, kind, state, or retained inspection details…")
+            : NSLOCTEXT("CkResourceInspector", "ResourceSearchPlaceholder", "Filter resources…");
+    }
+
+    auto NameColumnLabel(const bool bLongLabels) -> FText
+    {
+        return bLongLabels
+            ? NSLOCTEXT("CkResourceInspector", "ResourceNameColumnLabelLong", "Resource display name and retained inspection identity")
+            : NSLOCTEXT("CkResourceInspector", "ResourceNameColumnLabel", "Name");
     }
 }
 
@@ -82,6 +119,12 @@ auto FCkResourceInspectorModel::TryCreate(FSimpleDelegate InClose, TSharedPtr<FC
         OutError = ck_resource_inspector::ErrorText(DialogRegistration);
         return false;
     }
+    const FCkUiLoadResult StatusPillRegistration = FCkUiStatusPill::Register(Registry);
+    if (!StatusPillRegistration.Succeeded)
+    {
+        OutError = ck_resource_inspector::ErrorText(StatusPillRegistration);
+        return false;
+    }
     TSharedPtr<FCkUiCollection> CategoryOptions;
     const FCkUiLoadResult OptionsCreated = FCkUiCollection::TryCreate({{TEXT("label"), ECkUiFieldKind::Text}}, CategoryOptions);
     if (!OptionsCreated.Succeeded)
@@ -112,6 +155,8 @@ auto FCkResourceInspectorModel::TryCreate(FSimpleDelegate InClose, TSharedPtr<FC
         {TEXT("size"), ECkUiFieldKind::Text},
         {TEXT("size-bytes"), ECkUiFieldKind::Number},
         {TEXT("state"), ECkUiFieldKind::Text},
+        {TEXT("state-foreground"), ECkUiFieldKind::Color},
+        {TEXT("state-outline"), ECkUiFieldKind::Color},
     }, Candidate->_Collection);
     if (!CollectionResult.Succeeded || !Candidate->_Collection.IsValid())
     {
@@ -198,6 +243,16 @@ auto FCkResourceInspectorModel::TryCreate(FSimpleDelegate InClose, TSharedPtr<FC
     Data.TextChanged.Add(TEXT("query"), FOnTextChanged::CreateLambda([WeakModel](const FText& InText)
     {
         if (const TSharedPtr<FCkResourceInspectorModel> Model = WeakModel.Pin()) { Model->_Query = InText.ToString(); }
+    }));
+    Data.Text.Add(TEXT("resource-search-placeholder"), TAttribute<FText>::CreateLambda([WeakModel]()
+    {
+        const TSharedPtr<FCkResourceInspectorModel> Model = WeakModel.Pin();
+        return Model.IsValid() ? Model->GetSearchPlaceholder() : FText::GetEmpty();
+    }));
+    Data.Text.Add(TEXT("resource-name-column-label"), TAttribute<FText>::CreateLambda([WeakModel]()
+    {
+        const TSharedPtr<FCkResourceInspectorModel> Model = WeakModel.Pin();
+        return Model.IsValid() ? Model->GetNameColumnLabel() : FText::GetEmpty();
     }));
     Data.Text.Add(TEXT("header-count"), TAttribute<FText>::CreateLambda([WeakModel]()
     {
@@ -417,6 +472,21 @@ auto FCkResourceInspectorModel::TryCreate(FSimpleDelegate InClose, TSharedPtr<FC
     AddPresentationScenario(TEXT("preview-loading"), TEXT("loading"));
     AddPresentationScenario(TEXT("preview-error"), TEXT("error"));
     AddPresentationScenario(TEXT("show-resources"), TEXT("ready"));
+    Actions.Add(TEXT("collapse-navigation"), FSimpleDelegate::CreateLambda([WeakModel]()
+    {
+        const TSharedPtr<FCkResourceInspectorModel> Model = WeakModel.Pin();
+        if (!Model.IsValid() || !Model->_View.IsValid() || !Model->_Navigation.IsValid()) { return; }
+        const TSharedPtr<SCkUiTree> Navigation = Model->_View->GetTree(TEXT("inspector-dialog/content/navigation"));
+        if (!Navigation.IsValid()) { return; }
+        for (const TSharedPtr<const FCkUiTreeNode>& Node : Model->_Navigation->GetNodes())
+        {
+            if (Node.IsValid()) { Navigation->TrySetExpanded(Node->GetKey(), false); }
+        }
+    }));
+    Actions.Add(TEXT("toggle-long-labels"), FSimpleDelegate::CreateLambda([WeakModel]()
+    {
+        if (const TSharedPtr<FCkResourceInspectorModel> Model = WeakModel.Pin()) { Model->_bLongLabels = !Model->_bLongLabels; }
+    }));
     Actions.Add(TEXT("clear-selection"), FSimpleDelegate::CreateLambda([WeakModel]()
     {
         if (const TSharedPtr<FCkResourceInspectorModel> Model = WeakModel.Pin()) { Model->ClearSelection(); }
@@ -788,7 +858,10 @@ auto FCkResourceInspectorModel::MakeRecords(const int32 InRowCount) const -> TAr
         const int32 SizeKiB = 64 + (Index % 97) * 16;
         Record.Fields.Add(TEXT("size"), ck_resource_inspector::TextField(FString::Printf(TEXT("%d KiB"), SizeKiB)));
         Record.Fields.Add(TEXT("size-bytes"), FCkUiFieldValue{.Kind = ECkUiFieldKind::Number, .Number = static_cast<float>(SizeKiB * 1024)});
-        Record.Fields.Add(TEXT("state"), ck_resource_inspector::TextField(States[Index % UE_ARRAY_COUNT(States)]));
+        const FString State = States[Index % UE_ARRAY_COUNT(States)];
+        Record.Fields.Add(TEXT("state"), ck_resource_inspector::TextField(State));
+        Record.Fields.Add(TEXT("state-foreground"), ck_resource_inspector::ColorField(ck_resource_inspector::StateForeground(State)));
+        Record.Fields.Add(TEXT("state-outline"), ck_resource_inspector::ColorField(ck_resource_inspector::StateOutline(State)));
         Records.Add(MoveTemp(Record));
     }
     return Records;
@@ -844,6 +917,16 @@ auto FCkResourceInspectorModel::HeaderCount() const -> FText
     return _Category == TEXT("all")
         ? FText::FromString(FString::Printf(TEXT("%d resources"), TotalCount))
         : FText::FromString(FString::Printf(TEXT("%d %s resources"), TotalCount, *CategoryLabel()));
+}
+
+auto FCkResourceInspectorModel::GetSearchPlaceholder() const -> FText
+{
+    return ck_resource_inspector::SearchPlaceholder(_bLongLabels);
+}
+
+auto FCkResourceInspectorModel::GetNameColumnLabel() const -> FText
+{
+    return ck_resource_inspector::NameColumnLabel(_bLongLabels);
 }
 
 auto FCkResourceInspectorModel::SelectedTitle() const -> FText

@@ -1,0 +1,56 @@
+<ui version="1">
+  <template name="starter-record-summary">
+    <column id="record-summary" class="starter-summary">
+      <text id="record-summary-name" bind-field="name" color-field="color" tooltip-field="tooltip" class="starter-record-name" />
+      <text id="record-summary-description" bind-field="description" class="starter-record-description" />
+    </column>
+  </template>
+  <region name="main">
+    <dialog id="starter-confirm-dialog" open-bind="starter-confirm-open" dismiss="starter-cancel-delete">
+      <slot name="content">
+        <column id="starter-root" class="starter-root">
+          <row id="starter-toolbar" class="starter-toolbar">
+            <text id="starter-title" bind="starter-title" class="starter-title" />
+            <text id="starter-status" bind="starter-status" class="starter-status" />
+            <button id="starter-refresh" action="starter-refresh" enabled-bind="starter-enabled">Refresh</button>
+            <button id="starter-clear-filter" action="starter-clear-filter" enabled-bind="starter-enabled">Clear filter</button>
+          </row>
+          <row id="starter-workspace" class="starter-workspace">
+            <column id="starter-results-pane" class="starter-results-pane">
+              <row id="starter-filter-row" class="starter-filter-row">
+                <search id="starter-query" bind="starter-query" placeholder="Filter records" class="starter-filter" />
+                <button id="starter-delete" action="starter-request-delete" enabled-bind="starter-enabled">Remove selected</button>
+              </row>
+              <scroll id="starter-records-scroll" direction="vertical" class="starter-records-scroll">
+                <table id="starter-records" bind="starter-records" filter-bind="starter-query" selection-action="starter-select-record" row-height="32" class="starter-records">
+                  <table-column id="starter-summary-column" label="Record" sort-field="name" class="starter-name-column">
+                    <use template="starter-record-summary" id="starter-record-summary" />
+                  </table-column>
+                </table>
+              </scroll>
+              <column id="starter-empty" visible="starter-empty" class="starter-empty">
+                <text id="starter-empty-copy" class="starter-empty-copy">No records match the current filter.</text>
+              </column>
+            </column>
+            <column id="starter-details-pane" class="starter-details-pane">
+              <text id="starter-details-title" class="starter-details-title">Details</text>
+              <text id="starter-selected-name" bind="starter-selected-name" class="starter-selected-name" />
+              <text id="starter-selected-description" bind="starter-selected-description" class="starter-selected-description" />
+              <button id="starter-details-remove" action="starter-request-delete" enabled-bind="starter-enabled">Remove selected</button>
+            </column>
+          </row>
+        </column>
+      </slot>
+      <slot name="body">
+        <column id="starter-dialog-body" class="starter-dialog-body">
+          <text id="starter-dialog-title" class="starter-dialog-title">Confirm removal</text>
+          <text id="starter-dialog-copy" bind="starter-confirm-copy" class="starter-dialog-copy" />
+          <row id="starter-dialog-actions" class="starter-dialog-actions">
+            <button id="starter-cancel" action="starter-cancel-delete">Cancel</button>
+            <button id="starter-confirm" action="starter-confirm-delete">Confirm</button>
+          </row>
+        </column>
+      </slot>
+    </dialog>
+  </region>
+</ui>

@@ -54,8 +54,10 @@ namespace ck_tests_ui_table_sort
     {
         const FGeometry Geometry = Button->GetCachedGeometry();
         const FVector2D Position = Geometry.GetAbsolutePosition() + Geometry.GetAbsoluteSize() * 0.5f;
-        const FPointerEvent Down{0, Position, Position, TSet<FKey>{EKeys::LeftMouseButton}, EKeys::LeftMouseButton, 0, FModifierKeysState{}};
-        const FPointerEvent Up{0, Position, Position, TSet<FKey>{}, EKeys::LeftMouseButton, 0, FModifierKeysState{}};
+        const TSet<FKey> DownButtons{EKeys::LeftMouseButton};
+        const FPointerEvent Down{0, Position, Position, DownButtons, EKeys::LeftMouseButton, 0, FModifierKeysState{}};
+        const TSet<FKey> UpButtons;
+        const FPointerEvent Up{0, Position, Position, UpButtons, EKeys::LeftMouseButton, 0, FModifierKeysState{}};
         FWidgetPath Path;
         auto& Slate = FSlateApplication::Get();
         if (!Slate.GeneratePathToWidgetUnchecked(Button, Path)) { return false; }

@@ -138,6 +138,23 @@ namespace ck_tests_ui_custom_slots_runtime
     auto MarkupWithoutPanel() -> FString
     { return TEXT("<ui version=\"1\"><region name=\"main\"><column id=\"root\"><text id=\"replacement\">Custom parent removed</text></column></region></ui>"); }
 
+    enum class ENativeSlotCase : uint8 { BodyOnly, MissingEverywhere, InvalidFooter, DuplicateAcrossSlots, MovedToFooter };
+
+    auto NativeSlotMarkup(const ENativeSlotCase InCase) -> FString
+    {
+        const TCHAR* Body = InCase == ENativeSlotCase::MovedToFooter || InCase == ENativeSlotCase::MissingEverywhere
+            ? TEXT("<column id=\"native-body-empty\"><button id=\"native-scope-action\" action=\"native-scope-action\">Scope</button></column>")
+            : TEXT("<column id=\"native-body\"><native id=\"slot-native-port\" bind=\"slot-native\"/><button id=\"native-scope-action\" action=\"native-scope-action\">Scope</button></column>");
+        const TCHAR* Footer = InCase == ENativeSlotCase::InvalidFooter
+            ? TEXT("<column id=\"native-footer\"><native id=\"invalid-footer-native\" bind=\"missing-native\"/></column>")
+            : InCase == ENativeSlotCase::DuplicateAcrossSlots
+                ? TEXT("<column id=\"native-footer\"><native id=\"duplicate-footer-native\" bind=\"slot-native\"/></column>")
+                : InCase == ENativeSlotCase::MovedToFooter
+                    ? TEXT("<column id=\"native-footer\"><native id=\"slot-native-port\" bind=\"slot-native\"/></column>")
+                    : TEXT("<column id=\"native-footer\"><text id=\"native-footer-copy\">Footer</text></column>");
+        return FString::Printf(TEXT("<ui version=\"1\"><region name=\"main\"><column id=\"root\"><inspector-panel id=\"panel\"><slot name=\"body\">%s</slot><slot name=\"footer\">%s</slot></inspector-panel></column></region></ui>"), Body, Footer);
+    }
+
     auto Register(const TSharedRef<FCustomSlotStats>& InStats, const TSharedRef<FCustomSlotStats>& InNestedStats,
         FCkUiWidgetRegistry& InRegistry) -> bool
     {
@@ -218,6 +235,72 @@ namespace ck_tests_ui_custom_slots_runtime
         FSlateApplication& Slate;
         TSharedPtr<SWindow> Window;
     };
+
+    auto RunNativeSlotBindingScopeCases(FAutomationTestBase& InTest, FSlateApplication& InSlate) -> bool
+    {
+        const TSharedRef<FCustomSlotStats> Stats = MakeShared<FCustomSlotStats>();
+        const TSharedRef<FCustomSlotStats> NestedStats = MakeShared<FCustomSlotStats>();
+        FCkUiWidgetRegistry Registry;
+        if (!InTest.TestTrue(TEXT("Native slot binding fixture registers"), Register(Stats, NestedStats, Registry))) { return false; }
+
+        const TSharedRef<SSearchBox> NativeSearch = SNew(SSearchBox).Tag(FName(TEXT("slot-native-search")));
+        int32 ScopeActions = 0;
+        FCkUiView::FActions Actions;
+        Actions.Add(TEXT("native-scope-action"), FSimpleDelegate::CreateLambda([&ScopeActions]() { ++ScopeActions; }));
+        const TSharedRef<FCkUiView> View = FCkUiView::Create({{TEXT("slot-native"), NativeSearch}}, MoveTemp(Actions), {},
+            FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), 12), {}, Registry.CreateSnapshot());
+        const TSharedRef<SWidget> Region = View->GetRegion(TEXT("main"));
+        FWindowScope Scope(InSlate);
+        Scope.Window = SNew(SWindow).AutoCenter(EAutoCenter::None).ClientSize(FVector2D{420.0f, 240.0f})
+            .CreateTitleBar(false).HasCloseButton(false).FocusWhenFirstShown(false)[Region];
+        InSlate.AddWindow(Scope.Window.ToSharedRef(), true);
+
+        if (!Load(InTest, TEXT("Single native custom slot loads without a sibling native"), View, NativeSlotMarkup(ENativeSlotCase::BodyOnly))) { return false; }
+        Tick(InSlate);
+        if (!InTest.TestTrue(TEXT("Scoped native slot mounts its real native widget"), NativeSearch->GetParentWidget().IsValid())) { return false; }
+        if (!InTest.TestTrue(TEXT("Scoped native slot accepts Slate focus"), InSlate.SetKeyboardFocus(NativeSearch, EFocusCause::SetDirectly))) { return false; }
+        const TSharedPtr<SWidget> FocusedNative = InSlate.GetUserFocusedWidget(0);
+        const int64 AcceptedRevision = View->GetRevision();
+        if (!Load(InTest, TEXT("Compatible scoped native slot reload retains the native widget and focus"), View, NativeSlotMarkup(ENativeSlotCase::BodyOnly))) { return false; }
+        Tick(InSlate);
+        InTest.TestTrue(TEXT("Compatible scoped native reload preserves the native widget and focus"), FindSearch(Region, TEXT("slot-native-search")) == NativeSearch
+            && NativeSearch->GetParentWidget().IsValid() && InSlate.GetUserFocusedWidget(0) == FocusedNative);
+        const TSharedRef<SWidget> AcceptedRoot = RegionRoot(Region);
+        const TSharedPtr<SWidget> AcceptedNativeParent = NativeSearch->GetParentWidget();
+
+        const auto ExpectRejected = [&InTest, &InSlate, &View, &Region, &AcceptedRoot, &NativeSearch, &AcceptedNativeParent, &FocusedNative](const FString& InName, const FString& InMarkup)
+        {
+            const int64 Revision = View->GetRevision();
+            const FCkUiLoadResult Result = View->TryReload(InMarkup, TEXT(""), InName);
+            InTest.TestTrue(*(InName + TEXT(" rejects atomically")), !Result.Succeeded && !Result.Errors.IsEmpty());
+            InTest.TestTrue(*(InName + TEXT(" preserves revision root focus and native parent")), View->GetRevision() == Revision
+                && RegionRoot(Region) == AcceptedRoot && NativeSearch->GetParentWidget() == AcceptedNativeParent && InSlate.GetUserFocusedWidget(0) == FocusedNative);
+        };
+        ExpectRejected(TEXT("Removing native from every custom slot"), NativeSlotMarkup(ENativeSlotCase::MissingEverywhere));
+        ExpectRejected(TEXT("Invalid second custom slot native reload"), NativeSlotMarkup(ENativeSlotCase::InvalidFooter));
+        ExpectRejected(TEXT("Duplicate native binding across custom slots"), NativeSlotMarkup(ENativeSlotCase::DuplicateAcrossSlots));
+        ExpectRejected(TEXT("Moving native between custom slots"), NativeSlotMarkup(ENativeSlotCase::MovedToFooter));
+        if (!Load(InTest, TEXT("Valid scoped native reload after rejected mutation"), View, NativeSlotMarkup(ENativeSlotCase::BodyOnly))) { return false; }
+        Tick(InSlate);
+        const TSharedPtr<SButton> ScopeButton = FindButton(Region, TEXT("native-scope-action"));
+        if (!InTest.TestTrue(TEXT("Valid scoped native reload restores its live action"), ScopeButton.IsValid())) { return false; }
+        ScopeButton->SimulateClick();
+        InTest.TestEqual(TEXT("Valid scoped native reload dispatches through the live slot scope"), ScopeActions, 1);
+        InTest.TestEqual(TEXT("Valid scoped native reload advances exactly once after rejected mutations"), View->GetRevision(), AcceptedRevision + 2);
+
+        const TSharedRef<SSearchBox> UnrelatedNative = SNew(SSearchBox);
+        const TSharedRef<SBox> UnrelatedParent = SNew(SBox);
+        UnrelatedParent->SetContent(UnrelatedNative);
+        FCkUiView::FActions UnrelatedActions;
+        UnrelatedActions.Add(TEXT("native-scope-action"), FSimpleDelegate::CreateLambda([]() {}));
+        const TSharedRef<FCkUiView> UnrelatedView = FCkUiView::Create({{TEXT("slot-native"), UnrelatedNative}}, MoveTemp(UnrelatedActions), {},
+            FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), 12), {}, Registry.CreateSnapshot());
+        const FCkUiLoadResult UnrelatedResult = UnrelatedView->TryReload(NativeSlotMarkup(ENativeSlotCase::BodyOnly), TEXT(""), TEXT("Unrelated native parent binding"));
+        InTest.TestTrue(TEXT("Unrelated parent native binding remains rejected"), !UnrelatedResult.Succeeded
+            && UnrelatedResult.Errors.ContainsByPredicate([](const FString& Error) { return Error.Contains(TEXT("Native binding 'slot-native' is already mounted under an unrelated parent.")); })
+            && UnrelatedNative->GetParentWidget() == UnrelatedParent);
+        return true;
+    }
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiCustomSlots_Runtime,
@@ -228,6 +311,8 @@ auto FCkUiCustomSlots_Runtime::RunTest(const FString&) -> bool
 {
     using namespace ck_tests_ui_custom_slots_runtime;
     if (!FSlateApplication::IsInitialized()) { AddError(TEXT("Custom slot runtime test requires Slate.")); return false; }
+
+    if (!RunNativeSlotBindingScopeCases(*this, FSlateApplication::Get())) { return false; }
 
     const TSharedRef<FCustomSlotStats> Stats = MakeShared<FCustomSlotStats>();
     const TSharedRef<FCustomSlotStats> NestedStats = MakeShared<FCustomSlotStats>();
