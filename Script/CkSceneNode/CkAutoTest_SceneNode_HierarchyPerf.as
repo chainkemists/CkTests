@@ -17,10 +17,6 @@
 
 class UCk_AutoTest_SceneNode_HierarchyPerf_Static : UCk_AutoTest_Base
 {
-    // On the ENTITY script, not only on the wrapper: the wrapper feeds the engine TimeLimit,
-    // but UCk_AutoTest_Base arms its own deadline at 0.9 * this value. Declaring it only on
-    // the wrapper left that deadline at the 5s default, which was invisible while the deadline
-    // counted step time alone and fires immediately now that it is wall-clock from test start.
     default _TimeoutSeconds = 45.0f;
 
     private const int32 ChainCount = 512;
@@ -148,10 +144,6 @@ class ACk_AutoTest_SceneNode_HierarchyPerf_Static_Actor : ACk_AutoTestRunner
 
 class UCk_AutoTest_SceneNode_HierarchyPerf_OneDirtyRoot : UCk_AutoTest_Base
 {
-    // On the ENTITY script, not only on the wrapper: the wrapper feeds the engine TimeLimit,
-    // but UCk_AutoTest_Base arms its own deadline at 0.9 * this value. Declaring it only on
-    // the wrapper left that deadline at the 5s default, which was invisible while the deadline
-    // counted step time alone and fires immediately now that it is wall-clock from test start.
     default _TimeoutSeconds = 45.0f;
 
     private const int32 ChainCount = 512;
