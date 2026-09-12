@@ -13,7 +13,7 @@ auto FCkUiTabs_Parser::RunTest(const FString&) -> bool
 {
     const auto Wrap = [](const FString& InBody)
     { return TEXT("<ui version=\"1\"><region name=\"main\">") + InBody + TEXT("</region></ui>"); };
-    const FString Valid = Wrap(TEXT("<tabs id=\"details\" class=\"fill\" value-bind=\"active-tab\" changed=\"set-active-tab\"><tab id=\"overview\" class=\"panel\" key=\"overview\" label=\"Overview\"><text id=\"facts\">Facts</text></tab><tab id=\"properties\" key=\"properties\" label-bind=\"properties-label\" enabled-bind=\"can-edit\"><column id=\"form\"/></tab></tabs>"));
+    const FString Valid = Wrap(TEXT("<tabs id=\"details\" class=\"fill\" value-bind=\"active-tab\" changed=\"set-active-tab\"><tab id=\"overview\" class=\"panel\" key=\"overview\" label=\"Overview\"><text id=\"facts\">Facts</text></tab><tab id=\"properties\" key=\"properties\" label-bind=\"properties-label\" enabled-bind=\"can-edit\" visible-bind=\"show-properties\"><column id=\"form\"/></tab></tabs>"));
     FCkUiDocument Document;
     int32 Factories = 0;
     FCkUiWidgetRegistry Registry;
@@ -35,6 +35,7 @@ auto FCkUiTabs_Parser::RunTest(const FString&) -> bool
     TestEqual(TEXT("Literal tab label is stored as text"), Tabs->Children[0].Text, FString(TEXT("Overview")));
     TestEqual(TEXT("Bound label is retained"), Tabs->Children[1].TabLabelBinding, FString(TEXT("properties-label")));
     TestEqual(TEXT("Enabled binding is retained"), Tabs->Children[1].TabEnabledBinding, FString(TEXT("can-edit")));
+    TestEqual(TEXT("Visibility binding is retained"), Tabs->Children[1].TabVisibilityBinding, FString(TEXT("show-properties")));
     TestEqual(TEXT("Tabs accepts flex growth"), Tabs->Style.Grow, 1.0f);
     TestEqual(TEXT("Tab accepts panel gap styling"), Tabs->Children[0].Style.Gap, 4.0f);
     TestTrue(TEXT("Tab accepts header text styling"), Tabs->Children[0].Style.Color.IsSet());
