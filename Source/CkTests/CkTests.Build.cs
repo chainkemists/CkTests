@@ -143,6 +143,9 @@ public class CkTests : CkModuleRules
             "CkUsf",
             "CkVariables",
             "CkVoiceChat",
+            // The authored UI-inspector fixture composes WorldSpaceWidget fragments and inspects
+            // the exact public request variants; do not rely on CkEcsDebugger's transitive link.
+            "CkWorldSpaceWidget",
             // The VisualLod arbiter-tuner PIE fixture creates real domain-tagged arbiters and members
             // through the public runtime utilities; do not rely on the debugger's transitive link.
             "CkVisualLod",
