@@ -35,7 +35,7 @@ namespace
         EAutomationTestFlags::EditorContext |
         EAutomationTestFlags::ProductFilter;
 
-    constexpr auto kRtSize = 64;
+    constexpr auto kMultiPassRtSize = 64;
 
     auto Get_TestWorld() -> UWorld*
     {
@@ -61,7 +61,7 @@ namespace
     auto Make_Rt(UWorld* InWorld, const FLinearColor& InClear) -> UTextureRenderTarget2D*
     {
         auto* Rt = UKismetRenderingLibrary::CreateRenderTarget2D(
-            InWorld, kRtSize, kRtSize, ETextureRenderTargetFormat::RTF_RGBA16f);
+            InWorld, kMultiPassRtSize, kMultiPassRtSize, ETextureRenderTargetFormat::RTF_RGBA16f);
         UKismetRenderingLibrary::ClearRenderTarget2D(InWorld, Rt, InClear);
         return Rt;
     }
@@ -121,7 +121,7 @@ bool FCkTest_Usf_MultiPassRendersToTexture::RunTest(const FString& Parameters)
     if (BlitDef == nullptr || BufferDef == nullptr || ImageDef == nullptr)
     { return false; }
 
-    const auto Res = FLinearColor(kRtSize, kRtSize, 0.0f, 1.0f);
+    const auto Res = FLinearColor(kMultiPassRtSize, kMultiPassRtSize, 0.0f, 1.0f);
 
     // ---- Stage A: canvas draws a generated master at all (trivial Blit, known RED input) ----
     {
