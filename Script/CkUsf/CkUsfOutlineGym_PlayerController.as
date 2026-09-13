@@ -33,7 +33,7 @@ class ACk_UsfOutlineGym_PlayerController : ACk_Gym_Base_PlayerController
             "Highlight cluster mirrors the skinned pose into custom depth."));
         Stations.Add(Make_Station(n"Gym.Rendering.OutlineCascade", "OUTLINE: CASCADE",
             "A parent entity whose visuals are 3 child cube proxies.",
-            "One Request_ApplyOutline(EntityAndDependents) outlines them all."));
+            "One live Set_OutlineClaim(EntityAndDependents) outlines them all."));
         Stations.Add(Make_Station(n"Gym.Rendering.OutlineVat", "OUTLINE: VAT (ANIMATED)",
             "3 vertex-animated figures; outer two outlined (blue/green), middle is the control.",
             "Silhouettes must WALK with the mesh - a bind-pose outline means the shadow ISM lost the VAT material or its custom data."));
@@ -82,9 +82,12 @@ class ACk_UsfOutlineGym_PlayerController : ACk_Gym_Base_PlayerController
         }
         _Showcases.Empty();
 
-        Request_SpawnOutline(n"Gym.Rendering.OutlineInteractable", CkUsf::DA_Outline_Interactable);
-        Request_SpawnOutline(n"Gym.Rendering.OutlineSeeThrough",   CkUsf::DA_Outline_SeeThrough);
-        Request_SpawnOutline(n"Gym.Rendering.OutlineMasked",       CkUsf::DA_Outline_MaskedObjective);
+        Request_SpawnOutline(n"Gym.Rendering.OutlineInteractable",
+            UCk_Utils_Usf_Outline_Settings_UE::Get_GameplayInteractionOutlineTag());
+        Request_SpawnOutline(n"Gym.Rendering.OutlineSeeThrough",
+            UCk_Utils_Usf_Outline_Settings_UE::Get_GameplayEmphasisOutlineTag());
+        Request_SpawnOutline(n"Gym.Rendering.OutlineMasked",
+            UCk_Utils_Usf_Outline_Settings_UE::Get_GameplayGuidanceOutlineTag());
 
         // Entity-outline stations (ISM / ISKM / Batched / Cascade / VAT) - entity-script stations.
         Request_SpawnEntityStation("Gym.Rendering.OutlineIsm",     UCk_EntityScript_UsfOutlineGym_Ism);
@@ -104,7 +107,7 @@ class ACk_UsfOutlineGym_PlayerController : ACk_Gym_Base_PlayerController
             FInstancedStruct::Make(Params));
     }
 
-    private void Request_SpawnOutline(FName InStationTag, UCkUsf_OutlinePreset InPreset)
+    private void Request_SpawnOutline(FName InStationTag, FGameplayTag InOutlineTag)
     {
         auto StationTransform = Get_StationTransform(InStationTag.ToString());
         // Place toward the player (world -X) and raised, in front of the station billboard.
@@ -114,7 +117,7 @@ class ACk_UsfOutlineGym_PlayerController : ACk_Gym_Base_PlayerController
             SpawnActor(ACk_UsfGym_OutlineShowcase, Location, FRotator::ZeroRotator));
         if (Showcase != nullptr)
         {
-            Showcase.Request_SetPreset(InPreset);
+            Showcase.Request_SetOutlineTag(InOutlineTag);
             _Showcases.Add(Showcase);
         }
         else

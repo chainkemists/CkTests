@@ -79,7 +79,9 @@ class UCk_AutoTest_UsfCelPattern_IskmApplyRemove : UCk_AutoTest_Base
         {
             Assert_True(_Proxy.Get_IsCelPatternApplied(), "cel pattern re-applied");
 
-            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_SelfEntity, CkUsf::DA_Outline_Interactable, ECk_Usf_OutlineScope::EntityOnly);
+            UCk_Utils_Usf_Outline_UE::Set_OutlineClaim(_SelfEntity, _SelfEntity,
+                UCk_Utils_Usf_Outline_Settings_UE::Get_GameplayInteractionOutlineTag(),
+                ECk_Usf_OutlineScope::EntityOnly);
             _Phase = 4; _TicksInPhase = 0;
         }
         else if (_Phase == 4 && _TicksInPhase >= 3)

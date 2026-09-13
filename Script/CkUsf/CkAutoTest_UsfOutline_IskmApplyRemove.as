@@ -4,8 +4,8 @@
 // CK USF ENTITY OUTLINE - AUTOTEST: ISKM Plan-1 apply/remove
 //============================================================================
 //
-// One Plan-1 skeletal proxy. Request_ApplyOutline on its entity must mark the
-// proxy outlined (custom depth + stencil on the pooled SKMC); Request_RemoveOutline
+// One Plan-1 skeletal proxy. Set_OutlineClaim on its entity must mark the
+// proxy outlined (custom depth + stencil on the pooled SKMC); Clear_OutlineClaim
 // must clear it. (Pool hygiene - released SKMCs carrying no outline state - is
 // double-guarded in Release_BaseSKMC itself.)
 //
@@ -42,7 +42,9 @@ class UCk_AutoTest_UsfOutline_IskmApplyRemove : UCk_AutoTest_Base
 
         if (_Phase == 0 && _TicksInPhase >= 2)
         {
-            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_SelfEntity, CkUsf::DA_Outline_Interactable, ECk_Usf_OutlineScope::EntityOnly);
+            UCk_Utils_Usf_Outline_UE::Set_OutlineClaim(_SelfEntity, _SelfEntity,
+                UCk_Utils_Usf_Outline_Settings_UE::Get_GameplayInteractionOutlineTag(),
+                ECk_Usf_OutlineScope::EntityOnly);
             _Phase = 1; _TicksInPhase = 0;
         }
         else if (_Phase == 1 && _TicksInPhase >= 2)
@@ -51,7 +53,8 @@ class UCk_AutoTest_UsfOutline_IskmApplyRemove : UCk_AutoTest_Base
             Assert_True(_Proxy.Get_IsOutlineApplied(),
                 "outline applied to the ISKM proxy (custom depth on its SKMC)");
 
-            UCk_Utils_Usf_Outline_UE::Request_RemoveOutline(_SelfEntity);
+            UCk_Utils_Usf_Outline_UE::Clear_OutlineClaim(_SelfEntity, _SelfEntity,
+                UCk_Utils_Usf_Outline_Settings_UE::Get_GameplayInteractionOutlineTag());
             _Phase = 2; _TicksInPhase = 0;
         }
         else if (_Phase == 2 && _TicksInPhase >= 2)
