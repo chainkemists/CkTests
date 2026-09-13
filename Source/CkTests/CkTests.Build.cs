@@ -166,6 +166,8 @@ public class CkTests : CkModuleRules
                 "CkIntentDebugger",
                 "CkInputHudOverlay",
                 "CkDebuggerCommon",
+                // The ISM Proxy authored-inspector fixture mounts the production ECS inspector over a live PIE instance.
+                "CkEcsDebugger",
                 // The PIE fixture mounts the real authored arbiter-tuners surface from its debugger host.
                 "CkVisualLodDebugger",
                 // The Dialog PIE fixture mounts the real four-region debugger window and routes its commands
