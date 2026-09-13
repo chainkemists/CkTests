@@ -44,6 +44,14 @@ auto
 
 auto
     UCk_ActorRelay_TestProbeGroup_Subsystem_UE::
+    Get_MaxEntitiesPerChannel() const
+    -> int32
+{
+    return _MaxEntitiesPerChannel;
+}
+
+auto
+    UCk_ActorRelay_TestProbeGroup_Subsystem_UE::
     Get_SelectionAlgorithm() const
     -> ECk_ActorRelay_SelectionAlgorithm
 {
