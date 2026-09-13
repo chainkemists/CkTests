@@ -92,7 +92,9 @@ class UCk_AutoTest_UsfCelPattern_IsmShadowInstances : UCk_AutoTest_Base
 
             // An outline on a patterned proxy must remove the cel shadow instance, not just forget it:
             // two custom-depth writers on the same pixels is exactly what this guards.
-            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_EntityB, CkUsf::DA_Outline_Interactable, ECk_Usf_OutlineScope::EntityOnly);
+            UCk_Utils_Usf_Outline_UE::Set_OutlineClaim(_EntityB, _EntityB,
+                UCk_Utils_Usf_Outline_Settings_UE::Get_GameplayInteractionOutlineTag(),
+                ECk_Usf_OutlineScope::EntityOnly);
             _Phase = 2; _TicksInPhase = 0;
         }
         else if (_Phase == 2 && _TicksInPhase >= 3)

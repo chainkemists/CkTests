@@ -4,10 +4,8 @@
 // CK USF ENTITY OUTLINE - AUTOTEST: cascade to lifetime dependents
 //============================================================================
 //
-// A parent entity with two child IsmProxy entities. Request_ApplyOutline with
-// EntityAndDependents must outline both children (cascade-derived targets);
-// Request_RemoveOutline on the parent must strip only the derived targets
-// a child outlined EXPLICITLY keeps its outline.
+// A parent entity with two child IsmProxy entities. A live-subtree claim must
+// outline both children; clearing it must leave a child's independent claim intact.
 //
 //============================================================================
 
@@ -49,7 +47,8 @@ class UCk_AutoTest_UsfOutline_CascadeDependents : UCk_AutoTest_Base
 
         if (_Phase == 0 && _TicksInPhase >= 2)
         {
-            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_Parent, CkUsf::DA_Outline_Interactable,
+            UCk_Utils_Usf_Outline_UE::Set_OutlineClaim(_Parent, _Parent,
+                UCk_Utils_Usf_Outline_Settings_UE::Get_GameplayInteractionOutlineTag(),
                 ECk_Usf_OutlineScope::EntityAndDependents);
             _Phase = 1; _TicksInPhase = 0;
         }
@@ -61,8 +60,11 @@ class UCk_AutoTest_UsfOutline_CascadeDependents : UCk_AutoTest_Base
             Assert_True(_Proxy2.Get_IsOutlineApplied(), "child 2 proxy outlined");
 
             // Child 1 opts into an EXPLICIT outline - it must survive the parent's removal below.
-            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_Child1, CkUsf::DA_Outline_SeeThrough, ECk_Usf_OutlineScope::EntityOnly);
-            UCk_Utils_Usf_Outline_UE::Request_RemoveOutline(_Parent);
+            UCk_Utils_Usf_Outline_UE::Set_OutlineClaim(_Child1, _Child1,
+                UCk_Utils_Usf_Outline_Settings_UE::Get_GameplayGuidanceOutlineTag(),
+                ECk_Usf_OutlineScope::EntityOnly);
+            UCk_Utils_Usf_Outline_UE::Clear_OutlineClaim(_Parent, _Parent,
+                UCk_Utils_Usf_Outline_Settings_UE::Get_GameplayInteractionOutlineTag());
             _Phase = 2; _TicksInPhase = 0;
         }
         else if (_Phase == 2 && _TicksInPhase >= 2)
@@ -73,7 +75,8 @@ class UCk_AutoTest_UsfOutline_CascadeDependents : UCk_AutoTest_Base
             Assert_True(!UCk_Utils_Usf_Outline_UE::Has_Outline(_Child2), "derived-only child stripped");
             Assert_True(!_Proxy2.Get_IsOutlineApplied(), "derived-only child un-applied");
 
-            UCk_Utils_Usf_Outline_UE::Request_RemoveOutline(_Child1);
+            UCk_Utils_Usf_Outline_UE::Clear_OutlineClaim(_Child1, _Child1,
+                UCk_Utils_Usf_Outline_Settings_UE::Get_GameplayGuidanceOutlineTag());
             FinishSuccess();
         }
     }

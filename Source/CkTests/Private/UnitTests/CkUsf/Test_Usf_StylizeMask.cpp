@@ -50,6 +50,7 @@
 #include "CkUsf/Stylize/CkUsf_HandDrawnSubsystem.h"
 #include "CkUsf/Stylize/CkUsf_HandDrawn_Params.h"
 #include "CkUsf/Outline/CkUsf_Outline_Fragment.h"
+#include "CkUsf/Outline/CkUsf_Outline_ProjectSettings.h"
 #include "CkUsf/Stylize/CkUsf_StylizeMask_Fragment.h"
 #include "CkUsf/Stylize/CkUsf_StylizeMask_Processor.h"
 #include "CkUsf/Stylize/CkUsf_StylizeMask_Params.h"
@@ -388,8 +389,13 @@ bool FCkTest_Usf_StylizeMaskEntityPrecedence::RunTest(const FString& Parameters)
     {
         auto Outlined = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
         auto* Preset = NewObject<UCkUsf_OutlinePreset>(GetTransientPackage());
-        UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(
-            Outlined, Preset, ECk_Usf_OutlineScope::EntityOnly, {});
+        Outlined.AddOrGet<ck::FFragment_Usf_OutlineResolved>() = ck::FFragment_Usf_OutlineResolved{
+            Outlined,
+            UCk_Utils_Usf_Outline_Settings_UE::Get_SelectionOutlineTag(),
+            FGameplayTag{},
+            Preset,
+            0,
+            0};
 
         UCk_Utils_Usf_StylizeMask_UE::Request_AddToStylizeMask(
             Outlined, ECk_Usf_OutlineScope::EntityOnly, {});
@@ -435,8 +441,13 @@ bool FCkTest_Usf_StylizeMaskEntityPrecedence::RunTest(const FString& Parameters)
         auto OutlinedChild = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CascadeRoot);
 
         auto* Preset = NewObject<UCkUsf_OutlinePreset>(GetTransientPackage());
-        UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(
-            OutlinedChild, Preset, ECk_Usf_OutlineScope::EntityOnly, {});
+        OutlinedChild.AddOrGet<ck::FFragment_Usf_OutlineResolved>() = ck::FFragment_Usf_OutlineResolved{
+            OutlinedChild,
+            UCk_Utils_Usf_Outline_Settings_UE::Get_SelectionOutlineTag(),
+            FGameplayTag{},
+            Preset,
+            0,
+            0};
 
         UCk_Utils_Usf_StylizeMask_UE::Request_AddToStylizeMask(
             CascadeRoot, ECk_Usf_OutlineScope::EntityAndDependents, {});
@@ -540,26 +551,47 @@ bool FCkTest_Usf_StylizeMaskEntityStencilSync::RunTest(const FString& Parameters
 
     // The bare target fragment, deliberately without applying an outline through the subsystem: that is
     // precisely the "higher claim declared but never landed" state the drop processor has to survive.
-    Entity.AddOrGet<ck::FFragment_Usf_OutlineTarget>();
+    Entity.AddOrGet<ck::FFragment_Usf_OutlineResolved>();
 
     ck::FProcessor_Usf_StylizeMaskActor_DropAppliedOnOutline::ForEachEntity(
         ck::FProcessor_Usf_StylizeMaskActor_DropAppliedOnOutline::TimeType{}, Entity,
         Entity.Get<ck::FFragment_Usf_StylizeMaskApplied_Actor>(),
-        Entity.Get<ck::FFragment_Usf_OutlineTarget>());
+        Entity.Get<ck::FFragment_Usf_OutlineResolved>());
 
     TestFalse(TEXT("the drop processor UNDOES rather than stranding the stencil"),
         Primitive->bRenderCustomDepth);
     TestFalse(TEXT("and only then drops the applied state"),
         UCk_Utils_Usf_StylizeMask_UE::Get_IsStylizeMaskApplied(Entity));
 
-    Entity.Try_Remove<ck::FFragment_Usf_OutlineTarget>();
+    Entity.Try_Remove<ck::FFragment_Usf_OutlineResolved>();
     Entity.Try_Remove<ck::FFragment_Usf_StylizeMaskTarget>();
 
     // ---- 4. C2 REGRESSION: an unrelated feature's undo must not permanently blank the mask ----
-    // The outline's own removal disables custom depth. If it did so unconditionally it would blank a mask
+    // The outline's own removal restores custom depth. If it did so unconditionally it would blank a mask
     // that had since taken the component over, and because the mask's applied-state still said "written"
     // its sync would early-out on that cache forever. Two guards make this recover: the outline's undo is
     // value-guarded, and the mask's sync re-checks the PRIMITIVE rather than trusting its own cache.
+    auto RuntimeConfig = FCk_Usf_OutlineRuntimeConfig{};
+    auto* Outline = UCkUsf_OutlineSubsystem::Get_OutlineSubsystem(World);
+    const auto OutlineTag = UCk_Utils_Usf_Outline_Settings_UE::Get_SelectionOutlineTag();
+    const auto ConfigIsValid = UCk_Utils_Usf_Outline_Settings_UE::TryGet_RuntimeConfig(RuntimeConfig);
+    const auto* OutlineDefinition = ConfigIsValid ? RuntimeConfig.TryGet(OutlineTag) : nullptr;
+    if (TestNotNull(TEXT("the outline subsystem exists for the interference regression"), Outline) == false ||
+        TestNotNull(TEXT("the selection outline definition exists"), OutlineDefinition) == false)
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+
+    const auto ResolvedOutline = ck::FFragment_Usf_OutlineResolved{
+        Entity, OutlineTag, OutlineDefinition->LayerTag, OutlineDefinition->Preset.Get(),
+        OutlineDefinition->LayerIndex, 0};
+    Outline->Set_ResolvedOutline(Primitive, Entity, ResolvedOutline);
+    TestEqual(TEXT("the interference regression begins with one physical outline owner"),
+        Outline->Get_OutlineOwnerCount(Primitive), 1);
+    TestTrue(TEXT("the configured outline preset reaches the primitive before the mask takes over"),
+        Outline->Get_CurrentOutlinePreset(Primitive) == OutlineDefinition->Preset);
+
     UCk_Utils_Usf_StylizeMask_UE::Request_AddToStylizeMask(
         Entity, ECk_Usf_OutlineScope::EntityOnly, {});
     Sync();
@@ -567,8 +599,7 @@ bool FCkTest_Usf_StylizeMaskEntityStencilSync::RunTest(const FString& Parameters
 
     // Simulates the outline's undo landing on a component the mask has since claimed — the value guard
     // is what should make this a no-op.
-    if (auto* Outline = UCkUsf_OutlineSubsystem::Get_OutlineSubsystem(World))
-    { Outline->Remove_Outline_From_Component(Primitive); }
+    Outline->Clear_ResolvedOutline(Primitive, Entity);
 
     TestTrue(TEXT("the outline's undo leaves a component it does not own alone"),
         Primitive->bRenderCustomDepth);

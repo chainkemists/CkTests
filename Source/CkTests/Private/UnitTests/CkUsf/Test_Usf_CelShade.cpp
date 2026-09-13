@@ -20,7 +20,7 @@
 //     dependents on request), clear removes it and strips only the derived ones, and an entity that
 //     already carries an OUTLINE target is refused, because one entity has exactly one stencil value.
 //     Request_SetCelPattern mutates immediately and completes synchronously (verified against
-//     UCk_Utils_Usf_Outline_UE::Request_ApplyOutline, which it mirrors), so there is no deferred
+//     UCk_Utils_Usf_Outline_UE::Set_OutlineClaim, which it mirrors), so there is no deferred
 //     drain to cancel and no Failed_Cancelled path to exercise.
 //
 //   CelShadeCustomBandEdges — the unequal-band mode's rejection boundary. The shader derives a band
@@ -42,6 +42,7 @@
 #include "GameFramework/Actor.h"
 
 #include "CkUsf/Outline/CkUsf_Outline_Fragment.h"
+#include "CkUsf/Outline/CkUsf_Outline_ProjectSettings.h"
 #include "CkUsf/Stylize/CkUsf_CelPattern_Processor.h"
 
 #include "CkUsf/Outline/CkUsf_OutlinePreset.h"
@@ -701,8 +702,13 @@ bool FCkTest_Usf_CelShadeEntityPattern::RunTest(const FString& Parameters)
 
     auto Outlined = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
     auto* Preset = NewObject<UCkUsf_OutlinePreset>(GetTransientPackage());
-    UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(
-        Outlined, Preset, ECk_Usf_OutlineScope::EntityOnly, {});
+    Outlined.AddOrGet<ck::FFragment_Usf_OutlineResolved>() = ck::FFragment_Usf_OutlineResolved{
+        Outlined,
+        UCk_Utils_Usf_Outline_Settings_UE::Get_SelectionOutlineTag(),
+        FGameplayTag{},
+        Preset,
+        0,
+        0};
 
     UCk_Utils_Usf_CelPattern_UE::Request_SetCelPattern(
         Outlined, ECk_Usf_CelPattern::RoundDots, ECk_Usf_OutlineScope::EntityOnly, {});
@@ -719,8 +725,13 @@ bool FCkTest_Usf_CelShadeEntityPattern::RunTest(const FString& Parameters)
     auto PlainChild = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CascadeRoot);
     auto OutlinedChild = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CascadeRoot);
 
-    UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(
-        OutlinedChild, Preset, ECk_Usf_OutlineScope::EntityOnly, {});
+    OutlinedChild.AddOrGet<ck::FFragment_Usf_OutlineResolved>() = ck::FFragment_Usf_OutlineResolved{
+        OutlinedChild,
+        UCk_Utils_Usf_Outline_Settings_UE::Get_SelectionOutlineTag(),
+        FGameplayTag{},
+        Preset,
+        0,
+        0};
 
     UCk_Utils_Usf_CelPattern_UE::Request_SetCelPattern(
         CascadeRoot, ECk_Usf_CelPattern::SquareDots, ECk_Usf_OutlineScope::EntityAndDependents, {});
@@ -815,7 +826,7 @@ bool FCkTest_Usf_CelShadeEntityStencilSync::RunTest(const FString& Parameters)
         Primitive->CustomDepthStencilValue, Subsystem->Get_StencilValueFor(SecondPattern));
 
     // ---- 3. Clear DISABLES custom depth (it does not restore a prior value) ----
-    // Matching UCkUsf_OutlineSubsystem::Remove_Outline_From_Component, which also only disables. Stated as
+    // Matching the outline subsystem's physical undo, which also only disables. Stated as
     // "disabled" rather than "restored" so the shared limitation is visible from the test name alone: a
     // mesh that was hand-authored to render custom depth does not get that back.
     UCk_Utils_Usf_CelPattern_UE::Request_ClearCelPattern(Entity, {});
@@ -840,14 +851,14 @@ bool FCkTest_Usf_CelShadeEntityStencilSync::RunTest(const FString& Parameters)
 
     // The outline arrives. Its own subsystem owns the write; what matters here is that the cel feature
     // drops its now-false cache and does NOT clear the byte.
-    Entity.AddOrGet<ck::FFragment_Usf_OutlineTarget>() = ck::FFragment_Usf_OutlineTarget{nullptr, false};
+    Entity.AddOrGet<ck::FFragment_Usf_OutlineResolved>();
     constexpr auto OutlineStencil = 241;
     Primitive->SetCustomDepthStencilValue(OutlineStencil);
 
     ck::FProcessor_Usf_CelPatternActor_DropAppliedOnOutline::ForEachEntity(
         ck::FProcessor_Usf_CelPatternActor_DropAppliedOnOutline::TimeType{}, Entity,
         Entity.Get<ck::FFragment_Usf_CelPatternApplied_Actor>(),
-        Entity.Get<ck::FFragment_Usf_OutlineTarget>());
+        Entity.Get<ck::FFragment_Usf_OutlineResolved>());
 
     TestFalse(TEXT("an arriving outline drops the cel applied-state, which no longer describes reality"),
         Entity.Has<ck::FFragment_Usf_CelPatternApplied_Actor>());
@@ -856,7 +867,7 @@ bool FCkTest_Usf_CelShadeEntityStencilSync::RunTest(const FString& Parameters)
     TestTrue(TEXT("the outline's custom depth is left enabled"), Primitive->bRenderCustomDepth);
 
     // The outline leaves. The cel target never went away, so the pattern must return.
-    Entity.Remove<ck::FFragment_Usf_OutlineTarget>();
+    Entity.Remove<ck::FFragment_Usf_OutlineResolved>();
     Sync();
 
     TestEqual(TEXT("with the outline gone the cel pattern returns to the primitive"),
