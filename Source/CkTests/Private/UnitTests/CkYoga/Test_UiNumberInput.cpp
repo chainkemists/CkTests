@@ -7,7 +7,9 @@
 #include "Misc/AutomationTest.h"
 #include "Styling/CoreStyle.h"
 #include "Widgets/Input/SEditableTextBox.h"
+#include "Widgets/IToolTip.h"
 #include "Widgets/SWindow.h"
+#include "Widgets/Text/STextBlock.h"
 
 #include <limits>
 
@@ -33,6 +35,26 @@ namespace ck_tests_ui_number_input
         return nullptr;
     }
 
+    auto FindText(const TSharedRef<SWidget>& InRoot) -> TSharedPtr<STextBlock>
+    {
+        if (InRoot->GetTypeAsString() == TEXT("STextBlock")) { return StaticCastSharedRef<STextBlock>(InRoot); }
+        const FChildren* Children = InRoot->GetChildren();
+        if (Children == nullptr) { return nullptr; }
+        for (int32 Index = 0; Index < Children->Num(); ++Index)
+        {
+            if (const TSharedPtr<STextBlock> Found = FindText(ConstCastSharedRef<SWidget>(Children->GetChildAt(Index))); Found.IsValid())
+            { return Found; }
+        }
+        return nullptr;
+    }
+
+    auto TooltipText(const TSharedRef<SWidget>& InWidget) -> FString
+    {
+        const TSharedPtr<IToolTip> Tooltip = InWidget->GetToolTip();
+        const TSharedPtr<STextBlock> Text = Tooltip.IsValid() ? FindText(Tooltip->GetContentWidget()) : nullptr;
+        return Text.IsValid() ? Text->GetText().ToString() : FString{};
+    }
+
     auto Tick(FSlateApplication& InSlate) -> void { InSlate.PumpMessages(); InSlate.Tick(); InSlate.Tick(); }
     auto Key(const FKey InKey) -> FKeyEvent { return FKeyEvent{InKey, FModifierKeysState{}, 0, false, 0, 0}; }
 
@@ -55,6 +77,7 @@ namespace ck_tests_ui_number_input
             Data.Visibility.Add(TEXT("enabled"), TAttribute<bool>::CreateLambda([this]() { return Enabled; }));
             Data.Visibility.Add(TEXT("readonly"), TAttribute<bool>::CreateLambda([this]() { return ReadOnly; }));
             Data.Text.Add(TEXT("error"), TAttribute<FText>::CreateLambda([this]() { return FText::FromString(Error); }));
+            Data.Text.Add(TEXT("tooltip"), TAttribute<FText>::CreateLambda([this]() { return FText::FromString(Tooltip); }));
             Data.NumberChanged.Add(TEXT("change"), FCkUiOnNumberChanged::CreateLambda([this](const float InValue)
             { ++ChangedCalls; LastChanged = InValue; }));
             Data.NumberCommitted.Add(TEXT("commit"), FCkUiOnNumberCommitted::CreateLambda([this](const float InValue, const ETextCommit::Type InReason)
@@ -78,18 +101,26 @@ namespace ck_tests_ui_number_input
         auto Replace(const FString& InText) -> bool
         {
             Slate.SetUserFocus(0, Input.ToSharedRef(), EFocusCause::SetDirectly);
-            Tick(Slate);
+            RefreshPresentation();
             const FModifierKeysState Control{false, false, true, false, false, false, false, false, false};
             if (!Slate.ProcessKeyDownEvent(FKeyEvent{EKeys::A, Control, 0, false, 0, 0})) { return false; }
             for (const TCHAR Character : InText)
             {
                 if (!Slate.ProcessKeyCharEvent(FCharacterEvent{Character, FModifierKeysState{}, 0, false})) { return false; }
             }
-            Tick(Slate);
+            RefreshPresentation();
             return true;
         }
 
-        auto Enter() -> void { Slate.ProcessKeyDownEvent(Key(EKeys::Enter)); Tick(Slate); }
+        auto Enter() -> void { Slate.ProcessKeyDownEvent(Key(EKeys::Enter)); RefreshPresentation(); }
+
+        auto RefreshPresentation() -> void
+        {
+            Tick(Slate);
+            if (!Input.IsValid()) { return; }
+            Input->SlatePrepass();
+            Input->Tick(FGeometry::MakeRoot(FVector2D{320.0f, 40.0f}, FSlateLayoutTransform{}), 0.0, 0.0f);
+        }
 
         FSlateApplication& Slate;
         float Value = 1.5f;
@@ -103,6 +134,7 @@ namespace ck_tests_ui_number_input
         int32 CommittedCalls = 0;
         ETextCommit::Type Reason = ETextCommit::Default;
         FString Error;
+        FString Tooltip;
         TSharedPtr<FCkUiView> View;
         TSharedPtr<SWidget> Region;
         TSharedPtr<SWindow> Window;
@@ -121,14 +153,21 @@ auto FCkUiNumberInput_Runtime::RunTest(const FString&) -> bool
     FFixture Fixture;
     if (!TestTrue(TEXT("Registered numeric editor mounts"), Fixture.Initialize())) { return false; }
     TestEqual(TEXT("Construction emits no numeric events"), Fixture.ChangedCalls + Fixture.CommittedCalls, 0);
+    Fixture.Tooltip = TEXT("Editing unavailable");
+    if (!TestTrue(TEXT("Tooltip binding reloads on the retained native numeric control"),
+        Fixture.View->TryReload(Markup(TEXT("tooltip-bind=\"tooltip\"")), TEXT(""), TEXT("NumberTooltipReload")).Succeeded))
+    { return false; }
+    Fixture.RefreshPresentation();
+    TestEqual(TEXT("Live tooltip binding is exposed by the physical numeric editor"),
+        TooltipText(Fixture.Input.ToSharedRef()), Fixture.Tooltip);
     if (!TestTrue(TEXT("Native keyboard drafts float"), Fixture.Replace(TEXT("2.25")))) { return false; }
     TestEqual(TEXT("Changed event proposes raw valid float"), Fixture.LastChanged, 2.25f);
     Fixture.Value = 8.0f;
-    Tick(Fixture.Slate);
+    Fixture.RefreshPresentation();
     TestEqual(TEXT("External model update cannot overwrite draft"), Fixture.Input->GetText().ToString(), FString(TEXT("2.25")));
     const TSharedPtr<SWidget> Focus = Fixture.Slate.GetUserFocusedWidget(0);
     if (!TestTrue(TEXT("Presentation reload succeeds with active draft"), Fixture.View->TryReload(Markup(TEXT("placeholder=\"Enter value\"")), TEXT(""), TEXT("NumberDraftReload")).Succeeded)) { return false; }
-    Tick(Fixture.Slate);
+    Fixture.RefreshPresentation();
     TestTrue(TEXT("Reload preserves native identity focus and draft"), FindInput(Fixture.Region.ToSharedRef()) == Fixture.Input
         && Fixture.Slate.GetUserFocusedWidget(0) == Focus && Fixture.Input->GetText().ToString() == TEXT("2.25"));
     TestEqual(TEXT("Reload applies new placeholder to retained child"), Fixture.Input->GetHintText().ToString(), FString(TEXT("Enter value")));
@@ -148,7 +187,7 @@ auto FCkUiNumberInput_Runtime::RunTest(const FString&) -> bool
         TestTrue(*(Invalid + TEXT(" retains native validation feedback")), Fixture.Input->HasError());
     }
     TestTrue(TEXT("Presentation reload retains invalid-number feedback"), Fixture.View->TryReload(Markup(), TEXT(""), TEXT("NumberErrorReload")).Succeeded);
-    Tick(Fixture.Slate);
+    Fixture.RefreshPresentation();
     TestTrue(TEXT("Reload does not silently clear validation error"), Fixture.Input->HasError());
 
     Fixture.RejectCommit = true;
@@ -159,38 +198,38 @@ auto FCkUiNumberInput_Runtime::RunTest(const FString&) -> bool
     const int32 BeforeCancel = Fixture.CommittedCalls;
     if (!TestTrue(TEXT("Cancellable draft enters"), Fixture.Replace(TEXT("7")))) { return false; }
     Fixture.Slate.ProcessKeyDownEvent(Key(EKeys::Escape));
-    Tick(Fixture.Slate);
+    Fixture.RefreshPresentation();
     TestTrue(TEXT("Escape restores model without numeric commit"), Fixture.CommittedCalls == BeforeCancel && Fixture.Input->GetText().ToString() == TEXT("2.25"));
 
     for (const float RoundTrip : {1.0e-8f, 1.2345678e20f})
     {
         Fixture.Value = RoundTrip;
-        Tick(Fixture.Slate);
+        Fixture.RefreshPresentation();
         Fixture.Slate.SetUserFocus(0, Fixture.Input.ToSharedRef(), EFocusCause::SetDirectly);
-        Tick(Fixture.Slate);
+        Fixture.RefreshPresentation();
         Fixture.Enter();
         TestTrue(TEXT("Unedited displayed finite float round-trips exactly"), Fixture.Value == RoundTrip);
     }
     Fixture.Value = std::numeric_limits<float>::infinity();
-    Tick(Fixture.Slate);
+    Fixture.RefreshPresentation();
     TestTrue(TEXT("Nonfinite model is empty with validation feedback"), Fixture.Input->GetText().IsEmpty() && Fixture.Input->HasError());
     Fixture.Value = 3.0f;
-    Tick(Fixture.Slate);
+    Fixture.RefreshPresentation();
     if (!TestTrue(TEXT("Draft enters before readonly transition"), Fixture.Replace(TEXT("6")))) { return false; }
     Fixture.ReadOnly = true;
-    Tick(Fixture.Slate);
+    Fixture.RefreshPresentation();
     const int32 BeforeReadOnly = Fixture.CommittedCalls;
     Fixture.Slate.ClearKeyboardFocus(EFocusCause::Navigation);
-    Tick(Fixture.Slate);
+    Fixture.RefreshPresentation();
     TestEqual(TEXT("Readonly transition prevents pending numeric commit on blur"), Fixture.CommittedCalls, BeforeReadOnly);
     Fixture.ReadOnly = false;
     Fixture.Enabled = false;
-    Tick(Fixture.Slate);
+    Fixture.RefreshPresentation();
     TestFalse(TEXT("Enabled binding disables native editor"), Fixture.Input->IsEnabled());
     Fixture.Slate.ProcessKeyDownEvent(Key(EKeys::Enter));
     TestEqual(TEXT("Disabled input emits no numeric commit"), Fixture.CommittedCalls, BeforeReadOnly);
     Fixture.Enabled = true;
-    Tick(Fixture.Slate);
+    Fixture.RefreshPresentation();
 
     const int64 Revision = Fixture.View->GetRevision();
     const FString Retarget = Markup().Replace(TEXT("value-bind=\"value\""), TEXT("value-bind=\"other\""));
