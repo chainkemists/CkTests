@@ -31,7 +31,16 @@ public:
     Get_ChannelCount() const -> int32 override;
 
     auto
+    Get_MaxEntitiesPerChannel() const -> int32 override;
+
+    auto
     Get_SelectionAlgorithm() const -> ECk_ActorRelay_SelectionAlgorithm override;
+
+    auto
+    Set_MaxEntitiesPerChannelForTest(int32 InMaximum) -> void { _MaxEntitiesPerChannel = InMaximum; }
+
+private:
+    int32 _MaxEntitiesPerChannel = 0;
 };
 
 // --------------------------------------------------------------------------------------------------------------------
