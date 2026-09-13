@@ -327,7 +327,20 @@ namespace ck_tests_ui_repeat
             };
             return InRegistry.Register(MoveTemp(Registration)).Succeeded;
         };
+        auto TextRegistration = FCkUiCustomWidgetRegistration{};
+        TextRegistration.Schema.Tag = TEXT("repeat-text-event");
+        TextRegistration.Schema.Properties = {
+            {TEXT("changed"), ECkUiCustomPropertyKind::TextChanged, true},
+            {TEXT("committed"), ECkUiCustomPropertyKind::TextCommitted, true},
+        };
+        TextRegistration.Factory = [InProbe](const FCkUiCustomWidgetArguments& InArguments, FString&) -> TSharedPtr<SWidget>
+        {
+            ++InProbe->FactoryCalls;
+            InProbe->Arguments.Add(TEXT("repeat-text-event"), InArguments);
+            return SNew(STextBlock).Tag(FName(TEXT("repeat-text-event")));
+        };
         return Register(TEXT("repeat-bool-event"), ECkUiCustomPropertyKind::BoolChanged)
+            && InRegistry.Register(MoveTemp(TextRegistration)).Succeeded
             && Register(TEXT("repeat-number-event"), ECkUiCustomPropertyKind::NumberCommitted)
             && Register(TEXT("repeat-integer-event"), ECkUiCustomPropertyKind::IntegerCommitted);
     }
@@ -875,6 +888,11 @@ auto FCkUiRepeat_ItemTypedEvents::RunTest(const FString&) -> bool
 
     TArray<FString> BoolKeys;
     TArray<bool> BoolValues;
+    TArray<FString> TextKeys;
+    TArray<FString> TextChangedKeys;
+    TArray<FText> TextChangedValues;
+    TArray<FText> TextValues;
+    TArray<ETextCommit::Type> TextReasons;
     TArray<FString> NumberKeys;
     TArray<float> NumberValues;
     TArray<ETextCommit::Type> NumberReasons;
@@ -886,29 +904,43 @@ auto FCkUiRepeat_ItemTypedEvents::RunTest(const FString&) -> bool
     Data.Collections.Add(TEXT("parents"), Collection);
     Data.ItemActions.Add(TEXT("child-action"), FCkUiOnItemAction::CreateLambda([&](const FString Key) { ActionKeys.Add(Key); }));
     Data.ItemBoolChanged.Add(TEXT("toggle"), FCkUiOnItemBoolChanged::CreateLambda([&](const FString Key, const bool Value) { BoolKeys.Add(Key); BoolValues.Add(Value); }));
+    Data.ItemTextChanged.Add(TEXT("text-change"), FCkUiOnItemTextChanged::CreateLambda([&](const FString Key, const FText Value) { TextChangedKeys.Add(Key); TextChangedValues.Add(Value); }));
+    Data.ItemTextCommitted.Add(TEXT("text"), FCkUiOnItemTextCommitted::CreateLambda([&](const FString Key, const FText Value, const ETextCommit::Type Reason) { TextKeys.Add(Key); TextValues.Add(Value); TextReasons.Add(Reason); }));
     Data.ItemNumberCommitted.Add(TEXT("float"), FCkUiOnItemNumberCommitted::CreateLambda([&](const FString Key, const float Value, const ETextCommit::Type Reason) { NumberKeys.Add(Key); NumberValues.Add(Value); NumberReasons.Add(Reason); }));
     Data.ItemIntegerCommitted.Add(TEXT("integer"), FCkUiOnItemIntegerCommitted::CreateLambda([&](const FString Key, const int32 Value, const ETextCommit::Type Reason) { IntegerKeys.Add(Key); IntegerValues.Add(Value); IntegerReasons.Add(Reason); }));
     Data.ItemBoolChanged.Add(TEXT("toggle-b"), FCkUiOnItemBoolChanged::CreateLambda([&](const FString Key, const bool Value) { BoolKeys.Add(Key); BoolValues.Add(Value); }));
+    Data.ItemTextChanged.Add(TEXT("text-change-b"), FCkUiOnItemTextChanged::CreateLambda([&](const FString Key, const FText Value) { TextChangedKeys.Add(Key); TextChangedValues.Add(Value); }));
+    Data.ItemTextCommitted.Add(TEXT("text-b"), FCkUiOnItemTextCommitted::CreateLambda([&](const FString Key, const FText Value, const ETextCommit::Type Reason) { TextKeys.Add(Key); TextValues.Add(Value); TextReasons.Add(Reason); }));
     Data.ItemNumberCommitted.Add(TEXT("float-b"), FCkUiOnItemNumberCommitted::CreateLambda([&](const FString Key, const float Value, const ETextCommit::Type Reason) { NumberKeys.Add(Key); NumberValues.Add(Value); NumberReasons.Add(Reason); }));
     Data.ItemIntegerCommitted.Add(TEXT("integer-b"), FCkUiOnItemIntegerCommitted::CreateLambda([&](const FString Key, const int32 Value, const ETextCommit::Type Reason) { IntegerKeys.Add(Key); IntegerValues.Add(Value); IntegerReasons.Add(Reason); }));
     TSharedPtr<FCkUiView> View = FCkUiView::Create({}, {}, {}, FSlateFontInfo{}, MoveTemp(Data), Registry.CreateSnapshot());
     View->GetRegion(TEXT("main"));
-    const FString Markup = TEXT("<ui version=\"1\"><region name=\"main\"><repeat id=\"parents\" bind=\"parents\"><column id=\"parent\"><repeat-event-slot id=\"event-slot\"><slot name=\"body\"><repeat id=\"children\" child-bind=\"children\"><column id=\"child\"><text id=\"child-title\" bind-field=\"title\"/><button id=\"child-action\" item-action=\"child-action\">Run child action</button><repeat-bool-event id=\"bool\" item-changed=\"toggle\"/><repeat-number-event id=\"number\" item-committed=\"float\"/><repeat-integer-event id=\"integer\" item-committed=\"integer\"/></column></repeat></slot></repeat-event-slot></column></repeat></region></ui>");
+    const FString Markup = TEXT("<ui version=\"1\"><region name=\"main\"><repeat id=\"parents\" bind=\"parents\"><column id=\"parent\"><repeat-event-slot id=\"event-slot\"><slot name=\"body\"><repeat id=\"children\" child-bind=\"children\"><column id=\"child\"><text id=\"child-title\" bind-field=\"title\"/><button id=\"child-action\" item-action=\"child-action\">Run child action</button><repeat-bool-event id=\"bool\" item-changed=\"toggle\"/><repeat-text-event id=\"text\" item-changed=\"text-change\" item-committed=\"text\"/><repeat-number-event id=\"number\" item-committed=\"float\"/><repeat-integer-event id=\"integer\" item-committed=\"integer\"/></column></repeat></slot></repeat-event-slot></column></repeat></region></ui>");
     const FString AlternateMarkup = Markup.Replace(TEXT("item-changed=\"toggle\""), TEXT("item-changed=\"toggle-b\""))
+        .Replace(TEXT("item-changed=\"text-change\""), TEXT("item-changed=\"text-change-b\""))
+        .Replace(TEXT("item-committed=\"text\""), TEXT("item-committed=\"text-b\""))
         .Replace(TEXT("item-committed=\"float\""), TEXT("item-committed=\"float-b\""))
         .Replace(TEXT("item-committed=\"integer\""), TEXT("item-committed=\"integer-b\""));
     if (!TestSuccessfulLoad(*this, TEXT("Nested repeat typed item events load"), View->TryReload(Markup, TEXT(""), TEXT("UiRepeatItemTypedEvents")))) { return false; }
     const FCkUiCustomWidgetArguments BoolArguments = Probe->Arguments.FindRef(TEXT("repeat-bool-event"));
+    const FCkUiCustomWidgetArguments TextArguments = Probe->Arguments.FindRef(TEXT("repeat-text-event"));
     const FCkUiCustomWidgetArguments NumberArguments = Probe->Arguments.FindRef(TEXT("repeat-number-event"));
     const FCkUiCustomWidgetArguments IntegerArguments = Probe->Arguments.FindRef(TEXT("repeat-integer-event"));
     if (!TestTrue(TEXT("Typed item events reach custom factories after validation"), BoolArguments.BoolChanged.FindRef(TEXT("changed")).IsBound()
-        && NumberArguments.NumberCommitted.FindRef(TEXT("committed")).IsBound() && IntegerArguments.IntegerCommitted.FindRef(TEXT("committed")).IsBound())) { return false; }
+        && TextArguments.TextChanged.FindRef(TEXT("changed")).IsBound() && TextArguments.TextCommitted.FindRef(TEXT("committed")).IsBound()
+        && NumberArguments.NumberCommitted.FindRef(TEXT("committed")).IsBound()
+        && IntegerArguments.IntegerCommitted.FindRef(TEXT("committed")).IsBound())) { return false; }
     BoolArguments.BoolChanged.FindRef(TEXT("changed")).Execute(true);
+    TextArguments.TextChanged.FindRef(TEXT("changed")).Execute(FText::FromString(TEXT("Al")));
+    TextArguments.TextCommitted.FindRef(TEXT("committed")).Execute(FText::FromString(TEXT("Alpha")), ETextCommit::OnCleared);
     NumberArguments.NumberCommitted.FindRef(TEXT("committed")).Execute(4.25f, ETextCommit::OnEnter);
     IntegerArguments.IntegerCommitted.FindRef(TEXT("committed")).Execute(7, ETextCommit::OnUserMovedFocus);
     TestTrue(TEXT("Nested typed events use the innermost item key"), BoolKeys == TArray<FString>{TEXT("inner")}
+        && TextChangedKeys == TArray<FString>{TEXT("inner")} && TextKeys == TArray<FString>{TEXT("inner")}
         && NumberKeys == TArray<FString>{TEXT("inner")} && IntegerKeys == TArray<FString>{TEXT("inner")});
-    TestTrue(TEXT("Typed item events preserve bool, float, integer, and commit reasons"), BoolValues == TArray<bool>{true}
+    TestTrue(TEXT("Typed item events preserve bool, text, float, integer, and commit reasons"), BoolValues == TArray<bool>{true}
+        && TextChangedValues.Num() == 1 && TextChangedValues[0].ToString() == TEXT("Al")
+        && TextValues.Num() == 1 && TextValues[0].ToString() == TEXT("Alpha") && TextReasons == TArray<ETextCommit::Type>{ETextCommit::OnCleared}
         && NumberValues == TArray<float>{4.25f} && NumberReasons == TArray<ETextCommit::Type>{ETextCommit::OnEnter}
         && IntegerValues == TArray<int32>{7} && IntegerReasons == TArray<ETextCommit::Type>{ETextCommit::OnUserMovedFocus});
     const TSharedPtr<SCkUiRepeat> InitialParents = View->GetRepeat(TEXT("parents"));
@@ -927,25 +959,33 @@ auto FCkUiRepeat_ItemTypedEvents::RunTest(const FString&) -> bool
     if (!TestTrue(TEXT("Nested custom slot retains its mount across compatible typed-event reloads"), Probe->SlotFactoryCalls == 1 && Probe->SlotPrepareCalls >= 3)) { return false; }
 
     const FCkUiCustomWidgetArguments ReloadedBoolArguments = Probe->Arguments.FindRef(TEXT("repeat-bool-event"));
+    const FCkUiCustomWidgetArguments ReloadedTextArguments = Probe->Arguments.FindRef(TEXT("repeat-text-event"));
     const FCkUiCustomWidgetArguments ReloadedNumberArguments = Probe->Arguments.FindRef(TEXT("repeat-number-event"));
     const FCkUiCustomWidgetArguments ReloadedIntegerArguments = Probe->Arguments.FindRef(TEXT("repeat-integer-event"));
     ReloadedBoolArguments.BoolChanged.FindRef(TEXT("changed")).Execute(false);
+    ReloadedTextArguments.TextChanged.FindRef(TEXT("changed")).Execute(FText::FromString(TEXT("Br")));
+    ReloadedTextArguments.TextCommitted.FindRef(TEXT("committed")).Execute(FText::FromString(TEXT("Bravo")), ETextCommit::OnEnter);
     ReloadedNumberArguments.NumberCommitted.FindRef(TEXT("committed")).Execute(8.5f, ETextCommit::OnUserMovedFocus);
     ReloadedIntegerArguments.IntegerCommitted.FindRef(TEXT("committed")).Execute(11, ETextCommit::OnCleared);
     if (!TestTrue(TEXT("Typed events inside a retained custom slot dispatch the innermost stable key after reload"),
-        BoolKeys.Last() == TEXT("inner") && NumberKeys.Last() == TEXT("inner") && IntegerKeys.Last() == TEXT("inner")
-        && !BoolValues.Last() && NumberValues.Last() == 8.5f && NumberReasons.Last() == ETextCommit::OnUserMovedFocus
+        BoolKeys.Last() == TEXT("inner") && TextChangedKeys.Last() == TEXT("inner") && TextKeys.Last() == TEXT("inner")
+        && NumberKeys.Last() == TEXT("inner") && IntegerKeys.Last() == TEXT("inner")
+        && !BoolValues.Last() && TextChangedValues.Last().ToString() == TEXT("Br")
+        && TextValues.Last().ToString() == TEXT("Bravo") && TextReasons.Last() == ETextCommit::OnEnter
+        && NumberValues.Last() == 8.5f && NumberReasons.Last() == ETextCommit::OnUserMovedFocus
         && IntegerValues.Last() == 11 && IntegerReasons.Last() == ETextCommit::OnCleared)) { return false; }
 
     const TSharedPtr<SCkUiRepeat> Parents = View->GetRepeat(TEXT("parents"));
     if (!TestTrue(TEXT("Typed-event parent repeat mounts"), Parents.IsValid())
         || !TestTrue(TEXT("Replacing a record with the same key publishes"), Collection->TrySetRecords({Parent(TEXT("outer"), TEXT("inner"), TEXT("inner replacement"))}).Succeeded)
         || !TestTrue(TEXT("Replacement refresh succeeds"), Parents->TryRefresh())) { return false; }
-    const int32 CallsBeforeReplaced = BoolKeys.Num() + NumberKeys.Num() + IntegerKeys.Num();
+    const int32 CallsBeforeReplaced = BoolKeys.Num() + TextChangedKeys.Num() + TextKeys.Num() + NumberKeys.Num() + IntegerKeys.Num();
     ReloadedBoolArguments.BoolChanged.FindRef(TEXT("changed")).Execute(false);
+    ReloadedTextArguments.TextChanged.FindRef(TEXT("changed")).Execute(FText::FromString(TEXT("st")));
+    ReloadedTextArguments.TextCommitted.FindRef(TEXT("committed")).Execute(FText::FromString(TEXT("stale")), ETextCommit::OnCleared);
     ReloadedNumberArguments.NumberCommitted.FindRef(TEXT("committed")).Execute(9.0f, ETextCommit::OnCleared);
     ReloadedIntegerArguments.IntegerCommitted.FindRef(TEXT("committed")).Execute(9, ETextCommit::OnCleared);
-    TestEqual(TEXT("Callbacks held by replaced records are inert"), BoolKeys.Num() + NumberKeys.Num() + IntegerKeys.Num(), CallsBeforeReplaced);
+    TestEqual(TEXT("Callbacks held by replaced records are inert"), BoolKeys.Num() + TextChangedKeys.Num() + TextKeys.Num() + NumberKeys.Num() + IntegerKeys.Num(), CallsBeforeReplaced);
 
     const TSharedPtr<SWidget> UpdatedParent = Parents->GetItemWidget(TEXT("outer"));
     const TSharedPtr<SCkUiRepeat> UpdatedChildren = UpdatedParent.IsValid() ? FindRepeat(UpdatedParent.ToSharedRef(), TEXT("children")) : nullptr;
@@ -958,12 +998,17 @@ auto FCkUiRepeat_ItemTypedEvents::RunTest(const FString&) -> bool
     TestTrue(TEXT("Same-key nested slot action uses the live innermost key"), ActionKeys.Num() == 2 && ActionKeys.Last() == TEXT("inner"));
 
     const FCkUiCustomWidgetArguments CurrentBoolArguments = Probe->Arguments.FindRef(TEXT("repeat-bool-event"));
+    const FCkUiCustomWidgetArguments CurrentTextArguments = Probe->Arguments.FindRef(TEXT("repeat-text-event"));
     const FCkUiCustomWidgetArguments CurrentNumberArguments = Probe->Arguments.FindRef(TEXT("repeat-number-event"));
     const FCkUiCustomWidgetArguments CurrentIntegerArguments = Probe->Arguments.FindRef(TEXT("repeat-integer-event"));
     CurrentBoolArguments.BoolChanged.FindRef(TEXT("changed")).Execute(false);
+    CurrentTextArguments.TextChanged.FindRef(TEXT("changed")).Execute(FText::FromString(TEXT("Ch")));
+    CurrentTextArguments.TextCommitted.FindRef(TEXT("committed")).Execute(FText::FromString(TEXT("Charlie")), ETextCommit::OnUserMovedFocus);
     CurrentNumberArguments.NumberCommitted.FindRef(TEXT("committed")).Execute(10.5f, ETextCommit::OnUserMovedFocus);
     CurrentIntegerArguments.IntegerCommitted.FindRef(TEXT("committed")).Execute(13, ETextCommit::OnCleared);
     if (!TestTrue(TEXT("Replacement installs live innermost callbacks for every typed event"), BoolKeys.Last() == TEXT("inner") && !BoolValues.Last()
+        && TextChangedKeys.Last() == TEXT("inner") && TextChangedValues.Last().ToString() == TEXT("Ch")
+        && TextKeys.Last() == TEXT("inner") && TextValues.Last().ToString() == TEXT("Charlie") && TextReasons.Last() == ETextCommit::OnUserMovedFocus
         && NumberKeys.Last() == TEXT("inner") && NumberValues.Last() == 10.5f && NumberReasons.Last() == ETextCommit::OnUserMovedFocus
         && IntegerKeys.Last() == TEXT("inner") && IntegerValues.Last() == 13 && IntegerReasons.Last() == ETextCommit::OnCleared)) { return false; }
 
@@ -1013,11 +1058,17 @@ auto FCkUiRepeat_ItemTypedEvents::RunTest(const FString&) -> bool
     if (!TestTrue(TEXT("Unchanged sibling retains its live nested callback when another sibling changes"), BoolKeys.Num() == BoolCallsBeforeUnchangedSibling + 1
         && BoolKeys.Last() == TEXT("sibling-inner") && !BoolValues.Last())) { return false; }
 
+    const FCkUiCustomWidgetArguments RemovedTextArguments = Probe->Arguments.FindRef(TEXT("repeat-text-event"));
     if (!TestTrue(TEXT("Removing the active parent publishes"), Collection->TrySetRecords({}).Succeeded)
         || !TestTrue(TEXT("Removal refresh succeeds"), Parents->TryRefresh())) { return false; }
-    const int32 CallsBeforeRemoved = BoolKeys.Num();
+    const int32 BoolCallsBeforeRemoved = BoolKeys.Num();
+    const int32 TextChangedCallsBeforeRemoved = TextChangedKeys.Num();
+    const int32 TextCommittedCallsBeforeRemoved = TextKeys.Num();
     CurrentBoolArguments.BoolChanged.FindRef(TEXT("changed")).Execute(true);
-    TestEqual(TEXT("Callbacks held by removed records are inert"), BoolKeys.Num(), CallsBeforeRemoved);
+    RemovedTextArguments.TextChanged.FindRef(TEXT("changed")).Execute(FText::FromString(TEXT("removed")));
+    RemovedTextArguments.TextCommitted.FindRef(TEXT("committed")).Execute(FText::FromString(TEXT("removed")), ETextCommit::OnEnter);
+    TestTrue(TEXT("Callbacks held by removed records are inert"), BoolKeys.Num() == BoolCallsBeforeRemoved
+        && TextChangedKeys.Num() == TextChangedCallsBeforeRemoved && TextKeys.Num() == TextCommittedCallsBeforeRemoved);
 
     const int32 FactoriesBeforeReject = Probe->FactoryCalls;
     auto InvalidData = FCkUiView::FDataBindings{};
@@ -1039,10 +1090,14 @@ auto FCkUiRepeat_ItemTypedEvents::RunTest(const FString&) -> bool
     AliasCollisionData.Collections.Add(TEXT("parents"), Collection);
     AliasCollisionData.ItemActions.Add(TEXT("child-action"), FCkUiOnItemAction::CreateLambda([](const FString) {}));
     AliasCollisionData.ItemBoolChanged.Add(TEXT("toggle"), FCkUiOnItemBoolChanged::CreateLambda([](const FString, const bool) {}));
+    AliasCollisionData.ItemTextChanged.Add(TEXT("text-change"), FCkUiOnItemTextChanged::CreateLambda([](const FString, const FText) {}));
+    AliasCollisionData.ItemTextChanged.Add(TEXT("text-change-b"), FCkUiOnItemTextChanged::CreateLambda([](const FString, const FText) {}));
+    AliasCollisionData.ItemTextCommitted.Add(TEXT("text"), FCkUiOnItemTextCommitted::CreateLambda([](const FString, const FText, const ETextCommit::Type) {}));
+    AliasCollisionData.ItemTextCommitted.Add(TEXT("text-b"), FCkUiOnItemTextCommitted::CreateLambda([](const FString, const FText, const ETextCommit::Type) {}));
     AliasCollisionData.ItemNumberCommitted.Add(TEXT("float"), FCkUiOnItemNumberCommitted::CreateLambda([](const FString, const float, const ETextCommit::Type) {}));
     AliasCollisionData.ItemNumberCommitted.Add(TEXT("float-b"), FCkUiOnItemNumberCommitted::CreateLambda([](const FString, const float, const ETextCommit::Type) {}));
     AliasCollisionData.ItemIntegerCommitted.Add(TEXT("integer"), FCkUiOnItemIntegerCommitted::CreateLambda([](const FString, const int32, const ETextCommit::Type) {}));
-    AliasCollisionData.NumberCommitted.Add(TEXT("@item-number:float-b"), FCkUiOnNumberCommitted::CreateLambda([](const float, const ETextCommit::Type) {}));
+    AliasCollisionData.TextChanged.Add(TEXT("@item-text-changed:text-change-b"), FOnTextChanged::CreateLambda([](const FText&) {}));
     const TSharedRef<FCkUiView> AliasCollisionView = FCkUiView::Create({}, {}, {}, FSlateFontInfo{}, MoveTemp(AliasCollisionData), Registry.CreateSnapshot());
     AliasCollisionView->GetRegion(TEXT("main"));
     const FCkUiLoadResult AliasCollision = AliasCollisionView->TryReload(Markup, TEXT(""), TEXT("UiRepeatItemTypedAliasCollision"));
@@ -1058,11 +1113,17 @@ auto FCkUiRepeat_ItemTypedEvents::RunTest(const FString&) -> bool
     TestEqual(TEXT("Scope rejection invokes no custom factory"), Probe->FactoryCalls, FactoriesBeforeReject);
     if (!TestTrue(TEXT("Owner-release record publishes"), Collection->TrySetRecords({Parent(TEXT("outer"), TEXT("inner"), TEXT("inner"))}).Succeeded)
         || !TestTrue(TEXT("Owner-release repeat refresh succeeds"), Parents->TryRefresh())) { return false; }
-    const FCkUiCustomWidgetArguments ReleasedArguments = Probe->Arguments.FindRef(TEXT("repeat-bool-event"));
-    const int32 CallsBeforeRelease = BoolKeys.Num();
+    const FCkUiCustomWidgetArguments ReleasedBoolArguments = Probe->Arguments.FindRef(TEXT("repeat-bool-event"));
+    const FCkUiCustomWidgetArguments ReleasedTextArguments = Probe->Arguments.FindRef(TEXT("repeat-text-event"));
+    const int32 BoolCallsBeforeRelease = BoolKeys.Num();
+    const int32 TextChangedCallsBeforeRelease = TextChangedKeys.Num();
+    const int32 TextCommittedCallsBeforeRelease = TextKeys.Num();
     View.Reset();
-    ReleasedArguments.BoolChanged.FindRef(TEXT("changed")).Execute(true);
-    TestEqual(TEXT("Owner-released typed item callbacks are inert"), BoolKeys.Num(), CallsBeforeRelease);
+    ReleasedBoolArguments.BoolChanged.FindRef(TEXT("changed")).Execute(true);
+    ReleasedTextArguments.TextChanged.FindRef(TEXT("changed")).Execute(FText::FromString(TEXT("released")));
+    ReleasedTextArguments.TextCommitted.FindRef(TEXT("committed")).Execute(FText::FromString(TEXT("released")), ETextCommit::OnEnter);
+    TestTrue(TEXT("Owner-released typed item callbacks are inert"), BoolKeys.Num() == BoolCallsBeforeRelease
+        && TextChangedKeys.Num() == TextChangedCallsBeforeRelease && TextKeys.Num() == TextCommittedCallsBeforeRelease);
     return true;
 }
 
