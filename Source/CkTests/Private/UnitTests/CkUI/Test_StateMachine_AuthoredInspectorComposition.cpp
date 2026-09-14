@@ -2,13 +2,18 @@
 
 #include "CkCore/Validation/CkIsValid.h"
 #include "CkDebuggerCommon/Settings/CkDebuggerStyleSettings.h"
+#include "CkDebuggerCommon/Widgets/SCkDebug_EventTimeline.h"
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Fragment.h"
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
 #include "CkEcsDebugger/Inspectors/CkInspectorWidgetBuilder.h"
 #include "CkEcsDebugger/Inspectors/CkInspector_StateMachine.h"
 #include "CkEditorTools/Style/CkStyle.h"
+#include "CkSlateLayout/CkFlexText.h"
+#include "CkSlateLayout/SCkUiRepeat.h"
 #include "CkSlateLayout/SCkUiSurface.h"
 #include "CkStateMachine/Debug/CkStateMachine_Debug_Fragment.h"
+#include "CkStateMachine/Debug/CkStateMachine_Debug_Utils.h"
+#include "CkStateMachine/State/CkSmState_Fragment.h"
 #include "CkStateMachine/StateMachine/CkStateMachine_Fragment.h"
 #include "CkStateMachine/StateMachine/CkStateMachine_Utils.h"
 #include "CkTests/Net/CkAutoTest_Sm_Recorder.h"
@@ -28,10 +33,13 @@
 #include "Widgets/Input/SButton.h"
 #include "Widgets/SNullWidget.h"
 #include "Widgets/SWindow.h"
+#include "Widgets/SToolTip.h"
+#include "Widgets/Text/STextBlock.h"
 
 namespace ck_tests_state_machine_authored
 {
     constexpr auto kFlags = EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter;
+    constexpr auto kHistoryTransitionCount = int32{9};
 
     auto FindButton(const TSharedRef<SWidget>& InRoot, const FName InTag) -> TSharedPtr<SButton>
     {
@@ -49,6 +57,73 @@ namespace ck_tests_state_machine_authored
 
     auto TickSlate(FSlateApplication& InSlate) -> void
     { InSlate.PumpMessages(); InSlate.Tick(); InSlate.Tick(); }
+
+    auto FindType(const TSharedRef<SWidget>& InRoot, const FString& InType) -> TSharedPtr<SWidget>
+    {
+        if (InRoot->GetTypeAsString() == InType) { return InRoot; }
+        const auto Children = InRoot->GetChildren();
+        for (auto Index = int32{0}; Children != nullptr && Index < Children->Num(); ++Index)
+        {
+            if (const auto Found = FindType(ConstCastSharedRef<SWidget>(Children->GetChildAt(Index)), InType);
+                Found.IsValid()) { return Found; }
+        }
+        return nullptr;
+    }
+
+    auto CollectText(const TSharedRef<SWidget>& InRoot, TArray<FString>& OutText) -> void
+    {
+        if (InRoot->GetTypeAsString() == TEXT("STextBlock"))
+        { OutText.Add(StaticCastSharedRef<STextBlock>(InRoot)->GetText().ToString()); }
+        else if (InRoot->GetTypeAsString() == TEXT("SCkFlexText"))
+        { OutText.Add(StaticCastSharedRef<SCkFlexText>(InRoot)->GetText().ToString()); }
+        const auto Children = InRoot->GetChildren();
+        for (auto Index = int32{0}; Children != nullptr && Index < Children->Num(); ++Index)
+        { CollectText(ConstCastSharedRef<SWidget>(Children->GetChildAt(Index)), OutText); }
+    }
+
+    // Probe the actual native leaf's public hover/tooltip channel, not a copied event array.
+    // Narrow windows isolate each production timestamp without depending on font-measured gutters
+    // or frame spacing. This is content proof; physical action routing is covered separately below.
+    auto CaptureTimelineTooltips(const TSharedRef<SWidget>& InWidget,
+        const TArray<ck::FCk_SmDebug_HistoryEntry>& InHistory) -> TArray<FString>
+    {
+        auto Result = TArray<FString>{};
+        if (InHistory.Num() < 2 || InWidget->GetTypeAsString() != TEXT("SCkDebug_EventTimeline")) { return Result; }
+        auto MinGap = InHistory[1].RealTimeSeconds - InHistory[0].RealTimeSeconds;
+        for (auto Index = int32{1}; Index < InHistory.Num(); ++Index)
+        { MinGap = FMath::Min(MinGap, InHistory[Index].RealTimeSeconds - InHistory[Index - 1].RealTimeSeconds); }
+        if (MinGap <= 0.0) { return Result; }
+        const auto Timeline = StaticCastSharedRef<SCkDebug_EventTimeline>(InWidget);
+        const auto PreviousStart = Timeline->Get_ViewStart();
+        const auto PreviousDuration = Timeline->Get_ViewDuration();
+        const auto PreviousFollow = Timeline->Get_IsFollowingLive();
+        const auto Geometry = FGeometry::MakeRoot(FVector2D{512.0f, 60.0f}, FSlateLayoutTransform{});
+        const TSet<FKey> NoButtons;
+        for (const auto& Entry : InHistory)
+        {
+            Timeline->Set_View(Entry.RealTimeSeconds - MinGap * 0.25, MinGap * 0.5);
+            auto Hovered = TArray<FString>{};
+            for (auto X = int32{0}; X <= 512; X += 4)
+            {
+                const auto Position = FVector2D{static_cast<double>(X), 30.0};
+                const FPointerEvent Move{0, FSlateApplication::CursorPointerIndex, Position, Position,
+                    NoButtons, EKeys::Invalid, 0.0f, FModifierKeysState{}};
+                InWidget->OnMouseMove(Geometry, Move);
+                if (const auto Tooltip = InWidget->GetToolTip(); Tooltip.IsValid()
+                    && Tooltip->AsWidget()->GetTypeAsString() == TEXT("SToolTip"))
+                {
+                    const auto Text = StaticCastSharedRef<SToolTip>(Tooltip->AsWidget())->GetTextTooltip().ToString();
+                    if (NOT Text.IsEmpty()) { Hovered.AddUnique(Text); }
+                }
+            }
+            // More than one marker in an isolated window is also a content mismatch.
+            Result.Add(FString::Join(Hovered, TEXT(" | ")));
+        }
+        Timeline->Set_View(PreviousStart, PreviousDuration);
+        Timeline->Set_FollowLive(PreviousFollow);
+        InWidget->OnMouseLeave(FPointerEvent{});
+        return Result;
+    }
 
     auto ContainsWidget(const FWidgetPath& InPath, const TSharedRef<SWidget>& InWidget) -> bool
     {
@@ -164,6 +239,25 @@ namespace ck_tests_state_machine_authored
         return Capture.Get_Rows();
     }
 
+    auto HistoryStateClass(const int32 InIndex) -> UClass*
+    {
+        return InIndex % 2 == 0 ? UCk_AutoTest_Sm_RecordingState_B::StaticClass()
+            : UCk_AutoTest_Sm_RecordingState_C::StaticClass();
+    }
+
+    auto HasHistoryOutcome(const FCk_Handle_StateMachine& InSm, UClass* InClass, const int32 InCount) -> bool
+    {
+        if (NOT HasStatus(InSm, ECk_SmRunStatus::Running) || RequestCount(InSm) != 0
+            || InSm.Has<ck::FFragment_Sm_PendingTransition>()
+            || NOT UCk_Utils_StateMachineDebug_UE::Get_IsDebuggerCaptureActive(InSm)) { return false; }
+        const auto State = UCk_Utils_StateMachine_UE::Get_CurrentStateHandle(InSm);
+        return UCk_Utils_StateMachine_UE::Get_CurrentStateClass(InSm) == InClass && ck::IsValid(State)
+            && State.Has<ck::FTag_SmState_Active>()
+            && InSm.Get<ck::FFragment_Sm_Debug>().Get_History().Num() == InCount
+            && (NOT InSm.Has<ck::FFragment_SmDebug_Requests>()
+                || InSm.Get<ck::FFragment_SmDebug_Requests>().Get_Requests().IsEmpty());
+    }
+
     auto BuildAuthored(FAutomationTestBase& InTest, FCkInspector_StateMachine& InInspector,
         const FCk_Handle& InEntity) -> TSharedPtr<SCkInspector_StateMachineAuthored>
     {
@@ -199,6 +293,11 @@ namespace ck_tests_state_machine_authored
         FString HistoryTitle;
         FString HistoryRun;
         FString HistoryEnteredAt;
+        bool PreviousCaptureVisible = false;
+        bool CaptureOverridden = false;
+        bool HistoryReady = false;
+        int32 HistoryInitialRun = 0;
+        int32 HistoryTransitionsCompleted = 0;
 
         auto RestoreStyle() -> void
         {
@@ -209,7 +308,16 @@ namespace ck_tests_state_machine_authored
             }
         }
 
-        ~FScenario() { RestoreStyle(); }
+        auto RestoreCapture() -> void
+        {
+            if (CaptureOverridden)
+            {
+                UCk_Utils_StateMachineDebug_UE::Set_IsDebuggerCaptureVisible(PreviousCaptureVisible);
+                CaptureOverridden = false;
+            }
+        }
+
+        ~FScenario() { RestoreCapture(); RestoreStyle(); }
     };
 
     struct FActionCase final
@@ -437,9 +545,206 @@ bool FCkTest_StateMachine_AuthoredInspectorComposition::RunTest(const FString& P
             })));
     }
 
+    // Start a separate run only after the original routed-action/lifecycle assertions completed.
+    // The debugger's public capture contract owns history; never manufacture debug fragment entries.
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
         [this, Scenario](UWorld*)
         {
+            if (NOT Scenario->UiReady || Scenario->ActionsCompleted != 4) { return; }
+            Scenario->PreviousCaptureVisible = UCk_Utils_StateMachineDebug_UE::Get_IsDebuggerCaptureVisible();
+            Scenario->CaptureOverridden = true;
+            UCk_Utils_StateMachineDebug_UE::Set_IsDebuggerCaptureVisible(true);
+            UCk_Utils_StateMachineDebug_UE::BeginDebuggerCapture(Scenario->Sm);
+            UCk_Utils_StateMachineDebug_UE::NotifyDebugDataConsumed();
+            Scenario->HistoryReady = TestTrue(TEXT("public capture contract admits the fixture machine"),
+                UCk_Utils_StateMachineDebug_UE::Get_IsDebuggerCaptureActive(Scenario->Sm));
+            if (NOT Scenario->HistoryReady) { return; }
+            Scenario->HistoryInitialRun = Scenario->Sm.Get<ck::FFragment_Sm_Debug>().Get_RunCounter();
+            UCk_Utils_StateMachine_UE::Request_Start(Scenario->Sm, {});
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this, FCk_NetAutoTest_Condition::CreateLambda([Scenario]()
+        {
+            UCk_Utils_StateMachineDebug_UE::NotifyDebugDataConsumed();
+            return NOT Scenario->HistoryReady
+                || (HasHistoryOutcome(Scenario->Sm, UCk_AutoTest_Sm_RecordingState_D::StaticClass(), 0)
+                    && Scenario->Sm.Get<ck::FFragment_Sm_Debug>().Get_RunCounter() == Scenario->HistoryInitialRun + 1);
+        }), 10.0, TEXT("history run entered D and the debug poll observed its new run before transitions")));
+
+    for (auto Index = int32{0}; Index < kHistoryTransitionCount; ++Index)
+    {
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+            [this, Scenario, Index](UWorld*)
+            {
+                if (NOT Scenario->HistoryReady) { return; }
+                UCk_Utils_StateMachineDebug_UE::NotifyDebugDataConsumed();
+                const auto PreviousClass = Index == 0 ? UCk_AutoTest_Sm_RecordingState_D::StaticClass()
+                    : HistoryStateClass(Index - 1);
+                Scenario->HistoryReady = TestTrue(TEXT("each history transition starts from the prior committed capture"),
+                    HasHistoryOutcome(Scenario->Sm, PreviousClass, Index)
+                        && Scenario->Sm.Get<ck::FFragment_Sm_Debug>().Get_RunCounter() == Scenario->HistoryInitialRun + 1);
+                if (Scenario->HistoryReady)
+                { UCk_Utils_StateMachine_UE::Request_Transition(Scenario->Sm, HistoryStateClass(Index), {}); }
+            })));
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this, FCk_NetAutoTest_Condition::CreateLambda(
+            [Scenario, Index]()
+            {
+                UCk_Utils_StateMachineDebug_UE::NotifyDebugDataConsumed();
+                return NOT Scenario->HistoryReady || HasHistoryOutcome(Scenario->Sm, HistoryStateClass(Index), Index + 1);
+            }), 10.0, FString::Printf(TEXT("history transition %d entered its target and drained the debug capture request"), Index)));
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+            [this, Scenario, Index](UWorld*)
+            {
+                if (NOT Scenario->HistoryReady) { return; }
+                Scenario->HistoryReady = TestTrue(TEXT("production transition and debug capture both completed"),
+                    HasHistoryOutcome(Scenario->Sm, HistoryStateClass(Index), Index + 1));
+                if (Scenario->HistoryReady) { ++Scenario->HistoryTransitionsCompleted; }
+            })));
+    }
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, Scenario](UWorld*)
+        {
+            TestEqual(TEXT("nine real transitions populate history beyond the eight-row presentation limit"),
+                Scenario->HistoryTransitionsCompleted, kHistoryTransitionCount);
+            if (NOT Scenario->HistoryReady) { return; }
+            const auto& Debug = Scenario->Sm.Get<ck::FFragment_Sm_Debug>();
+            const auto History = Debug.Get_History();
+            if (NOT TestEqual(TEXT("production debug history contains exactly nine committed transitions"),
+                History.Num(), kHistoryTransitionCount)) { return; }
+            for (auto Index = int32{0}; Index < History.Num(); ++Index)
+            {
+                const auto& Entry = History[Index];
+                const auto PreviousClass = Index == 0 ? UCk_AutoTest_Sm_RecordingState_D::StaticClass()
+                    : HistoryStateClass(Index - 1);
+                TestEqual(*FString::Printf(TEXT("history [%d] source is the previous committed state"), Index),
+                    Entry.FromStateClass.Get(), PreviousClass);
+                TestEqual(*FString::Printf(TEXT("history [%d] target is the requested state"), Index),
+                    Entry.ToStateClass.Get(), HistoryStateClass(Index));
+                TestTrue(*FString::Printf(TEXT("history [%d] direct-request metadata has a timestamp and no conditions"), Index),
+                    Entry.RealTimeSeconds > 0.0 && Entry.TransitionConditionNames.IsEmpty());
+                if (Index > 0)
+                {
+                    const auto& Previous = History[Index - 1];
+                    // Capture stores GFrameNumber (scene rendering), not GFrameCounter (engine ticks).
+                    // Completed production transitions may share a render frame; their array order is authoritative.
+                    TestTrue(*FString::Printf(TEXT("history [%d] render frame is nondecreasing: previous=%llu current=%llu"),
+                        Index, Previous.FrameNumber, Entry.FrameNumber), Entry.FrameNumber >= Previous.FrameNumber);
+                    // This fixture issues separate requests and its tooltip probe requires distinct sampled times.
+                    TestTrue(*FString::Printf(TEXT("history [%d] sampled time increases: previous=%.9f current=%.9f"),
+                        Index, Previous.RealTimeSeconds, Entry.RealTimeSeconds), Entry.RealTimeSeconds > Previous.RealTimeSeconds);
+                }
+            }
+            auto HistoryInspector = MakeUnique<FCkInspector_StateMachine>();
+            const auto HistoryAuthored = BuildAuthored(*this, *HistoryInspector, Scenario->Sm);
+            if (NOT HistoryAuthored.IsValid()) { return; }
+            const TWeakPtr<FCkUiView> WeakView = HistoryAuthored->Get_View();
+            TWeakPtr<SWidget> WeakTimeline;
+            {
+                const auto Rows = CaptureRows(*HistoryInspector, Scenario->Sm);
+                const auto View = HistoryAuthored->Get_View();
+                const auto Root = View->GetRegion(TEXT("main"));
+                Root->SlatePrepass(1.0f);
+                const auto Repeat = View->GetRepeat(TEXT("sm-history"));
+                const auto Timeline = FindType(Root, TEXT("SCkDebug_EventTimeline"));
+                WeakTimeline = Timeline;
+                TestTrue(TEXT("populated native history fields match the authored snapshot"),
+                    Rows.Contains(TEXT("Run #:")) && Rows.Contains(TEXT("State Entered At:"))
+                        && Rows.Contains(TEXT("Timeline:")) && HistoryAuthored->Get_Bool(TEXT("debug"))
+                        && HistoryAuthored->Get_Bool(TEXT("history-populated"))
+                        && NOT HistoryAuthored->Get_Bool(TEXT("history-empty"))
+                        && HistoryAuthored->Get_Text(TEXT("run")) == Rows.FindRef(TEXT("Run #:"))
+                        && HistoryAuthored->Get_Text(TEXT("entered-at")) == Rows.FindRef(TEXT("State Entered At:"))
+                        && HistoryAuthored->Get_Text(TEXT("history-title")) == TEXT("History (9)"));
+                if (TestTrue(TEXT("populated authored snapshot materializes repeat and native timeline"),
+                    Repeat.IsValid() && Timeline.IsValid()))
+                {
+                    TestEqual(TEXT("authored repeat contains only the last eight history records"), Repeat->GetItemCount(), 8);
+                    const auto& Entity = Scenario->Sm.Get_Entity();
+                    const auto KeyPrefix = FString::Printf(TEXT("%u:%u:history:%d:"),
+                        static_cast<uint32>(Entity.Get_ID()), static_cast<uint32>(Entity.Get_VersionNumber()), Debug.Get_RunCounter());
+                    TestFalse(TEXT("oldest history key is excluded while its timeline event remains"),
+                        Repeat->GetItemWidget(KeyPrefix + TEXT("0")).IsValid());
+                    auto ExpectedText = TArray<FString>{};
+                    auto Items = TArray<TSharedPtr<SWidget>>{};
+                    for (auto Index = int32{1}; Index < History.Num(); ++Index)
+                    {
+                        const auto Label = FString::Printf(TEXT("[%d]"), Index);
+                        const auto Item = Repeat->GetItemWidget(KeyPrefix + FString::FromInt(Index));
+                        Items.Add(Item);
+                        ExpectedText.Add(Label);
+                        ExpectedText.Add(Rows.FindRef(Label));
+                        if (TestTrue(*FString::Printf(TEXT("stable entity/version/run/index key resolves history %d"), Index),
+                            Item.IsValid() && Rows.Contains(Label)))
+                        {
+                            auto ItemText = TArray<FString>{};
+                            CollectText(Item.ToSharedRef(), ItemText);
+                            TestTrue(TEXT("keyed history label and value equal exact native capture"),
+                                ItemText == TArray<FString>{Label, Rows.FindRef(Label)});
+                        }
+                    }
+                    auto ActualText = TArray<FString>{};
+                    CollectText(Repeat.ToSharedRef(), ActualText);
+                    TestTrue(TEXT("last-eight materialized rows preserve chronological order"), ActualText == ExpectedText);
+                    const auto Tooltips = CaptureTimelineTooltips(Timeline.ToSharedRef(), History);
+                    TestEqual(TEXT("all nine timeline tooltip payloads equal exact native timeline capture"),
+                        TEXT("Transitions ") + FString::Join(Tooltips, TEXT(" ")), Rows.FindRef(TEXT("Timeline:")));
+
+                    const auto Plugin = IPluginManager::Get().FindPlugin(TEXT("CkDebugger"));
+                    FString Markup;
+                    FString Css;
+                    if (TestTrue(TEXT("populated reload resolves production resources"), Plugin.IsValid()))
+                    {
+                        const auto ResourceRoot = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Resources/UI"));
+                        if (TestTrue(TEXT("populated reload reads production HTML and CSS"),
+                            FFileHelper::LoadFileToString(Markup, *FPaths::Combine(ResourceRoot, TEXT("EcsInspectorStateMachine.ui.html")))
+                                && FFileHelper::LoadFileToString(Css, *FPaths::Combine(ResourceRoot, TEXT("EcsInspectorStateMachine.ui.css")))))
+                        {
+                            const auto Revision = View->GetRevision();
+                            const auto Reloaded = View->TryReload(Markup, Css, TEXT("StateMachine populated history compatible reload"));
+                            TestTrue(TEXT("compatible populated reload retains region, repeat, and native timeline identity"),
+                                Reloaded.Succeeded && View->GetRevision() > Revision
+                                    && &View->GetRegion(TEXT("main")).Get() == &Root.Get()
+                                    && View->GetRepeat(TEXT("sm-history")) == Repeat
+                                    && FindType(Root, TEXT("SCkDebug_EventTimeline")) == Timeline);
+                            Root->SlatePrepass(1.0f);
+                            for (auto Index = int32{1}; Index < History.Num(); ++Index)
+                            {
+                                TestTrue(TEXT("compatible reload preserves every keyed history item identity"),
+                                    Repeat->GetItemWidget(KeyPrefix + FString::FromInt(Index)) == Items[Index - 1]);
+                            }
+                            ActualText.Reset();
+                            CollectText(Repeat.ToSharedRef(), ActualText);
+                            TestTrue(TEXT("compatible reload preserves last-eight text and order"), ActualText == ExpectedText);
+                            TestTrue(TEXT("compatible reload preserves all timeline tooltip content"),
+                                CaptureTimelineTooltips(Timeline.ToSharedRef(), History) == Tooltips);
+                        }
+                    }
+                }
+            }
+            // No test-owned strong view/timeline reference survives this scope boundary.
+            HistoryInspector->OnDeactivated();
+            TestTrue(TEXT("populated inspector deactivation makes authored snapshot inert"), HistoryAuthored->Is_Inert());
+            TestFalse(TEXT("populated inspector deactivation releases its view"), WeakView.IsValid());
+            TestFalse(TEXT("populated inspector deactivation releases its native timeline"), WeakTimeline.IsValid());
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [Scenario](UWorld*)
+        {
+            if (Scenario->CaptureOverridden && HasStatus(Scenario->Sm, ECk_SmRunStatus::Running))
+            { UCk_Utils_StateMachine_UE::Request_Stop(Scenario->Sm, {}); }
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this, FCk_NetAutoTest_Condition::CreateLambda([Scenario]()
+        {
+            UCk_Utils_StateMachineDebug_UE::NotifyDebugDataConsumed();
+            return NOT Scenario->CaptureOverridden
+                || (HasStatus(Scenario->Sm, ECk_SmRunStatus::Stopped) && RequestCount(Scenario->Sm) == 0
+                    && UCk_Utils_StateMachine_UE::Get_CurrentStateClass(Scenario->Sm) == nullptr
+                    && ck::Is_NOT_Valid(UCk_Utils_StateMachine_UE::Get_CurrentStateHandle(Scenario->Sm)));
+        }), 10.0, TEXT("history run stopped before existing fail-closed and lifetime checks")));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, Scenario](UWorld*)
+        {
+            Scenario->RestoreCapture();
             TestEqual(TEXT("all four production routed actions completed"), Scenario->ActionsCompleted, 4);
             if (NOT Scenario->UiReady || NOT ck::IsValid(Scenario->Sm)) { return; }
             auto& Slate = FSlateApplication::Get();
@@ -525,16 +830,18 @@ bool FCkTest_StateMachine_AuthoredInspectorComposition::RunTest(const FString& P
             Scenario->EnteredState = {};
             Scenario->Sm = {};
             Scenario->Owner = {};
+            Scenario->RestoreCapture();
             Scenario->RestoreStyle();
             Scenario->ReleasedBeforeEndPIE = TestTrue(TEXT("fixture released all views, window, and entity handles before EndPIE"),
                 NOT Scenario->Window.IsValid() && NOT Scenario->Authored.IsValid() && NOT Scenario->SecondAuthored.IsValid()
-                    && ck::Is_NOT_Valid(Scenario->Owner) && ck::Is_NOT_Valid(Scenario->Sm) && NOT Scenario->StyleOverridden);
+                    && ck::Is_NOT_Valid(Scenario->Owner) && ck::Is_NOT_Valid(Scenario->Sm)
+                    && NOT Scenario->StyleOverridden && NOT Scenario->CaptureOverridden);
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this, FCk_NetAutoTest_Assertion::CreateLambda([Scenario]()
         {
             return Scenario->ReleasedBeforeEndPIE && ck::auto_test::net::Get_AllPIEWorlds().IsEmpty()
-                && NOT Scenario->StyleOverridden && NOT Scenario->Window.IsValid();
+                && NOT Scenario->StyleOverridden && NOT Scenario->CaptureOverridden && NOT Scenario->Window.IsValid();
         }), TEXT("EndPIE completed after StateMachine fixture-owned UI and handle cleanup")));
     return true;
 }
