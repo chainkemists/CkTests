@@ -72,6 +72,7 @@ auto FCkUiTextInput_Runtime::RunTest(const FString&) -> bool
     FString Error;
     bool ReadOnly = false;
     bool Enabled = true;
+    bool DispatchEnabled = true;
     int32 ChangedCalls = 0;
     int32 CommittedCalls = 0;
     int32 CommitReloads = 0;
@@ -83,6 +84,7 @@ auto FCkUiTextInput_Runtime::RunTest(const FString&) -> bool
     Data.Text.Add(TEXT("error"), TAttribute<FText>::CreateLambda([&Error]() { return FText::FromString(Error); }));
     Data.Visibility.Add(TEXT("read-only"), TAttribute<bool>::CreateLambda([&ReadOnly]() { return ReadOnly; }));
     Data.Visibility.Add(TEXT("enabled"), TAttribute<bool>::CreateLambda([&Enabled]() { return Enabled; }));
+    Data.CanDispatchEvents = TAttribute<bool>::CreateLambda([&DispatchEnabled]() { return DispatchEnabled; });
     Data.TextChanged.Add(TEXT("change"), FOnTextChanged::CreateLambda([&ChangedCalls](const FText&) { ++ChangedCalls; }));
     Data.TextCommitted.Add(TEXT("commit"), FOnTextCommitted::CreateLambda([&Value, &Error, &CommittedCalls, &CommitReloads, &CommitReloadSucceeded, &View](const FText& InText, ETextCommit::Type)
     {
@@ -117,6 +119,14 @@ auto FCkUiTextInput_Runtime::RunTest(const FString&) -> bool
     Enabled = true;
     Tick(Slate);
     TestTrue(TEXT("Input returns to enabled editable state"), !Input->IsReadOnly() && Input->IsEnabled());
+    DispatchEnabled = false;
+    Tick(Slate);
+    TestFalse(TEXT("Unavailable owner disables the native text editor"), Input->IsEnabled());
+    Input->SetText(FText::FromString(TEXT("Unavailable")));
+    Tick(Slate);
+    TestEqual(TEXT("Unavailable owner keeps text change callbacks inert"), ChangedCalls, 0);
+    DispatchEnabled = true;
+    Tick(Slate);
     if (!TestTrue(TEXT("Native keyboard enters a rejected draft"), ReplaceText(Slate, Input.ToSharedRef(), TEXT("Rejected")))) { return false; }
     TestTrue(TEXT("Native edit updates local draft and changed callback"), Input->GetText().ToString() == TEXT("Rejected") && ChangedCalls > 0);
     TestTrue(TEXT("Native Enter commits the rejected draft"), Slate.ProcessKeyDownEvent(Key(EKeys::Enter)));

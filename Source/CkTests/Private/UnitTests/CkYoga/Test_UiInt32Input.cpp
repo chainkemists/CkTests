@@ -107,6 +107,7 @@ namespace ck_tests_ui_int32_input
             Data.Integer.Add(TEXT("value"), TAttribute<int32>::CreateLambda([this]() { return Value; }));
             Data.Visibility.Add(TEXT("enabled"), TAttribute<bool>::CreateLambda([this]() { return Enabled; }));
             Data.Visibility.Add(TEXT("readonly"), TAttribute<bool>::CreateLambda([this]() { return ReadOnly; }));
+            Data.CanDispatchEvents = TAttribute<bool>::CreateLambda([this]() { return DispatchEnabled; });
             Data.Text.Add(TEXT("error"), TAttribute<FText>::CreateLambda([this]() { return FText::FromString(Error); }));
             Data.IntegerCommitted.Add(TEXT("commit"), FCkUiOnIntegerCommitted::CreateLambda([this](const int32 InValue, const ETextCommit::Type InReason)
             {
@@ -157,6 +158,7 @@ namespace ck_tests_ui_int32_input
         int32 LastCommitted = INDEX_NONE;
         int32 CommittedCalls = 0;
         bool Enabled = true;
+        bool DispatchEnabled = true;
         bool ReadOnly = false;
         FString Error;
         ETextCommit::Type Reason = ETextCommit::Default;
@@ -286,6 +288,15 @@ auto
     TestEqual(TEXT("Disabled int32 editor emits no commit"), Fixture.CommittedCalls, BeforeReadOnly);
 
     Fixture.Enabled = true;
+    Fixture.DispatchEnabled = false;
+    Tick(Fixture.Slate);
+    TestFalse(TEXT("Unavailable owner disables native int32 editor"), Fixture.Input->IsEnabled());
+    Fixture.Input->SetText(FText::FromString(TEXT("29")));
+    Fixture.Slate.ProcessKeyDownEvent(Key(EKeys::Enter));
+    Tick(Fixture.Slate);
+    TestEqual(TEXT("Unavailable owner keeps int32 commit inert"), Fixture.CommittedCalls, BeforeReadOnly);
+
+    Fixture.DispatchEnabled = true;
     Tick(Fixture.Slate);
     if (!TestTrue(TEXT("Held native editor is live before owner release"), Fixture.Replace(TEXT("31")))) { return false; }
     const int32 BeforeLiveEnter = Fixture.CommittedCalls;
