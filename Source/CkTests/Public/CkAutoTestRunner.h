@@ -73,15 +73,21 @@ private:
         meta = (AllowPrivateAccess = "true"))
     bool _DisableDefaultLogSuppressions = false;
 
-    // Regex / substring patterns matching LogError/LogWarning lines this test
-    // is expected to emit (e.g. a Pathfinding_Failure test deliberately
+    // Plain substring patterns (NOT regex) matching LogError/LogWarning lines this
+    // test is expected to emit (e.g. a Pathfinding_Failure test deliberately
     // triggers a path projection error). Each entry is registered via
     // AddExpectedErrorPlain(Contains, Occurrences=-1) in PrepareTest so the
     // automation framework doesn't auto-fail the test on its own deliberate
-    // output. Set in AS via:
-    //   default _ExpectedLogErrors = { "FindPathSync.*projection FAILED" };
+    // output. AS cannot brace-init this array with `default`, so AS tests override
+    // Get_ExpectedLogErrors() on a hand-authored wrapper instead, e.g.
+    //   Out.Add("FindPathSync: [End] projection FAILED");
+    // (Script/CkCrowd/CkAutoTest_Crowd_Pathfinding_Failure.as).
     // These layer ON TOP OF the harness's built-in default noise list (see
     // _DisableDefaultLogSuppressions to opt out of those defaults).
+    // Occurrences=-1 also means a pattern that matches nothing is never reported:
+    // copy the emitted text exactly, and keep it ASCII (AS patterns ship as source)
+    // by making the emitter ASCII or matching an ASCII-only part of the text -
+    // folding only the pattern leaves it silently dead (see AutoTest spec GOTCHA 1).
     UPROPERTY(EditAnywhere, BlueprintReadOnly,
         Category = "Ck|AutoTest",
         meta = (AllowPrivateAccess = "true"))

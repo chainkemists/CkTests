@@ -141,8 +141,16 @@ class UCk_AutoTest_Attribute_IntegerBasic : UCk_AutoTest_Base
    brace-init a `TArray<FString>` via `default`, hence the override). The generator sees the
    conventionally-named class and skips emission — that's the documented opt-out
    (`Plugins/CkFoundation/Source/CkAngelscriptGenerator/AutoTests/CkAutoTestWrapperGenerator.h:17-22`). Exemplar:
-   `Script/CkCrowd/CkAutoTest_Crowd_Pathfinding_Failure.as:78`. Related runner knobs:
+   `Script/CkCrowd/CkAutoTest_Crowd_Pathfinding_Failure.as:87`. Related runner knobs:
    `_DisableDefaultLogSuppressions` (`Source/CkTests/Public/CkAutoTestRunner.h:74`).
+   **A dead pattern is never reported as dead.** Each one is registered as a plain substring with
+   `Occurrences = -1` (`ACk_AutoTestRunner::Install_ExpectedLogErrors`,
+   `Source/CkTests/Private/CkAutoTestRunner.cpp`), so a pattern that matches nothing raises nothing;
+   when the warning it was meant to cover fires, the test fails and the failure reads as that
+   warning. Copy the emitted text exactly, and keep the pattern ASCII - the script ships as source,
+   and BusterBlock's compile check rejects anything else at the pin bump. If the emitted text itself
+   carries a non-ASCII character (an arrow, an em dash), do not fold only the pattern: either make
+   the emitter ASCII too, or match an ASCII-only part of the text.
 6. **Save — the machinery does the rest.** On AS PostCompile (and editor startup),
    CkFoundation's `FCkAutoTestWrapperGenerator` emits `A<Class>_Actor : ACk_AutoTestRunner` into
    `Script/Generated/CkTests_AutoTestActors.as`; then `UCkAutoTestMapPopulator` (CkTestsEditor)
