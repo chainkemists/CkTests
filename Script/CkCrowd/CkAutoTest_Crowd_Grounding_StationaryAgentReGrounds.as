@@ -978,15 +978,11 @@ class ACk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds_Actor : ACk_AutoTest
     // The final phase deliberately elevates one settled agent beyond the projection extent and
     // waits for this exact terminal. The selected settled slot is intentionally not fixed, so the
     // expected warning names its invariant terminal rather than one incidental debug name.
-    // The warning (CkCrowdAgent_OnPathResolved_Processor.cpp) reads
-    // "CrowdAgent [..] PathPending <U+2192> Idle (path failed: ..)". The pattern is a plain substring match,
-    // so it matches the part after the arrow: shipped scripts must stay ASCII, and no other crowd warning
-    // contains "Idle (path failed:".
     UFUNCTION(BlueprintOverride)
     TArray<FString> Get_ExpectedLogErrors() const
     {
         TArray<FString> Out;
-        Out.Add("Idle (path failed: Start Project Failed)");
+        Out.Add("PathPending -> Idle (path failed: Start Project Failed)");
         return Out;
     }
 }
