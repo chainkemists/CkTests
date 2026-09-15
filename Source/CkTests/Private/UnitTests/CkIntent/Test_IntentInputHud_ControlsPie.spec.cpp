@@ -5,6 +5,8 @@
 #include "CkIntentDebugger/Window/SCkIntentDebugger_InputHudControls.h"
 #include "CkInputHudOverlay/Settings/CkInputHud_UserSettings.h"
 #include "CkInputHudOverlay/Subsystem/CkInputHud_Subsystem.h"
+#include "CkInputHudOverlay/Widgets/SCkInputHud_Root.h"
+#include "CkSlateLayout/CkFlexText.h"
 #include "CkSlateLayout/SCkUiSurface.h"
 #include "CkTests/Net/CkNetAutomation_Common.h"
 
@@ -35,6 +37,10 @@ namespace ck_tests_intent_input_hud_controls_pie
     {
         TWeakObjectPtr<ULocalPlayer> Player;
         TWeakObjectPtr<UCk_InputHud_Subsystem> Subsystem;
+        TSharedPtr<SCkInputHud_Root> HeldRootBeforeDisable;
+        TSharedPtr<FCkUiView> HeldViewBeforeDisable;
+        TSharedPtr<SCkInputHud_Root> HeldRootForEndPie;
+        TSharedPtr<SCkFlexText> CollectorSticks;
         TSharedPtr<SCkIntentDebugger_InputHudControls> Controls;
         TSharedPtr<SWindow> Window;
         TMap<FName, FCVarSnapshot> CVars;
@@ -52,6 +58,13 @@ namespace ck_tests_intent_input_hud_controls_pie
         bool bModeChanged = false;
         bool bCornerChanged = false;
         bool bPlacementPublished = false;
+        bool bInitialAuthoredRootMounted = false;
+        bool bCVarDisableReleased = false;
+        bool bCVarReenableCreatedFreshAuthoredRoot = false;
+        bool bCollectorProjectedObservedAnalog = false;
+        bool bPreEndPieCleanupReady = false;
+        bool bEndPieReleaseArmed = false;
+        bool bEndPieReleased = false;
     };
 
     auto GetPlayer(UWorld* InWorld) -> ULocalPlayer*
@@ -168,11 +181,12 @@ namespace ck_tests_intent_input_hud_controls_pie
         return true;
     }
 
-    auto RestoreCVars(const FState& InState) -> bool
+    auto RestoreCVars(const FState& InState, const bool bIncludeMaster = true) -> bool
     {
         bool bRestored = true;
         for (const TPair<FName, FCVarSnapshot>& Pair : InState.CVars)
         {
+            if (!bIncludeMaster && Pair.Key == FName{TEXT("ck.InputOverlay")}) { continue; }
             IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(*Pair.Key.ToString());
             if (CVar == nullptr) { bRestored = false; continue; }
             const auto CurrentPriority = static_cast<EConsoleVariableFlags>(CVar->GetFlags() & ECVF_SetByMask);
@@ -195,6 +209,14 @@ namespace ck_tests_intent_input_hud_controls_pie
     {
         if (IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(InName)) { return CVar->GetInt(); }
         return INDEX_NONE;
+    }
+
+    auto SetCVarInt(const TCHAR* InName, const int32 InValue) -> bool
+    {
+        IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(InName);
+        if (CVar == nullptr) { return false; }
+        CVar->Set(InValue, ECVF_SetByConsole);
+        return CVar->GetInt() == InValue;
     }
 }
 
@@ -232,6 +254,20 @@ bool FCkIntentInputHud_ControlsPie::RunTest(const FString&)
             State->AnchorOffsetX = User->AnchorOffsetX;
             State->AnchorOffsetY = User->AnchorOffsetY;
             State->bSnapshotCaptured = true;
+
+            // The real local-player subsystem owns the viewport Root. Force its normal master-CVar activation
+            // path rather than constructing a test widget, then retain both Root and View across deactivation.
+            // This is deliberately a one-client fixture: it does not claim secondary-player or two-Slate-user
+            // ownership coverage. Nor does it synthesize a key here: a server command has no deterministic
+            // viewport route through the registered Slate preprocessor, so collector-source proof remains open.
+            const bool bMasterEnabled = SetCVarInt(TEXT("ck.InputOverlay"), 1);
+            Tick(FSlateApplication::Get());
+            State->HeldRootBeforeDisable = Subsystem->Get_RootWidget();
+            State->HeldViewBeforeDisable = State->HeldRootBeforeDisable.IsValid()
+                ? State->HeldRootBeforeDisable->Get_AuthoredView() : nullptr;
+            State->bInitialAuthoredRootMounted = bMasterEnabled && State->HeldRootBeforeDisable.IsValid() &&
+                State->HeldViewBeforeDisable.IsValid() && !State->HeldRootBeforeDisable->Get_UsesNativeFallback() &&
+                !State->HeldRootBeforeDisable->Get_IsAuthoredPresentationReleased();
 
             FSlateApplication& Slate = FSlateApplication::Get();
             State->Controls = SNew(SCkIntentDebugger_InputHudControls);
@@ -291,8 +327,46 @@ bool FCkIntentInputHud_ControlsPie::RunTest(const FString&)
                 FMath::IsNearlyEqual(User->AnchorOffsetX, GetCVarFloat(TEXT("ck.InputOverlay.OffsetX"))) &&
                 FMath::IsNearlyEqual(User->AnchorOffsetY, GetCVarFloat(TEXT("ck.InputOverlay.OffsetY"))) &&
                 static_cast<int32>(User->AnchorCorner) == GetCVarInt(TEXT("ck.InputOverlay.Corner"));
+
+            const bool bMasterDisabled = SetCVarInt(TEXT("ck.InputOverlay"), 0);
+            Tick(Slate);
+            State->bCVarDisableReleased = bMasterDisabled && State->HeldRootBeforeDisable.IsValid() &&
+                State->HeldViewBeforeDisable.IsValid() &&
+                State->HeldRootBeforeDisable->Get_IsAuthoredPresentationReleased() &&
+                !State->HeldRootBeforeDisable->Get_AuthoredView().IsValid() &&
+                !State->HeldRootBeforeDisable->Get_Ribbon().IsValid() && !Subsystem->Get_RootWidget().IsValid();
+
+            const bool bMasterReenabled = SetCVarInt(TEXT("ck.InputOverlay"), 1);
+            Tick(Slate);
+            const TSharedPtr<SCkInputHud_Root> FreshRoot = Subsystem->Get_RootWidget();
+            const TSharedPtr<FCkUiView> FreshView = FreshRoot.IsValid() ? FreshRoot->Get_AuthoredView() : nullptr;
+            State->bCVarReenableCreatedFreshAuthoredRoot = bMasterReenabled && FreshRoot.IsValid() &&
+                FreshRoot != State->HeldRootBeforeDisable && FreshView.IsValid() &&
+                !FreshRoot->Get_UsesNativeFallback() && !FreshRoot->Get_IsAuthoredPresentationReleased();
+
+            if (FreshView.IsValid())
+            {
+                const TSharedPtr<SWidget> Sticks = FindTagged(
+                    FreshView->GetRegion(TEXT("main")), TEXT("input-hud-sticks"));
+                if (Sticks.IsValid() && Sticks->GetTypeAsString() == TEXT("SCkFlexText"))
+                { State->CollectorSticks = StaticCastSharedPtr<SCkFlexText>(Sticks); }
+            }
+
+            // The observer is the real application input preprocessor and the subsystem ticker invokes the real
+            // collector on following engine frames. Reading the authored text attribute proves that complete route;
+            // no model mutation or direct collector call is used by this fixture.
+            Slate.ProcessAnalogInputEvent(FAnalogInputEvent{
+                EKeys::Gamepad_LeftX, FModifierKeysState{}, 0, false, 0, 0, 0.75f});
             State->bScenarioRan = true;
         })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForCondition(
+        FCk_NetAutoTest_Condition::CreateLambda([State]() -> bool
+        {
+            State->bCollectorProjectedObservedAnalog = State->CollectorSticks.IsValid() &&
+                State->CollectorSticks->GetText().ToString().Contains(TEXT("L 0.75,0.00"));
+            return State->bCollectorProjectedObservedAnalog;
+        }),
+        5.0f));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
         FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
         {
@@ -306,6 +380,14 @@ bool FCkIntentInputHud_ControlsPie::RunTest(const FString&)
             TestTrue(TEXT("Authored mode and corner actions route through mounted native buttons"),
                 State->bModeChanged && State->bCornerChanged);
             TestTrue(TEXT("Offset and corner CVar callbacks publish the persisted placement"), State->bPlacementPublished);
+            TestTrue(TEXT("The real LocalPlayer subsystem mounts an authored Input HUD Root"),
+                State->bInitialAuthoredRootMounted);
+            TestTrue(TEXT("Master CVar disable releases a held authored Root and view before viewport detachment"),
+                State->bCVarDisableReleased);
+            TestTrue(TEXT("Master CVar re-enable creates a fresh authored Root and view"),
+                State->bCVarReenableCreatedFreshAuthoredRoot);
+            TestTrue(TEXT("The real observer and collector project analog input into authored HUD text"),
+                State->bCollectorProjectedObservedAnalog);
             return true;
         }),
         TEXT("Intent HUD authored controls drive the real PIE LocalPlayer subsystem")));
@@ -319,7 +401,11 @@ bool FCkIntentInputHud_ControlsPie::RunTest(const FString&)
             State->Controls.Reset();
 
             auto* User = UCk_InputHud_UserSettings::Get_Mutable();
-            const bool bCVarsRestored = State->bSnapshotCaptured && RestoreCVars(*State);
+            // Restore every independent value now, but keep the master enabled through EndPIE so teardown always
+            // has a live production Root to release, regardless of the user's incoming overlay mode. The exact
+            // master value and flags are restored after EndPIE, when its UObject callback has been unregistered.
+            const bool bCVarsRestored = State->bSnapshotCaptured && RestoreCVars(*State, false) &&
+                SetCVarInt(TEXT("ck.InputOverlay"), 1);
             bool bPlacementRestored = State->bSnapshotCaptured && User != nullptr;
             if (bPlacementRestored)
             {
@@ -330,16 +416,33 @@ bool FCkIntentInputHud_ControlsPie::RunTest(const FString&)
                     FMath::IsNearlyEqual(User->AnchorOffsetX, State->AnchorOffsetX) &&
                     FMath::IsNearlyEqual(User->AnchorOffsetY, State->AnchorOffsetY);
             }
-            State->bRestored = bCVarsRestored && bPlacementRestored;
+            State->bPreEndPieCleanupReady = bCVarsRestored && bPlacementRestored;
+
+            State->HeldRootForEndPie = State->Subsystem.IsValid() ? State->Subsystem->Get_RootWidget() : nullptr;
+            State->bEndPieReleaseArmed = State->HeldRootForEndPie.IsValid() &&
+                State->HeldRootForEndPie->Get_AuthoredView().IsValid();
         }));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
         FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
         {
-            TestTrue(TEXT("PIE fixture restores CVar values, precedence, and user placement before teardown"), State->bRestored);
+            TestTrue(TEXT("PIE fixture restores non-master CVars and user placement before deterministic teardown"),
+                State->bPreEndPieCleanupReady);
             return true;
         }),
         TEXT("Intent HUD PIE fixture restores global and persisted state")));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
+        FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
+        {
+            State->bEndPieReleased = State->bEndPieReleaseArmed && State->HeldRootForEndPie.IsValid() &&
+                State->HeldRootForEndPie->Get_IsAuthoredPresentationReleased() &&
+                !State->HeldRootForEndPie->Get_AuthoredView().IsValid() && !State->HeldRootForEndPie->Get_Ribbon().IsValid();
+            State->bRestored = State->bSnapshotCaptured && RestoreCVars(*State);
+            TestTrue(TEXT("EndPIE releases the held real Input HUD Root authored view and Ribbon"), State->bEndPieReleased);
+            TestTrue(TEXT("PIE fixture restores the exact master CVar value and flags after teardown"), State->bRestored);
+            return true;
+        }),
+        TEXT("Intent HUD EndPIE releases held authored presentation")));
     return true;
 }
 
