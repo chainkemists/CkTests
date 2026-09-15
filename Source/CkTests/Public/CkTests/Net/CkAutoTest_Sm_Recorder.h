@@ -32,6 +32,7 @@ enum class ECk_AutoTest_Sm_EventKind : uint8
 {
     EnterState,
     ExitState,
+    DoExitState,
     EnterTask,
     ExitTask
 };
@@ -69,12 +70,14 @@ class CKTESTS_API UCk_AutoTest_Sm_RecorderSubsystem : public UWorldSubsystem
     GENERATED_BODY()
 
 public:
-    auto
+    UFUNCTION(BlueprintCallable,
+        Category = "Ck|Tests|StateMachine")
+    void
     RecordEvent(
         TSubclassOf<UCk_SmState_EntityScript> InStateClass,
         ECk_AutoTest_Sm_EventKind InKind,
         ECk_Sm_NetContext InNetContext,
-        FName InTaskTag = NAME_None) -> void;
+        FName InTaskTag = NAME_None);
 
     auto
     Reset() -> void;

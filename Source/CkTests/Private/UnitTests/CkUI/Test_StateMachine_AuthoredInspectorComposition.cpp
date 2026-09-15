@@ -2,6 +2,8 @@
 
 #include "CkCore/Validation/CkIsValid.h"
 #include "CkDebuggerCommon/Settings/CkDebuggerStyleSettings.h"
+#include "CkDebuggerCommon/Navigation/CkDebug_SelectionSync.h"
+#include "CkDebuggerCommon/Widgets/SCkDebug_EntityRef.h"
 #include "CkDebuggerCommon/Widgets/SCkDebug_EventTimeline.h"
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Fragment.h"
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
@@ -16,13 +18,18 @@
 #include "CkStateMachine/State/CkSmState_Fragment.h"
 #include "CkStateMachine/StateMachine/CkStateMachine_Fragment.h"
 #include "CkStateMachine/StateMachine/CkStateMachine_Utils.h"
+#include "CkStateMachine/Condition/CkSmCondition_Fragment.h"
+#include "CkStateMachine/Task/CkSmTask_Fragment.h"
+#include "CkStateMachine/Transition/CkSmTransition_Fragment.h"
 #include "CkTests/Net/CkAutoTest_Sm_Recorder.h"
 #include "CkTests/Net/CkAutoTest_Sm_RecordingState.h"
 #include "CkTests/Net/CkNetAutomation_Common.h"
 
 #include "Engine/World.h"
 #include "Framework/Application/SlateApplication.h"
+#include "Framework/Docking/TabManager.h"
 #include "Input/Events.h"
+#include "Input/HittestGrid.h"
 #include "InputCoreTypes.h"
 #include "Interfaces/IPluginManager.h"
 #include "Layout/WidgetPath.h"
@@ -30,6 +37,8 @@
 #include "Misc/AutomationTest.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "UObject/SoftObjectPath.h"
+#include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/SNullWidget.h"
 #include "Widgets/SWindow.h"
@@ -99,9 +108,12 @@ namespace ck_tests_state_machine_authored
         const auto PreviousFollow = Timeline->Get_IsFollowingLive();
         const auto Geometry = FGeometry::MakeRoot(FVector2D{512.0f, 60.0f}, FSlateLayoutTransform{});
         const TSet<FKey> NoButtons;
-        for (const auto& Entry : InHistory)
+        for (auto EntryIndex = int32{0}; EntryIndex < InHistory.Num(); ++EntryIndex)
         {
-            Timeline->Set_View(Entry.RealTimeSeconds - MinGap * 0.25, MinGap * 0.5);
+            const auto& Entry = InHistory[EntryIndex];
+            const auto IsFinalEntry = EntryIndex == InHistory.Num() - 1;
+            Timeline->Set_View(IsFinalEntry ? 0.0 : Entry.RealTimeSeconds - MinGap * 0.25,
+                IsFinalEntry ? 0.0 : MinGap * 0.5);
             auto Hovered = TArray<FString>{};
             for (auto X = int32{0}; X <= 512; X += 4)
             {
@@ -113,10 +125,14 @@ namespace ck_tests_state_machine_authored
                     && Tooltip->AsWidget()->GetTypeAsString() == TEXT("SToolTip"))
                 {
                     const auto Text = StaticCastSharedRef<SToolTip>(Tooltip->AsWidget())->GetTextTooltip().ToString();
-                    if (NOT Text.IsEmpty()) { Hovered.AddUnique(Text); }
+                    if (NOT Text.IsEmpty() && (NOT IsFinalEntry
+                        || Text.StartsWith(FString::Printf(TEXT("[%d] "), EntryIndex))))
+                    { Hovered.AddUnique(Text); }
                 }
             }
-            // More than one marker in an isolated window is also a content mismatch.
+            // The final event is probed in the full view because a micro-window clamps it to the right edge,
+            // where floating cancellation can cull it. Its index prefix isolates that marker from earlier ones.
+            // More than one marker in every other isolated window is also a content mismatch.
             Result.Add(FString::Join(Hovered, TEXT(" | ")));
         }
         Timeline->Set_View(PreviousStart, PreviousDuration);
@@ -139,19 +155,27 @@ namespace ck_tests_state_machine_authored
         bool NativeWindow = false;
         bool Enabled = false;
         bool Arranged = false;
+        bool Visible = false;
         bool Targeted = false;
+        bool SameWindowTargeted = false;
         bool DownHandled = false;
         bool Captured = false;
         bool TargetedBeforeUp = false;
         bool UpHandled = false;
+        int32 HitPathSize = 0;
+        FString HitRootType;
+        FString HitLeafType;
 
         auto Succeeded() const -> bool
         { return NativeWindow && Enabled && Arranged && Targeted && DownHandled && Captured && TargetedBeforeUp && UpHandled; }
 
         auto Describe() const -> FString
         {
-            return FString::Printf(TEXT("native=%d enabled=%d arranged=%d hit=%d down=%d capture=%d up-hit=%d up=%d"),
-                NativeWindow, Enabled, Arranged, Targeted, DownHandled, Captured, TargetedBeforeUp, UpHandled);
+            return FString::Printf(TEXT("native=%d enabled=%d arranged=%d visible=%d hit=%d same-window=%d "
+                "path=%d root='%s' leaf='%s' down=%d capture=%d up-hit=%d up=%d"),
+                NativeWindow, Enabled, Arranged, Visible, Targeted, SameWindowTargeted,
+                HitPathSize, *HitRootType, *HitLeafType,
+                DownHandled, Captured, TargetedBeforeUp, UpHandled);
         }
     };
 
@@ -165,6 +189,9 @@ namespace ck_tests_state_machine_authored
         if (NOT Result.NativeWindow) { return Result; }
         Window->BringToFront(true);
         TickSlate(InSlate);
+        // A settling tick can open a deferred tooltip over the synthetic cursor. Close it after the final tick,
+        // then redraw without ticking again so the physical move/click sees the production fixture window.
+        InSlate.CloseToolTip();
         InSlate.ReleaseAllPointerCapture(0);
         Result.Enabled = InButton->IsEnabled();
         FWidgetPath WidgetPath;
@@ -191,8 +218,19 @@ namespace ck_tests_state_machine_authored
             Position, Position, NoButtons, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
         InSlate.SetCursorPos(Position);
         InSlate.ProcessMouseMoveEvent(MoveEvent, true);
-        Result.Targeted = ContainsWidget(InSlate.LocateWindowUnderMouse(
-            Position, InSlate.GetInteractiveTopLevelWindows(), false, 0), InButton);
+        InSlate.ForceRedrawWindow(Window.ToSharedRef());
+        Result.Visible = InButton->GetVisibility() == EVisibility::Visible;
+        const auto HitPath = InSlate.LocateWindowUnderMouse(
+            Position, InSlate.GetInteractiveTopLevelWindows(), false, 0);
+        Result.HitPathSize = HitPath.Widgets.Num();
+        if (Result.HitPathSize > 0)
+        {
+            Result.HitRootType = HitPath.Widgets[0].Widget->GetTypeAsString();
+            Result.HitLeafType = HitPath.Widgets.Last().Widget->GetTypeAsString();
+        }
+        Result.Targeted = ContainsWidget(HitPath, InButton);
+        Result.SameWindowTargeted = ContainsWidget(FWidgetPath(Window->GetHittestGrid().GetBubblePath(
+            Position, InSlate.GetCursorRadius(), false, 0)), InButton);
         if (NOT Result.Targeted) { return Result; }
         Result.DownHandled = InSlate.ProcessMouseButtonDownEvent(Window->GetNativeWindow(), DownEvent);
         Result.Captured = InButton->HasMouseCapture();
@@ -201,6 +239,110 @@ namespace ck_tests_state_machine_authored
         Result.UpHandled = InSlate.ProcessMouseButtonUpEvent(UpEvent);
         TickSlate(InSlate);
         return Result;
+    }
+
+    struct FPhysicalPressResult final
+    {
+        bool NativeWindow = false;
+        bool Arranged = false;
+        bool Targeted = false;
+        bool DownHandled = false;
+
+        auto Succeeded() const -> bool
+        { return NativeWindow && Arranged && Targeted && DownHandled; }
+
+        auto Describe() const -> FString
+        {
+            return FString::Printf(TEXT("native=%d arranged=%d hit=%d down=%d"),
+                NativeWindow, Arranged, Targeted, DownHandled);
+        }
+    };
+
+    // Entity references activate on mouse-down rather than the SButton capture/up route.
+    // Keep this on the real native window and hit-test path so the custom-widget adapter,
+    // SCkDebug_EntityRef, navigation slot, and ECS selection model all participate.
+    auto PressDetailed(FSlateApplication& InSlate, const TSharedRef<SWidget>& InWidget) -> FPhysicalPressResult
+    {
+        auto Result = FPhysicalPressResult{};
+        const auto Window = InSlate.FindWidgetWindow(InWidget);
+        Result.NativeWindow = Window.IsValid() && Window->GetNativeWindow().IsValid();
+        if (NOT Result.NativeWindow) { return Result; }
+        Window->BringToFront(true);
+        TickSlate(InSlate);
+        InSlate.CloseToolTip();
+        InSlate.ReleaseAllPointerCapture(0);
+        FWidgetPath WidgetPath;
+        if (NOT InSlate.GeneratePathToWidgetUnchecked(InWidget, WidgetPath, EVisibility::All))
+        { return Result; }
+        TOptional<FGeometry> Geometry;
+        for (int32 Index = 0; Index < WidgetPath.Widgets.Num(); ++Index)
+        {
+            if (WidgetPath.Widgets[Index].Widget == InWidget)
+            { Geometry = WidgetPath.Widgets[Index].Geometry; }
+        }
+        if (NOT Geometry.IsSet()) { return Result; }
+        const auto& ArrangedGeometry = Geometry.GetValue();
+        Result.Arranged = ArrangedGeometry.GetLocalSize().X > 0.0f && ArrangedGeometry.GetLocalSize().Y > 0.0f;
+        if (NOT Result.Arranged) { return Result; }
+        const auto Position = ArrangedGeometry.LocalToAbsolute(ArrangedGeometry.GetLocalSize() * 0.5f);
+        const TSet<FKey> NoButtons;
+        const TSet<FKey> LeftDown{EKeys::LeftMouseButton};
+        const FPointerEvent MoveEvent(0, FSlateApplication::CursorPointerIndex,
+            Position, Position, NoButtons, EKeys::Invalid, 0.0f, FModifierKeysState{});
+        const FPointerEvent DownEvent(0, FSlateApplication::CursorPointerIndex,
+            Position, Position, LeftDown, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
+        const FPointerEvent UpEvent(0, FSlateApplication::CursorPointerIndex,
+            Position, Position, NoButtons, EKeys::LeftMouseButton, 0.0f, FModifierKeysState{});
+        InSlate.SetCursorPos(Position);
+        InSlate.ProcessMouseMoveEvent(MoveEvent, true);
+        InSlate.ForceRedrawWindow(Window.ToSharedRef());
+        Result.Targeted = ContainsWidget(InSlate.LocateWindowUnderMouse(
+            Position, InSlate.GetInteractiveTopLevelWindows(), false, 0), InWidget);
+        if (Result.Targeted)
+        { Result.DownHandled = InSlate.ProcessMouseButtonDownEvent(Window->GetNativeWindow(), DownEvent); }
+        InSlate.ProcessMouseButtonUpEvent(UpEvent);
+        TickSlate(InSlate);
+        return Result;
+    }
+
+    auto HoverInspectorAction(FSlateApplication& InSlate, const TSharedRef<SButton>& InButton) -> bool
+    {
+        const auto Window = InSlate.FindWidgetWindow(InButton);
+        if (NOT Window.IsValid() || NOT Window->GetNativeWindow().IsValid()) { return false; }
+        Window->BringToFront(true);
+        TickSlate(InSlate);
+        InSlate.CloseToolTip();
+        InSlate.ReleaseAllPointerCapture(0);
+
+        auto HoverHost = InButton->GetParentWidget();
+        for (auto Depth = int32{0}; HoverHost.IsValid() && HoverHost->GetTypeAsString() != TEXT("SBox")
+            && Depth < 4; ++Depth)
+        { HoverHost = HoverHost->GetParentWidget(); }
+        if (NOT HoverHost.IsValid() || HoverHost->GetTypeAsString() != TEXT("SBox")) { return false; }
+
+        FWidgetPath WidgetPath;
+        if (NOT InSlate.GeneratePathToWidgetUnchecked(HoverHost.ToSharedRef(), WidgetPath, EVisibility::All))
+        { return false; }
+        TOptional<FGeometry> Geometry;
+        for (int32 Index = 0; Index < WidgetPath.Widgets.Num(); ++Index)
+        {
+            if (&WidgetPath.Widgets[Index].Widget.Get() == HoverHost.Get())
+            { Geometry = WidgetPath.Widgets[Index].Geometry; }
+        }
+        if (NOT Geometry.IsSet()) { return false; }
+        const auto& ArrangedGeometry = Geometry.GetValue();
+        if (ArrangedGeometry.GetLocalSize().X <= 0.0f || ArrangedGeometry.GetLocalSize().Y <= 0.0f)
+        { return false; }
+        const auto Position = ArrangedGeometry.LocalToAbsolute(ArrangedGeometry.GetLocalSize() * 0.5f);
+        const TSet<FKey> NoButtons;
+        const FPointerEvent MoveEvent(0, FSlateApplication::CursorPointerIndex,
+            Position, Position, NoButtons, EKeys::Invalid, 0.0f, FModifierKeysState{});
+        InSlate.SetCursorPos(Position);
+        InSlate.ProcessMouseMoveEvent(MoveEvent, true);
+        InSlate.ForceRedrawWindow(Window.ToSharedRef());
+        return ContainsWidget(InSlate.LocateWindowUnderMouse(
+            Position, InSlate.GetInteractiveTopLevelWindows(), false, 0), HoverHost.ToSharedRef())
+            && InButton->GetVisibility() == EVisibility::Visible;
     }
 
     auto RequestCount(const FCk_Handle& InEntity) -> int32
@@ -256,6 +398,21 @@ namespace ck_tests_state_machine_authored
             && InSm.Get<ck::FFragment_Sm_Debug>().Get_History().Num() == InCount
             && (NOT InSm.Has<ck::FFragment_SmDebug_Requests>()
                 || InSm.Get<ck::FFragment_SmDebug_Requests>().Get_Requests().IsEmpty());
+    }
+
+    auto LoadAsStateClass(const TCHAR* InPath) -> TSubclassOf<UCk_SmState_EntityScript>
+    { return FSoftClassPath{InPath}.TryLoadClass<UCk_SmState_EntityScript>(); }
+
+    auto EventCount(UWorld* InWorld, TSubclassOf<UCk_SmState_EntityScript> InClass,
+        ECk_AutoTest_Sm_EventKind InKind) -> int32
+    {
+        const auto Recorder = InWorld != nullptr
+            ? InWorld->GetSubsystem<UCk_AutoTest_Sm_RecorderSubsystem>() : nullptr;
+        if (Recorder == nullptr) { return 0; }
+        auto Count = int32{0};
+        for (const auto& Event : Recorder->Get_EventsForState(InClass))
+        { Count += Event.Kind == InKind ? 1 : 0; }
+        return Count;
     }
 
     auto BuildAuthored(FAutomationTestBase& InTest, FCkInspector_StateMachine& InInspector,
@@ -327,6 +484,94 @@ namespace ck_tests_state_machine_authored
         ECk_SmRunStatus After;
         ECk_Tone Tone;
     };
+
+    struct FVariantScenario final
+    {
+        TSubclassOf<UCk_SmState_EntityScript> HierarchyClass;
+        TSubclassOf<UCk_SmState_EntityScript> CascadeClass;
+        TSubclassOf<UCk_SmState_EntityScript> OverrideBaseClass;
+        TSubclassOf<UCk_SmState_EntityScript> OverrideReplacementClass;
+        FCk_Handle Owner;
+        FCk_Handle_StateMachine Sm;
+        FCk_Handle_SmState State;
+        FCk_Handle_SmTask Task;
+        FCk_Handle_SmTransition Transition;
+        FCk_Handle_SmCondition Condition;
+        FCk_Handle_StateMachine SubSm;
+        FCk_Handle_SmState SubState;
+        FCk_Handle OverrideOwner;
+        FCk_Handle_StateMachine OverrideSm;
+        FCk_Handle ClientOwner;
+        FCk_Handle_StateMachine ClientSm;
+        FCk_Handle CascadeOwner;
+        FCk_Handle_StateMachine CascadeSm;
+        FCk_Handle_StateMachine StaleSm;
+        TUniquePtr<FCkInspector_StateMachine> Inspector;
+        TSharedPtr<SCkInspector_StateMachineAuthored> Authored;
+        TSharedPtr<SWindow> Window;
+        FVector2D PreviousCursor = FVector2D::ZeroVector;
+        ECkDebugAxis_EditControlStyle PreviousStyle = ECkDebugAxis_EditControlStyle::Inline;
+        bool CursorCaptured = false;
+        bool StyleOverridden = false;
+        bool ServerReady = false;
+        bool TopologyReady = false;
+        bool VariantsAccepted = false;
+        bool OverrideAccepted = false;
+        bool ClientRefusalAccepted = false;
+        bool StopAccepted = false;
+        bool CascadeCreated = false;
+        bool CascadeAccepted = false;
+        bool StaleAccepted = false;
+        bool ReleasedBeforeEndPIE = false;
+        bool EcsDebuggerWasOpen = false;
+        int32 InitialDoExitCount = 0;
+        int32 CascadeInitialDoExitCount = 0;
+
+        auto RestoreStyle() -> void
+        {
+            if (StyleOverridden)
+            {
+                UCkDebuggerStyleSettings::Get_Mutable()->Selection.EditControlStyle = PreviousStyle;
+                StyleOverridden = false;
+            }
+        }
+
+        auto RestoreCursor() -> void
+        {
+            if (CursorCaptured && FSlateApplication::IsInitialized())
+            {
+                FSlateApplication::Get().SetCursorPos(PreviousCursor);
+                CursorCaptured = false;
+            }
+        }
+
+        ~FVariantScenario() { RestoreCursor(); RestoreStyle(); }
+    };
+
+    auto ResolveVariantTopology(FVariantScenario& InScenario) -> bool
+    {
+        if (NOT HasStatus(InScenario.Sm, ECk_SmRunStatus::Running)
+            && NOT HasStatus(InScenario.Sm, ECk_SmRunStatus::Paused))
+        { return false; }
+        InScenario.State = UCk_Utils_StateMachine_UE::Get_CurrentStateHandle(InScenario.Sm);
+        if (ck::Is_NOT_Valid(InScenario.State)) { return false; }
+        const auto Tasks = UCk_Utils_StateMachine_UE::RecordOfSmTasks_Utils::Get_ValidEntries(InScenario.State);
+        const auto Transitions = UCk_Utils_StateMachine_UE::RecordOfSmTransitions_Utils::Get_ValidEntries(InScenario.State);
+        if (Tasks.Num() != 1 || Transitions.Num() != 1) { return false; }
+        InScenario.Task = Tasks[0];
+        InScenario.Transition = Transitions[0];
+        const auto Conditions = UCk_Utils_StateMachine_UE::RecordOfSmConditions_Utils::Get_ValidEntries(InScenario.Transition);
+        if (Conditions.Num() != 1 || NOT InScenario.Task.Has<ck::FFragment_SmTask_SubStateMachine>())
+        { return false; }
+        InScenario.Condition = Conditions[0];
+        InScenario.SubSm = InScenario.Task.Get<ck::FFragment_SmTask_SubStateMachine>().Get_SubStateMachineHandle();
+        if (ck::Is_NOT_Valid(InScenario.SubSm)
+            || (NOT HasStatus(InScenario.SubSm, ECk_SmRunStatus::Running)
+                && NOT HasStatus(InScenario.SubSm, ECk_SmRunStatus::Paused)))
+        { return false; }
+        InScenario.SubState = UCk_Utils_StateMachine_UE::Get_CurrentStateHandle(InScenario.SubSm);
+        return ck::IsValid(InScenario.SubState);
+    }
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkTest_StateMachine_AuthoredInspectorComposition,
@@ -843,6 +1088,454 @@ bool FCkTest_StateMachine_AuthoredInspectorComposition::RunTest(const FString& P
             return Scenario->ReleasedBeforeEndPIE && ck::auto_test::net::Get_AllPIEWorlds().IsEmpty()
                 && NOT Scenario->StyleOverridden && NOT Scenario->CaptureOverridden && NOT Scenario->Window.IsValid();
         }), TEXT("EndPIE completed after StateMachine fixture-owned UI and handle cleanup")));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkTest_StateMachine_AuthoredInspectorVariants,
+    "Ck.UiAuthoring.EcsDebugger.StateMachineInspector.AuthoredVariants", ck_tests_state_machine_authored::kFlags)
+
+bool FCkTest_StateMachine_AuthoredInspectorVariants::RunTest(const FString& Parameters)
+{
+    using namespace ck_tests_state_machine_authored;
+    if (NOT FSlateApplication::IsInitialized() || NOT FApp::CanEverRender())
+    {
+        AddError(TEXT("StateMachine authored variant proof requires initialized Slate and real RHI (--no-nullrhi)."));
+        return false;
+    }
+
+    // The multi-client harness has a documented, pre-existing Iris startup incompatibility. Unreal
+    // forwards its one handled ensure as separate header, blank, condition, message, stack and volatile
+    // callstack records. Allow only that finite record shape: another ensure's header/condition/message
+    // remains an unexpected error, while an extra blank record also breaks the exact blank count.
+    AddExpectedErrorPlain(TEXT("LogOutputDevice: === Handled ensure: ==="),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/1);
+    AddExpectedErrorPlain(TEXT("LogOutputDevice: "),
+        EAutomationExpectedErrorFlags::Exact, /*Occurrences=*/2);
+    AddExpectedErrorPlain(TEXT("LogOutputDevice: Ensure condition failed: false"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/1);
+    AddExpectedErrorPlain(TEXT("LogOutputDevice: Disallowed to write first packet in batch, with Iris this is not good!"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/1);
+    AddExpectedErrorPlain(TEXT("LogOutputDevice: Stack:"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/1);
+    AddExpectedErrorPlain(TEXT("LogOutputDevice: [Callstack]"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
+
+    const auto Scenario = MakeShared<FVariantScenario>();
+    Scenario->HierarchyClass = LoadAsStateClass(TEXT("/Script/Angelscript.Ck_SmTest_Hier_Parent_Engage"));
+    Scenario->CascadeClass = LoadAsStateClass(TEXT("/Script/Angelscript.Ck_SmTest_GraphWalk_SubSmWrapper_State"));
+    Scenario->OverrideBaseClass = LoadAsStateClass(TEXT("/Script/Angelscript.Ck_SmTest_Override_Base"));
+    Scenario->OverrideReplacementClass = LoadAsStateClass(TEXT("/Script/Angelscript.Ck_SmTest_Override_Replacement"));
+    if (Scenario->HierarchyClass == nullptr || Scenario->CascadeClass == nullptr || Scenario->OverrideBaseClass == nullptr
+        || Scenario->OverrideReplacementClass == nullptr)
+    {
+        AddError(FString::Printf(TEXT("StateMachine authored AS fixtures unresolved (hierarchy=%p cascade=%p base=%p replacement=%p)."),
+            Scenario->HierarchyClass.Get(), Scenario->CascadeClass.Get(), Scenario->OverrideBaseClass.Get(),
+            Scenario->OverrideReplacementClass.Get()));
+        return false;
+    }
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(2, TEXT("/Engine/Maps/Entry")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(2, 30.0f));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, Scenario](UWorld* InWorld)
+        {
+            auto DefaultInspector = FCkInspector_StateMachine{};
+            TestFalse(TEXT("default handle is not inspectable"), DefaultInspector.CanInspect(FCk_Handle{}));
+
+            auto InvalidOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld, {});
+            if (TestTrue(TEXT("invalid-initial-class owner created"), ck::IsValid(InvalidOwner)))
+            {
+                // One CK ensure may be observed through both the direct-log and editor-message routes.
+                AddExpectedErrorPlain(TEXT("Invalid initial state class when creating StateMachine"),
+                    EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
+                const auto InvalidSm = UCk_Utils_StateMachine_UE::Add(
+                    InvalidOwner, FCk_Fragment_StateMachine_ParamsData{});
+                TestTrue(TEXT("invalid initial class fails closed without publishing partial StateMachine state"),
+                    ck::Is_NOT_Valid(InvalidSm) && NOT InvalidOwner.Has<ck::FFragment_Sm_Params>()
+                        && NOT InvalidOwner.Has<ck::FFragment_Sm_Current>()
+                        && NOT InvalidOwner.Has<ck::FTag_Sm_RequiresSetup>());
+                UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(InvalidOwner);
+            }
+
+            Scenario->PreviousStyle = UCkDebuggerStyleSettings::Get_Selection().EditControlStyle;
+            Scenario->StyleOverridden = true;
+            UCkDebuggerStyleSettings::Get_Mutable()->Selection.EditControlStyle = ECkDebugAxis_EditControlStyle::Hidden;
+            Scenario->Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld, {});
+            auto Params = FCk_Fragment_StateMachine_ParamsData{Scenario->HierarchyClass};
+            Params.Set_AutoStart(ECk_SmAutoStart::Disabled);
+            Scenario->Sm = UCk_Utils_StateMachine_UE::Add(Scenario->Owner, Params);
+            Scenario->ServerReady = TestTrue(TEXT("hierarchical authored-variant StateMachine composed"),
+                ck::IsValid(Scenario->Owner) && ck::IsValid(Scenario->Sm));
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this, FCk_NetAutoTest_Condition::CreateLambda([Scenario]()
+        {
+            return NOT Scenario->ServerReady || (HasStatus(Scenario->Sm, ECk_SmRunStatus::Stopped)
+                && NOT Scenario->Sm.Has<ck::FTag_Sm_RequiresSetup>() && RequestCount(Scenario->Sm) == 0);
+        }), 10.0, TEXT("hierarchical StateMachine setup settled")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, Scenario](UWorld* InWorld)
+        {
+            if (NOT Scenario->ServerReady) { return; }
+            auto HiddenInspector = MakeUnique<FCkInspector_StateMachine>();
+            const auto Hidden = BuildAuthored(*this, *HiddenInspector, Scenario->Sm);
+            if (Hidden.IsValid())
+            {
+                const auto Root = Hidden->Get_View()->GetRegion(TEXT("main"));
+                TestTrue(TEXT("Hidden style omits the StateMachine control row and action widgets"),
+                    NOT Hidden->Get_Bool(TEXT("controls-visible"))
+                        && NOT FindButton(Root, TEXT("sm-start")).IsValid()
+                        && NOT FindButton(Root, TEXT("sm-stop")).IsValid());
+                Hidden->Release();
+            }
+            HiddenInspector->OnDeactivated();
+
+            UCkDebuggerStyleSettings::Get_Mutable()->Selection.EditControlStyle = ECkDebugAxis_EditControlStyle::OnHover;
+            Scenario->Inspector = MakeUnique<FCkInspector_StateMachine>();
+            Scenario->Authored = BuildAuthored(*this, *Scenario->Inspector, Scenario->Sm);
+            if (NOT Scenario->Authored.IsValid()) { Scenario->ServerReady = false; return; }
+            const auto Start = FindButton(Scenario->Authored->Get_View()->GetRegion(TEXT("main")), TEXT("sm-start"));
+            if (NOT TestTrue(TEXT("OnHover style retains the Start action"),
+                Scenario->Authored->Get_Bool(TEXT("controls-visible")) && Start.IsValid()))
+            { Scenario->ServerReady = false; return; }
+            auto& Slate = FSlateApplication::Get();
+            Scenario->PreviousCursor = Slate.GetCursorPos();
+            Scenario->CursorCaptured = true;
+            Scenario->Window = SNew(SWindow).AutoCenter(EAutoCenter::None).ClientSize(FVector2D{760.0f, 640.0f})
+                .CreateTitleBar(false).HasCloseButton(false)[Scenario->Authored.ToSharedRef()];
+            Slate.AddWindow(Scenario->Window.ToSharedRef(), true);
+            TickSlate(Slate);
+            Scenario->Authored->SlatePrepass(1.0f);
+            const auto AwayPosition = Scenario->Window->GetCachedGeometry().LocalToAbsolute(
+                Scenario->Window->GetCachedGeometry().GetLocalSize() - FVector2D{4.0f, 4.0f});
+            const TSet<FKey> NoButtons;
+            Slate.SetCursorPos(AwayPosition);
+            Slate.ProcessMouseMoveEvent(FPointerEvent(0, FSlateApplication::CursorPointerIndex,
+                AwayPosition, AwayPosition, NoButtons, EKeys::Invalid, 0.0f, FModifierKeysState{}), true);
+            TickSlate(Slate);
+            if (NOT TestEqual(TEXT("OnHover Start is hidden at a controlled non-hover location"),
+                Start->GetVisibility(), EVisibility::Hidden))
+            { Scenario->ServerReady = false; return; }
+            Scenario->InitialDoExitCount = EventCount(InWorld, Scenario->HierarchyClass,
+                ECk_AutoTest_Sm_EventKind::DoExitState);
+            if (NOT TestTrue(TEXT("physical pointer hover reveals the OnHover Start action"),
+                HoverInspectorAction(Slate, Start.ToSharedRef())))
+            { Scenario->ServerReady = false; return; }
+            const auto Click = ClickDetailed(Slate, Start.ToSharedRef());
+            Scenario->ServerReady = TestTrue(*FString::Printf(TEXT("OnHover Start uses physical hover and routed click: %s"),
+                *Click.Describe()), Click.Succeeded());
+            Scenario->ServerReady = TestEqual(TEXT("OnHover Start enqueues exactly one request"),
+                RequestCount(Scenario->Sm), 1) && Scenario->ServerReady;
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this, FCk_NetAutoTest_Condition::CreateLambda([Scenario]()
+        {
+            if (NOT Scenario->ServerReady) { return true; }
+            Scenario->TopologyReady = ResolveVariantTopology(*Scenario);
+            return Scenario->TopologyReady;
+        }), 10.0, TEXT("hierarchical task/transition/condition/Sub-SM topology materialized")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [Scenario](UWorld*)
+        {
+            if (Scenario->TopologyReady)
+            { UCk_Utils_StateMachine_UE::Request_Pause(Scenario->Sm, {}); }
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this, FCk_NetAutoTest_Condition::CreateLambda([Scenario]()
+        {
+            return NOT Scenario->TopologyReady
+                || (HasStatus(Scenario->Sm, ECk_SmRunStatus::Paused) && RequestCount(Scenario->Sm) == 0);
+        }), 10.0, TEXT("hierarchical fixture paused before projection checks")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, Scenario](UWorld* InWorld)
+        {
+            Scenario->TopologyReady = ResolveVariantTopology(*Scenario);
+            if (NOT Scenario->TopologyReady) { return; }
+            auto CheckInspector = MakeUnique<FCkInspector_StateMachine>();
+            const auto StateView = BuildAuthored(*this, *CheckInspector, Scenario->State);
+            if (StateView.IsValid())
+            {
+                const auto Rows = CaptureRows(*CheckInspector, Scenario->State);
+                TestTrue(TEXT("state hierarchy variant equals native class and hierarchy rows"),
+                    StateView->Get_Bool(TEXT("state")) && StateView->Get_Bool(TEXT("state-hierarchy"))
+                        && Rows.Contains(TEXT("Class:")) && Rows.Contains(TEXT("Hierarchy:"))
+                        && StateView->Get_Text(TEXT("state-class")) == Rows.FindRef(TEXT("Class:"))
+                        && StateView->Get_Text(TEXT("state-hierarchy")) == Rows.FindRef(TEXT("Hierarchy:")));
+                StateView->Release();
+            }
+
+            const auto TaskView = BuildAuthored(*this, *CheckInspector, Scenario->Task);
+            if (TaskView.IsValid())
+            {
+                const auto Rows = CaptureRows(*CheckInspector, Scenario->Task);
+                TestTrue(TEXT("task and Sub-SM variants equal native capture"),
+                    TaskView->Get_Bool(TEXT("task")) && TaskView->Get_Bool(TEXT("task-class"))
+                        && TaskView->Get_Bool(TEXT("task-result")) && TaskView->Get_Bool(TEXT("sub-sm"))
+                        && TaskView->Get_Text(TEXT("task-class")) == Rows.FindRef(TEXT("Class:"))
+                        && TaskView->Get_Text(TEXT("task-result")) == Rows.FindRef(TEXT("Result:"))
+                        && TaskView->Get_Text(TEXT("sub-sm-id")) == Rows.FindRef(TEXT("Sub SM:")));
+
+                Scenario->Window->SetContent(TaskView.ToSharedRef());
+                TickSlate(FSlateApplication::Get());
+                TaskView->SlatePrepass(1.0f);
+                const auto EntityRef = FindType(TaskView->Get_View()->GetRegion(TEXT("main")), TEXT("SCkDebug_EntityRef"));
+                if (TestTrue(TEXT("Sub-SM authored variant materializes the real entity reference"), EntityRef.IsValid()))
+                {
+                    Scenario->EcsDebuggerWasOpen = FGlobalTabmanager::Get()->FindExistingLiveTab(
+                        FTabId{TEXT("CkEcsDebugger")}).IsValid();
+                    const auto Press = PressDetailed(FSlateApplication::Get(), EntityRef.ToSharedRef());
+                    TestTrue(*FString::Printf(TEXT("Sub-SM entity reference uses physical mouse-down: %s"),
+                        *Press.Describe()), Press.Succeeded());
+                    TestTrue(TEXT("physical Sub-SM navigation selects the exact child StateMachine in ECS debugger"),
+                        ck::DebugSelectionSync::Get_PrimaryEcsSelection() == FCk_Handle{Scenario->SubSm});
+                }
+                Scenario->Window->SetContent(Scenario->Authored.ToSharedRef());
+                TickSlate(FSlateApplication::Get());
+                TaskView->Release();
+            }
+
+            const auto TransitionView = BuildAuthored(*this, *CheckInspector, Scenario->Transition);
+            if (TransitionView.IsValid())
+            {
+                const auto Rows = CaptureRows(*CheckInspector, Scenario->Transition);
+                TestTrue(TEXT("transition target/result variants equal native capture"),
+                    TransitionView->Get_Bool(TEXT("transition"))
+                        && TransitionView->Get_Bool(TEXT("transition-target"))
+                        && TransitionView->Get_Bool(TEXT("transition-result"))
+                        && TransitionView->Get_Text(TEXT("transition-target")) == Rows.FindRef(TEXT("Target:"))
+                        && TransitionView->Get_Text(TEXT("transition-result")) == Rows.FindRef(TEXT("Result:")));
+                TransitionView->Release();
+            }
+
+            const auto ConditionView = BuildAuthored(*this, *CheckInspector, Scenario->Condition);
+            if (ConditionView.IsValid())
+            {
+                const auto Rows = CaptureRows(*CheckInspector, Scenario->Condition);
+                TestTrue(TEXT("condition class/result variants equal native capture"),
+                    ConditionView->Get_Bool(TEXT("condition"))
+                        && ConditionView->Get_Bool(TEXT("condition-class"))
+                        && ConditionView->Get_Bool(TEXT("condition-result"))
+                        && ConditionView->Get_Text(TEXT("condition-class")) == Rows.FindRef(TEXT("Class:"))
+                        && ConditionView->Get_Text(TEXT("condition-result")) == Rows.FindRef(TEXT("Result:")));
+                ConditionView->Release();
+            }
+
+            const auto SubStateView = BuildAuthored(*this, *CheckInspector, Scenario->SubState);
+            if (SubStateView.IsValid())
+            {
+                const auto Rows = CaptureRows(*CheckInspector, Scenario->SubState);
+                const auto& Hierarchy = Scenario->SubState.Get<ck::FFragment_SmState_Hierarchy>().Get_Hierarchy();
+                TestTrue(TEXT("nested Sub-SM state projects its multi-level hierarchy exactly"),
+                    Hierarchy.Num() >= 2 && SubStateView->Get_Bool(TEXT("state-hierarchy"))
+                        && SubStateView->Get_Text(TEXT("state-hierarchy")) == Rows.FindRef(TEXT("Hierarchy:")));
+                SubStateView->Release();
+            }
+            CheckInspector->OnDeactivated();
+            if (const auto Tab = FGlobalTabmanager::Get()->FindExistingLiveTab(FTabId{TEXT("CkEcsDebugger")});
+                Tab.IsValid() && NOT Scenario->EcsDebuggerWasOpen)
+            { Tab->RequestCloseTab(); }
+            TickSlate(FSlateApplication::Get());
+            Scenario->VariantsAccepted = true;
+
+            auto OverrideParams = FCk_Fragment_StateMachine_ParamsData{Scenario->OverrideBaseClass};
+            OverrideParams.Set_AutoStart(ECk_SmAutoStart::Disabled);
+            Scenario->OverrideOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld, {});
+            Scenario->OverrideSm = UCk_Utils_StateMachine_UE::Add(Scenario->OverrideOwner, OverrideParams);
+            if (TestTrue(TEXT("requested-class override fixture composed"), ck::IsValid(Scenario->OverrideSm)))
+            { UCk_Utils_StateMachine_UE::Request_AddOverrideState(Scenario->OverrideSm, Scenario->OverrideReplacementClass, {}); }
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this, FCk_NetAutoTest_Condition::CreateLambda([Scenario]()
+        {
+            return ck::Is_NOT_Valid(Scenario->OverrideSm)
+                || (HasStatus(Scenario->OverrideSm, ECk_SmRunStatus::Stopped)
+                    && NOT Scenario->OverrideSm.Has<ck::FTag_Sm_RequiresSetup>() && RequestCount(Scenario->OverrideSm) == 0);
+        }), 10.0, TEXT("state override request admitted before start")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [Scenario](UWorld*)
+        {
+            if (ck::IsValid(Scenario->OverrideSm))
+            { UCk_Utils_StateMachine_UE::Request_Start(Scenario->OverrideSm, {}); }
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this, FCk_NetAutoTest_Condition::CreateLambda([Scenario]()
+        {
+            return ck::Is_NOT_Valid(Scenario->OverrideSm)
+                || (HasStatus(Scenario->OverrideSm, ECk_SmRunStatus::Running)
+                    && UCk_Utils_StateMachine_UE::Get_CurrentStateClass(Scenario->OverrideSm)
+                        == Scenario->OverrideReplacementClass
+                    && RequestCount(Scenario->OverrideSm) == 0);
+        }), 10.0, TEXT("requested state resolved through production override")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, Scenario](UWorld*)
+        {
+            if (ck::Is_NOT_Valid(Scenario->OverrideSm)) { return; }
+            const auto OverrideState = UCk_Utils_StateMachine_UE::Get_CurrentStateHandle(Scenario->OverrideSm);
+            auto OverrideInspector = MakeUnique<FCkInspector_StateMachine>();
+            const auto OverrideView = BuildAuthored(*this, *OverrideInspector, OverrideState);
+            if (OverrideView.IsValid())
+            {
+                const auto Rows = CaptureRows(*OverrideInspector, OverrideState);
+                Scenario->OverrideAccepted = TestTrue(TEXT("requested-class variant exposes requested and resolved classes with native parity"),
+                    OverrideView->Get_Bool(TEXT("state-requested")) && Rows.Contains(TEXT("Requested:"))
+                        && OverrideView->Get_Text(TEXT("state-requested")) == Rows.FindRef(TEXT("Requested:"))
+                        && OverrideView->Get_Text(TEXT("state-class")) == Rows.FindRef(TEXT("Class:")));
+                OverrideView->Release();
+            }
+            OverrideInspector->OnDeactivated();
+        })));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnClient(0, FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, Scenario](UWorld* InWorld)
+        {
+            UCkDebuggerStyleSettings::Get_Mutable()->Selection.EditControlStyle = ECkDebugAxis_EditControlStyle::Inline;
+            Scenario->ClientOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld, {});
+            auto Params = FCk_Fragment_StateMachine_ParamsData{Scenario->HierarchyClass};
+            Params.Set_AutoStart(ECk_SmAutoStart::Disabled);
+            Scenario->ClientSm = UCk_Utils_StateMachine_UE::Add(Scenario->ClientOwner, Params);
+            auto ClientInspector = MakeUnique<FCkInspector_StateMachine>();
+            const auto ClientView = BuildAuthored(*this, *ClientInspector, Scenario->ClientSm);
+            if (ClientView.IsValid())
+            {
+                auto& Slate = FSlateApplication::Get();
+                const auto ClientWindow = SNew(SWindow).AutoCenter(EAutoCenter::None).ClientSize(FVector2D{520.0f, 320.0f})
+                    .CreateTitleBar(false).HasCloseButton(false)[ClientView.ToSharedRef()];
+                Slate.AddWindow(ClientWindow, true);
+                TickSlate(Slate);
+                const auto Start = FindButton(ClientView->Get_View()->GetRegion(TEXT("main")), TEXT("sm-start"));
+                const auto Before = RequestCount(Scenario->ClientSm);
+                auto Click = FPhysicalClickResult{};
+                if (TestTrue(TEXT("client refusal fixture exposes the production Start action"), Start.IsValid()))
+                { Click = ClickDetailed(Slate, Start.ToSharedRef()); }
+                Scenario->ClientRefusalAccepted = TestTrue(TEXT("client-world authority refusal disables physical dispatch with a reason"),
+                    NOT ClientView->Get_CanRequest() && NOT ClientView->Get_RequestDisabledReason().IsEmpty()
+                        && NOT Click.Succeeded() && NOT Click.Enabled && RequestCount(Scenario->ClientSm) == Before
+                        && HasStatus(Scenario->ClientSm, ECk_SmRunStatus::Stopped));
+                ClientWindow->SetContent(SNullWidget::NullWidget);
+                Slate.DestroyWindowImmediately(ClientWindow);
+                ClientView->Release();
+            }
+            ClientInspector->OnDeactivated();
+            if (ck::IsValid(Scenario->ClientOwner))
+            { UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(Scenario->ClientOwner); }
+            Scenario->ClientSm = {};
+            Scenario->ClientOwner = {};
+            UCkDebuggerStyleSettings::Get_Mutable()->Selection.EditControlStyle =
+                ECkDebugAxis_EditControlStyle::OnHover;
+        })));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, Scenario](UWorld*)
+        {
+            if (NOT Scenario->VariantsAccepted || NOT Scenario->Authored.IsValid()) { return; }
+            Scenario->Window->SetContent(Scenario->Authored.ToSharedRef());
+            TickSlate(FSlateApplication::Get());
+            const auto Stop = FindButton(Scenario->Authored->Get_View()->GetRegion(TEXT("main")), TEXT("sm-stop"));
+            if (NOT TestTrue(TEXT("OnHover Stop remains available while paused"), Stop.IsValid())) { return; }
+            if (NOT TestTrue(TEXT("physical pointer hover reveals the OnHover Stop action"),
+                HoverInspectorAction(FSlateApplication::Get(), Stop.ToSharedRef())))
+            { return; }
+            const auto Click = ClickDetailed(FSlateApplication::Get(), Stop.ToSharedRef());
+            TestTrue(*FString::Printf(TEXT("OnHover Stop uses physical hover and routed click: %s"),
+                *Click.Describe()), Click.Succeeded());
+            TestEqual(TEXT("OnHover Stop enqueues exactly one request"), RequestCount(Scenario->Sm), 1);
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this, FCk_NetAutoTest_Condition::CreateLambda([Scenario]()
+        {
+            auto* World = ck::auto_test::net::Get_ServerWorld();
+            return NOT Scenario->VariantsAccepted || (HasStatus(Scenario->Sm, ECk_SmRunStatus::Stopped)
+                && RequestCount(Scenario->Sm) == 0
+                && EventCount(World, Scenario->HierarchyClass, ECk_AutoTest_Sm_EventKind::DoExitState)
+                    == Scenario->InitialDoExitCount + 1);
+        }), 10.0, TEXT("physical Stop invoked the authored DoExitState event once")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, Scenario](UWorld* InWorld)
+        {
+            Scenario->StopAccepted = TestEqual(TEXT("physical Stop invokes DoExitState exactly once"),
+                EventCount(InWorld, Scenario->HierarchyClass, ECk_AutoTest_Sm_EventKind::DoExitState),
+                Scenario->InitialDoExitCount + 1);
+            if (Scenario->Inspector.IsValid()) { Scenario->Inspector->OnDeactivated(); }
+            if (Scenario->Window.IsValid())
+            {
+                Scenario->Window->SetContent(SNullWidget::NullWidget);
+                FSlateApplication::Get().DestroyWindowImmediately(Scenario->Window.ToSharedRef());
+            }
+            Scenario->Window.Reset();
+            Scenario->Authored.Reset();
+            Scenario->Inspector.Reset();
+            Scenario->RestoreCursor();
+            Scenario->StaleSm = Scenario->Sm;
+            Scenario->CascadeInitialDoExitCount = EventCount(InWorld, Scenario->CascadeClass,
+                ECk_AutoTest_Sm_EventKind::DoExitState);
+            Scenario->CascadeOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld, {});
+            Scenario->CascadeSm = UCk_Utils_StateMachine_UE::Add(Scenario->CascadeOwner,
+                FCk_Fragment_StateMachine_ParamsData{Scenario->CascadeClass});
+            Scenario->CascadeCreated = TestTrue(TEXT("active-destruction StateMachine composed"),
+                ck::IsValid(Scenario->CascadeOwner) && ck::IsValid(Scenario->CascadeSm));
+            if (ck::IsValid(Scenario->OverrideOwner))
+            { UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(Scenario->OverrideOwner); }
+            if (ck::IsValid(Scenario->Owner))
+            { UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(Scenario->Owner); }
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this, FCk_NetAutoTest_Condition::CreateLambda([Scenario]()
+        {
+            return NOT Scenario->CascadeCreated || (ck::Is_NOT_Valid(Scenario->StaleSm)
+                && ck::Is_NOT_Valid(Scenario->OverrideSm)
+                && HasStatus(Scenario->CascadeSm, ECk_SmRunStatus::Running)
+                && ck::IsValid(UCk_Utils_StateMachine_UE::Get_CurrentStateHandle(Scenario->CascadeSm)));
+        }), 10.0, TEXT("stopped owners tore down and active-destruction StateMachine started")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, Scenario](UWorld*)
+        {
+            if (NOT Scenario->CascadeCreated) { return; }
+            const auto ActiveState = UCk_Utils_StateMachine_UE::Get_CurrentStateHandle(Scenario->CascadeSm);
+            if (TestTrue(TEXT("direct owner destruction begins with a genuinely active state"),
+                ck::IsValid(ActiveState) && ActiveState.Has<ck::FTag_SmState_Active>()))
+            { UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(Scenario->CascadeOwner); }
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this, FCk_NetAutoTest_Condition::CreateLambda([Scenario]()
+        {
+            auto* World = ck::auto_test::net::Get_ServerWorld();
+            return NOT Scenario->CascadeCreated || (ck::Is_NOT_Valid(Scenario->CascadeSm)
+                && EventCount(World, Scenario->CascadeClass, ECk_AutoTest_Sm_EventKind::DoExitState)
+                    == Scenario->CascadeInitialDoExitCount + 1);
+        }), 10.0, TEXT("active owner destruction invoked DoExitState once")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(2));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, Scenario](UWorld* InWorld)
+        {
+            auto StaleInspector = FCkInspector_StateMachine{};
+            Scenario->StaleAccepted = TestTrue(TEXT("stale StateMachine handle is rejected after physical teardown"),
+                ck::Is_NOT_Valid(Scenario->StaleSm) && NOT StaleInspector.CanInspect(Scenario->StaleSm));
+            Scenario->StaleAccepted = TestEqual(TEXT("owner teardown does not invoke DoExitState a second time"),
+                EventCount(InWorld, Scenario->HierarchyClass, ECk_AutoTest_Sm_EventKind::DoExitState),
+                Scenario->InitialDoExitCount + 1) && Scenario->StaleAccepted;
+            Scenario->CascadeAccepted = TestEqual(TEXT("active owner teardown invokes DoExitState exactly once"),
+                EventCount(InWorld, Scenario->CascadeClass, ECk_AutoTest_Sm_EventKind::DoExitState),
+                Scenario->CascadeInitialDoExitCount + 1);
+
+            Scenario->RestoreStyle();
+            Scenario->State = {};
+            Scenario->Task = {};
+            Scenario->Transition = {};
+            Scenario->Condition = {};
+            Scenario->SubState = {};
+            Scenario->SubSm = {};
+            Scenario->Sm = {};
+            Scenario->Owner = {};
+            Scenario->OverrideSm = {};
+            Scenario->OverrideOwner = {};
+            Scenario->CascadeSm = {};
+            Scenario->CascadeOwner = {};
+            Scenario->StaleSm = {};
+            Scenario->ReleasedBeforeEndPIE = TestTrue(TEXT("variant fixture releases UI and handles before EndPIE"),
+                Scenario->VariantsAccepted && Scenario->OverrideAccepted && Scenario->ClientRefusalAccepted
+                    && Scenario->StopAccepted && Scenario->CascadeAccepted && Scenario->StaleAccepted
+                    && NOT Scenario->StyleOverridden
+                    && NOT Scenario->Window.IsValid() && NOT Scenario->Authored.IsValid()
+                    && NOT Scenario->Inspector.IsValid());
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this, FCk_NetAutoTest_Assertion::CreateLambda([Scenario]()
+        {
+            return Scenario->ReleasedBeforeEndPIE && ck::auto_test::net::Get_AllPIEWorlds().IsEmpty()
+                && NOT Scenario->StyleOverridden && NOT Scenario->Window.IsValid();
+        }), TEXT("EndPIE completed after StateMachine variant acceptance teardown")));
     return true;
 }
 

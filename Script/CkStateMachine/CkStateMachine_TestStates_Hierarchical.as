@@ -299,6 +299,13 @@ class UCk_SmTest_Hier_Parent_Engage : UCk_SmState_EntityScript
     {
         auto _CkPerfScope = ck::ScopedStat();
         ck::Trace("[Parent SM] Exiting Engage (Combat SM destroyed)", n"SmHier", 2.0f);
+
+        auto Recorder = UCk_AutoTest_Sm_RecorderSubsystem::Get();
+        if (ck::IsValid(Recorder))
+        {
+            Recorder.RecordEvent(UCk_SmTest_Hier_Parent_Engage,
+                ECk_AutoTest_Sm_EventKind::DoExitState, InNetContext);
+        }
     }
 };
 

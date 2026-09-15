@@ -475,7 +475,15 @@ class UCk_SmTest_GraphWalk_SubSmWrapper_State : UCk_SmState_EntityScript
     void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
+    {
+        auto Recorder = UCk_AutoTest_Sm_RecorderSubsystem::Get();
+        if (ck::IsValid(Recorder))
+        {
+            Recorder.RecordEvent(UCk_SmTest_GraphWalk_SubSmWrapper_State,
+                ECk_AutoTest_Sm_EventKind::DoExitState, InNetContext);
+        }
+    }
 };
 
 // ============================================================================
