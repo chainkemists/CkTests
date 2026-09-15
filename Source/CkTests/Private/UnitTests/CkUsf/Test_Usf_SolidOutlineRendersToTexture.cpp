@@ -32,13 +32,13 @@
 
 namespace ck_test_usf_outline_render
 {
-    constexpr auto kRtSize = 256;
+    constexpr auto kOutlineRtSize = 256;
 
     struct FRedBlob
     {
         int32 Area = 0;
-        int32 MinX = kRtSize;
-        int32 MinY = kRtSize;
+        int32 MinX = kOutlineRtSize;
+        int32 MinY = kOutlineRtSize;
         int32 MaxX = -1;
         int32 MaxY = -1;
 
@@ -48,10 +48,10 @@ namespace ck_test_usf_outline_render
     auto NonBlackBounds(const TArray<FColor>& InPixels) -> FRedBlob
     {
         auto Result = FRedBlob{};
-        for (auto Y = 0; Y < kRtSize; ++Y)
-        for (auto X = 0; X < kRtSize; ++X)
+        for (auto Y = 0; Y < kOutlineRtSize; ++Y)
+        for (auto X = 0; X < kOutlineRtSize; ++X)
         {
-            const auto& Pixel = InPixels[Y * kRtSize + X];
+            const auto& Pixel = InPixels[Y * kOutlineRtSize + X];
             if (Pixel.R == 0 && Pixel.G == 0 && Pixel.B == 0) { continue; }
             ++Result.Area;
             Result.MinX = FMath::Min(Result.MinX, X);
@@ -82,14 +82,14 @@ namespace ck_test_usf_outline_render
         auto Seen = TBitArray<>{false, InPixels.Num()};
         const auto IsRedAt = [&](int32 InX, int32 InY)
         {
-            return InX >= 0 && InX < kRtSize && InY >= 0 && InY < kRtSize &&
-                   Is_OpaqueOutlineRed(InPixels[InY * kRtSize + InX]);
+            return InX >= 0 && InX < kOutlineRtSize && InY >= 0 && InY < kOutlineRtSize &&
+                   Is_OpaqueOutlineRed(InPixels[InY * kOutlineRtSize + InX]);
         };
 
-        for (auto Y = 0; Y < kRtSize; ++Y)
-        for (auto X = 0; X < kRtSize; ++X)
+        for (auto Y = 0; Y < kOutlineRtSize; ++Y)
+        for (auto X = 0; X < kOutlineRtSize; ++X)
         {
-            const auto First = Y * kRtSize + X;
+            const auto First = Y * kOutlineRtSize + X;
             if (Seen[First] || IsRedAt(X, Y) == false) { continue; }
 
             auto Queue = TArray<FIntPoint>{FIntPoint{X, Y}};
@@ -109,7 +109,7 @@ namespace ck_test_usf_outline_render
                     const auto NX = P.X + DX;
                     const auto NY = P.Y + DY;
                     if (DX == 0 && DY == 0 || IsRedAt(NX, NY) == false) { continue; }
-                    const auto Next = NY * kRtSize + NX;
+                    const auto Next = NY * kOutlineRtSize + NX;
                     if (Seen[Next] == false)
                     {
                         Seen[Next] = true;
@@ -143,7 +143,7 @@ namespace ck_test_usf_outline_render
         IFileManager::Get().MakeDirectory(*Dir, true);
         const auto Path = FPaths::Combine(Dir, FString(InName) + TEXT(".png"));
         auto CompressedPng = TArray64<uint8>{};
-        FImageUtils::PNGCompressImageArray(kRtSize, kRtSize,
+        FImageUtils::PNGCompressImageArray(kOutlineRtSize, kOutlineRtSize,
             TArrayView64<const FColor>{InPixels.GetData(), InPixels.Num()}, CompressedPng);
         auto Png = TArray<uint8>{};
         Png.Append(CompressedPng.GetData(), CompressedPng.Num());
@@ -243,7 +243,7 @@ bool FCkTest_Usf_SolidOutlineRendersToTexture::RunTest(const FString& Parameters
     auto* Rt = NewObject<UTextureRenderTarget2D>(GetTransientPackage());
     Rt->RenderTargetFormat = ETextureRenderTargetFormat::RTF_RGBA8;
     Rt->ClearColor = FLinearColor::Black;
-    Rt->InitAutoFormat(kRtSize, kRtSize);
+    Rt->InitAutoFormat(kOutlineRtSize, kOutlineRtSize);
     Rt->UpdateResourceImmediate(true);
     if (TestNotNull(TEXT("RGBA render target resource exists"), Rt->GameThread_GetRenderTargetResource()) == false)
     { return false; }
@@ -255,7 +255,7 @@ bool FCkTest_Usf_SolidOutlineRendersToTexture::RunTest(const FString& Parameters
     Capture->TextureTarget = Rt;
     Capture->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
     Capture->ProjectionType = ECameraProjectionMode::Orthographic;
-    Capture->OrthoWidth = static_cast<float>(kRtSize);
+    Capture->OrthoWidth = static_cast<float>(kOutlineRtSize);
     Capture->PostProcessBlendWeight = 1.0f;
     Capture->PostProcessSettings.bOverride_AutoExposureMethod = true;
     Capture->PostProcessSettings.AutoExposureMethod = EAutoExposureMethod::AEM_Manual;
@@ -290,7 +290,7 @@ bool FCkTest_Usf_SolidOutlineRendersToTexture::RunTest(const FString& Parameters
     // Calibrate the geometry independently of lighting and the outline post-process.
     Capture->CaptureSource = ESceneCaptureSource::SCS_BaseColor;
     const auto Geometry = Capture_Read();
-    if (TestEqual(TEXT("base-color calibration readback has the expected resolution"), Geometry.Num(), kRtSize * kRtSize) == false)
+    if (TestEqual(TEXT("base-color calibration readback has the expected resolution"), Geometry.Num(), kOutlineRtSize * kOutlineRtSize) == false)
     { return false; }
     const auto GeometryPath = Save_InspectionPng(Geometry, TEXT("SolidOutlineGeometry"));
     auto GeometryPixelCount = 0;
@@ -304,7 +304,7 @@ bool FCkTest_Usf_SolidOutlineRendersToTexture::RunTest(const FString& Parameters
     Capture->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 
     const auto Baseline = Capture_Read();
-    if (TestEqual(TEXT("unstenciled capture readback has the expected resolution"), Baseline.Num(), kRtSize * kRtSize) == false ||
+    if (TestEqual(TEXT("unstenciled capture readback has the expected resolution"), Baseline.Num(), kOutlineRtSize * kOutlineRtSize) == false ||
         TestEqual(TEXT("unstenciled capture has no outline-red pixels"), Find_RedBlobs(Baseline).Num(), 0) == false)
     { return false; }
 
@@ -329,7 +329,7 @@ bool FCkTest_Usf_SolidOutlineRendersToTexture::RunTest(const FString& Parameters
     DebugMode->Set(0, ECVF_SetByCode);
 
     const auto Pixels = Capture_Read();
-    if (TestEqual(TEXT("stenciled capture readback has the expected resolution"), Pixels.Num(), kRtSize * kRtSize) == false)
+    if (TestEqual(TEXT("stenciled capture readback has the expected resolution"), Pixels.Num(), kOutlineRtSize * kOutlineRtSize) == false)
     { return false; }
     const auto PngPath = Save_InspectionPng(Pixels);
     if (PngPath.IsEmpty()) { AddWarning(TEXT("Could not write SolidOutline inspection PNG.")); }
