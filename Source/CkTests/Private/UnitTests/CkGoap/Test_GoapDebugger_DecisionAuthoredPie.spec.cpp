@@ -262,10 +262,11 @@ bool FCkGoapDebugger_DecisionAuthoredPie::RunTest(const FString&)
             return false;
         }
 
-        State->ViewModel->SetSelectedActionSet(Wanted->PlannerHandle);
+        const FCk_Handle_Goap_Planner WantedHandle = Wanted->PlannerHandle;
+        State->ViewModel->SetSelectedActionSet(WantedHandle);
         Refresh(State);
         const FCkGoapDebugger_PlannerInfo* Planner = State->ViewModel->GetSelectedPlannerInfo();
-        if (Planner == nullptr || Planner->PlannerHandle != Wanted->PlannerHandle || Planner->ChildActions.IsEmpty())
+        if (Planner == nullptr || Planner->PlannerHandle != WantedHandle || Planner->ChildActions.IsEmpty())
         {
             return false;
         }
