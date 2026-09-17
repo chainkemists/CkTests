@@ -929,6 +929,20 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //   result. Use UE_LOG(Log, ...) for diagnostic prints, or remove them
 //   before committing. ck::Trace() with LogLevel::Warning has the same
 //   effect — avoid in test code paths.
+//
+//   A test that emits a warning DELIBERATELY declares it: hand-author the
+//   wrapper actor and override Get_ExpectedLogErrors() (ACk_AutoTestRunner).
+//   Each pattern is registered as a plain substring with Occurrences = -1, so:
+//     - a pattern that matches nothing is NEVER reported. When the warning it
+//       was meant to cover fires, the test fails and the failure reads as that
+//       warning, not as the dead pattern. Copy the emitted text exactly.
+//     - the pattern is a string literal in a shipped script, so it must be
+//       ASCII. If the emitted text carries a non-ASCII character (an arrow, an
+//       em dash), do NOT fold only the pattern - it stops matching. Either make
+//       the emitter ASCII too, or match an ASCII-only part of the text (a
+//       substring match is enough). Case: CkCrowd's "PathPending -> Idle (path
+//       failed: ...)" warning logs U+2192 from C++, so BusterBlock patterns that
+//       were folded to "->" match nothing.
 
 // GOTCHA 2 — AngelScript boolean negation: use ! NOT NOT.
 //   The framework's `NOT` macro is C++-only. AS uses standard `!`:
