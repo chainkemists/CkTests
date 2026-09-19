@@ -75,7 +75,7 @@
 // infinitely above the 0.0 the broken probe produces.
 //
 // NOTE the agents are deliberately IDLE (no MoveTo). NeighborSync and Separation
-// exclude only FTag_CrowdAgent_Asleep (which nothing ever stamps), while Steering
+// exclude only FTag_CrowdAgent_Disabled (an agent taken out of the crowd), while Steering
 // REQUIRES FTag_CrowdAgent_Walking (CkCrowdAgent_Steering_Processor.h:34). So the
 // probe -> neighbor-cache -> separation-force chain runs on a standing agent that
 // never moves: the geometry under test holds still, with zero interference from
