@@ -48,8 +48,8 @@ class UCk_AutoTest_Crowd_Disable_FreesOccupiedGoal : UCk_AutoTest_Base
     {
         auto _CkPerfScope = ck::ScopedStat();
 
-        // Sent together: a latecomer sent after the squatter's disc confirms plans strictly to the disc's
-        // edge, never ends on the squatter, and so is never held GoalOccupied.
+        // Sent together, so the squatter is still walking when the latecomer plans. The latecomer sent
+        // AFTER the squatter's markup has confirmed is CkAutoTest_Crowd_Goal_ConfirmedSquatterHoldsLatecomer.
         Add_Step(           "bake the navmesh, spawn both agents and send both to the same goal",
                             n"Step_Setup");
         Add_Step_WaitUntil( "the latecomer is held GoalOccupied, naming the squatter",
