@@ -8,6 +8,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 using ck::tests::kCkUnitTestFlags;
+using ck::ck_crowd_agent_path_follow_algorithm::Get_RouteEndsShortOfGoal;
 using ck::ck_crowd_agent_path_follow_algorithm::SkipAlreadyPassedLeadingWaypoints;
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -138,6 +139,56 @@ bool FCkTest_Crowd_PathFollow_EscapePrefixIsNeverNormalizedAway::RunTest(const F
     TestTrue(
         TEXT("Protecting the prefix leaves the body-to-escape segment anchor intact"),
         ProtectedSegmentStart.Equals(AgentLocation, 0.001f));
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_Crowd_PathFollow_RouteEndsShortOfGoalWhateverItsStatus,
+    "CkTests.UnitTests.CkCrowd.PathFollow.RouteEndsShortOfGoalWhateverItsStatus",
+    kCkUnitTestFlags)
+
+bool FCkTest_Crowd_PathFollow_RouteEndsShortOfGoalWhateverItsStatus::RunTest(const FString& Parameters)
+{
+    // The shape the stationary-markup false arrival produced: a goal on a standing body, a strict
+    // query whose endpoint Recast re-projected out of the excluded markup, and a route that is
+    // READY but stops at the markup edge. Treating only Partial as short let that route report
+    // OnGoalReached at the markup edge, a body-width short of the goal it was asked for.
+    constexpr auto ArrivalRadius = 30.0f;
+    constexpr auto GoalIsOnSurface = true;
+    constexpr auto GoalIsRaw = false;
+    const auto Goal = FVector{400.0f, 0.0f, 0.0f};
+    const auto ToGoal = TArray<FVector>{FVector{100.0f, 0.0f, 0.0f}, Goal};
+    const auto ToMarkupEdge = TArray<FVector>{FVector{100.0f, 0.0f, 0.0f}, FVector{316.0f, 0.0f, 0.0f}};
+    const auto InsideArrival = TArray<FVector>{FVector{100.0f, 0.0f, 0.0f}, FVector{375.0f, 0.0f, 0.0f}};
+
+    TestTrue(TEXT("A Ready route that stops outside the arrival radius of the surface goal ends short"),
+        Get_RouteEndsShortOfGoal(ECk_Nav_PathStatus::Ready, ToMarkupEdge, Goal, GoalIsOnSurface, ArrivalRadius));
+    TestTrue(TEXT("A Partial route that stops outside the arrival radius ends short"),
+        Get_RouteEndsShortOfGoal(ECk_Nav_PathStatus::Partial, ToMarkupEdge, Goal, GoalIsOnSurface, ArrivalRadius));
+    TestTrue(TEXT("A Partial route is judged against a raw goal too, as it always was"),
+        Get_RouteEndsShortOfGoal(ECk_Nav_PathStatus::Partial, ToMarkupEdge, Goal, GoalIsRaw, ArrivalRadius));
+
+    TestFalse(TEXT("A Ready route that ends on the goal does not"),
+        Get_RouteEndsShortOfGoal(ECk_Nav_PathStatus::Ready, ToGoal, Goal, GoalIsOnSurface, ArrivalRadius));
+    TestFalse(TEXT("A route that ends inside the arrival radius is a genuine arrival"),
+        Get_RouteEndsShortOfGoal(ECk_Nav_PathStatus::Partial, InsideArrival, Goal, GoalIsOnSurface, ArrivalRadius));
+
+    // An externally installed route (CkGroundNav) carries no surface projection, so its goal is the
+    // caller's raw point - whose Z need not lie on the surface. Its provider never moves a goal, so a
+    // Ready answer from it is not judged; judging it would fail a genuine arrival over a Z offset.
+    const auto RawGoalAboveTheFloor = FVector{400.0f, 0.0f, 50.0f};
+    TestFalse(TEXT("A Ready route is not judged against a raw goal"),
+        Get_RouteEndsShortOfGoal(ECk_Nav_PathStatus::Ready, ToGoal, RawGoalAboveTheFloor, GoalIsRaw, ArrivalRadius));
+
+    // Only an installable route is judged: nothing is walked on a failed or unanswered query.
+    TestFalse(TEXT("A Failed result is not judged"),
+        Get_RouteEndsShortOfGoal(ECk_Nav_PathStatus::Failed, ToMarkupEdge, Goal, GoalIsOnSurface, ArrivalRadius));
+    TestFalse(TEXT("A Pending result is not judged"),
+        Get_RouteEndsShortOfGoal(ECk_Nav_PathStatus::Pending, ToMarkupEdge, Goal, GoalIsOnSurface, ArrivalRadius));
+    TestFalse(TEXT("An empty route is not judged"),
+        Get_RouteEndsShortOfGoal(ECk_Nav_PathStatus::Ready, TArray<FVector>{}, Goal, GoalIsOnSurface, ArrivalRadius));
     return true;
 }
 
