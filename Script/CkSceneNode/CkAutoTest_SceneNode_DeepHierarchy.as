@@ -109,6 +109,9 @@ class UCk_AutoTest_SceneNode_DeepHierarchy : UCk_AutoTest_Base
     private const FVector GrandchildLocalLocation = FVector(80.0f, 0.0f, 0.0f);
     private const FRotator RootRotationDelta = FRotator(0.0f, 90.0f, 0.0f);
     private const FRotator ChildOffsetRotation = FRotator(0.0f, 30.0f, 0.0f);
+    private const FVector LateRootLocation = FVector(1040.0f, 175.0f, -60.0f);
+    private const FVector LateChildLocalLocation = FVector(145.0f, -35.0f, 20.0f);
+    private const FRotator LateChildOffsetRotation = FRotator(0.0f, -55.0f, 0.0f);
 
     private const float32 PositionToleranceCm = 1.0f;
     private const float32 PropagationWaitSeconds = 0.25f;
@@ -122,6 +125,7 @@ class UCk_AutoTest_SceneNode_DeepHierarchy : UCk_AutoTest_Base
 
     private int32 _Step = 0;
     private float32 _WaitElapsed = 0.0f;
+    private bool _LateRootLocationRequested = false;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -262,14 +266,153 @@ class UCk_AutoTest_SceneNode_DeepHierarchy : UCk_AutoTest_Base
         Assert_True(Result.ActualGrandchildTransform.Equals(
             Result.ExpectedGrandchildTransform, PositionToleranceCm),
             f"Grandchild must equal the composed target root in the stimulus frame; expected [{Result.ExpectedGrandchildTransform}], actual [{Result.ActualGrandchildTransform}]");
+        if (IsFinished())
+        { return; }
+
+        Arm_LateRootLocationMutation();
+    }
+
+    private void Arm_LateRootLocationMutation()
+    {
+        _LateRootLocationRequested = false;
+        WaitUntil(n"Check_LateRootLocationApplied", n"OnLateRootLocationApplied");
+    }
+
+    UFUNCTION()
+    private void Check_LateRootLocationApplied(
+        FCk_Handle InHandle,
+        FCk_SharedBool OutResult,
+        FInstancedStruct InPayload)
+    {
+        auto Result = OutResult;
+        if (_LateRootLocationRequested == false)
+        {
+            // Issue once from the WaitUntil timer predicate, matching the
+            // employee relocation path that exposed lost tail-pump fanout.
+            _LateRootLocationRequested = true;
+            utils_transform::Request_SetLocation(
+                RootTransform, LateRootLocation, ECk_LocalWorld::World);
+            Result.Set(false);
+            return;
+        }
+
+        Result.Set(utils_transform::Get_EntityCurrentLocation(RootTransform).Equals(
+            LateRootLocation, PositionToleranceCm));
+    }
+
+    UFUNCTION()
+    private void OnLateRootLocationApplied(
+        FCk_Handle_Timer InTimer,
+        FCk_Chrono InChrono,
+        FCk_Time InDeltaT)
+    {
+        if (IsFinished())
+        { return; }
+
+        Assert_True(utils_transform::Get_EntityCurrentLocation(RootTransform).Equals(
+                LateRootLocation, PositionToleranceCm),
+            "Late WaitUntil root location write must reach its target");
+        if (IsFinished())
+        { return; }
+
+        WaitUntil(n"Check_LateRootPropagation", n"OnLateRootPropagation");
+    }
+
+    UFUNCTION()
+    private void Check_LateRootPropagation(
+        FCk_Handle InHandle,
+        FCk_SharedBool OutResult,
+        FInstancedStruct InPayload)
+    {
+        auto Result = OutResult;
+        const auto LateRootWorld = FTransform(
+            FRotator(0.0f, -45.0f, 0.0f), LateRootLocation, FVector::OneVector);
+        const auto ChildLocal = FTransform(
+            ChildOffsetRotation, ChildLocalLocation, FVector::OneVector);
+        const auto GrandchildLocal = FTransform(
+            FRotator::ZeroRotator, GrandchildLocalLocation, FVector::OneVector);
+        const auto ExpectedGrandchild = GrandchildLocal * (ChildLocal * LateRootWorld);
+        Result.Set(utils_transform::Get_EntityCurrentLocation(GrandchildTransform).Equals(
+            ExpectedGrandchild.GetLocation(), PositionToleranceCm));
+    }
+
+    UFUNCTION()
+    private void OnLateRootPropagation(
+        FCk_Handle_Timer InTimer,
+        FCk_Chrono InChrono,
+        FCk_Time InDeltaT)
+    {
+        if (IsFinished())
+        { return; }
+
+        AssertChainComposesAt(
+            FRotator(0.0f, -45.0f, 0.0f), ChildOffsetRotation,
+            LateRootLocation, ChildLocalLocation, "After late WaitUntil root location write");
+        if (IsFinished())
+        { return; }
+
+        const auto LateChildOffset = FTransform(
+            LateChildOffsetRotation, LateChildLocalLocation, FVector::OneVector);
+        utils_scene_node::Request_UpdateOffset(
+            ChildNode, FCk_Request_SceneNode_UpdateRelativeTransform(LateChildOffset));
+        WaitUntil(n"Check_LateChildOffsetPropagation", n"OnLateChildOffsetPropagation");
+    }
+
+    UFUNCTION()
+    private void Check_LateChildOffsetPropagation(
+        FCk_Handle InHandle,
+        FCk_SharedBool OutResult,
+        FInstancedStruct InPayload)
+    {
+        auto Result = OutResult;
+        const auto LateRootWorld = FTransform(
+            FRotator(0.0f, -45.0f, 0.0f), LateRootLocation, FVector::OneVector);
+        const auto LateChildLocal = FTransform(
+            LateChildOffsetRotation, LateChildLocalLocation, FVector::OneVector);
+        const auto GrandchildLocal = FTransform(
+            FRotator::ZeroRotator, GrandchildLocalLocation, FVector::OneVector);
+        const auto ExpectedGrandchild = GrandchildLocal * (LateChildLocal * LateRootWorld);
+        Result.Set(utils_transform::Get_EntityCurrentLocation(GrandchildTransform).Equals(
+            ExpectedGrandchild.GetLocation(), PositionToleranceCm));
+    }
+
+    UFUNCTION()
+    private void OnLateChildOffsetPropagation(
+        FCk_Handle_Timer InTimer,
+        FCk_Chrono InChrono,
+        FCk_Time InDeltaT)
+    {
+        if (IsFinished())
+        { return; }
+
+        AssertChainComposesAt(
+            FRotator(0.0f, -45.0f, 0.0f), LateChildOffsetRotation,
+            LateRootLocation, LateChildLocalLocation, "After late Request_UpdateOffset on child");
+        if (IsFinished())
+        { return; }
+
         FinishSuccess();
     }
 
     private void AssertChainComposesTo(
-        const FRotator& InRootRotation, const FRotator& InChildOffsetRotation, const FString& InContext)
+        const FRotator& InRootRotation,
+        const FRotator& InChildOffsetRotation,
+        const FString& InContext)
     {
-        auto RootWorld = FTransform(InRootRotation, FVector::ZeroVector, FVector::OneVector);
-        auto ChildLocal = FTransform(InChildOffsetRotation, ChildLocalLocation, FVector::OneVector);
+        AssertChainComposesAt(
+            InRootRotation, InChildOffsetRotation,
+            FVector::ZeroVector, ChildLocalLocation, InContext);
+    }
+
+    private void AssertChainComposesAt(
+        const FRotator& InRootRotation,
+        const FRotator& InChildOffsetRotation,
+        const FVector& InRootLocation,
+        const FVector& InChildLocalLocation,
+        const FString& InContext)
+    {
+        auto RootWorld = FTransform(InRootRotation, InRootLocation, FVector::OneVector);
+        auto ChildLocal = FTransform(InChildOffsetRotation, InChildLocalLocation, FVector::OneVector);
         auto GrandchildLocal = FTransform(FRotator::ZeroRotator, GrandchildLocalLocation, FVector::OneVector);
 
         auto ChildExpected = ChildLocal * RootWorld;
