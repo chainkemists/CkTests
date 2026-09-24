@@ -172,7 +172,7 @@ class UCk_AutoTest_Queue_CrowdAdapterRetriesAlternativeAfterLimit : UCk_AutoTest
     private FCk_Handle_Queue CreateQueue(FCk_Handle& InOwner, FVector InOwnerLocation, int32 InHardLimit)
     {
         utils_transform::Request_SetLocation(InOwner.As_Transform(), InOwnerLocation, ECk_LocalWorld::World);
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_SoftLimit(InHardLimit);
         Params.Set_HardLimit(InHardLimit);
         return utils_queue::Add(InOwner, Params);

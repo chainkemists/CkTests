@@ -155,7 +155,7 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
         auto VolumeTransform = utils_transform::Add(_VolumeEntity,
             FTransform(FRotator(0.0, VolumeYaw, 0.0), _Centre, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
-        auto VolumeParams = FCk_Fragment_CrowdAvoidanceVolume_ParamsData(VolumeHalfExtents, 400.0);
+        auto VolumeParams = FCk_CrowdAvoidanceVolume_Spec(VolumeHalfExtents, 400.0);
         // Make the product default explicit: when space exists this policy must install a detour.
         VolumeParams.Set_TraversalPolicy(ECk_CrowdAvoidanceVolume_TraversalPolicy::AvoidIfPossible);
         _Volume = utils_crowd_avoidance_volume::Add(VolumeTransform, VolumeParams);
@@ -212,7 +212,7 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
         auto VolumeTransform = utils_transform::Add(_VolumeEntity,
             FTransform(FRotator::ZeroRotator, _Centre, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
-        auto VolumeParams = FCk_Fragment_CrowdAvoidanceVolume_ParamsData(SealedVolumeHalfExtents, 400.0);
+        auto VolumeParams = FCk_CrowdAvoidanceVolume_Spec(SealedVolumeHalfExtents, 400.0);
         VolumeParams.Set_TraversalPolicy(ECk_CrowdAvoidanceVolume_TraversalPolicy::AvoidIfPossible);
         _Volume = utils_crowd_avoidance_volume::Add(VolumeTransform, VolumeParams);
 

@@ -266,7 +266,7 @@ class UCk_AutoTest_GroundNav_Markup_PaintThenRepathDoesNotCross : UCk_AutoTest_B
             FVector(-VolumeHalfX, BandY - VolumeHalfY, VolumeFloorZ),
             FVector( VolumeHalfX, BandY + VolumeHalfY, VolumeCeilingZ));
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(Bounds, Config, Profile);
+        auto VolumeParams = FCk_GroundNavVolume_Spec(Bounds, Config, Profile);
         VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
         VolumeParams.Set_ProbeBudgetPerTick(ProbeBudgetPerTick);
 
@@ -278,7 +278,7 @@ class UCk_AutoTest_GroundNav_Markup_PaintThenRepathDoesNotCross : UCk_AutoTest_B
         _PlannerEntity.Request_OverrideToSelf();
         _PlannerEntity.Set_DebugName(n"GroundNav_MarkupRace_Planner");
 
-        auto PathParams = FCk_Fragment_GroundNavPath_ParamsData(float32(AgentRadius));
+        auto PathParams = FCk_GroundNavPath_Spec(float32(AgentRadius));
         PathParams.Set_VerticalToleranceUu(float32(CellHeightUu * 4.0));
 
         _Planner = utils_ground_nav_path::Add(_PlannerEntity, PathParams);

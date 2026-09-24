@@ -715,7 +715,7 @@ bool FCkTest_GroundNav_LinkVeto_MultiplierBelowOneIsRefusedAtTheRequestBoundary:
     auto EcsWorld = ck::FEcsWorld{};
 
     auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(EcsWorld.Get_Registry());
-    auto Path = UCk_Utils_GroundNavPath_UE::Add(Owner, FCk_Fragment_GroundNavPath_ParamsData{kNoRadius});
+    auto Path = UCk_Utils_GroundNavPath_UE::Add(Owner, FCk_GroundNavPath_Spec{kNoRadius});
 
     if (NOT TestTrue(TEXT("the agent takes the path feature"), ck::IsValid(Path)))
     { return false; }

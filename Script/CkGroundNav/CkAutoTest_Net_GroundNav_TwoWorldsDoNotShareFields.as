@@ -362,7 +362,7 @@ class UCk_AutoTest_Net_GroundNav_TwoWorldsDoNotShareFields : UCk_AutoTest_NetBas
             FVector(-VolumeHalfX, BandY - VolumeHalfY, SurfaceZ - VolumeHalfZ),
             FVector( VolumeHalfX, BandY + VolumeHalfY, SurfaceZ + VolumeHalfZ));
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(Bounds, Config, Profile);
+        auto VolumeParams = FCk_GroundNavVolume_Spec(Bounds, Config, Profile);
 
         // Auto-build off, so the bake this test waits on is the one it asked for
         // and not one that happened at composition.

@@ -354,7 +354,7 @@ auto ACk_GroundNav_MatchedBenchmarkActor::Do_CreateGroundNavField() -> bool
     auto Config = FCk_GroundNav_BakeConfig{25.0f, 10.0f}; Config.Set_TileSizeUu(800.0f);
     auto Profile = FCk_GroundNav_AgentProfile{UCk_Utils_Shapes_UE::Make_Capsule(FCk_ShapeCapsule_Dimensions{GAgentHalfHeight, GAgentRadius})};
     Profile.Set_LedgeSensitivity(0.0f);
-    auto Params = FCk_Fragment_GroundNavVolume_ParamsData{FBox(FVector(-1800,-1200,-100), FVector(1800,1200,400)), Config, Profile};
+    auto Params = FCk_GroundNavVolume_Spec{FBox(FVector(-1800,-1200,-100), FVector(1800,1200,400)), Config, Profile};
     Params.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
     _Volume = UCk_Utils_GroundNavVolume_UE::Add(_Owner, Params);
     if (ck::Is_NOT_Valid(_Volume)) { Do_SetFailure(TEXT("could not create GroundNav bake volume")); return false; }
@@ -430,7 +430,7 @@ auto ACk_GroundNav_MatchedBenchmarkActor::Do_StartQueryBurst() -> bool
         UCk_Utils_Transform_UE::Add(Entity, FTransform(Sample.Start), ECk_Replication::DoesNotReplicate);
         if (_RequestedProvider == ECk_NavSurface_Provider::GroundNav)
         {
-            auto Path = UCk_Utils_GroundNavPath_UE::Add(Entity, FCk_Fragment_GroundNavPath_ParamsData{GAgentRadius});
+            auto Path = UCk_Utils_GroundNavPath_UE::Add(Entity, FCk_GroundNavPath_Spec{GAgentRadius});
             if (ck::Is_NOT_Valid(Path)) { return false; }
             UCk_Utils_GroundNavPath_UE::Request_FindPath(Path, FCk_Request_GroundNavPath_FindPath{Sample.Start, Sample.End}, {});
         }

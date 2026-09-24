@@ -385,7 +385,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         _RejectedExitCorrelation = 0;
 
         _CoordinatorOwner = utils_entity_lifetime::Request_CreateEntity(_PcEntity);
-        auto CoordinatorParams = FCk_Fragment_QueueCoordinator_ParamsData();
+        auto CoordinatorParams = FCk_QueueCoordinator_Spec();
         CoordinatorParams.Set_RequiredQueueCategory(utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.Gym"));
         CoordinatorParams.Set_SelectionPolicy(_CoordinatorNearestFirst
             ? ECk_QueueCoordinator_SelectionPolicy::NearestThenLeastMembers
@@ -453,7 +453,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto QueueOwner = utils_entity_lifetime::Request_CreateEntity(_CoordinatorOwner);
         utils_transform::Add(QueueOwner, Get_QueueOwnerTransform(InQueueIndex), ECk_Replication::DoesNotReplicate);
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_Category(utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.Gym"));
         Params.Set_SlotSpacingUu(GetConfiguredSlotSpacingUu());
         Params.Set_SlotClaimRadiusUu(30.0f);

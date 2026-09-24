@@ -294,7 +294,7 @@ class ACk_CrowdGym_AvoidanceVolume_PlayerController : ACk_Gym_Base_PlayerControl
         auto Entity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         Entity.Set_DebugName(InDebugName);
         auto Transform = utils_transform::Add(Entity, FTransform(InRotation, InCenter, FVector::OneVector), ECk_Replication::DoesNotReplicate);
-        auto Params = FCk_Fragment_CrowdAvoidanceVolume_ParamsData(InHalfExtents, VolumeInfluenceRange);
+        auto Params = FCk_CrowdAvoidanceVolume_Spec(InHalfExtents, VolumeInfluenceRange);
         Params.Set_TraversalPolicy(InPolicy);
         Params.Set_PathPlanningClearance(_PathPlanningClearance);
         const auto Volume = utils_crowd_avoidance_volume::Add(Transform, Params);

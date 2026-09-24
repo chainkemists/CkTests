@@ -221,7 +221,7 @@ struct FCkAutoTest_GroundNavFixture
             FVector(_FloorCentre.X - InHalfExtentXY, _FloorCentre.Y - InHalfExtentXY, _FloorTopZ - InFloorDropUu),
             FVector(_FloorCentre.X + InHalfExtentXY, _FloorCentre.Y + InHalfExtentXY, _FloorTopZ + InCeilingRiseUu));
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(Bounds, Config, Profile);
+        auto VolumeParams = FCk_GroundNavVolume_Spec(Bounds, Config, Profile);
         // The bake waited on must be the one asked for, not one that happened to run at setup.
         VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
 

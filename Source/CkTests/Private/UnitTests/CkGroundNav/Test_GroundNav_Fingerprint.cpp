@@ -188,7 +188,7 @@ namespace ck_test_groundnav_fingerprint
     // A volume for the two reads below and nothing else. It never bakes - the geometry backend needs a
     // physics world, which a headless registry has none of - so what is pinned here is the shape of the
     // answers before any build has published, which is exactly the state a caller polls in.
-    auto Make_VolumeParams() -> FCk_Fragment_GroundNavVolume_ParamsData
+    auto Make_VolumeParams() -> FCk_GroundNavVolume_Spec
     {
         auto Config = FCk_GroundNav_BakeConfig{25.0f, 10.0f};
         Config.Set_TileSizeUu(400.0f);
@@ -198,7 +198,7 @@ namespace ck_test_groundnav_fingerprint
 
         const auto Bounds = FBox{FVector{0.0, 0.0, -50.0}, FVector{800.0, 800.0, 300.0}};
 
-        return FCk_Fragment_GroundNavVolume_ParamsData{Bounds, Config, Profile};
+        return FCk_GroundNavVolume_Spec{Bounds, Config, Profile};
     }
 }
 

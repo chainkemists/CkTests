@@ -20,14 +20,14 @@ class UCk_AutoTest_QueueCoordinator_ExistingMembershipIsStickyAndInvalidQueuePru
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        auto CoordinatorParams = FCk_Fragment_QueueCoordinator_ParamsData();
+        auto CoordinatorParams = FCk_QueueCoordinator_Spec();
         CoordinatorParams.Set_RequiredQueueCategory(utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.Gym"));
         _Coordinator = utils_queue_coordinator::Add(_Owner, CoordinatorParams);
         _OwnerA = utils_entity_lifetime::Request_CreateEntity(InHandle);
         _OwnerB = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(_OwnerA, FTransform(FVector(100.0f, 0.0f, 0.0f)), ECk_Replication::DoesNotReplicate);
         utils_transform::Add(_OwnerB, FTransform(FVector(1000.0f, 0.0f, 0.0f)), ECk_Replication::DoesNotReplicate);
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_Category(utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.Gym"));
         _QueueA = utils_queue::Add(_OwnerA, Params);
         _QueueB = utils_queue::Add(_OwnerB, Params);

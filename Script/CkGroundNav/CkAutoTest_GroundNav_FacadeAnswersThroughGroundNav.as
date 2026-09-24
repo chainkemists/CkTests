@@ -105,7 +105,7 @@ class UCk_AutoTest_GroundNav_FacadeAnswersThroughGroundNav : UCk_AutoTest_Base
             utils_shapes::Make_Capsule(FCk_ShapeCapsule_Dimensions(70.0f, 20.0f)));
         Profile.Set_LedgeSensitivity(0.0f);
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(
+        auto VolumeParams = FCk_GroundNavVolume_Spec(
             FBox(_Centre - _VolumeHalfExtents, _Centre + _VolumeHalfExtents), Config, Profile);
         VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
 

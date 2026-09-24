@@ -373,7 +373,7 @@ class UCk_AutoTest_GroundNav_Cook_DuplicateCookKeyIsRefused : UCk_AutoTest_Base
     // Fixture helpers
     //------------------------------------------------------------------------
 
-    private FCk_Fragment_GroundNavVolume_ParamsData Make_VolumeParams(float InCentreX)
+    private FCk_GroundNavVolume_Spec Make_VolumeParams(float InCentreX)
     {
         auto Config = FCk_GroundNav_BakeConfig(float32(CellSizeUu), float32(CellHeightUu));
         Config.Set_TileSizeUu(float32(TileSizeUu));
@@ -389,7 +389,7 @@ class UCk_AutoTest_GroundNav_Cook_DuplicateCookKeyIsRefused : UCk_AutoTest_Base
             FVector(InCentreX - VolumeHalfX, BandY - VolumeHalfY, VolumeFloorZ),
             FVector(InCentreX + VolumeHalfX, BandY + VolumeHalfY, VolumeCeilingZ));
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(Bounds, Config, Profile);
+        auto VolumeParams = FCk_GroundNavVolume_Spec(Bounds, Config, Profile);
         VolumeParams.Set_CookKey(SharedCookKey);
 
         return VolumeParams;

@@ -14,14 +14,14 @@ class UCk_AutoTest_QueueCoordinator_CapacityFallbackAndTenQueueDeterminism : UCk
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        auto CoordinatorParams = FCk_Fragment_QueueCoordinator_ParamsData();
+        auto CoordinatorParams = FCk_QueueCoordinator_Spec();
         CoordinatorParams.Set_RequiredQueueCategory(utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.Gym"));
         _Coordinator = utils_queue_coordinator::Add(_Owner, CoordinatorParams);
         for (int32 Index = 0; Index < 10; ++Index)
         {
             auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
             utils_transform::Add(Owner, FTransform(FVector(200.0f, float(Index) * 100.0f, 0.0f)), ECk_Replication::DoesNotReplicate);
-            auto Params = FCk_Fragment_Queue_ParamsData();
+            auto Params = FCk_Queue_Spec();
             Params.Set_Category(utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.Gym"));
             Params.Set_HardLimit(Index == 0 ? 1 : 2);
             // SoftLimit must not exceed HardLimit or the Queue is refused (CkQueue_Utils.cpp LimitsAreValid).
