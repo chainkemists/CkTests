@@ -76,7 +76,7 @@ class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
 
         utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(0.5));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(LocalHandle, TimerParams);
@@ -197,15 +197,15 @@ class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
 
     private FCk_Handle_CrowdAgent Spawn_Agent(FCk_Handle& InOwner, FVector InLoc)
     {
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
         auto AgentTransform = utils_transform::Add(AgentEntity,
             FTransform(FRotator::ZeroRotator, InLoc, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
 
-        utils_velocity::Add(AgentEntity, FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
-        utils_acceleration::Add(AgentEntity, FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+        utils_velocity::Add(AgentEntity, FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+        utils_acceleration::Add(AgentEntity, FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(AgentEntity);
 
         return Agent;

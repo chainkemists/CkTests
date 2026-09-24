@@ -493,10 +493,10 @@ auto ACk_GroundNav_MatchedBenchmarkActor::Do_StartCrowd() -> bool
         _WorkloadEntities.Add(Entity);
         auto Transform = UCk_Utils_Transform_UE::Add(Entity, FTransform((Goal - Start).Rotation(), Start), ECk_Replication::DoesNotReplicate);
         if (ck::Is_NOT_Valid(Transform)) { return false; }
-        auto Agent = UCk_Utils_CrowdAgent_UE::Add(Transform, FCk_Fragment_CrowdAgent_ParamsData{42.0f, 192.0f});
+        auto Agent = UCk_Utils_CrowdAgent_UE::Add(Transform, FCk_CrowdAgent_Spec{42.0f, 192.0f});
         if (ck::Is_NOT_Valid(Agent)) { return false; }
-        UCk_Utils_Velocity_UE::Add(Entity, FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, FVector::ZeroVector}, ECk_Replication::DoesNotReplicate);
-        UCk_Utils_Acceleration_UE::Add(Entity, FCk_Fragment_Acceleration_ParamsData{ECk_LocalWorld::World, FVector::ZeroVector}, ECk_Replication::DoesNotReplicate);
+        UCk_Utils_Velocity_UE::Add(Entity, FCk_Velocity_Spec{ECk_LocalWorld::World, FVector::ZeroVector}, ECk_Replication::DoesNotReplicate);
+        UCk_Utils_Acceleration_UE::Add(Entity, FCk_Acceleration_Spec{ECk_LocalWorld::World, FVector::ZeroVector}, ECk_Replication::DoesNotReplicate);
         UCk_Utils_EulerIntegrator_UE::Request_Start(Entity, {}); UCk_Utils_CrowdAgent_UE::Request_MoveTo(Agent, FCk_Request_CrowdAgent_MoveTo{Goal}, {});
         _CrowdAgents.Add(Agent);
     }

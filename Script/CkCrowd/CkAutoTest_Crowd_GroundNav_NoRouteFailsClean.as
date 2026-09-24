@@ -142,7 +142,7 @@ class UCk_AutoTest_Crowd_GroundNav_NoRouteFailsClean : UCk_AutoTest_Base
 
         Build_Fixture();
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(_SelfHandle, TimerParams);
@@ -207,7 +207,7 @@ class UCk_AutoTest_Crowd_GroundNav_NoRouteFailsClean : UCk_AutoTest_Base
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         Shape.Set_HalfExtents(FVector(InHalfX, SlabHalfY, SlabHalfZ));
 
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Static);
 
@@ -219,7 +219,7 @@ class UCk_AutoTest_Crowd_GroundNav_NoRouteFailsClean : UCk_AutoTest_Base
         const auto Spawn = FVector(MainlandCentreX, BandY, SurfaceZ + AgentCentreOffsetZ);
         const auto Goal  = FVector(IslandCentreX,   BandY, SurfaceZ + AgentCentreOffsetZ);
 
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(float32(AgentRadius), float32(AgentHeight));
+        auto Params = FCk_CrowdAgent_Spec(float32(AgentRadius), float32(AgentHeight));
 
         _AgentEntity = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         _AgentEntity.Set_DebugName(n"GroundNav_NoRoute_Walker");
@@ -231,10 +231,10 @@ class UCk_AutoTest_Crowd_GroundNav_NoRouteFailsClean : UCk_AutoTest_Base
         _Walker = utils_crowd_agent::Add(AgentTransform, Params);
 
         utils_velocity::Add(_AgentEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(_AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(_AgentEntity);
 

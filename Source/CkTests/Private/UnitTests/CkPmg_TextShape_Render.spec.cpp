@@ -141,11 +141,11 @@ bool FCkPmg_WorldTeardown_UnregistersDebugShapeMeshBeforeWorldCleanup::RunTest(c
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
         FCk_NetAutoTest_Assertion::CreateLambda([this, Shape, Observation]() -> bool
         {
-            if (ck::Is_NOT_Valid(*Shape) || NOT Shape->Has<ck::FFragment_Pmg_DebugShape_Current>())
+            if (ck::Is_NOT_Valid(*Shape) || NOT Shape->Has<ck::FFragment_Pmg_DebugShape>())
             { AddError(TEXT("PMG shape did not reach Current before world teardown")); return true; }
 
             Observation->MeshComponent =
-                Shape->Get<ck::FFragment_Pmg_DebugShape_Current>().Get_MeshComponent();
+                Shape->Get<ck::FFragment_Pmg_DebugShape>().Get_MeshComponent();
             auto* MeshComponent = Observation->MeshComponent.Get();
             if (ck::Is_NOT_Valid(MeshComponent))
             { AddError(TEXT("PMG shape did not create a mesh component")); return true; }

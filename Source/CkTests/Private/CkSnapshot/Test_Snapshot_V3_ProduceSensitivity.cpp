@@ -66,9 +66,9 @@ namespace
         const bool bAddItem) -> FDataOnlyInventoryProduceFixture
     {
         auto Inventory = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(InWorld.Get_Registry());
-        auto Params = FCk_Fragment_Inventory_DataOnly_ParamsData{};
+        auto Params = FCk_Inventory_DataOnly_Spec{};
         Params.Set_PersistContents(InPersistContents);
-        Inventory.Add<ck::FFragment_Inventory_Params>(FCk_Fragment_Inventory_ParamsData{Params});
+        Inventory.Add<ck::FFragment_Inventory_Params>(FCk_Inventory_Spec{Params});
         Inventory.Add<ck::FTag_Inventory_DataOnly>();
         Inventory.Add<ck::FFragment_RecordOfInventoryItems>();
 
@@ -273,7 +273,7 @@ namespace
         const uint8 InBaseValue) -> FCk_Handle_ByteAttribute
     {
         auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(InWorld.Get_Registry());
-        auto Params = FCk_Fragment_ByteAttribute_ParamsData{TAG_Test_V3_PersistValueAttribute, InBaseValue};
+        auto Params = FCk_ByteAttribute_Spec{TAG_Test_V3_PersistValueAttribute, InBaseValue};
         Params.Set_PersistValue(InPersistValue);
         return UCk_Utils_ByteAttribute_UE::Add(Owner, Params, ECk_Replication::DoesNotReplicate);
     }
@@ -375,7 +375,7 @@ bool FCkSnapshot_V3_Attribute_PersistValue::RunTest(const FString& Parameters)
 
     auto FloatWorld = ck::FEcsWorld{};
     auto FloatOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(FloatWorld.Get_Registry());
-    auto FloatParams = FCk_Fragment_FloatAttribute_ParamsData{TAG_Test_V3_PersistValueAttribute, 3.0f};
+    auto FloatParams = FCk_FloatAttribute_Spec{TAG_Test_V3_PersistValueAttribute, 3.0f};
     FloatParams.Set_PersistValue(ECk_EnableDisable::Disable);
     auto FloatAttribute = FCk_Handle{UCk_Utils_FloatAttribute_UE::Add(
         FloatOwner, FloatParams, ECk_Replication::DoesNotReplicate)};

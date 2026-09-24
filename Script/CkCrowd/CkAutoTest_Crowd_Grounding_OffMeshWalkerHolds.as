@@ -412,7 +412,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
     {
         auto LocalHandle = InHandle;
 
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(AgentRadius, AgentHeight);
+        auto Params = FCk_CrowdAgent_Spec(AgentRadius, AgentHeight);
 
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         AgentEntity.Set_DebugName(n"OffMeshWalkerHolds_Walker");
@@ -424,10 +424,10 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         _Agent = utils_crowd_agent::Add(AgentTransform, Params);
 
         utils_velocity::Add(AgentEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(AgentEntity);
 

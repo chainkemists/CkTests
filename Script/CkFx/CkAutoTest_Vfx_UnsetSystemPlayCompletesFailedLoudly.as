@@ -19,7 +19,7 @@ class UCk_AutoTest_Vfx_UnsetSystemPlayCompletesFailedLoudly : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto OwnerHandle = InHandle;
 
-        auto Params = FCk_Fragment_Vfx_ParamsData();
+        auto Params = FCk_Vfx_Spec();
         Params.Set_Name(utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Vfx.UnsetSystem_Play"));
 
         auto VfxHandle = utils_vfx::Add(OwnerHandle, Params);

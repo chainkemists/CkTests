@@ -64,9 +64,9 @@ namespace ck_test_grid_occupancy_scratch
 
     auto
         MakeGridParams(
-            const FIntPoint& InDimensions) -> FCk_Fragment_2dGridSystem_ParamsData
+            const FIntPoint& InDimensions) -> FCk_2dGridSystem_Spec
     {
-        return FCk_Fragment_2dGridSystem_ParamsData{InDimensions, FVector2D{100.0f, 100.0f}};
+        return FCk_2dGridSystem_Spec{InDimensions, FVector2D{100.0f, 100.0f}};
     }
 
     auto

@@ -52,10 +52,10 @@ class UCk_AutoTest_Resolver_Cascade_DrainsInOneTick : UCk_AutoTest_Base
         auto SourceEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         _Source = utils_resolver_source::Add(
             SourceEntity,
-            FCk_Fragment_ResolverSource_ParamsData(autotest_resolver_cascade::Make_ThreePhases()));
+            FCk_ResolverSource_Spec(autotest_resolver_cascade::Make_ThreePhases()));
 
         auto TargetEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        _Target = utils_resolver_target::Add(TargetEntity, FCk_Fragment_ResolverTarget_ParamsData());
+        _Target = utils_resolver_target::Add(TargetEntity, FCk_ResolverTarget_Spec());
     }
 
     UFUNCTION()

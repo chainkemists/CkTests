@@ -181,7 +181,7 @@ bool FCkTest_Aggro_AuthoredInspectorComposition::RunTest(const FString&)
                 Scenario->TrackedA, FTransform{FVector{100.0f, 0.0f, 0.0f}}, ECk_Replication::DoesNotReplicate);
             UCk_Utils_Transform_UE::Add(
                 Scenario->TrackedB, FTransform{FVector{200.0f, 0.0f, 0.0f}}, ECk_Replication::DoesNotReplicate);
-            auto Params = FCk_Fragment_Aggro_ParamsData{};
+            auto Params = FCk_Aggro_Spec{};
             auto TargetParams = Params.Get_DefaultTargetParams();
             auto Lifetime = TargetParams.Get_LifetimeParams();
             Lifetime.Set_CanBeForgotten(ECk_EnableDisable::Disable);

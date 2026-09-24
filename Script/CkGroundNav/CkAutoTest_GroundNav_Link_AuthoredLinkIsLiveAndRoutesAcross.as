@@ -284,7 +284,7 @@ class UCk_AutoTest_GroundNav_Link_AuthoredLinkIsLiveAndRoutesAcross : UCk_AutoTe
         auto WallShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         WallShape.Set_HalfExtents(FVector(WallHalfX, WallHalfY, WallHalfZ));
 
-        auto WallParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto WallParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         WallParams.Set_ShapeDimensions(WallShape);
         WallParams.Set_MotionType(ECk_MotionType::Static);
 

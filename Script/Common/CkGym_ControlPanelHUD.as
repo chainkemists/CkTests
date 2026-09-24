@@ -136,7 +136,7 @@ class ACkGym_ControlPanelHUD : AHUD
 
         _PanelLayerOwner = utils_entity_lifetime::Request_CreateEntity_TransientOwner();
         _PanelLayer = utils_input_layer::Create(_PanelLayerOwner,
-            FCk_Fragment_InputLayer_ParamsData(Source, CkGym_InputStack::Priority_ControlPanel));
+            FCk_InputLayer_Spec(Source, CkGym_InputStack::Priority_ControlPanel));
 
         if (ck::Is_NOT_Valid(_PanelLayer))
         { return; }

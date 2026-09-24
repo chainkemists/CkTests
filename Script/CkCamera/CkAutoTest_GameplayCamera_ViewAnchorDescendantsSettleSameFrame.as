@@ -161,7 +161,7 @@ class UCk_AutoTest_GameplayCamera_ViewAnchorDescendantsSettleSameFrame : UCk_Aut
         auto OwnedEntity = FCk_Handle(InEntityScriptHandle);
         _Director = OwnedEntity.As_Transform();
         _Camera = utils_camera::Add(
-            _Director, FCk_Fragment_Camera_ParamsData(_Helper.CameraComponent));
+            _Director, FCk_Camera_Spec(_Helper.CameraComponent));
 
         if (ck::Is_NOT_Valid(_Camera))
         { FinishFailure("Failed to add GameplayCamera"); return; }

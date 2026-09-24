@@ -507,10 +507,10 @@ auto
     // World coordinates deliberately: the LOCAL path would need a Transform, and what is under test is the
     // Durable value surviving Setup, not the coordinate conversion.
     UCk_Utils_Velocity_UE::Add(InHandle,
-        FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, StartingVelocity},
+        FCk_Velocity_Spec{ECk_LocalWorld::World, StartingVelocity},
         ECk_Replication::DoesNotReplicate);
 
-    auto FogParams = FCk_Fragment_FogOfWar_ParamsData{
+    auto FogParams = FCk_FogOfWar_Spec{
         FCk_Minimap_WorldBounds{FVector2D::ZeroVector, FVector2D{FogHalfExtent, FogHalfExtent}}};
     FogParams.Set_CellSize(FogCellSize);
     UCk_Utils_FogOfWar_UE::Add(InHandle, FogParams);
@@ -619,11 +619,11 @@ auto
         FTransform{FRotator{0.0, LocalProbeYaw, 0.0}}, ECk_Replication::DoesNotReplicate);
 
     UCk_Utils_Velocity_UE::Add(InHandle,
-        FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::Local, LocalProbeStartingVelocity},
+        FCk_Velocity_Spec{ECk_LocalWorld::Local, LocalProbeStartingVelocity},
         ECk_Replication::DoesNotReplicate);
 
     UCk_Utils_Acceleration_UE::Add(InHandle,
-        FCk_Fragment_Acceleration_ParamsData{ECk_LocalWorld::Local, LocalProbeStartingAcceleration},
+        FCk_Acceleration_Spec{ECk_LocalWorld::Local, LocalProbeStartingAcceleration},
         ECk_Replication::DoesNotReplicate);
 
     return ECk_EntityScript_ConstructionFlow::Finished;

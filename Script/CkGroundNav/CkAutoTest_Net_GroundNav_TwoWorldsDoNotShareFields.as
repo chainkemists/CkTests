@@ -334,7 +334,7 @@ class UCk_AutoTest_Net_GroundNav_TwoWorldsDoNotShareFields : UCk_AutoTest_NetBas
         auto SlabShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         SlabShape.Set_HalfExtents(FVector(SlabHalfX, SlabHalfY, SlabHalfZ));
 
-        auto SlabParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto SlabParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         SlabParams.Set_ShapeDimensions(SlabShape);
         SlabParams.Set_MotionType(ECk_MotionType::Static);
 
@@ -468,7 +468,7 @@ class UCk_AutoTest_Net_GroundNav_TwoWorldsDoNotShareFields : UCk_AutoTest_NetBas
 
     private void Do_ArmGate(float InSeconds, FName InCallbackName)
     {
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(InSeconds));
+        auto Params = FCk_Timer_Spec(FCk_Time(InSeconds));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
 

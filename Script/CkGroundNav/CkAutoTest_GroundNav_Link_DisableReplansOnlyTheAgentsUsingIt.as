@@ -261,7 +261,7 @@ class UCk_AutoTest_GroundNav_Link_DisableReplansOnlyTheAgentsUsingIt : UCk_AutoT
         auto WallShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         WallShape.Set_HalfExtents(FVector(WallHalfX, WallHalfY, WallHalfZ));
 
-        auto WallParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto WallParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         WallParams.Set_ShapeDimensions(WallShape);
         WallParams.Set_MotionType(ECk_MotionType::Static);
 
@@ -406,7 +406,7 @@ class UCk_AutoTest_GroundNav_Link_DisableReplansOnlyTheAgentsUsingIt : UCk_AutoT
             ECk_Replication::DoesNotReplicate);
 
         _AAgent = utils_crowd_agent::Add(ATransform,
-            FCk_Fragment_CrowdAgent_ParamsData(float32(AgentRadius), float32(AgentHeight)));
+            FCk_CrowdAgent_Spec(float32(AgentRadius), float32(AgentHeight)));
 
         Assert_True(ck::IsValid(_AAgent), "Add() must return a valid crowd agent handle for A");
 
@@ -434,7 +434,7 @@ class UCk_AutoTest_GroundNav_Link_DisableReplansOnlyTheAgentsUsingIt : UCk_AutoT
 
         // Slow on purpose: B has to still be mid-errand when the counters are read, or its zero
         // would be the answer an ARRIVED agent gives and would say nothing about invalidation.
-        auto BParams = FCk_Fragment_CrowdAgent_ParamsData(float32(AgentRadius), float32(AgentHeight));
+        auto BParams = FCk_CrowdAgent_Spec(float32(AgentRadius), float32(AgentHeight));
         BParams.Set_MaxSpeed(float32(BMaxSpeed));
 
         _BAgent = utils_crowd_agent::Add(BTransform, BParams);
@@ -458,10 +458,10 @@ class UCk_AutoTest_GroundNav_Link_DisableReplansOnlyTheAgentsUsingIt : UCk_AutoT
     private void Do_GiveLocomotion(FCk_Handle InEntity)
     {
         utils_velocity::Add(InEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(InEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(InEntity);
     }

@@ -308,8 +308,8 @@ bool FCkAggroDebugger_AuthoredPie::RunTest(const FString&)
         UCk_Utils_Transform_UE::Add(State->AggroEntity, FTransform{FVector::ZeroVector}, ECk_Replication::DoesNotReplicate);
         UCk_Utils_Transform_UE::Add(State->TrackedA, FTransform{FVector{100.0f, 0.0f, 0.0f}}, ECk_Replication::DoesNotReplicate);
         UCk_Utils_Transform_UE::Add(State->TrackedB, FTransform{FVector{100.0f, 0.0f, 0.0f}}, ECk_Replication::DoesNotReplicate);
-        FCk_Fragment_Aggro_ParamsData AggroParams{};
-        FCk_Fragment_AggroTarget_ParamsData TargetParams = AggroParams.Get_DefaultTargetParams();
+        FCk_Aggro_Spec AggroParams{};
+        FCk_AggroTarget_Spec TargetParams = AggroParams.Get_DefaultTargetParams();
         FCk_AggroTarget_LifetimeParams LifetimeParams = TargetParams.Get_LifetimeParams();
         LifetimeParams.Set_CanBeForgotten(ECk_EnableDisable::Disable);
         TargetParams.Set_LifetimeParams(LifetimeParams);

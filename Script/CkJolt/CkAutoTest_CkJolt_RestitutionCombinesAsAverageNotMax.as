@@ -63,7 +63,7 @@ class UCk_AutoTest_CkJolt_RestitutionCombinesAsAverageNotMax : UCk_AutoTest_Base
 
         auto FloorShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         FloorShape.Set_HalfExtents(FVector(500.0, 500.0, 25.0));
-        auto FloorParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto FloorParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         FloorParams.Set_ShapeDimensions(FloorShape);
         FloorParams.Set_MotionType(ECk_MotionType::Static);
         FloorParams.Set_SurfaceSource(ECk_JoltBody_SurfaceSource::Explicit);
@@ -80,7 +80,7 @@ class UCk_AutoTest_CkJolt_RestitutionCombinesAsAverageNotMax : UCk_AutoTest_Base
 
         auto BallShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Sphere);
         BallShape.Set_Radius(_BallRadius);
-        auto BallParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto BallParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         BallParams.Set_ShapeDimensions(BallShape);
         BallParams.Set_MotionType(ECk_MotionType::Dynamic);
         BallParams.Set_SurfaceSource(ECk_JoltBody_SurfaceSource::Explicit);

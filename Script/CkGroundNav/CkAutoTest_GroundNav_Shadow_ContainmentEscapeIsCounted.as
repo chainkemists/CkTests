@@ -293,16 +293,16 @@ class UCk_AutoTest_GroundNav_Shadow_ContainmentEscapeIsCounted : UCk_AutoTest_Ba
         _AgentTransform = utils_transform::Add(_AgentEntity,
             FTransform(FRotator::ZeroRotator, InLocation, FVector::OneVector), ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(float32(AgentRadius), float32(AgentHeight));
+        auto Params = FCk_CrowdAgent_Spec(float32(AgentRadius), float32(AgentHeight));
         _Agent = utils_crowd_agent::Add(_AgentTransform, Params);
 
         // No MoveTo and no integrator drive: the counter is asked of a POSITION, and a walker would
         // carry itself across the field's edge and blur the two halves into each other.
         utils_velocity::Add(_AgentEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(_AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
 
         Assert_True(ck::IsValid(_Agent), "Add() must return a valid crowd agent handle");

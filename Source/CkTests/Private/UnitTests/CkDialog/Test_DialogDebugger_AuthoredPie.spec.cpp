@@ -329,7 +329,7 @@ bool FCkDialogDebugger_AuthoredPie::RunTest(const FString&)
         UCk_Utils_Handle_UE::Set_DebugName(EntityB, TEXT("DialogBeta"));
         State->TimedLine = Registry->Request_RegisterLine(MakeLine(TEXT("AutoTest.DialogDebugger.Timed")), {});
         State->ForeverLine = Registry->Request_RegisterLine(MakeLine(TEXT("AutoTest.DialogDebugger.Forever")), {});
-        const FCk_Fragment_DialogEmitter_ParamsData Params{};
+        const FCk_DialogEmitter_Spec Params{};
         State->EmitterA = UCk_Utils_DialogEmitter_UE::Add(EntityA, Params);
         State->EmitterB = UCk_Utils_DialogEmitter_UE::Add(EntityB, Params);
         FCk_Request_DialogEmitter_StartCooldown Timed{State->TimedLine, FCk_Time{30.0f}};

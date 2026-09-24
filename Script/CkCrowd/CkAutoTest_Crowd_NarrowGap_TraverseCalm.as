@@ -65,7 +65,7 @@ class UCk_AutoTest_Crowd_NarrowGap_TraverseCalm : UCk_AutoTest_Base
 
         utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(0.5));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(LocalHandle, TimerParams);
@@ -191,15 +191,15 @@ class UCk_AutoTest_Crowd_NarrowGap_TraverseCalm : UCk_AutoTest_Base
             const auto SpawnLoc = FVector(-ApproachX - (float(i) * 100.0), SlotY, _FloorZ + 100.0);
             const auto GoalLoc  = FVector(ApproachX, SlotY, _FloorZ + 100.0);
 
-            auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+            auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
             auto WalkerEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
             auto AgentTransform = utils_transform::Add(WalkerEntity,
                 FTransform(FRotator::ZeroRotator, SpawnLoc, FVector::OneVector),
                 ECk_Replication::DoesNotReplicate);
             auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
 
-            utils_velocity::Add(WalkerEntity, FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
-            utils_acceleration::Add(WalkerEntity, FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+            utils_velocity::Add(WalkerEntity, FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+            utils_acceleration::Add(WalkerEntity, FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
             utils_euler_integrator::Request_Start(WalkerEntity);
 
             utils_crowd_agent::BindTo_OnGoalReached(Agent,

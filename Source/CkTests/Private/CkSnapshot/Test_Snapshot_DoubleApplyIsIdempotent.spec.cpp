@@ -167,10 +167,10 @@ bool FCk_Snapshot_DoubleApplyIsIdempotent_Gate::RunTest(const FString& /*Paramet
             const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{AttributeTagName});
             const auto RefillTag    = FGameplayTag::RequestGameplayTag(FName{RefillTagName});
 
-            auto RefillParams = FCk_Fragment_FloatAttributeRefill_ParamsData{RefillTag, RefillFillRate};
+            auto RefillParams = FCk_FloatAttributeRefill_Spec{RefillTag, RefillFillRate};
             RefillParams.Set_StartingState(ECk_Attribute_RefillState::Paused);
 
-            auto AttributeParams = FCk_Fragment_FloatAttribute_ParamsData{AttributeTag, AttributeInitial};
+            auto AttributeParams = FCk_FloatAttribute_Spec{AttributeTag, AttributeInitial};
             AttributeParams.Set_MinMax(ECk_MinMax::MinMax);
             AttributeParams.Set_MinValue(AttributeMin);
             AttributeParams.Set_MaxValue(AttributeMax);

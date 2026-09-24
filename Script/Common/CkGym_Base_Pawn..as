@@ -116,7 +116,7 @@ class ACk_Gym_Base_Pawn : ADefaultPawn
 
         _LayerOwner = utils_entity_lifetime::Request_CreateEntity_TransientOwner();
         _MoveLayer = utils_input_layer::Create(_LayerOwner,
-            FCk_Fragment_InputLayer_ParamsData(Source, CkGym_InputStack::Priority_Pawn));
+            FCk_InputLayer_Spec(Source, CkGym_InputStack::Priority_Pawn));
 
         if (ck::Is_NOT_Valid(_MoveLayer))
         { return; }

@@ -242,11 +242,11 @@ namespace ck_autotest_snapshot_loadhold
 
     auto DoMake_ProbeParams(
         const FGameplayTag& InProbeName,
-        ECk_MotionType InMotionType) -> FCk_Fragment_Probe_ParamsData
+        ECk_MotionType InMotionType) -> FCk_Probe_Spec
     {
         // Any, not the DifferentContextOnly default: both owners are spawned under the same transient root, so the
         // default policy would refuse the pair for a reason that has nothing to do with convergence.
-        return FCk_Fragment_Probe_ParamsData{InProbeName}
+        return FCk_Probe_Spec{InProbeName}
             .Set_ContextOverlapPolicy(ECk_Probe_ContextOverlapPolicy::Any)
             .Set_MotionType(InMotionType);
     }
@@ -334,7 +334,7 @@ auto
     InHandle.AddOrGet<ck::FTag_AutoTest_LoadHold_Probe>();
 
     UCk_Utils_Timer_UE::Add(InHandle,
-        FCk_Fragment_Timer_ParamsData{FCk_Time{ck_autotest_snapshot_loadhold::ProbeTimerDurationSeconds}}
+        FCk_Timer_Spec{FCk_Time{ck_autotest_snapshot_loadhold::ProbeTimerDurationSeconds}}
             .Set_TimerName(ck_autotest_snapshot_loadhold::TAG_AutoTest_LoadHold_Timer.GetTag())
             .Set_CountDirection(ECk_Timer_CountDirection::CountUp)
             .Set_Behavior(ECk_Timer_Behavior::PauseOnDone)
