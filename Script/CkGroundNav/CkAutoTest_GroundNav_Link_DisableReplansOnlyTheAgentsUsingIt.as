@@ -413,7 +413,7 @@ class UCk_AutoTest_GroundNav_Link_DisableReplansOnlyTheAgentsUsingIt : UCk_AutoT
         Do_GiveLocomotion(_AEntity);
 
         _APlanner = utils_ground_nav_path::Add(_AEntity,
-            FCk_Fragment_GroundNavPath_ParamsData(float32(AgentRadius)));
+            FCk_GroundNavPath_Spec(float32(AgentRadius)));
 
         utils_nav::BindTo_OnPathReady(_AEntity,
             FCk_Delegate_Nav_OnPathReady(this, n"OnAPathReady"),
@@ -444,7 +444,7 @@ class UCk_AutoTest_GroundNav_Link_DisableReplansOnlyTheAgentsUsingIt : UCk_AutoT
         Do_GiveLocomotion(_BEntity);
 
         _BPlanner = utils_ground_nav_path::Add(_BEntity,
-            FCk_Fragment_GroundNavPath_ParamsData(float32(AgentRadius)));
+            FCk_GroundNavPath_Spec(float32(AgentRadius)));
 
         utils_nav::BindTo_OnPathReady(_BEntity,
             FCk_Delegate_Nav_OnPathReady(this, n"OnBPathReady"),

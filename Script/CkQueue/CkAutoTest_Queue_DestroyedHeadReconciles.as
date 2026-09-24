@@ -249,13 +249,13 @@ class UCk_AutoTest_Queue_DestroyedHeadReconciles : UCk_AutoTest_Base
 
     private FCk_Handle_Queue CreateQueue(FCk_Handle& InOwner)
     {
-        return utils_queue::Add(InOwner, FCk_Fragment_Queue_ParamsData());
+        return utils_queue::Add(InOwner, FCk_Queue_Spec());
     }
 
     private FCk_Handle_Queue CreateClaimQueue(FCk_Handle& InOwner)
     {
         utils_transform::Request_SetLocation(InOwner.As_Transform(), FVector(200.0f, 0.0f, 0.0f), ECk_LocalWorld::World);
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_SlotClaimPolicy(ECk_Queue_SlotClaimPolicy::ClaimFirstAvailableOnReach);
         return utils_queue::Add(InOwner, Params);
     }

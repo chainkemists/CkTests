@@ -235,7 +235,7 @@ class UCk_AutoTest_GroundNav_Fingerprint_BuildReadsCurrentUntilTheWorldMoves : U
             FVector(-VolumeHalfX, BandY - VolumeHalfY, VolumeFloorZ),
             FVector( VolumeHalfX, BandY + VolumeHalfY, VolumeCeilingZ));
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(Bounds, Config, Profile);
+        auto VolumeParams = FCk_GroundNavVolume_Spec(Bounds, Config, Profile);
         VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
         VolumeParams.Set_ProbeBudgetPerTick(ProbeBudgetPerTick);
 

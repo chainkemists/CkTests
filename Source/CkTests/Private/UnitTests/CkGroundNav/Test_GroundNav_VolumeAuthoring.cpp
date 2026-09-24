@@ -31,12 +31,12 @@ namespace ck_test_groundnav_volumeauthoring
     auto Make_Params(
         const FBox& InBounds,
         const FCk_GroundNav_BakeConfig& InConfig = Make_Config())
-        -> FCk_Fragment_GroundNavVolume_ParamsData
+        -> FCk_GroundNavVolume_Spec
     {
-        return FCk_Fragment_GroundNavVolume_ParamsData{InBounds, InConfig, Make_Profile()};
+        return FCk_GroundNavVolume_Spec{InBounds, InConfig, Make_Profile()};
     }
 
-    auto Get_IsRejected(const FCk_Fragment_GroundNavVolume_ParamsData& InParams) -> bool
+    auto Get_IsRejected(const FCk_GroundNavVolume_Spec& InParams) -> bool
     {
         const auto FieldParams = ck::groundnav::Get_VolumeFieldParams(InParams, {}, {});
         return FieldParams._Divisions == FIntPoint::ZeroValue && NOT FieldParams.Get_IsValid();

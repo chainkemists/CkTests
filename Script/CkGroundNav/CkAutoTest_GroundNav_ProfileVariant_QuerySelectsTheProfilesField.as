@@ -286,7 +286,7 @@ class UCk_AutoTest_GroundNav_ProfileVariant_QuerySelectsTheProfilesField : UCk_A
             FVector(-VolumeHalfX, BandY - VolumeHalfY, VolumeFloorZ),
             FVector( VolumeHalfX, BandY + VolumeHalfY, VolumeCeilingZ));
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(
+        auto VolumeParams = FCk_GroundNavVolume_Spec(
             Bounds, Config, Make_Profile(DefaultStepHeightUu));
 
         // The bake waited on must be the one asked for, not one that happened to run at setup.

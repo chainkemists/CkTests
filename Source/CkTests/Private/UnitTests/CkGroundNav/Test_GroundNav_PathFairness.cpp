@@ -58,9 +58,9 @@ namespace ck_test_groundnav_pathfairness
     };
     struct FObservedTurn { FCk_Handle_GroundNavPath Early; FCk_Handle_GroundNavPath Next; };
 
-    auto Make_Params() -> FCk_Fragment_GroundNavPath_ParamsData
+    auto Make_Params() -> FCk_GroundNavPath_Spec
     {
-        auto Params = FCk_Fragment_GroundNavPath_ParamsData{20.0f};
+        auto Params = FCk_GroundNavPath_Spec{20.0f};
         Params.Set_VerticalToleranceUu(kStepHeight);
         Params.Set_CornerOffsetK(0.0f);
         return Params;
@@ -75,7 +75,7 @@ namespace ck_test_groundnav_pathfairness
     {
         ck::FProcessor_GroundNavPath_HandleRequests{InOutFixture.EcsWorld.Get_Registry()}.ForEachEntity(
             FCk_Time{kSixtyHertz}, InPath, InPath.Get<ck::FFragment_GroundNavPath_Params>(),
-            InPath.Get<ck::FFragment_GroundNavPath_Current>(), InPath.Get<ck::FFragment_GroundNavPath_Result>(),
+            InPath.Get<ck::FFragment_GroundNavPath>(), InPath.Get<ck::FFragment_GroundNavPath_Result>(),
             InPath.Get<ck::FFragment_GroundNavPath_Requests>());
     }
     auto Do_Request(FFixture& InOutFixture, FCk_Handle_GroundNavPath InPath) -> void

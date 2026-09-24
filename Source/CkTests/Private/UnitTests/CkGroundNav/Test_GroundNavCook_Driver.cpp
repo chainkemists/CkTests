@@ -58,13 +58,13 @@ namespace ck_test_groundnav_cook_driver
 
     auto Set_ScriptParams(
         UCk_GroundNavVolume_EntityScript& InScript,
-        const FCk_Fragment_GroundNavVolume_ParamsData& InParams) -> bool
+        const FCk_GroundNavVolume_Spec& InParams) -> bool
     {
         auto* Property = FindFProperty<FStructProperty>(InScript.GetClass(), TEXT("_Params"));
-        if (Property == nullptr || Property->Struct != FCk_Fragment_GroundNavVolume_ParamsData::StaticStruct())
+        if (Property == nullptr || Property->Struct != FCk_GroundNavVolume_Spec::StaticStruct())
         { return false; }
 
-        auto* Target = Property->ContainerPtrToValuePtr<FCk_Fragment_GroundNavVolume_ParamsData>(&InScript);
+        auto* Target = Property->ContainerPtrToValuePtr<FCk_GroundNavVolume_Spec>(&InScript);
         if (Target == nullptr)
         { return false; }
 
@@ -123,7 +123,7 @@ bool FCkTest_GroundNavCook_Driver::RunTest(const FString& Parameters)
     Config.Set_TileSizeUu(400.0f);
     const auto Profile = FCk_GroundNav_AgentProfile{
         FCk_AnyShape{FCk_ShapeCapsule_Dimensions{70.0f, 20.0f}}};
-    auto Params = FCk_Fragment_GroundNavVolume_ParamsData{
+    auto Params = FCk_GroundNavVolume_Spec{
         FBox{FVector{-700.0, -700.0, -200.0}, FVector{700.0, 700.0, 300.0}}, Config, Profile};
     Params.Set_CookKey(TEXT("Driver"));
 

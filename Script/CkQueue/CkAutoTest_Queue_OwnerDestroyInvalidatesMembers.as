@@ -201,6 +201,6 @@ class UCk_AutoTest_Queue_OwnerDestroyInvalidatesMembers : UCk_AutoTest_Base
 
     private FCk_Handle_Queue CreateQueue(FCk_Handle& InOwner)
     {
-        return utils_queue::Add(InOwner, FCk_Fragment_Queue_ParamsData());
+        return utils_queue::Add(InOwner, FCk_Queue_Spec());
     }
 }

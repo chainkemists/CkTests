@@ -347,7 +347,7 @@ bool FCkTest_Crowd_StrictDynamicDispatch_MalformedConfirmedBlockerFailsTerminall
         // this resolver. The test injects only the completed provider answer, never a partial handle.
         FCk_Nav_Algorithm::MarkPathPending(CaseAgent, kResolverRevision);
         UCk_Utils_GroundNavPath_UE::Add(
-            CaseAgent, FCk_Fragment_GroundNavPath_ParamsData{kAgentRadiusUu});
+            CaseAgent, FCk_GroundNavPath_Spec{kAgentRadiusUu});
 
         if (NOT TestTrue(TEXT("the resolver fixture composed its GroundNav path feature"),
             UCk_Utils_GroundNavPath_UE::Has(CaseAgent)) ||

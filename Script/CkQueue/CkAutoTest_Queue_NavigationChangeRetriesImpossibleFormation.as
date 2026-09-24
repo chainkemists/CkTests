@@ -100,7 +100,7 @@ class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTe
         utils_transform::Add(_QueueOwner,
             FTransform(FRotator::ZeroRotator, _FrontWorld, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_MaxNavigationRetries(1);
         Params.Set_NavigationRetryDelaySeconds(0.0f);
         _Queue = utils_queue::Add(_QueueOwner, Params);

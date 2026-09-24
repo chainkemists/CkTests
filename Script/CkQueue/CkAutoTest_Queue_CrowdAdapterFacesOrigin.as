@@ -63,7 +63,7 @@ class UCk_AutoTest_Queue_CrowdAdapterFacesOrigin : UCk_AutoTest_Base
             FTransform(FRotator(0.0f, ExpectedYaw, 0.0f), FVector(120.0f, 0.0f, 0.0f), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        auto QueueParams = FCk_Fragment_Queue_ParamsData();
+        auto QueueParams = FCk_Queue_Spec();
         _Category = utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.AutoTestFacing");
         QueueParams.Set_Category(_Category);
         QueueParams.Set_SlotSpacingUu(ExpectedSlotSpacingUu);

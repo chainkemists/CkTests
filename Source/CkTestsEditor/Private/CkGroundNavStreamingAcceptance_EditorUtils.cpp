@@ -124,7 +124,7 @@ auto UCk_GroundNavStreamingAcceptance_EditorUtils::CreateVolumeSpawner() -> ACk_
     Config.Set_TileSizeUu(800.0f);
     const auto Profile = FCk_GroundNav_AgentProfile{
         FCk_AnyShape{FCk_ShapeCapsule_Dimensions{70.0f, 20.0f}}};
-    auto Params = FCk_Fragment_GroundNavVolume_ParamsData{
+    auto Params = FCk_GroundNavVolume_Spec{
         FBox{FVector{-800.0f, -800.0f, -100.0f}, FVector{800.0f, 800.0f, 500.0f}},
         Config, Profile};
     Params.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);

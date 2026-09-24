@@ -124,14 +124,14 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
     UFUNCTION()
     private void Step_VerifyPhaseSpreadConfiguration(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        auto DefaultParams = FCk_Fragment_Queue_ParamsData();
+        auto DefaultParams = FCk_Queue_Spec();
         Assert_True(DefaultParams.Get_ReserveAssignmentRefreshPhaseSpread() == ECk_EnableDisable::Enable,
             "reserve assignment refresh phase spreading defaults to enabled");
 
         _PhaseSpreadDisabledOwner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(_PhaseSpreadDisabledOwner,
             FTransform(FVector(0.0f, 1000.0f, 0.0f)), ECk_Replication::DoesNotReplicate);
-        auto DisabledParams = FCk_Fragment_Queue_ParamsData();
+        auto DisabledParams = FCk_Queue_Spec();
         DisabledParams.Set_LayoutAlgorithm(ECk_Queue_LayoutAlgorithm::Linear);
         DisabledParams.Set_SlotClaimPolicy(ECk_Queue_SlotClaimPolicy::ReserveOnFormation);
         DisabledParams.Set_ReserveAssignmentPolicy(ECk_Queue_ReserveAssignmentPolicy::DistanceThenTicket);
@@ -146,7 +146,7 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
         auto InvalidOwner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(InvalidOwner,
             FTransform(FVector(0.0f, 2000.0f, 0.0f)), ECk_Replication::DoesNotReplicate);
-        auto InvalidParams = FCk_Fragment_Queue_ParamsData();
+        auto InvalidParams = FCk_Queue_Spec();
         InvalidParams.Set_ReserveAssignmentRefreshPhaseSpread(ECk_EnableDisable(255));
         const auto InvalidQueue = utils_queue::Add(InvalidOwner, InvalidParams);
         Assert_True(ck::Is_NOT_Valid(InvalidQueue),
@@ -393,7 +393,7 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
         utils_transform::Add(_ReverseOwner,
             FTransform(FVector(800.0f, 0.0f, 0.0f)), ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_LayoutAlgorithm(ECk_Queue_LayoutAlgorithm::Linear);
         Params.Set_SlotClaimPolicy(ECk_Queue_SlotClaimPolicy::ReserveOnFormation);
         Params.Set_ReserveAssignmentPolicy(ECk_Queue_ReserveAssignmentPolicy::DistanceThenTicket);
@@ -639,7 +639,7 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
     {
         // Keep the third linear slot clear of the AutoTest runner near world origin.
         utils_transform::Request_SetLocation(InOwner.As_Transform(), FVector(800.0f, 0.0f, 0.0f), ECk_LocalWorld::World);
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_LayoutAlgorithm(ECk_Queue_LayoutAlgorithm::Linear);
         Params.Set_SlotClaimPolicy(ECk_Queue_SlotClaimPolicy::ReserveOnFormation);
         Params.Set_ReserveAssignmentPolicy(InPolicy);
@@ -651,7 +651,7 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
     private FCk_Handle_Queue CreateClaimFirstQueue(FCk_Handle InOwner)
     {
         utils_transform::Request_SetLocation(InOwner.As_Transform(), FVector(200.0f, 0.0f, 0.0f), ECk_LocalWorld::World);
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_LayoutAlgorithm(ECk_Queue_LayoutAlgorithm::Linear);
         Params.Set_SlotClaimPolicy(ECk_Queue_SlotClaimPolicy::ClaimFirstAvailableOnReach);
         return utils_queue::Add(InOwner, Params);

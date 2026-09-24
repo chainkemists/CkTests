@@ -107,7 +107,7 @@ class UCk_AutoTest_GroundNav_Repair_MovedMarkupBoxChangesOnlyWhereItMoved : UCk_
     private const float AgentRadius = 42.0;
     private const float ProfileHalfHeightUu = 96.0;
 
-    // Mirrored from FCk_Fragment_GroundNavVolume_ParamsData::_MaxClearanceUu's default and
+    // Mirrored from FCk_GroundNavVolume_Spec::_MaxClearanceUu's default and
     // DELIBERATELY NOT SET on the params below: the halo is the property under test.
     private const float MaxClearanceUu = 200.0;
 
@@ -322,7 +322,7 @@ class UCk_AutoTest_GroundNav_Repair_MovedMarkupBoxChangesOnlyWhereItMoved : UCk_
             FVector(-VolumeHalfX, BandY - VolumeHalfY, VolumeFloorZ),
             FVector( VolumeHalfX, BandY + VolumeHalfY, VolumeCeilingZ));
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(Bounds, Config, Profile);
+        auto VolumeParams = FCk_GroundNavVolume_Spec(Bounds, Config, Profile);
         VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
         VolumeParams.Set_ProbeBudgetPerTick(ProbeBudgetPerTick);
         // _MaxClearanceUu is left at its default on purpose - see the constant above.

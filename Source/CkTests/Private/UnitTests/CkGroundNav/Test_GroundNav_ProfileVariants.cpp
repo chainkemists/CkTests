@@ -587,7 +587,7 @@ namespace ck_test_groundnav_profilevariants_volume
     // 400uu, the same Z span. A volume and a field that disagreed about the ground they cover would
     // make every location assertion below a statement about the fixture instead of the feature.
     auto Make_VolumeParams(
-        const FCk_GroundNav_AgentProfile& InProfile) -> FCk_Fragment_GroundNavVolume_ParamsData
+        const FCk_GroundNav_AgentProfile& InProfile) -> FCk_GroundNavVolume_Spec
     {
         using namespace ck_test_groundnav_profilevariants;
 
@@ -598,7 +598,7 @@ namespace ck_test_groundnav_profilevariants_volume
             FVector{0.0, 0.0, kMinZ},
             FVector{kDivisions * kTileSize, kDivisions * kTileSize, kMaxZ}};
 
-        return FCk_Fragment_GroundNavVolume_ParamsData{Bounds, Config, InProfile};
+        return FCk_GroundNavVolume_Spec{Bounds, Config, InProfile};
     }
 
     auto Make_Variant(
@@ -1112,11 +1112,11 @@ namespace ck_test_groundnav_profilevariants_path
         return VariantFields;
     }
 
-    auto Make_PathParams() -> FCk_Fragment_GroundNavPath_ParamsData
+    auto Make_PathParams() -> FCk_GroundNavPath_Spec
     {
         using namespace ck_test_groundnav_profilevariants;
 
-        auto Params = FCk_Fragment_GroundNavPath_ParamsData{kAgentRadiusUu};
+        auto Params = FCk_GroundNavPath_Spec{kAgentRadiusUu};
 
         Params.Set_VerticalToleranceUu(kHighStepHeightUu);
         Params.Set_CornerOffsetK(kNoCornerOffset);
@@ -1228,7 +1228,7 @@ namespace ck_test_groundnav_profilevariants_path
                 FCk_Time{volume_fixture::kSixtyHertz},
                 Path,
                 Path.Get<ck::FFragment_GroundNavPath_Params>(),
-                Path.Get<ck::FFragment_GroundNavPath_Current>(),
+                Path.Get<ck::FFragment_GroundNavPath>(),
                 Path.Get<ck::FFragment_GroundNavPath_Result>(),
                 Path.Get<ck::FFragment_GroundNavPath_Requests>());
 
@@ -1292,7 +1292,7 @@ namespace ck_test_groundnav_profilevariants_path
         const FPathFixture& InFixture,
         int32               InAgentIndex) -> FGameplayTag
     {
-        return InFixture._Paths[InAgentIndex].Get<ck::FFragment_GroundNavPath_Current>()
+        return InFixture._Paths[InAgentIndex].Get<ck::FFragment_GroundNavPath>()
             .Get_ProfileTag();
     }
 

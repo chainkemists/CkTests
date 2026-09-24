@@ -503,7 +503,7 @@ struct FCkGroundNavGym_Field
     // What the last mint was made WITH
     //
     // Read off the config and the profile inside Request_Mint and kept, because the debug bake needs
-    // every one of them and a volume hands none of them back: FCk_Fragment_GroundNavVolume_ParamsData
+    // every one of them and a volume hands none of them back: FCk_GroundNavVolume_Spec
     // is not reflected, and the volume exposes counts and epochs rather than the params it was minted
     // under. Without these a gym would have to state its own tunables twice - once to the volume and
     // once to the picture - and the two would drift the first time one was edited.
@@ -572,7 +572,7 @@ struct FCkGroundNavGym_Field
 
         Do_RememberBakeTunables(Config, Profile);
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(Bounds, Config, Profile);
+        auto VolumeParams = FCk_GroundNavVolume_Spec(Bounds, Config, Profile);
 
         // The bake waited on must be the one asked for, not one that happened to run at setup.
         VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);

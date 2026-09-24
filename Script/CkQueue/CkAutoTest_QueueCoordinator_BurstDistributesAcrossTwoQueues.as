@@ -16,7 +16,7 @@ class UCk_AutoTest_QueueCoordinator_BurstDistributesAcrossTwoQueues : UCk_AutoTe
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        auto CoordinatorParams = FCk_Fragment_QueueCoordinator_ParamsData();
+        auto CoordinatorParams = FCk_QueueCoordinator_Spec();
         CoordinatorParams.Set_RequiredQueueCategory(utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.Gym"));
         _Coordinator = utils_queue_coordinator::Add(_Owner, CoordinatorParams);
         for (int32 Index = 0; Index < 2; ++Index)
@@ -24,7 +24,7 @@ class UCk_AutoTest_QueueCoordinator_BurstDistributesAcrossTwoQueues : UCk_AutoTe
             auto QueueOwner = utils_entity_lifetime::Request_CreateEntity(InHandle);
             utils_transform::Add(QueueOwner, FTransform(FVector(200.0f, float(Index) * 300.0f, 0.0f)), ECk_Replication::DoesNotReplicate);
             _QueueOwners.Add(QueueOwner);
-            auto Params = FCk_Fragment_Queue_ParamsData();
+            auto Params = FCk_Queue_Spec();
             Params.Set_Category(utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.Gym"));
             _Queues.Add(utils_queue::Add(QueueOwner, Params));
         }

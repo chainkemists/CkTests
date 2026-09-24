@@ -609,7 +609,7 @@ class UCk_AutoTest_GroundNav_Link_VetoRoutesAroundForThatAgentOnly : UCk_AutoTes
         // Composed here with the params the crowd's own GroundNav dispatch would have used, purely
         // so this fixture holds the typesafe handle it needs to read the plan's spans back.
         auto Planner = utils_ground_nav_path::Add(Entity,
-            FCk_Fragment_GroundNavPath_ParamsData(float32(AgentRadius)));
+            FCk_GroundNavPath_Spec(float32(AgentRadius)));
 
         Assert_True(ck::IsValid(Planner), "Add() must return a valid GroundNav path handle");
 

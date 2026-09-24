@@ -290,7 +290,7 @@ class UCk_AutoTest_GroundNav_Rebuild_AdjacentPaintDoesNotReplan : UCk_AutoTest_B
             FVector(-VolumeHalfX, BandY + VolumeNearY, VolumeFloorZ),
             FVector( VolumeHalfX, BandY + VolumeFarY,  VolumeCeilingZ));
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(Bounds, Config, Profile);
+        auto VolumeParams = FCk_GroundNavVolume_Spec(Bounds, Config, Profile);
         VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
         VolumeParams.Set_ProbeBudgetPerTick(ProbeBudgetPerTick);
 
@@ -393,7 +393,7 @@ class UCk_AutoTest_GroundNav_Rebuild_AdjacentPaintDoesNotReplan : UCk_AutoTest_B
         // so this fixture holds the typesafe handle: the dispatch adds the feature only when it is
         // missing, so what runs is identical either way.
         _Planner = utils_ground_nav_path::Add(_AgentEntity,
-            FCk_Fragment_GroundNavPath_ParamsData(float32(AgentRadius)));
+            FCk_GroundNavPath_Spec(float32(AgentRadius)));
 
         Assert_True(ck::IsValid(_Planner), "Add() must return a valid GroundNav path handle");
 
