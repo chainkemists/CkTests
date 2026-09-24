@@ -102,7 +102,7 @@ struct FCkGroundNavDemo_Walker
         // Composed HERE with the radius the crowd's own GroundNav dispatch would have used, so the
         // handle Get_LinksOnPath and the route draw are asked of is one this frame holds.
         _Planner = utils_ground_nav_path::Add(Entity,
-            FCk_Fragment_GroundNavPath_ParamsData(InRadiusUu));
+            FCk_GroundNavPath_Spec(InRadiusUu));
 
         utils_crowd_agent::BindTo_OnGoalReached(Agent, InOnReached,
             ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,

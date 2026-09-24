@@ -515,7 +515,7 @@ class UCk_AutoTest_GroundNav_Link_TraversalHandshakeFiresExactlyOnce : UCk_AutoT
         // so this fixture holds the typesafe handle it needs to read the plan's spans back: the
         // dispatch adds the feature only when it is missing, so what runs is identical either way.
         _Planner = utils_ground_nav_path::Add(_AgentEntity,
-            FCk_Fragment_GroundNavPath_ParamsData(float32(AgentRadius)));
+            FCk_GroundNavPath_Spec(float32(AgentRadius)));
 
         Assert_True(ck::IsValid(_Planner), "Add() must return a valid GroundNav path handle");
 

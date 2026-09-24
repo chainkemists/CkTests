@@ -221,7 +221,7 @@ class UCk_AutoTest_Queue_ClaimFirstTransformProximityReconciles : UCk_AutoTest_B
     private FCk_Handle_Queue CreateQueue(FCk_Handle InOwner)
     {
         utils_transform::Request_SetLocation(InOwner.As_Transform(), FVector(200.0f, 0.0f, 0.0f), ECk_LocalWorld::World);
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_LayoutAlgorithm(ECk_Queue_LayoutAlgorithm::Linear);
         Params.Set_SlotSpacingUu(120.0f);
         Params.Set_SlotClaimRadiusUu(30.0f);

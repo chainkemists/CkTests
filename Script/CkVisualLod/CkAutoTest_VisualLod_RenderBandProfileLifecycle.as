@@ -47,7 +47,7 @@ class UCk_AutoTest_VisualLod_RenderBandProfileLifecycle : UCk_AutoTest_Base
         auto Config = visual_lod_gym_assets::ArbiterConfig();
         _AuthoredNearBudget = Config.Get_NearBudget();
         _RuntimeTunerArbiter = utils_visual_lod_arbiter::Add(
-            ArbiterOwner, FCk_Fragment_VisualLodArbiter_ParamsData(Config));
+            ArbiterOwner, FCk_VisualLodArbiter_Spec(Config));
 
         Add_Step_WaitUntil("the arbiter seeds its authored runtime tuner snapshot while the collection is unbaked",
             n"Check_RuntimeTunersSeeded");

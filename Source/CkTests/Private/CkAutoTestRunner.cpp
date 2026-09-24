@@ -570,7 +570,7 @@ auto
         FVector{FloorCentre.X - GHalfExtentXY, FloorCentre.Y - GHalfExtentXY, FloorTopZ - GFloorDropUu},
         FVector{FloorCentre.X + GHalfExtentXY, FloorCentre.Y + GHalfExtentXY, FloorTopZ + GCeilingRiseUu}};
 
-    auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData{Bounds, Config, Profile};
+    auto VolumeParams = FCk_GroundNavVolume_Spec{Bounds, Config, Profile};
     // The bake waited on must be the one asked for, not one that happened to run at setup.
     VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
 

@@ -136,7 +136,7 @@ namespace ck_tests_crowd_link_traversal
             FCk_Time{kSixtyHertz},
             InTraverser,
             InTraverser.Get<ck::FFragment_NavSurface_LinkTraversal_Requests>(),
-            InTraverser.Get<ck::FFragment_NavSurface_LinkTraversal_Current>());
+            InTraverser.Get<ck::FFragment_NavSurface_LinkTraversal>());
     }
 
     // What one waypoint advance costs: the cursor moves, the requests it raised are drained.

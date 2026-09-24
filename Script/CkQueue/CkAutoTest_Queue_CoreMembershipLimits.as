@@ -24,7 +24,7 @@ class UCk_AutoTest_Queue_CoreMembershipLimits : UCk_AutoTest_Base
         _Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(_Owner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_SoftLimit(2);
         Params.Set_HardLimit(3);
         _Queue = utils_queue::Add(_Owner, Params);

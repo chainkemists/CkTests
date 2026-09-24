@@ -333,7 +333,7 @@ class UCk_AutoTest_GroundNav_Shadow_InstalledPathIsByteIdenticalToRecast : UCk_A
             FVector(_FieldCentre.X - _FieldHalfXY, _FieldCentre.Y - _FieldHalfXY, _FloorTopZ - FieldFloorDropUu),
             FVector(_FieldCentre.X + _FieldHalfXY, _FieldCentre.Y + _FieldHalfXY, _FloorTopZ + FieldCeilingRiseUu));
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(Bounds, Config, Profile);
+        auto VolumeParams = FCk_GroundNavVolume_Spec(Bounds, Config, Profile);
         VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
 
         _Volume = utils_ground_nav_volume::Add(_VolumeEntity, VolumeParams);

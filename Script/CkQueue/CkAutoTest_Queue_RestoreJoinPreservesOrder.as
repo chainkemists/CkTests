@@ -73,7 +73,7 @@ class UCk_AutoTest_Queue_RestoreJoinPreservesOrder : UCk_AutoTest_Base
     {
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(Owner, FTransform(FVector(300.0f, 0.0f, 0.0f)), ECk_Replication::DoesNotReplicate);
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_SoftLimit(3);
         Params.Set_HardLimit(4);
         _Queue = utils_queue::Add(Owner, Params);

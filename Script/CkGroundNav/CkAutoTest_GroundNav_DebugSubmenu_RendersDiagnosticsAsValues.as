@@ -185,7 +185,7 @@ class UCk_AutoTest_GroundNav_DebugSubmenu_RendersDiagnosticsAsValues : UCk_AutoT
         _PlannerEntity.Request_OverrideToSelf();
         _PlannerEntity.Set_DebugName(n"AutoTest_GroundNav_SubmenuPlanner");
 
-        auto PathParams = FCk_Fragment_GroundNavPath_ParamsData(float32(AgentRadius));
+        auto PathParams = FCk_GroundNavPath_Spec(float32(AgentRadius));
         PathParams.Set_VerticalToleranceUu(float32(CellHeightUu * 4.0));
 
         _Planner = utils_ground_nav_path::Add(_PlannerEntity, PathParams);

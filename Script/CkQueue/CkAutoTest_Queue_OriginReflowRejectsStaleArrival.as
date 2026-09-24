@@ -221,7 +221,7 @@ class UCk_AutoTest_Queue_OriginReflowRejectsStaleArrival : UCk_AutoTest_Base
 
     private FCk_Handle_Queue CreateQueue(FCk_Handle& InOwner)
     {
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_SlotClaimPolicy(ECk_Queue_SlotClaimPolicy::ReserveOnFormation);
         return utils_queue::Add(InOwner, Params);
     }

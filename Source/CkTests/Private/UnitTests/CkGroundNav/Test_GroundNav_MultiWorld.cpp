@@ -108,7 +108,7 @@ namespace ck_test_groundnav_multiworld
     }
 
     auto Make_VolumeParams(
-        double InOriginUu) -> FCk_Fragment_GroundNavVolume_ParamsData
+        double InOriginUu) -> FCk_GroundNavVolume_Spec
     {
         auto Config = FCk_GroundNav_BakeConfig{kCellSize, kCellHeight};
         Config.Set_TileSizeUu(kTileSize);
@@ -117,7 +117,7 @@ namespace ck_test_groundnav_multiworld
             FVector{InOriginUu, InOriginUu, -50.0},
             FVector{InOriginUu + kVolumeSpanUu, InOriginUu + kVolumeSpanUu, 300.0}};
 
-        return FCk_Fragment_GroundNavVolume_ParamsData{Bounds, Config, Make_Profile()};
+        return FCk_GroundNavVolume_Spec{Bounds, Config, Make_Profile()};
     }
 
     // Ground reaching past the lattice on every side, so every tile's halo has real world in it.

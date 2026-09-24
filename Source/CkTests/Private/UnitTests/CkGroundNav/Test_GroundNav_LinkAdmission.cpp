@@ -53,7 +53,7 @@ namespace ck_test_groundnav_linkadmission
     const auto kMovedEndPoint = FVector{600.0, 600.0, 0.0};
     const auto kOutsidePoint = FVector{2000.0, 200.0, 0.0};
 
-    auto Make_Params() -> FCk_Fragment_GroundNavVolume_ParamsData
+    auto Make_Params() -> FCk_GroundNavVolume_Spec
     {
         auto Config = FCk_GroundNav_BakeConfig{25.0f, 10.0f};
         Config.Set_TileSizeUu(400.0f);
@@ -63,7 +63,7 @@ namespace ck_test_groundnav_linkadmission
 
         const auto Bounds = FBox{FVector{0.0, 0.0, -50.0}, FVector{800.0, 800.0, 300.0}};
 
-        return FCk_Fragment_GroundNavVolume_ParamsData{Bounds, Config, Profile};
+        return FCk_GroundNavVolume_Spec{Bounds, Config, Profile};
     }
 
     // Idempotent: re-registering a tag with the same policy is a silent no-op, so every test may arm

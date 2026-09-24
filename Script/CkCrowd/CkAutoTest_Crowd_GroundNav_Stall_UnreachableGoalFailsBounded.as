@@ -233,7 +233,7 @@ class UCk_AutoTest_Crowd_GroundNav_Stall_UnreachableGoalFailsBounded : UCk_AutoT
             FVector(-VolumeHalfX, BandY - VolumeHalfY, VolumeFloorZ),
             FVector( VolumeHalfX, BandY + VolumeHalfY, VolumeCeilingZ));
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(Bounds, Config, Profile);
+        auto VolumeParams = FCk_GroundNavVolume_Spec(Bounds, Config, Profile);
         VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
 
         _Volume = utils_ground_nav_volume::Add(_VolumeEntity, VolumeParams);

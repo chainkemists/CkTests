@@ -21,7 +21,7 @@ class UCk_AutoTest_Queue_EightMemberLinearHardLimit : UCk_AutoTest_Base
             FTransform(FRotator(0.0f, 180.0f, 0.0f), FVector(140.0f, 0.0f, 0.0f), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_HardLimit(8);
         Params.Set_LayoutAlgorithm(ECk_Queue_LayoutAlgorithm::Linear);
         Params.Set_SlotClaimPolicy(ECk_Queue_SlotClaimPolicy::ReserveOnFormation);

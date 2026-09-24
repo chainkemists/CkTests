@@ -190,7 +190,7 @@ class UCk_AutoTest_Crowd_GroundNav_NoRouteFailsClean : UCk_AutoTest_Base
             FVector(VolumeMinX, BandY - VolumeHalfY, VolumeFloorZ),
             FVector(VolumeMaxX, BandY + VolumeHalfY, VolumeCeilingZ));
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(Bounds, Config, Profile);
+        auto VolumeParams = FCk_GroundNavVolume_Spec(Bounds, Config, Profile);
         VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
 
         _Volume = utils_ground_nav_volume::Add(_VolumeEntity, VolumeParams);

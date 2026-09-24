@@ -39,13 +39,13 @@ namespace ck_test_groundnav_buildrequestselector
         return Selector;
     }
 
-    auto Make_Params() -> FCk_Fragment_GroundNavVolume_ParamsData
+    auto Make_Params() -> FCk_GroundNavVolume_Spec
     {
         auto Config = FCk_GroundNav_BakeConfig{25.0f, 10.0f};
         Config.Set_TileSizeUu(400.0f);
         const auto Profile = FCk_GroundNav_AgentProfile{
             FCk_AnyShape{FCk_ShapeCapsule_Dimensions{70.0f, 20.0f}}};
-        auto Params = FCk_Fragment_GroundNavVolume_ParamsData{
+        auto Params = FCk_GroundNavVolume_Spec{
             FBox{FVector{0.0, 0.0, -50.0}, FVector{800.0, 800.0, 300.0}}, Config, Profile};
         Params.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
         Params.Set_DataLayerSelector(Make_Selector(TArray<FName>{FName{TEXT("Gameplay")}}));

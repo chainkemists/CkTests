@@ -252,9 +252,9 @@ namespace ck_test_groundnav_pathinvalidation
 
     public:
         auto Get_Current(
-            int32 InAgentIndex) const -> const ck::FFragment_GroundNavPath_Current&
+            int32 InAgentIndex) const -> const ck::FFragment_GroundNavPath&
         {
-            return _Paths[InAgentIndex].Get<ck::FFragment_GroundNavPath_Current>();
+            return _Paths[InAgentIndex].Get<ck::FFragment_GroundNavPath>();
         }
 
         auto Get_HasFreshResult(
@@ -276,9 +276,9 @@ namespace ck_test_groundnav_pathinvalidation
         }
     };
 
-    auto Make_PathParams() -> FCk_Fragment_GroundNavPath_ParamsData
+    auto Make_PathParams() -> FCk_GroundNavPath_Spec
     {
-        auto Params = FCk_Fragment_GroundNavPath_ParamsData{kAgentRadiusUu};
+        auto Params = FCk_GroundNavPath_Spec{kAgentRadiusUu};
 
         Params.Set_VerticalToleranceUu(kStepHeight);
         Params.Set_CornerOffsetK(kNoCornerOffset);
@@ -403,7 +403,7 @@ namespace ck_test_groundnav_pathinvalidation
                 FCk_Time{kSixtyHertz},
                 Path,
                 Path.Get<ck::FFragment_GroundNavPath_Params>(),
-                Path.Get<ck::FFragment_GroundNavPath_Current>(),
+                Path.Get<ck::FFragment_GroundNavPath>(),
                 Path.Get<ck::FFragment_GroundNavPath_Result>(),
                 Path.Get<ck::FFragment_GroundNavPath_Requests>());
     }

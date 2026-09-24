@@ -185,14 +185,14 @@ namespace ck_test_groundnav_markuplive
 
     // ---- The volume-shaped half --------------------------------------------------------------------------
 
-    auto Make_VolumeParams() -> FCk_Fragment_GroundNavVolume_ParamsData
+    auto Make_VolumeParams() -> FCk_GroundNavVolume_Spec
     {
         auto Config = FCk_GroundNav_BakeConfig{kCellSize, kCellHeight};
         Config.Set_TileSizeUu(kTileSize);
 
         const auto Bounds = FBox{FVector{0.0, 0.0, -50.0}, FVector{800.0, 800.0, 300.0}};
 
-        return FCk_Fragment_GroundNavVolume_ParamsData{Bounds, Config, Make_Profile()};
+        return FCk_GroundNavVolume_Spec{Bounds, Config, Make_Profile()};
     }
 
     // Idempotent: re-registering a tag with the same policy is a silent no-op.

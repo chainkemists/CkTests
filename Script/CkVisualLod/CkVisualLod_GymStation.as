@@ -79,7 +79,7 @@ class UCk_EntityScript_VisualLodGym_Arbitration : UCk_GenericEntityScript_UE
         // local-view discovery fallback (TryGet_LocalViewInfo -> the PIE player's camera).
         auto ArbiterEntity = _SelfHandle.Request_CreateEntity();
         _Arbiter = UCk_Utils_VisualLodArbiter_UE::Add(ArbiterEntity,
-            FCk_Fragment_VisualLodArbiter_ParamsData(Config));
+            FCk_VisualLodArbiter_Spec(Config));
 
         // Fires once per crowd, right after Finalize - the window to paint the batched members
         // with the far half of the crossfade before any of them draw.
@@ -105,7 +105,7 @@ class UCk_EntityScript_VisualLodGym_Arbitration : UCk_GenericEntityScript_UE
             auto Member = _SelfHandle.Request_CreateEntity();
             auto Transform = utils_transform::Add(Member, MemberXf, ECk_Replication::DoesNotReplicate);
 
-            auto MemberParams = FCk_Fragment_VisualLod_ParamsData(DomainTag);
+            auto MemberParams = FCk_VisualLod_Spec(DomainTag);
             MemberParams.Set_Renderer(RendererData);
 
             // Fixed walk far-anim: the batched members visibly animate while orbiting

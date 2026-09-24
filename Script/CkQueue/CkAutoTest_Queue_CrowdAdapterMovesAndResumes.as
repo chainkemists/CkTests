@@ -278,7 +278,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, FVector(400.0f, -250.0f, 0.0f), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        auto QueueParams = FCk_Fragment_Queue_ParamsData();
+        auto QueueParams = FCk_Queue_Spec();
         QueueParams.Set_SlotSpacingUu(120.0f);
         QueueParams.Set_SlotClaimRadiusUu(80.0f);
         QueueParams.Set_SlotSettleRadiusUu(10.0f);
@@ -287,7 +287,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         QueueParams.Set_ReserveAssignmentPolicy(ECk_Queue_ReserveAssignmentPolicy::TicketOrder);
         _Queue = utils_queue::Add(_QueueOwner, QueueParams);
         _SecondQueue = utils_queue::Add(_SecondQueueOwner,
-            FCk_Fragment_Queue_ParamsData());
+            FCk_Queue_Spec());
         _Queue.BindTo_OnQueueMemberStateChanged(
             FCk_Delegate_Queue_OnMemberStateChanged(this, n"OnMemberStateChanged"));
         _Queue.BindTo_OnQueueFormationStateChanged(

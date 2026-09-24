@@ -83,7 +83,7 @@
 //
 // The GroundNavPath feature is added to the agent by this fixture rather than
 // left to the crowd's own dispatch, with the same params the crowd would have
-// used (FCk_Fragment_GroundNavPath_ParamsData{radius}). The crowd composes it
+// used (FCk_GroundNavPath_Spec{radius}). The crowd composes it
 // only if it is missing, so pre-adding changes nothing about what runs - it is
 // what gives this test the typesafe handle it needs to read the second plan's
 // epoch and repair verdict back for the report.
@@ -334,7 +334,7 @@ class UCk_AutoTest_GroundNav_Rebuild_IdleAgentIsNotRepairedOnItsNextRoute : UCk_
             FVector(-VolumeHalfX, BandY - VolumeHalfY, VolumeFloorZ),
             FVector( VolumeHalfX, BandY + VolumeHalfY, VolumeCeilingZ));
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(Bounds, Config, Profile);
+        auto VolumeParams = FCk_GroundNavVolume_Spec(Bounds, Config, Profile);
         VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
         VolumeParams.Set_ProbeBudgetPerTick(ProbeBudgetPerTick);
 
@@ -427,7 +427,7 @@ class UCk_AutoTest_GroundNav_Rebuild_IdleAgentIsNotRepairedOnItsNextRoute : UCk_
         // so this fixture holds the typesafe handle: the dispatch adds the feature only when it is
         // missing, so what runs is identical either way.
         _Planner = utils_ground_nav_path::Add(_AgentEntity,
-            FCk_Fragment_GroundNavPath_ParamsData(float32(AgentRadius)));
+            FCk_GroundNavPath_Spec(float32(AgentRadius)));
 
         Assert_True(ck::IsValid(_Planner), "Add() must return a valid GroundNav path handle");
 

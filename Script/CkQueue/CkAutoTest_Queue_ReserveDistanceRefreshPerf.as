@@ -112,7 +112,7 @@ class UCk_AutoTest_Queue_ReserveDistanceRefreshPerf : UCk_AutoTest_Base
                 FTransform(FRotator::ZeroRotator, QueueLocation, FVector::OneVector),
                 ECk_Replication::DoesNotReplicate);
 
-            auto Params = FCk_Fragment_Queue_ParamsData();
+            auto Params = FCk_Queue_Spec();
             Params.Set_LayoutAlgorithm(ECk_Queue_LayoutAlgorithm::OrthogonalSnake);
             Params.Set_SlotSpacingUu(120.0f);
             Params.Set_AgentRadiusUu(30.0f);

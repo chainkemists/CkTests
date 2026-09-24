@@ -26,13 +26,13 @@ namespace ck_test_groundnav_volume_spawn
 
     auto Set_ScriptParams(
         UCk_GroundNavVolume_EntityScript& InScript,
-        const FCk_Fragment_GroundNavVolume_ParamsData& InParams) -> bool
+        const FCk_GroundNavVolume_Spec& InParams) -> bool
     {
         auto* Property = FindFProperty<FStructProperty>(InScript.GetClass(), TEXT("_Params"));
-        if (Property == nullptr || Property->Struct != FCk_Fragment_GroundNavVolume_ParamsData::StaticStruct())
+        if (Property == nullptr || Property->Struct != FCk_GroundNavVolume_Spec::StaticStruct())
         { return false; }
 
-        auto* Target = Property->ContainerPtrToValuePtr<FCk_Fragment_GroundNavVolume_ParamsData>(&InScript);
+        auto* Target = Property->ContainerPtrToValuePtr<FCk_GroundNavVolume_Spec>(&InScript);
         if (Target == nullptr)
         { return false; }
 
@@ -40,13 +40,13 @@ namespace ck_test_groundnav_volume_spawn
         return true;
     }
 
-    auto Make_ValidParams() -> FCk_Fragment_GroundNavVolume_ParamsData
+    auto Make_ValidParams() -> FCk_GroundNavVolume_Spec
     {
         auto Config = FCk_GroundNav_BakeConfig{25.0f, 10.0f};
         Config.Set_TileSizeUu(400.0f);
         auto Profile = FCk_GroundNav_AgentProfile{
             FCk_AnyShape{FCk_ShapeCapsule_Dimensions{70.0f, 20.0f}}};
-        auto Params = FCk_Fragment_GroundNavVolume_ParamsData{
+        auto Params = FCk_GroundNavVolume_Spec{
             FBox{FVector{-40.0, -20.0, -10.0}, FVector{80.0, 60.0, 30.0}}, Config, Profile};
         Params.Set_ProbeBudgetPerTick(1);
         return Params;
@@ -61,9 +61,9 @@ namespace ck_test_groundnav_volume_spawn
         { InSubsystem.Tick(1.0f / 60.0f); }
     }
 
-    auto Get_VolumeParams(const FCk_Registry& InRegistry) -> TArray<FCk_Fragment_GroundNavVolume_ParamsData>
+    auto Get_VolumeParams(const FCk_Registry& InRegistry) -> TArray<FCk_GroundNavVolume_Spec>
     {
-        auto Ret = TArray<FCk_Fragment_GroundNavVolume_ParamsData>{};
+        auto Ret = TArray<FCk_GroundNavVolume_Spec>{};
         InRegistry.View<ck::FFragment_GroundNavVolume_Params>().ForEach(
             [&Ret](const FCk_Entity&, const ck::FFragment_GroundNavVolume_Params& InParams)
             {

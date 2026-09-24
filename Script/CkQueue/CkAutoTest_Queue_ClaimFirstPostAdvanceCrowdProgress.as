@@ -77,7 +77,7 @@ class UCk_AutoTest_Queue_ClaimFirstPostAdvanceCrowdProgress : UCk_AutoTest_Base
         _QueueOwner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(_QueueOwner, FTransform(k_OwnerTargetLocation), ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_LayoutAlgorithm(ECk_Queue_LayoutAlgorithm::Linear);
         Params.Set_SlotSpacingUu(k_SlotSpacingUu);
         Params.Set_AgentRadiusUu(k_AgentRadiusUu);

@@ -94,9 +94,9 @@ namespace ck_test_groundnav_pathdiagnostics
         FCk_Handle_GroundNavPath Path;
 
     public:
-        auto Get_Current() const -> const ck::FFragment_GroundNavPath_Current&
+        auto Get_Current() const -> const ck::FFragment_GroundNavPath&
         {
-            return Path.Get<ck::FFragment_GroundNavPath_Current>();
+            return Path.Get<ck::FFragment_GroundNavPath>();
         }
 
         auto Get_Result() const -> const FCk_GroundNavPath_Result&
@@ -120,9 +120,9 @@ namespace ck_test_groundnav_pathdiagnostics
         }
     };
 
-    auto Make_PathParams() -> FCk_Fragment_GroundNavPath_ParamsData
+    auto Make_PathParams() -> FCk_GroundNavPath_Spec
     {
-        auto Params = FCk_Fragment_GroundNavPath_ParamsData{kAgentRadiusUu};
+        auto Params = FCk_GroundNavPath_Spec{kAgentRadiusUu};
 
         Params.Set_VerticalToleranceUu(kStepHeight);
         Params.Set_CornerOffsetK(kNoCornerOffset);
@@ -188,7 +188,7 @@ namespace ck_test_groundnav_pathdiagnostics
             FCk_Time{kSixtyHertz},
             InOutFixture.Path,
             InOutFixture.Path.Get<ck::FFragment_GroundNavPath_Params>(),
-            InOutFixture.Path.Get<ck::FFragment_GroundNavPath_Current>(),
+            InOutFixture.Path.Get<ck::FFragment_GroundNavPath>(),
             InOutFixture.Path.Get<ck::FFragment_GroundNavPath_Result>(),
             InOutFixture.Path.Get<ck::FFragment_GroundNavPath_Requests>());
 
@@ -227,7 +227,7 @@ namespace ck_test_groundnav_pathdiagnostics
         ck::FProcessor_GroundNavPath_Diagnostics::ForEachEntity(
             FCk_Time{kSixtyHertz},
             InOutFixture.Path,
-            InOutFixture.Path.Get<ck::FFragment_GroundNavPath_Current>(),
+            InOutFixture.Path.Get<ck::FFragment_GroundNavPath>(),
             InOutFixture.Path.Get<ck::FFragment_GroundNavPath_Result>());
     }
 

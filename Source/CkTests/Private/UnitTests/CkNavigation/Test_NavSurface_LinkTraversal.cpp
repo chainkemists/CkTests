@@ -100,7 +100,7 @@ namespace ck_test_nav_surface_link_traversal
             FCk_Time{kSixtyHertz},
             InTraverser,
             InTraverser.Get<ck::FFragment_NavSurface_LinkTraversal_Requests>(),
-            InTraverser.Get<ck::FFragment_NavSurface_LinkTraversal_Current>());
+            InTraverser.Get<ck::FFragment_NavSurface_LinkTraversal>());
     }
 
     auto DoRun_EndPlay(
@@ -109,7 +109,7 @@ namespace ck_test_nav_surface_link_traversal
         ck::FProcessor_NavSurface_LinkTraversal_EndPlay::ForEachEntity(
             FCk_Time{kSixtyHertz},
             InTraverser,
-            InTraverser.Get<ck::FFragment_NavSurface_LinkTraversal_Current>());
+            InTraverser.Get<ck::FFragment_NavSurface_LinkTraversal>());
     }
 }
 

@@ -364,7 +364,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     kCkUnitTestFlags)
 bool FCkTest_Crowd_AvoidanceVolume_TraversalPoliciesBuildPhaseOverlays::RunTest(const FString& InParameters)
 {
-    const auto DefaultParams = FCk_Fragment_CrowdAvoidanceVolume_ParamsData{};
+    const auto DefaultParams = FCk_CrowdAvoidanceVolume_Spec{};
     TestEqual(TEXT("AvoidIfPossible remains the authored default"),
         DefaultParams.Get_TraversalPolicy(), ECk_CrowdAvoidanceVolume_TraversalPolicy::AvoidIfPossible);
 
@@ -423,7 +423,7 @@ bool FCkTest_Crowd_AvoidanceVolume_DebugSnapshots_AreCopiedAndPendingWithoutReca
     { return false; }
 
     UCk_Utils_Handle_UE::Set_DebugName(Volume, TEXT("SnapshotVolume"));
-    auto Params = FCk_Fragment_CrowdAvoidanceVolume_ParamsData{};
+    auto Params = FCk_CrowdAvoidanceVolume_Spec{};
     Params.Set_HalfExtents(FVector{10.0f, 20.0f, 30.0f});
     Params.Set_InfluenceRange(25.0f);
     Params.Set_PathPlanningClearance(15.0f);

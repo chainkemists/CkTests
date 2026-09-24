@@ -62,7 +62,7 @@ namespace ck_test_groundnav_markup
     // Distinctly not 1.0, so "the multiplier came from the policy" cannot pass on the record's default.
     constexpr auto kSlowCostMultiplier = 3.5f;
 
-    auto Make_Params() -> FCk_Fragment_GroundNavVolume_ParamsData
+    auto Make_Params() -> FCk_GroundNavVolume_Spec
     {
         auto Config = FCk_GroundNav_BakeConfig{25.0f, 10.0f};
         Config.Set_TileSizeUu(400.0f);
@@ -72,7 +72,7 @@ namespace ck_test_groundnav_markup
 
         const auto Bounds = FBox{FVector{0.0, 0.0, -50.0}, FVector{800.0, 800.0, 300.0}};
 
-        return FCk_Fragment_GroundNavVolume_ParamsData{Bounds, Config, Profile};
+        return FCk_GroundNavVolume_Spec{Bounds, Config, Profile};
     }
 
     // Idempotent: re-registering a tag with the same policy is a silent no-op, so every test may arm
@@ -972,7 +972,7 @@ bool FCkTest_GroundNav_Markup_PaintOutsideEveryVolumeIsRefusedQuietly::RunTest(c
         FCk_Time{kSixtyHertz},
         Markup,
         Markup.Get<ck::FFragment_NavSurfaceMarkup_Requests>(),
-        Markup.Get<ck::FFragment_NavSurfaceMarkup_Current>());
+        Markup.Get<ck::FFragment_NavSurfaceMarkup>());
 
     TestEqual(TEXT("the paint is answered exactly once"),
         Listener->_TimesRequestCompleted, 1);

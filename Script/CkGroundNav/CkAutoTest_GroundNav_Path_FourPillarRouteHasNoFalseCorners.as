@@ -175,7 +175,7 @@ class UCk_AutoTest_GroundNav_Path_FourPillarRouteHasNoFalseCorners : UCk_AutoTes
             Get_ScenePoint(FVector(-VolumeHalfX, -VolumeHalfY, VolumeFloorZ)),
             Get_ScenePoint(FVector(VolumeHalfX, VolumeHalfY, VolumeCeilingZ)));
 
-        auto VolumeParams = FCk_Fragment_GroundNavVolume_ParamsData(Bounds, Config, Profile);
+        auto VolumeParams = FCk_GroundNavVolume_Spec(Bounds, Config, Profile);
         VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
         _Volume = utils_ground_nav_volume::Add(_VolumeEntity, VolumeParams);
 
@@ -185,7 +185,7 @@ class UCk_AutoTest_GroundNav_Path_FourPillarRouteHasNoFalseCorners : UCk_AutoTes
         _PlannerEntity.Request_OverrideToSelf();
         _PlannerEntity.Set_DebugName(n"AutoTest_GroundNav_FourPillarPlanner");
 
-        auto PathParams = FCk_Fragment_GroundNavPath_ParamsData(float32(AgentRadiusUu));
+        auto PathParams = FCk_GroundNavPath_Spec(float32(AgentRadiusUu));
         PathParams.Set_VerticalToleranceUu(float32(CellHeightUu * 4.0));
         _Planner = utils_ground_nav_path::Add(_PlannerEntity, PathParams);
 

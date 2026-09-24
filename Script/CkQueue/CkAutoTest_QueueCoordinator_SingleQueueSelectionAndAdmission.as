@@ -18,13 +18,13 @@ class UCk_AutoTest_QueueCoordinator_SingleQueueSelectionAndAdmission : UCk_AutoT
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _CoordinatorOwner = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        auto CoordinatorParams = FCk_Fragment_QueueCoordinator_ParamsData();
+        auto CoordinatorParams = FCk_QueueCoordinator_Spec();
         CoordinatorParams.Set_RequiredQueueCategory(
             utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.Gym"));
         _Coordinator = utils_queue_coordinator::Add(_CoordinatorOwner, CoordinatorParams);
         _QueueOwner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(_QueueOwner, FTransform(FVector(200.0f, 0.0f, 0.0f)), ECk_Replication::DoesNotReplicate);
-        auto Params = FCk_Fragment_Queue_ParamsData();
+        auto Params = FCk_Queue_Spec();
         Params.Set_Category(utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.Gym"));
         _Queue = utils_queue::Add(_QueueOwner, Params);
         _Member = utils_entity_lifetime::Request_CreateEntity(InHandle);

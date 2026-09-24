@@ -399,8 +399,8 @@ bool FCkVisualLod_ArbiterTunersPie::RunTest(const FString&)
             State->Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld);
             FCk_Handle ArbiterAEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(State->Owner);
             FCk_Handle ArbiterBEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(State->Owner);
-            const FCk_Fragment_VisualLodArbiter_ParamsData ArbiterAParams{ConfigA};
-            const FCk_Fragment_VisualLodArbiter_ParamsData ArbiterBParams{ConfigB};
+            const FCk_VisualLodArbiter_Spec ArbiterAParams{ConfigA};
+            const FCk_VisualLodArbiter_Spec ArbiterBParams{ConfigB};
             State->ArbiterA = UCk_Utils_VisualLodArbiter_UE::Add(ArbiterAEntity, ArbiterAParams);
             State->ArbiterB = UCk_Utils_VisualLodArbiter_UE::Add(ArbiterBEntity, ArbiterBParams);
 
@@ -408,8 +408,8 @@ bool FCkVisualLod_ArbiterTunersPie::RunTest(const FString&)
             State->MemberB = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(State->Owner);
             UCk_Utils_Transform_UE::Add(State->MemberA, FTransform{FVector{0.0f, 0.0f, 0.0f}}, ECk_Replication::DoesNotReplicate);
             UCk_Utils_Transform_UE::Add(State->MemberB, FTransform{FVector{100.0f, 0.0f, 0.0f}}, ECk_Replication::DoesNotReplicate);
-            FCk_Fragment_VisualLod_ParamsData MemberAParams{ConfigA->Get_DomainTag()};
-            FCk_Fragment_VisualLod_ParamsData MemberBParams{ConfigB->Get_DomainTag()};
+            FCk_VisualLod_Spec MemberAParams{ConfigA->Get_DomainTag()};
+            FCk_VisualLod_Spec MemberBParams{ConfigB->Get_DomainTag()};
             MemberAParams.Set_Renderer(RendererData);
             MemberBParams.Set_Renderer(RendererData);
             UCk_Utils_VisualLod_UE::Add(State->MemberA, MemberAParams);
@@ -430,8 +430,8 @@ bool FCkVisualLod_ArbiterTunersPie::RunTest(const FString&)
                 || !UCk_Utils_VisualLodArbiter_UE::Has(State->ArbiterB)
                 || !UCk_Utils_VisualLod_UE::Has(State->MemberA)
                 || !UCk_Utils_VisualLod_UE::Has(State->MemberB)
-                || State->MemberA.Get<ck::FFragment_VisualLod_Current>().Get_Arbiter() != State->ArbiterA
-                || State->MemberB.Get<ck::FFragment_VisualLod_Current>().Get_Arbiter() != State->ArbiterB)
+                || State->MemberA.Get<ck::FFragment_VisualLod>().Get_Arbiter() != State->ArbiterA
+                || State->MemberB.Get<ck::FFragment_VisualLod>().Get_Arbiter() != State->ArbiterB)
             { return false; }
             if (!State->Panel.IsValid()) { return false; }
             State->bMembersResolved = true;

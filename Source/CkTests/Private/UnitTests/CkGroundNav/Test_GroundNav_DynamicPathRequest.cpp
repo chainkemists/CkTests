@@ -51,9 +51,9 @@ namespace ck_test_groundnav_dynamic_path_request
         FCk_Handle_GroundNavPath _Path;
     };
 
-    auto Make_PathParams() -> FCk_Fragment_GroundNavPath_ParamsData
+    auto Make_PathParams() -> FCk_GroundNavPath_Spec
     {
-        auto Params = FCk_Fragment_GroundNavPath_ParamsData{kAgentRadiusUu};
+        auto Params = FCk_GroundNavPath_Spec{kAgentRadiusUu};
         Params.Set_VerticalToleranceUu(kStepHeight);
         Params.Set_CornerOffsetK(0.0f);
         return Params;
@@ -96,7 +96,7 @@ namespace ck_test_groundnav_dynamic_path_request
         ck::FProcessor_GroundNavPath_HandleRequests{InOutFixture._EcsWorld.Get_Registry()}.ForEachEntity(
             FCk_Time{kSixtyHertz}, InOutFixture._Path,
             InOutFixture._Path.Get<ck::FFragment_GroundNavPath_Params>(),
-            InOutFixture._Path.Get<ck::FFragment_GroundNavPath_Current>(),
+            InOutFixture._Path.Get<ck::FFragment_GroundNavPath>(),
             InOutFixture._Path.Get<ck::FFragment_GroundNavPath_Result>(),
             InOutFixture._Path.Get<ck::FFragment_GroundNavPath_Requests>());
     }
@@ -211,7 +211,7 @@ bool FCkTest_GroundNav_DynamicPathRequest_StrictRouteRepairForcesFullReplan::Run
     }
 
     const auto& StrictResult = Fixture._Path.Get<ck::FFragment_GroundNavPath_Result>().Get_Result();
-    const auto& StrictCurrent = Fixture._Path.Get<ck::FFragment_GroundNavPath_Current>();
+    const auto& StrictCurrent = Fixture._Path.Get<ck::FFragment_GroundNavPath>();
     if (NOT TestEqual(TEXT("the valid strict snapshot selects the strict-cell production route"),
         StrictCurrent.Get_LastRouteKind(), ECk_GroundNav_PathRouteKind::StrictCell) ||
         NOT TestTrue(TEXT("the strict-cell route completed"),
@@ -265,7 +265,7 @@ bool FCkTest_GroundNav_DynamicPathRequest_RepairWithNoCacheReportsNone::RunTest(
         return false;
     }
 
-    const auto& Current = Fixture._Path.Get<ck::FFragment_GroundNavPath_Current>();
+    const auto& Current = Fixture._Path.Get<ck::FFragment_GroundNavPath>();
     if (NOT TestTrue(TEXT("the fresh path entity has neither portal keys nor a cached strict route"),
         Current.Get_LastCorridorKeys().IsEmpty() && NOT Current.Get_HasCachedRoute()))
     {

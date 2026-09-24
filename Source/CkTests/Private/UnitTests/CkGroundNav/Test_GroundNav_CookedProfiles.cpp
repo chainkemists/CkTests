@@ -75,13 +75,13 @@ namespace ck_test_groundnav_cookedprofiles
         }
     };
 
-    auto Make_Params(FName InSourceLevel, FName InCookKey = kCookKey) -> FCk_Fragment_GroundNavVolume_ParamsData
+    auto Make_Params(FName InSourceLevel, FName InCookKey = kCookKey) -> FCk_GroundNavVolume_Spec
     {
         auto Config = FCk_GroundNav_BakeConfig{25.0f, 10.0f};
         Config.Set_TileSizeUu(400.0f);
         auto Profile = FCk_GroundNav_AgentProfile{
             FCk_AnyShape{FCk_ShapeCapsule_Dimensions{70.0f, 20.0f}}};
-        auto Params = FCk_Fragment_GroundNavVolume_ParamsData{
+        auto Params = FCk_GroundNavVolume_Spec{
             FBox{FVector{0.0, 0.0, -50.0}, FVector{800.0, 800.0, 300.0}}, Config, Profile};
         Params.Set_CookKey(InCookKey);
         Params.Set_CookLevelPackage(InSourceLevel);
@@ -91,7 +91,7 @@ namespace ck_test_groundnav_cookedprofiles
         return Params;
     }
 
-    auto Get_Fingerprint(const FCk_Fragment_GroundNavVolume_ParamsData& InParams) -> uint64
+    auto Get_Fingerprint(const FCk_GroundNavVolume_Spec& InParams) -> uint64
     {
         auto Variants = TArray<TPair<FName, FCk_GroundNav_AgentProfile>>{};
 
@@ -104,7 +104,7 @@ namespace ck_test_groundnav_cookedprofiles
     }
 
     auto Install_Field(
-        const FCk_Fragment_GroundNavVolume_ParamsData& InParams,
+        const FCk_GroundNavVolume_Spec& InParams,
         FGameplayTag InProfileTag,
         FInstalledAssets& InOutAssets,
         bool InHasWalkableGround = false) -> bool
@@ -183,7 +183,7 @@ namespace ck_test_groundnav_cookedprofiles
         return true;
     }
 
-    auto Install_Bundle(const FCk_Fragment_GroundNavVolume_ParamsData& InParams, FInstalledAssets& InOutAssets,
+    auto Install_Bundle(const FCk_GroundNavVolume_Spec& InParams, FInstalledAssets& InOutAssets,
                          int32 InProfileCount = 2, bool InHasWalkableGround = false) -> bool
     {
         if (NOT Install_Field(InParams, {}, InOutAssets, InHasWalkableGround))
@@ -202,7 +202,7 @@ namespace ck_test_groundnav_cookedprofiles
     auto Make_World(const TCHAR* InName) -> UWorld*
     { return UWorld::CreateWorld(EWorldType::Game, kInformEngineOfWorld, FName{InName}); }
 
-    auto Add_AndSetup(UWorld& InWorld, const FCk_Fragment_GroundNavVolume_ParamsData& InParams) -> FCk_Handle_GroundNavVolume
+    auto Add_AndSetup(UWorld& InWorld, const FCk_GroundNavVolume_Spec& InParams) -> FCk_Handle_GroundNavVolume
     {
         const auto WorldEntity = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(&InWorld);
         auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(WorldEntity);
