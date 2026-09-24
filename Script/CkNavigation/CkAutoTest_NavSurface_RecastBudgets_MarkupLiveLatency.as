@@ -197,7 +197,7 @@ class UCk_AutoTest_NavSurface_RecastBudgets_MarkupLiveLatency : UCk_AutoTest_Bas
             return;
         }
 
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+        auto Params = FCk_Timer_Spec(FCk_Time(0.0f));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 

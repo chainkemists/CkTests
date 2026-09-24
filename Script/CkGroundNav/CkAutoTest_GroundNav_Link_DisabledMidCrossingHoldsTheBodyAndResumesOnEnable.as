@@ -229,7 +229,7 @@ class UCk_AutoTest_GroundNav_Link_DisabledMidCrossingHoldsTheBodyAndResumesOnEna
         auto DeckShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         DeckShape.Set_HalfExtents(FVector(DeckHalfXY, DeckHalfXY, DeckHalfZ));
 
-        auto DeckParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto DeckParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         DeckParams.Set_ShapeDimensions(DeckShape);
         DeckParams.Set_MotionType(ECk_MotionType::Static);
 
@@ -375,15 +375,15 @@ class UCk_AutoTest_GroundNav_Link_DisabledMidCrossingHoldsTheBodyAndResumesOnEna
             FTransform(Facing, Spawn, FVector::OneVector), ECk_Replication::DoesNotReplicate);
 
         _Agent = utils_crowd_agent::Add(AgentTransform,
-            FCk_Fragment_CrowdAgent_ParamsData(float32(AgentRadius), float32(AgentHeight)));
+            FCk_CrowdAgent_Spec(float32(AgentRadius), float32(AgentHeight)));
 
         Assert_True(ck::IsValid(_Agent), "Add() must return a valid crowd agent handle");
 
         utils_velocity::Add(_AgentEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(_AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(_AgentEntity);
 

@@ -150,7 +150,7 @@ bool FCkTest_Crowd_DebugDrawOuterGate_TogglesLive::RunTest(const FString& Parame
             auto Transform = UCk_Utils_Transform_UE::Add(
                 Owner, FTransform{FVector{10000.0f, 10000.0f, 10000.0f}}, ECk_Replication::DoesNotReplicate);
             GAgent = UCk_Utils_CrowdAgent_UE::Add(
-                Transform, FCk_Fragment_CrowdAgent_ParamsData{42.0f, 192.0f});
+                Transform, FCk_CrowdAgent_Spec{42.0f, 192.0f});
             if (NOT TestTrue(TEXT("crowd agent composed through its production utility"), ck::IsValid(GAgent)))
             { return; }
 

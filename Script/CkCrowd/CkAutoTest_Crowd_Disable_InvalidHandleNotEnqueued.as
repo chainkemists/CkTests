@@ -42,7 +42,7 @@ class UCk_AutoTest_Crowd_Disable_InvalidHandleNotEnqueued : UCk_AutoTest_Base
         auto AgentTransform = utils_transform::Add(AgentEntity,
             FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, 100.0), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
-        _Bystander = utils_crowd_agent::Add(AgentTransform, FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f));
+        _Bystander = utils_crowd_agent::Add(AgentTransform, FCk_CrowdAgent_Spec(42.0f, 192.0f));
 
         auto Invalid = FCk_Handle_CrowdAgent();
         utils_crowd_agent::Request_EnableDisable(Invalid,

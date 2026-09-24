@@ -72,7 +72,7 @@ class UCk_AutoTest_Camera_OrthoProjection : UCk_AutoTest_Base
         auto Profile = FCk_CameraProfile();
         Profile.Set_Sensor(Sensor);
 
-        auto Params = FCk_Fragment_Camera_ParamsData(_Helper.CameraComponent);
+        auto Params = FCk_Camera_Spec(_Helper.CameraComponent);
         Params.Set_Profile(Profile);
 
         auto OwnedEntity = FCk_Handle(InEntityScriptHandle);

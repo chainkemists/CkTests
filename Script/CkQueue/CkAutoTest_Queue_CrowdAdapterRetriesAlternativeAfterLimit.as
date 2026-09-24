@@ -101,14 +101,14 @@ class UCk_AutoTest_Queue_CrowdAdapterRetriesAlternativeAfterLimit : UCk_AutoTest
             ECk_Replication::DoesNotReplicate);
         _Agent = utils_crowd_agent::Add(
             AgentTransform,
-            FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f));
+            FCk_CrowdAgent_Spec(42.0f, 192.0f));
         utils_velocity::Add(
             _AgentEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(
             _AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(_AgentEntity);
     }

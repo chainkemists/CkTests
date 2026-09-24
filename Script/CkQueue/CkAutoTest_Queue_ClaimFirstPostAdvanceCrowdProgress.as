@@ -219,13 +219,13 @@ class UCk_AutoTest_Queue_ClaimFirstPostAdvanceCrowdProgress : UCk_AutoTest_Base
         auto Entity = utils_entity_lifetime::Request_CreateEntity(InOwner);
         auto Transform = utils_transform::Add(Entity,
             FTransform(FRotator::ZeroRotator, InLocation, FVector::OneVector), ECk_Replication::DoesNotReplicate);
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(k_AgentRadiusUu, 192.0f);
+        auto Params = FCk_CrowdAgent_Spec(k_AgentRadiusUu, 192.0f);
         Params.Set_MaxSpeed(600.0f);
         auto Agent = utils_crowd_agent::Add(Transform, Params);
         utils_velocity::Add(Entity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(Entity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(Entity);
         return Agent;
     }

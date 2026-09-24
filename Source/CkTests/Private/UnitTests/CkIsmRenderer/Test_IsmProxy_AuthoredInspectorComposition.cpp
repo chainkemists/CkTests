@@ -161,7 +161,7 @@ namespace ck_tests_ismproxy_authored_inspector
     {
         if (NOT ck::IsValid(InProxy) || NOT ck::IsValid(InSubsystem)
             || NOT InProxy.Has<ck::FFragment_IsmProxy_Params>()
-            || NOT InProxy.Has<ck::FFragment_IsmProxy_Current>())
+            || NOT InProxy.Has<ck::FFragment_IsmProxy>())
         { return false; }
         const auto& RendererData = InProxy.Get<ck::FFragment_IsmProxy_Params>().Get_IsmRenderer().Get();
         if (NOT ck::IsValid(RendererData))
@@ -169,7 +169,7 @@ namespace ck_tests_ismproxy_authored_inspector
         UInstancedStaticMeshComponent* const Component =
             InSubsystem->FindOrCache_IsmComponent(RendererData).Get();
         return ck::IsValid(Component)
-            && Component->IsValidId(InProxy.Get<ck::FFragment_IsmProxy_Current>().Get_IsmInstanceIndex());
+            && Component->IsValidId(InProxy.Get<ck::FFragment_IsmProxy>().Get_IsmInstanceIndex());
     }
 
     auto GetLiveCustomValue(
@@ -184,7 +184,7 @@ namespace ck_tests_ismproxy_authored_inspector
         UInstancedStaticMeshComponent* const Component =
             InSubsystem->FindOrCache_IsmComponent(RendererData).Get();
         const int32 InstanceIndex = Component->GetInstanceIndexForId(
-            InProxy.Get<ck::FFragment_IsmProxy_Current>().Get_IsmInstanceIndex());
+            InProxy.Get<ck::FFragment_IsmProxy>().Get_IsmInstanceIndex());
         if (InstanceIndex == INDEX_NONE || Component->NumCustomDataFloats <= 0)
         { return false; }
         const int32 Offset = InstanceIndex * Component->NumCustomDataFloats;
@@ -234,13 +234,13 @@ bool FCkTest_IsmProxy_AuthoredInspectorComposition::RunTest(const FString&)
                 Scenario->_OwnerA, FTransform::Identity, ECk_Replication::DoesNotReplicate);
             Scenario->_TransformB = UCk_Utils_Transform_UE::Add(
                 Scenario->_OwnerB, FTransform{FVector{100.0, 0.0, 0.0}}, ECk_Replication::DoesNotReplicate);
-            auto ParamsA = FCk_Fragment_IsmProxy_ParamsData{RendererData};
+            auto ParamsA = FCk_IsmProxy_Spec{RendererData};
             ParamsA.Set_LocalLocationOffset(FVector{11.0, -19.0, 23.0});
             ParamsA.Set_LocalRotationOffset(FRotator{37.0, 53.0, -71.0});
             ParamsA.Set_ScaleMultiplier(FVector{0.5, 1.75, 1.25});
             ParamsA.Get_CustomInstanceDataDefaults().Add(
                 FCk_CustomPrimitiveData{0, FCk_CustomPrimitiveData_Value{0.5f}});
-            auto ParamsB = FCk_Fragment_IsmProxy_ParamsData{RendererData};
+            auto ParamsB = FCk_IsmProxy_Spec{RendererData};
             ParamsB.Set_LocalLocationOffset(FVector{-3.0, 5.0, 7.0});
             ParamsB.Set_LocalRotationOffset(FRotator{1.0, 2.0, 3.0});
             ParamsB.Set_ScaleMultiplier(FVector{2.0, 2.0, 2.0});
@@ -452,7 +452,7 @@ bool FCkTest_IsmProxy_AuthoredInspectorComposition::RunTest(const FString&)
                     Scenario->_ProxyA, Scenario->_RendererSubsystem.Get(), GpuValue)
                     && FMath::IsNearlyEqual(GpuValue, 0.75f));
 
-            Scenario->_ProxyA.Try_Remove<ck::FFragment_IsmProxy_Current>();
+            Scenario->_ProxyA.Try_Remove<ck::FFragment_IsmProxy>();
             FSlateApplication& Slate = FSlateApplication::Get();
             Scenario->_SwitchA->SlatePrepass();
             Scenario->_ValueInput->SlatePrepass();

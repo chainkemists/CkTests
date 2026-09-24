@@ -170,11 +170,11 @@ bool FCkTest_Camera_AuthoredInspectorComposition::RunTest(const FString&)
             { return; }
 
             Scenario->Camera = UCk_Utils_Camera_UE::Add(
-                Transform, FCk_Fragment_Camera_ParamsData{Scenario->Component});
+                Transform, FCk_Camera_Spec{Scenario->Component});
             if (NOT TestTrue(TEXT("public Camera Add composes the complete director"),
                 ck::IsValid(Scenario->Camera)
                     && Scenario->Camera.Has_All<ck::FFragment_Camera_Params,
-                        ck::FFragment_Camera_Current,
+                        ck::FFragment_Camera,
                         ck::FFragment_Camera_OrientationControl>()))
             { return; }
             auto MutableCamera = Scenario->Camera;
@@ -253,10 +253,10 @@ bool FCkTest_Camera_AuthoredInspectorComposition::RunTest(const FString&)
                 bControlsReady))
             { return; }
 
-            const bool bFixedBefore = Scenario->Camera.Get<ck::FFragment_Camera_Current>().Get_UseFixedBoomRotation();
+            const bool bFixedBefore = Scenario->Camera.Get<ck::FFragment_Camera>().Get_UseFixedBoomRotation();
             Toggle(FixedBoom.ToSharedRef());
             TestEqual(TEXT("physical fixed-boom switch mutates the real camera Current"),
-                Scenario->Camera.Get<ck::FFragment_Camera_Current>().Get_UseFixedBoomRotation(), NOT bFixedBefore);
+                Scenario->Camera.Get<ck::FFragment_Camera>().Get_UseFixedBoomRotation(), NOT bFixedBefore);
             if (NOT TestTrue(TEXT("physical boom, yaw-limit, and intention commits dispatch"),
                 Commit(Slate, BoomYaw.ToSharedRef(), TEXT("47.5"))
                     && Commit(Slate, YawMin.ToSharedRef(), TEXT("-81.25"))
@@ -264,9 +264,9 @@ bool FCkTest_Camera_AuthoredInspectorComposition::RunTest(const FString&)
             { return; }
             TestTrue(TEXT("physical boom and intention inputs update real Current immediately"),
                 FMath::IsNearlyEqual(
-                    Scenario->Camera.Get<ck::FFragment_Camera_Current>().Get_PovState()._BoomArmRotation.Yaw, 47.5f)
+                    Scenario->Camera.Get<ck::FFragment_Camera>().Get_PovState()._BoomArmRotation.Yaw, 47.5f)
                     && FMath::IsNearlyEqual(
-                        Scenario->Camera.Get<ck::FFragment_Camera_Current>().Get_OrientationIntention().X, 0.625f));
+                        Scenario->Camera.Get<ck::FFragment_Camera>().Get_OrientationIntention().X, 0.625f));
             TSharedPtr<SCkInspector_CameraAuthored> DedicatedView;
             UWorld* const DedicatedWorld = UWorld::CreateWorld(EWorldType::PIE, false);
             ON_SCOPE_EXIT { if (DedicatedWorld != nullptr) { DedicatedWorld->DestroyWorld(false); } };
@@ -281,12 +281,12 @@ bool FCkTest_Camera_AuthoredInspectorComposition::RunTest(const FString&)
                 TObjectPtr<UCk_CameraComponent> DedicatedComponent =
                     NewObject<UCk_CameraComponent>(DedicatedWorld);
                 auto DedicatedCamera = UCk_Utils_Camera_UE::Add(
-                    DedicatedTransform, FCk_Fragment_Camera_ParamsData{DedicatedComponent});
+                    DedicatedTransform, FCk_Camera_Spec{DedicatedComponent});
                 if (NOT TestTrue(TEXT("dedicated production Camera composition succeeds"),
                     ck::IsValid(DedicatedOwner) && ck::IsValid(DedicatedTransform)
                         && ck::IsValid(DedicatedComponent) && ck::IsValid(DedicatedCamera)
                         && DedicatedCamera.Has_All<ck::FFragment_Camera_Params,
-                            ck::FFragment_Camera_Current>()))
+                            ck::FFragment_Camera>()))
                 { return; }
                 const TSharedRef<SWidget> DedicatedBuilt =
                     Scenario->Inspector->Build_Inspector(DedicatedCamera);
@@ -308,7 +308,7 @@ bool FCkTest_Camera_AuthoredInspectorComposition::RunTest(const FString&)
                 if (DedicatedBoomYaw.IsValid())
                 { DedicatedBoomYaw->SlatePrepass(); }
                 const bool bDedicatedBefore =
-                    DedicatedCamera.Get<ck::FFragment_Camera_Current>().Get_UseFixedBoomRotation();
+                    DedicatedCamera.Get<ck::FFragment_Camera>().Get_UseFixedBoomRotation();
                 const FString DedicatedSwitchTooltip = DedicatedFixedBoom.IsValid()
                     ? TooltipText(DedicatedFixedBoom.ToSharedRef()) : FString{};
                 const FString DedicatedNumberTooltip = DedicatedBoomYaw.IsValid()
@@ -329,7 +329,7 @@ bool FCkTest_Camera_AuthoredInspectorComposition::RunTest(const FString&)
                 if (DedicatedFixedBoom.IsValid())
                 { Toggle(DedicatedFixedBoom.ToSharedRef()); }
                 TestEqual(TEXT("disabled dedicated-server physical control cannot mutate Camera Current"),
-                    DedicatedCamera.Get<ck::FFragment_Camera_Current>().Get_UseFixedBoomRotation(),
+                    DedicatedCamera.Get<ck::FFragment_Camera>().Get_UseFixedBoomRotation(),
                     bDedicatedBefore);
             }
 
@@ -421,7 +421,7 @@ bool FCkTest_Camera_AuthoredInspectorComposition::RunTest(const FString&)
                     && Layers->FindRecord(ExtraLayer.ToString()).IsValid());
 
             const bool bBeforeCompositionLoss =
-                Scenario->Camera.Get<ck::FFragment_Camera_Current>().Get_UseFixedBoomRotation();
+                Scenario->Camera.Get<ck::FFragment_Camera>().Get_UseFixedBoomRotation();
             const ck::FFragment_Camera_Params ParamsBeforeCompositionLoss =
                 Scenario->Camera.Get<ck::FFragment_Camera_Params>();
             Scenario->Camera.Try_Remove<ck::FFragment_Camera_Params>();
@@ -429,7 +429,7 @@ bool FCkTest_Camera_AuthoredInspectorComposition::RunTest(const FString&)
             Toggle(FixedBoom.ToSharedRef());
             TestTrue(TEXT("held control fails closed after required Camera composition loss"),
                 NOT Director->Get_CanEdit() && NOT FixedBoom->IsEnabled()
-                    && Scenario->Camera.Get<ck::FFragment_Camera_Current>().Get_UseFixedBoomRotation()
+                    && Scenario->Camera.Get<ck::FFragment_Camera>().Get_UseFixedBoomRotation()
                         == bBeforeCompositionLoss);
             Scenario->Camera.Add<ck::FFragment_Camera_Params>(ParamsBeforeCompositionLoss);
 
@@ -448,7 +448,7 @@ bool FCkTest_Camera_AuthoredInspectorComposition::RunTest(const FString&)
                     && NOT Director->Get_View().IsValid() && NOT Director->Get_LayersCollection().IsValid());
             Toggle(FixedBoom.ToSharedRef());
             TestEqual(TEXT("held physical control remains inert after Camera deactivation"),
-                Scenario->Camera.Get<ck::FFragment_Camera_Current>().Get_UseFixedBoomRotation(),
+                Scenario->Camera.Get<ck::FFragment_Camera>().Get_UseFixedBoomRotation(),
                 bBeforeCompositionLoss);
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(2));

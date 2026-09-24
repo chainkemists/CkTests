@@ -700,7 +700,7 @@ struct FCkGroundNavGym_Field
         _Stage = "baking, then waiting for the surface to settle";
         _SettlePolls = 0;
 
-        auto PollParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        auto PollParams = FCk_Timer_Spec(FCk_Time(0.05));
         PollParams.Set_StartingState(ECk_Timer_State::Running)
                   .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 
@@ -876,7 +876,7 @@ struct FCkGroundNavGym_OverlayRefresh
         _PollCeiling = InPollCeiling;
         _Polls = 0;
 
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        auto Params = FCk_Timer_Spec(FCk_Time(0.05));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 

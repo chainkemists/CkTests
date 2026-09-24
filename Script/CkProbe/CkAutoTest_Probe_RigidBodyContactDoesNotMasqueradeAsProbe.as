@@ -73,13 +73,13 @@ class UCk_AutoTest_Probe_RigidBodyContactDoesNotMasqueradeAsProbe : UCk_AutoTest
 
         auto RigidShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Sphere);
         RigidShape.Set_Radius(100.0);
-        auto RigidParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto RigidParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         RigidParams.Set_ShapeDimensions(RigidShape);
         RigidParams.Set_MotionType(ECk_MotionType::Kinematic);
         RigidParams.Set_CollisionProfileName(n"BlockAllDynamic");
         _RigidBody = utils_jolt_body::Add(HybridEntity, RigidParams);
 
-        auto DisabledProbeParams = FCk_Fragment_Probe_ParamsData(DisabledProbeTag);
+        auto DisabledProbeParams = FCk_Probe_Spec(DisabledProbeTag);
         DisabledProbeParams.Set_MotionType(ECk_MotionType::Kinematic);
         DisabledProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
         DisabledProbeParams.Set_StartingState(ECk_EnableDisable::Disable);
@@ -99,7 +99,7 @@ class UCk_AutoTest_Probe_RigidBodyContactDoesNotMasqueradeAsProbe : UCk_AutoTest
         auto DetectorTransform = utils_transform::Add(
             _DetectorEntity, FTransform(FRotator::ZeroRotator, _DetectorLocation), ECk_Replication::DoesNotReplicate);
 
-        auto DetectorParams = FCk_Fragment_Probe_ParamsData(DetectorTag);
+        auto DetectorParams = FCk_Probe_Spec(DetectorTag);
         DetectorParams.Set_MotionType(ECk_MotionType::Kinematic);
         DetectorParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
         _DetectorProbe = utils_probe::Add_Sphere(

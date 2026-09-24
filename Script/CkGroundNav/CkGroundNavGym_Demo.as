@@ -82,7 +82,7 @@ struct FCkGroundNavDemo_Walker
             ECk_Replication::DoesNotReplicate);
 
         auto Agent = utils_crowd_agent::Add(Transform,
-            FCk_Fragment_CrowdAgent_ParamsData(InRadiusUu, InHeightUu));
+            FCk_CrowdAgent_Spec(InRadiusUu, InHeightUu));
 
         if (ck::Is_NOT_Valid(Agent))
         {
@@ -92,10 +92,10 @@ struct FCkGroundNavDemo_Walker
         }
 
         utils_velocity::Add(Entity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(Entity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(Entity);
 

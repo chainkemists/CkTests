@@ -51,7 +51,7 @@ bool FCkRequestAdmission_WorldTeardown_RejectsInventoryRemoveAndTimerAdd::RunTes
             TestTrue(TEXT("a valid owner is admitted before teardown"),
                 UCk_Utils_EntityLifetime_UE::Get_CanCreateEntity(*Owner));
 
-            auto Params = FCk_Fragment_Inventory_DataOnly_ParamsData{};
+            auto Params = FCk_Inventory_DataOnly_Spec{};
             auto Inventory = UCk_Utils_Inventory_DataOnly_UE::Add(
                 *Owner, Params, ECk_Replication::DoesNotReplicate, InWorld);
             if (NOT TestTrue(TEXT("a real data-only inventory was composed before teardown"), ck::IsValid(Inventory)))
@@ -66,7 +66,7 @@ bool FCkRequestAdmission_WorldTeardown_RejectsInventoryRemoveAndTimerAdd::RunTes
             const auto RemoveRequest = FCk_Request_Inventory_RemoveItem{FCk_Handle_Item{}};
             UCk_Utils_Inventory_UE::Request_RemoveItem(
                 Inventory, RemoveRequest, RemoveDelegate, CompletionDelegate);
-            const auto Timer = UCk_Utils_Timer_UE::Add(*Owner, FCk_Fragment_Timer_ParamsData{FCk_Time{1.0}});
+            const auto Timer = UCk_Utils_Timer_UE::Add(*Owner, FCk_Timer_Spec{FCk_Time{1.0}});
             EcsWorld->Set_LoadHold(ECk_EcsWorld_LoadHold::None);
 
             TestFalse(TEXT("teardown rejection does not populate the request entity handle"),

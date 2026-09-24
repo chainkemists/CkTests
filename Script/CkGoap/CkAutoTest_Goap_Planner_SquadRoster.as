@@ -41,7 +41,7 @@ class UCk_Goap_Planner_SquadRosterPieFixture_EntityScript : UCk_EntityScript_Wit
     {
         auto WorldState = utils_goap_world_state::Create(InOwner,
             utils_gameplay_tag::ResolveGameplayTag(InWorldStateName),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WorldState,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackVsChain.WS.MidStep"), false);
         utils_goap_world_state::Set_Value(WorldState,
@@ -50,7 +50,7 @@ class UCk_Goap_Planner_SquadRosterPieFixture_EntityScript : UCk_EntityScript_Wit
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
         Goal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackVsChain.WS.Goal"), true));
-        auto Params = FCk_Fragment_Goap_PlannerParamsData(
+        auto Params = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(InPlannerName));
         Params.Set_Goal(Goal);
         Params.Set_WorldStateSource(WorldState);
@@ -58,18 +58,18 @@ class UCk_Goap_Planner_SquadRosterPieFixture_EntityScript : UCk_EntityScript_Wit
         auto Planner = utils_goap_planner::Create(InOwner,
             utils_gameplay_tag::ResolveGameplayTag(InPlannerName), Params);
         utils_goap_planner::AddAction(Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_AutoTestAction_Goap_FallbackVsChain_Setup));
+            FCk_Goap_Action_Spec(UCk_AutoTestAction_Goap_FallbackVsChain_Setup));
         utils_goap_planner::AddAction(Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_AutoTestAction_Goap_FallbackVsChain_Finalize));
+            FCk_Goap_Action_Spec(UCk_AutoTestAction_Goap_FallbackVsChain_Finalize));
         utils_goap_planner::AddAction(Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_AutoTestAction_Goap_FallbackVsChain_Fallback));
+            FCk_Goap_Action_Spec(UCk_AutoTestAction_Goap_FallbackVsChain_Fallback));
     }
 
     private void Create_FallbackOnlyPlanner(FCk_Handle InOwner)
     {
         auto WorldState = utils_goap_world_state::Create(InOwner,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackOnly.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WorldState,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackOnly.WS.Unreachable"), false);
         utils_goap_world_state::Set_Value(WorldState,
@@ -78,16 +78,16 @@ class UCk_Goap_Planner_SquadRosterPieFixture_EntityScript : UCk_EntityScript_Wit
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
         Goal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackOnly.WS.Goal"), true));
-        auto Params = FCk_Fragment_Goap_PlannerParamsData(
+        auto Params = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackOnly"));
         Params.Set_Goal(Goal);
         Params.Set_WorldStateSource(WorldState);
         auto Planner = utils_goap_planner::Create(InOwner,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackOnly"), Params);
         utils_goap_planner::AddAction(Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_AutoTestAction_Goap_FallbackOnly_Gated));
+            FCk_Goap_Action_Spec(UCk_AutoTestAction_Goap_FallbackOnly_Gated));
         utils_goap_planner::AddAction(Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_AutoTestAction_Goap_FallbackOnly_Fallback));
+            FCk_Goap_Action_Spec(UCk_AutoTestAction_Goap_FallbackOnly_Fallback));
     }
 }
 
@@ -236,7 +236,7 @@ class UCk_AutoTest_Goap_Planner_SquadRoster : UCk_AutoTest_Base
     {
         _FallbackWorldState = utils_goap_world_state::Create(InOwner,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackOnly.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(_FallbackWorldState,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackOnly.WS.Unreachable"), false);
         utils_goap_world_state::Set_Value(_FallbackWorldState,
@@ -245,16 +245,16 @@ class UCk_AutoTest_Goap_Planner_SquadRoster : UCk_AutoTest_Base
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
         Goal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackOnly.WS.Goal"), true));
-        auto Params = FCk_Fragment_Goap_PlannerParamsData(
+        auto Params = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackOnly"));
         Params.Set_Goal(Goal);
         Params.Set_WorldStateSource(_FallbackWorldState);
         _FallbackPlanner = utils_goap_planner::Create(InOwner,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackOnly"), Params);
         utils_goap_planner::AddAction(_FallbackPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_AutoTestAction_Goap_FallbackOnly_Gated));
+            FCk_Goap_Action_Spec(UCk_AutoTestAction_Goap_FallbackOnly_Gated));
         utils_goap_planner::AddAction(_FallbackPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_AutoTestAction_Goap_FallbackOnly_Fallback));
+            FCk_Goap_Action_Spec(UCk_AutoTestAction_Goap_FallbackOnly_Fallback));
     }
 
     private void Create_ThresholdPlanner(FCk_Handle InOwner)
@@ -270,7 +270,7 @@ class UCk_AutoTest_Goap_Planner_SquadRoster : UCk_AutoTest_Base
     {
         auto WorldState = utils_goap_world_state::Create(InOwner,
             utils_gameplay_tag::ResolveGameplayTag(InName),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WorldState,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackVsChain.WS.MidStep"), false);
         utils_goap_world_state::Set_Value(WorldState,
@@ -284,7 +284,7 @@ class UCk_AutoTest_Goap_Planner_SquadRoster : UCk_AutoTest_Base
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
         Goal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackVsChain.WS.Goal"), true));
-        auto Params = FCk_Fragment_Goap_PlannerParamsData(
+        auto Params = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(InName));
         Params.Set_Goal(Goal);
         Params.Set_WorldStateSource(InWorldState);
@@ -292,11 +292,11 @@ class UCk_AutoTest_Goap_Planner_SquadRoster : UCk_AutoTest_Base
         auto Planner = utils_goap_planner::Create(InOwner,
             utils_gameplay_tag::ResolveGameplayTag(InName), Params);
         utils_goap_planner::AddAction(Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_AutoTestAction_Goap_FallbackVsChain_Setup));
+            FCk_Goap_Action_Spec(UCk_AutoTestAction_Goap_FallbackVsChain_Setup));
         utils_goap_planner::AddAction(Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_AutoTestAction_Goap_FallbackVsChain_Finalize));
+            FCk_Goap_Action_Spec(UCk_AutoTestAction_Goap_FallbackVsChain_Finalize));
         utils_goap_planner::AddAction(Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_AutoTestAction_Goap_FallbackVsChain_Fallback));
+            FCk_Goap_Action_Spec(UCk_AutoTestAction_Goap_FallbackVsChain_Fallback));
         return Planner;
     }
 

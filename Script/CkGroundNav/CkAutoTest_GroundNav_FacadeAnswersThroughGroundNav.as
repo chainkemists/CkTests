@@ -89,7 +89,7 @@ class UCk_AutoTest_GroundNav_FacadeAnswersThroughGroundNav : UCk_AutoTest_Base
         auto FloorShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         FloorShape.Set_HalfExtents(_FloorHalfExtents);
 
-        auto FloorParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto FloorParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         FloorParams.Set_ShapeDimensions(FloorShape);
         FloorParams.Set_MotionType(ECk_MotionType::Static);
 

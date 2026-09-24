@@ -210,7 +210,7 @@ class UCk_AutoTest_GroundNav_Fingerprint_BuildReadsCurrentUntilTheWorldMoves : U
         auto SlabShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         SlabShape.Set_HalfExtents(FVector(SlabHalfX, SlabHalfY, SlabHalfZ));
 
-        auto SlabParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto SlabParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         SlabParams.Set_ShapeDimensions(SlabShape);
         SlabParams.Set_MotionType(ECk_MotionType::Static);
 
@@ -385,7 +385,7 @@ class UCk_AutoTest_GroundNav_Fingerprint_BuildReadsCurrentUntilTheWorldMoves : U
         auto PillarShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         PillarShape.Set_HalfExtents(FVector(PillarHalfXY, PillarHalfXY, PillarHalfZ));
 
-        auto PillarParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto PillarParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         PillarParams.Set_ShapeDimensions(PillarShape);
         PillarParams.Set_MotionType(ECk_MotionType::Static);
 

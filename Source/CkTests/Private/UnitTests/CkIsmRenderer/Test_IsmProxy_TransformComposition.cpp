@@ -69,7 +69,7 @@ namespace ck_tests_ismproxy_transform_composition
         auto* RendererSubsystem = InScenario._RendererSubsystem.Get();
         if (NOT ck::IsValid(RendererSubsystem) ||
             NOT ck::IsValid(InScenario._Proxy) ||
-            NOT InScenario._Proxy.Has<ck::FFragment_IsmProxy_Current>() ||
+            NOT InScenario._Proxy.Has<ck::FFragment_IsmProxy>() ||
             NOT InScenario._Proxy.Has<ck::FFragment_IsmProxy_Params>())
         { return false; }
 
@@ -82,7 +82,7 @@ namespace ck_tests_ismproxy_transform_composition
         { return false; }
 
         const auto InstanceId =
-            InScenario._Proxy.Get<ck::FFragment_IsmProxy_Current>().Get_IsmInstanceIndex();
+            InScenario._Proxy.Get<ck::FFragment_IsmProxy>().Get_IsmInstanceIndex();
         if (NOT IsmComponent->IsValidId(InstanceId))
         { return false; }
 
@@ -187,7 +187,7 @@ bool FCkTest_IsmProxy_TransformComposition::RunTest(const FString&)
                 if (NOT TestTrue(TEXT("transform source was created"), ck::IsValid(Scenario->_Transform)))
                 { return; }
 
-                auto ProxyParams = FCk_Fragment_IsmProxy_ParamsData{RendererData};
+                auto ProxyParams = FCk_IsmProxy_Spec{RendererData};
                 ProxyParams.Set_LocalLocationOffset(LocalLocationOffset);
                 ProxyParams.Set_LocalRotationOffset(LocalRotationOffset);
                 ProxyParams.Set_ScaleMultiplier(ScaleMultiplier);
