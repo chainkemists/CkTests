@@ -193,7 +193,7 @@ namespace ck_runtime_archetype_gate
         if (ck::Is_NOT_Valid(Owner))
         { return {}; }
 
-        const auto Info = FCk_EntityReplicationDriver_ConstructionInfo{UCk_InventoryItem_Definition::StaticClass()};
+        const auto Info = FCk_EntityReplicationDriver_Spec{UCk_InventoryItem_Definition::StaticClass()};
         auto Built = UCk_Utils_EntityReplicationDriver_UE::Request_BuildAndReplicate(Owner, Info);
         auto Item = UCk_Utils_Item_UE::Cast(Built);
         if (ck::Is_NOT_Valid(Item))
@@ -224,7 +224,7 @@ namespace ck_runtime_archetype_gate
         if (ck::Is_NOT_Valid(Owner))
         { return {}; }
 
-        auto Info = FCk_EntityReplicationDriver_ConstructionInfo{UCk_InventoryItem_Definition::StaticClass()};
+        auto Info = FCk_EntityReplicationDriver_Spec{UCk_InventoryItem_Definition::StaticClass()};
         Info.Set_ArchetypeIdentityPath(InIdentityPath);
 
         auto Built = UCk_Utils_EntityReplicationDriver_UE::Request_BuildAndReplicate(Owner, Info);
@@ -655,7 +655,7 @@ bool FCkSnapshot_RuntimeArchetype_RegistryContract::RunTest(const FString&)
 // help with: a recipe carrying NO archetype at all, which is what a save written by a build that had already
 // rebuilt a husk contains - it kept the null archetype and captured it back as an empty string.
 //
-// CkSnapshot cannot call that a defect. FCk_EntityReplicationDriver_ConstructionInfo is constructible from a
+// CkSnapshot cannot call that a defect. FCk_EntityReplicationDriver_Spec is constructible from a
 // script class alone, so an archetype-less build is a legal shape and the framework has no basis to reject one.
 // Only CkInventory knows that an item whose definition is the class default is not an item - which is why the
 // guard lives there, and why it catches the husk by what it IS rather than by how it was made.
