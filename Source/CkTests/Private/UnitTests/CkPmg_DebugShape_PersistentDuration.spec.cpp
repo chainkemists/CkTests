@@ -136,7 +136,7 @@ bool FCkPmg_DebugLineSet_ComposesRetainedShapeAndRebakesThickness::RunTest(const
 
     TestTrue(TEXT("line set is a valid typed PMG shape"), ck::IsValid(LineSet));
     TestTrue(TEXT("line set owns a PMG current fragment"),
-        LineSet.Has<ck::FFragment_Pmg_DebugShape_Current>());
+        LineSet.Has<ck::FFragment_Pmg_DebugShape>());
     TestTrue(TEXT("line set is routed to its dedicated setup processor"),
         LineSet.Has<ck::FTag_Pmg_DebugShape_LineSet>() &&
         LineSet.Has<ck::FTag_Pmg_DebugShape_NeedsSetup>());

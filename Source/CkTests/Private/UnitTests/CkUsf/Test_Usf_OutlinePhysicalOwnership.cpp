@@ -124,7 +124,7 @@ bool FCkTest_Usf_OutlinePhysicalOwnership::RunTest(const FString& Parameters)
         ck::FProcessor_Usf_OutlineActor_Sync::ForEachEntity(
             ck::FProcessor_Usf_OutlineActor_Sync::TimeType{}, ActorOwner,
             ActorOwner.Get<ck::FFragment_Usf_OutlineResolved>(),
-            ActorOwner.Get<ck::FFragment_OwningActor_Current>());
+            ActorOwner.Get<ck::FFragment_OwningActor>());
     };
     SyncActor();
 

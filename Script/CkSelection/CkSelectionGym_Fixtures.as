@@ -51,7 +51,7 @@ namespace selection_gym
             InLocation + FVector(0.0f, -150.0f, 0.0f));
         Create_OrdinaryChild(OrdinaryChild, n"Selection.Composite.NoTransformDescendant");
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(1.0f));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(1.0f));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         utils_timer::Add(Candidate, TimerParams);
@@ -61,7 +61,7 @@ namespace selection_gym
 
         utils_state_machine::Add(
             Candidate,
-            FCk_Fragment_StateMachine_ParamsData(UCk_SelectionGym_State_Idle));
+            FCk_StateMachine_Spec(UCk_SelectionGym_State_Idle));
         return Candidate;
     }
 }

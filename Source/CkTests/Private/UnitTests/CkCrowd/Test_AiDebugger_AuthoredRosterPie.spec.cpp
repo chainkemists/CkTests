@@ -203,8 +203,8 @@ bool FCkAiDebugger_AuthoredRosterPie::RunTest(const FString&)
             FTransform{FVector{0.0f, 0.0f, 100.0f}}, ECk_Replication::DoesNotReplicate);
         FCk_Handle_Transform TransformB = UCk_Utils_Transform_UE::Add(State->AgentEntityB,
             FTransform{FVector{200.0f, 0.0f, 100.0f}}, ECk_Replication::DoesNotReplicate);
-        State->AgentA = UCk_Utils_CrowdAgent_UE::Add(TransformA, FCk_Fragment_CrowdAgent_ParamsData{42.0f, 192.0f});
-        State->AgentB = UCk_Utils_CrowdAgent_UE::Add(TransformB, FCk_Fragment_CrowdAgent_ParamsData{42.0f, 192.0f});
+        State->AgentA = UCk_Utils_CrowdAgent_UE::Add(TransformA, FCk_CrowdAgent_Spec{42.0f, 192.0f});
+        State->AgentB = UCk_Utils_CrowdAgent_UE::Add(TransformB, FCk_CrowdAgent_Spec{42.0f, 192.0f});
         State->bFixtureCreated = ck::IsValid(State->Owner) && ck::IsValid(State->AgentEntityA) && ck::IsValid(State->AgentEntityB)
             && ck::IsValid(State->AgentA) && ck::IsValid(State->AgentB);
     })));

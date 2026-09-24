@@ -296,7 +296,7 @@ class UCk_AutoTest_Net_DeferredQueue_PerWorldIsolation : UCk_AutoTest_NetBase
 
     private void Do_ArmHorizonTimer()
     {
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(HorizonSeconds));
+        auto Params = FCk_Timer_Spec(FCk_Time(HorizonSeconds));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
 

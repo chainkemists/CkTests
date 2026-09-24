@@ -218,7 +218,7 @@ class UCk_AutoTest_GroundNav_Path_FourPillarRouteHasNoFalseCorners : UCk_AutoTes
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         Shape.Set_HalfExtents(InHalfExtents);
 
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Static);
 

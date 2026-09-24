@@ -21,14 +21,14 @@ class UCk_AutoTest_Crowd_TransientPersonalSpace : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto AgentTransform = utils_transform::Add(AgentEntity,
             FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, 100.0), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
         _Agent = utils_crowd_agent::Add(AgentTransform, Params);
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(TickSeconds));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(TickSeconds));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(LocalHandle, TimerParams);

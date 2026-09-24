@@ -180,7 +180,7 @@ class UCk_AutoTest_Crowd_GroundNav_Stall_UnreachableGoalFailsBounded : UCk_AutoT
 
         Build_Fixture();
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(_SelfHandle, TimerParams);
@@ -250,7 +250,7 @@ class UCk_AutoTest_Crowd_GroundNav_Stall_UnreachableGoalFailsBounded : UCk_AutoT
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         Shape.Set_HalfExtents(InHalfExtents);
 
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Static);
 
@@ -262,7 +262,7 @@ class UCk_AutoTest_Crowd_GroundNav_Stall_UnreachableGoalFailsBounded : UCk_AutoT
         const auto Spawn = FVector(SpawnX, BandY, SurfaceZ + AgentCentreOffsetZ);
         const auto Goal  = FVector(GoalX,  BandY, SurfaceZ + AgentCentreOffsetZ);
 
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(float32(AgentRadius), float32(AgentHeight));
+        auto Params = FCk_CrowdAgent_Spec(float32(AgentRadius), float32(AgentHeight));
         // HoldAndRetry is the DEFAULT and is the policy under test: it is the one that used to hold
         // forever on a NoProgress cause. FailMove would short-circuit the bounded ladder.
         Params.Set_BlockedPolicy(ECk_CrowdAgent_BlockedPolicy::HoldAndRetry);
@@ -277,10 +277,10 @@ class UCk_AutoTest_Crowd_GroundNav_Stall_UnreachableGoalFailsBounded : UCk_AutoT
         _Agent = utils_crowd_agent::Add(AgentTransform, Params);
 
         utils_velocity::Add(_AgentEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(_AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(_AgentEntity);
 

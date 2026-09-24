@@ -464,17 +464,17 @@ class UCk_AutoTest_GroundNav_Shadow_InstalledPathIsByteIdenticalToRecast : UCk_A
         auto AgentTransform = utils_transform::Add(_AgentEntity,
             FTransform(Rot, Spawn, FVector::OneVector), ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(float32(AgentRadius), float32(AgentHeight));
+        auto Params = FCk_CrowdAgent_Spec(float32(AgentRadius), float32(AgentHeight));
         _Agent = utils_crowd_agent::Add(AgentTransform, Params);
 
         // Velocity and acceleration are composed because a crowd agent is composed with them, but
         // the euler integrator is deliberately NEVER started: nothing may turn steering into
         // position, or the second leg would plan from wherever the first leg's walk ended up.
         utils_velocity::Add(_AgentEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(_AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
 
         utils_nav::BindTo_OnPathReady(_AgentEntity,

@@ -115,7 +115,7 @@ namespace ck_tests_ui_authored_inspector
         return bFocused && bHandled;
     }
 
-    auto MakeParams() -> FCk_Fragment_WorldSpaceWidget_ParamsData
+    auto MakeParams() -> FCk_WorldSpaceWidget_Spec
     {
         auto Scaling = FCk_WorldSpaceWidget_ScalingInfo{ECk_WorldSpaceWidget_Scaling_Policy::None};
         Scaling.Set_MaxScale(1.25f)
@@ -129,7 +129,7 @@ namespace ck_tests_ui_authored_inspector
             .Set_FadeFalloff_EndDistance(444.0f);
         auto Occlusion = FCk_WorldSpaceWidget_OcclusionInfo{ECk_WorldSpaceWidget_Occlusion_Policy::None};
         Occlusion.Set_TraceChannel(ECC_Camera);
-        auto Params = FCk_Fragment_WorldSpaceWidget_ParamsData{};
+        auto Params = FCk_WorldSpaceWidget_Spec{};
         Params.Set_ScalingInfo(Scaling).Set_FadingInfo(Fading).Set_OcclusionInfo(Occlusion);
         return Params;
     }
@@ -137,7 +137,7 @@ namespace ck_tests_ui_authored_inspector
     auto AddFixtureComposition(FCk_Handle& InEntity) -> void
     {
         InEntity.Add<ck::FFragment_WorldSpaceWidget_Params>(MakeParams());
-        InEntity.Add<ck::FFragment_WorldSpaceWidget_Current>();
+        InEntity.Add<ck::FFragment_WorldSpaceWidget>();
     }
 
     struct FScenario
@@ -185,7 +185,7 @@ bool FCkTest_UI_AuthoredInspectorComposition::RunTest(const FString&)
                     && ck::IsValid(Scenario->DestructorEntity)))
             { return; }
             AddFixtureComposition(Scenario->Entity);
-            Scenario->CurrentOnly.Add<ck::FFragment_WorldSpaceWidget_Current>();
+            Scenario->CurrentOnly.Add<ck::FFragment_WorldSpaceWidget>();
             AddFixtureComposition(Scenario->DestructorEntity);
 
             Scenario->Inspector = MakeUnique<FCkInspector_UI>();

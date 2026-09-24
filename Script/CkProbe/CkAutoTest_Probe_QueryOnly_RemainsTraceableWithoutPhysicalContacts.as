@@ -55,7 +55,7 @@ class UCk_AutoTest_Probe_QueryOnly_RemainsTraceableWithoutPhysicalContacts : UCk
         auto ReceiverTransform = utils_transform::Add(ReceiverEntity,
             FTransform(FRotator::ZeroRotator, _ReceiverLocation), ECk_Replication::DoesNotReplicate);
 
-        auto ReceiverParams = FCk_Fragment_Probe_ParamsData(ReceiverTag);
+        auto ReceiverParams = FCk_Probe_Spec(ReceiverTag);
         ReceiverParams.Set_MotionType(ECk_MotionType::Static);
         ReceiverParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
         auto ReceiverFilter = FGameplayTagContainer();
@@ -69,7 +69,7 @@ class UCk_AutoTest_Probe_QueryOnly_RemainsTraceableWithoutPhysicalContacts : UCk
         _TargetTransform = utils_transform::Add(_TargetEntity,
             FTransform(FRotator::ZeroRotator, _SeparatedTargetLocation), ECk_Replication::DoesNotReplicate);
 
-        auto TargetParams = FCk_Fragment_Probe_ParamsData(TargetTag);
+        auto TargetParams = FCk_Probe_Spec(TargetTag);
         TargetParams.Set_MotionType(ECk_MotionType::Kinematic);
         TargetParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
         TargetParams.Set_ContactParticipation(ECk_Probe_ContactParticipation::QueryOnly);

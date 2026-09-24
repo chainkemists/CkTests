@@ -12,7 +12,7 @@
 // the body, so what the link JOINS - and every reachability label that follows
 // from it - is the same for everyone.
 //
-// A crowd agent carries the veto in its own params. FCk_Fragment_CrowdAgent_ParamsData
+// A crowd agent carries the veto in its own params. FCk_CrowdAgent_Spec
 // gains _DeniedLinkIds, _DeniedLinkUserTypeTags and _LinkCostMultipliers, and the
 // crowd's GroundNav dispatch copies all three onto the FindPath request it issues.
 // This pin is the only place that path is exercised end to end from authored
@@ -260,7 +260,7 @@ class UCk_AutoTest_GroundNav_Link_VetoRoutesAroundForThatAgentOnly : UCk_AutoTes
         auto WallShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         WallShape.Set_HalfExtents(FVector(WallHalfX, WallHalfY, WallHalfZ));
 
-        auto WallParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto WallParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         WallParams.Set_ShapeDimensions(WallShape);
         WallParams.Set_MotionType(ECk_MotionType::Static);
 
@@ -570,9 +570,9 @@ class UCk_AutoTest_GroundNav_Link_VetoRoutesAroundForThatAgentOnly : UCk_AutoTes
     // Spawning
     //------------------------------------------------------------------------
 
-    private FCk_Fragment_CrowdAgent_ParamsData Get_AgentParams()
+    private FCk_CrowdAgent_Spec Get_AgentParams()
     {
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(float32(AgentRadius), float32(AgentHeight));
+        auto Params = FCk_CrowdAgent_Spec(float32(AgentRadius), float32(AgentHeight));
         Params.Set_MaxSpeed(float32(AgentMaxSpeed));
 
         return Params;
@@ -581,7 +581,7 @@ class UCk_AutoTest_GroundNav_Link_VetoRoutesAroundForThatAgentOnly : UCk_AutoTes
     private void Do_SpawnWalker(
         FName InDebugName,
         float InLaneY,
-        FCk_Fragment_CrowdAgent_ParamsData InParams,
+        FCk_CrowdAgent_Spec InParams,
         FName InPathReadyFunction)
     {
         const auto Spawn = Get_StartPoint(InLaneY);
@@ -599,10 +599,10 @@ class UCk_AutoTest_GroundNav_Link_VetoRoutesAroundForThatAgentOnly : UCk_AutoTes
         Assert_True(ck::IsValid(Agent), "Add() must return a valid crowd agent handle");
 
         utils_velocity::Add(Entity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(Entity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(Entity);
 

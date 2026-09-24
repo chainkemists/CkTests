@@ -69,7 +69,7 @@ class ACk_PixelArtGym_Pawn : ACk_Gym_Base_Pawn
     default bAddDefaultMovementBindings = false;
 
     // The camera director does NOT create this: _OutputComponent is the single essential constructor
-    // parameter of FCk_Fragment_Camera_ParamsData and is get-only, so it has to exist on the actor first.
+    // parameter of FCk_Camera_Spec and is get-only, so it has to exist on the actor first.
     UPROPERTY(DefaultComponent)
     UCk_CameraComponent CameraComponent;
 
@@ -97,7 +97,7 @@ class ACk_PixelArtGym_Pawn : ACk_Gym_Base_Pawn
         auto Profile = FCk_CameraProfile();
         Profile.Set_Sensor(Sensor);
 
-        auto Params = FCk_Fragment_Camera_ParamsData(CameraComponent);
+        auto Params = FCk_Camera_Spec(CameraComponent);
         Params.Set_Profile(Profile);
 
         auto PawnTransform = _PawnEntity.As_Transform();

@@ -1725,10 +1725,10 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         const auto LocationProjection = Do_ProjectOntoSurface(InLocation, FVector(250.0, 250.0, 400.0));
         if (LocationProjection.Get_Status() == ECk_NavSurface_QueryStatus::Success) { Location = LocationProjection.Get_Location(); }
         auto Transform = utils_transform::Add(Entity, FTransform(FRotator::ZeroRotator, Location, FVector::OneVector), ECk_Replication::DoesNotReplicate);
-        auto Agent = utils_crowd_agent::Add(Transform, FCk_Fragment_CrowdAgent_ParamsData(AgentRadius, AgentHeight));
+        auto Agent = utils_crowd_agent::Add(Transform, FCk_CrowdAgent_Spec(AgentRadius, AgentHeight));
         utils_crowd_agent::Set_DebugColor(Agent, FLinearColor::MakeFromHSV8(uint8((InIndex * 47) % 255), 210, 240));
-        utils_velocity::Add(Entity, FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
-        utils_acceleration::Add(Entity, FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+        utils_velocity::Add(Entity, FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+        utils_acceleration::Add(Entity, FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(Entity);
         return Agent;
     }

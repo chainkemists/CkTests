@@ -82,12 +82,12 @@ class UCk_AutoTest_Queue_OwnerDestroyInvalidatesMembers : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, _Spawn, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
         _CrowdAgent = utils_crowd_agent::Add(CrowdTransform,
-            FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f));
+            FCk_CrowdAgent_Spec(42.0f, 192.0f));
         utils_velocity::Add(_CrowdEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(_CrowdEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(_CrowdEntity);
         _MemberA = FCk_Handle(_CrowdAgent);

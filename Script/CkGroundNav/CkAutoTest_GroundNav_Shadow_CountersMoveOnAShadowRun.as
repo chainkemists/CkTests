@@ -436,17 +436,17 @@ class UCk_AutoTest_GroundNav_Shadow_CountersMoveOnAShadowRun : UCk_AutoTest_Base
             auto AgentTransform = utils_transform::Add(AgentEntity,
                 FTransform(Rot, Spawn, FVector::OneVector), ECk_Replication::DoesNotReplicate);
 
-            auto Params = FCk_Fragment_CrowdAgent_ParamsData(float32(AgentRadius), float32(AgentHeight));
+            auto Params = FCk_CrowdAgent_Spec(float32(AgentRadius), float32(AgentHeight));
             auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
 
             // The euler integrator is deliberately never started: this test asks what a dispatch
             // costs the counters, and a walker that reached its goal would re-plan on the way and
             // dispatch more queries than were counted.
             utils_velocity::Add(AgentEntity,
-                FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+                FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
                 ECk_Replication::DoesNotReplicate);
             utils_acceleration::Add(AgentEntity,
-                FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+                FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
                 ECk_Replication::DoesNotReplicate);
 
             _AgentEntities.Add(AgentEntity);

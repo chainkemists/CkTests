@@ -856,7 +856,7 @@ auto
 
     auto LayerOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(LocalPlayer);
     _MenuLayer = UCk_Utils_InputLayer_UE::Create(LayerOwner,
-        FCk_Fragment_InputLayer_ParamsData{Source, LayerPriority_Menu});
+        FCk_InputLayer_Spec{Source, LayerPriority_Menu});
 
     if (ck::Is_NOT_Valid(_MenuLayer))
     {

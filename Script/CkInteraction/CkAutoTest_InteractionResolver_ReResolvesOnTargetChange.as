@@ -130,7 +130,7 @@ class UCk_AutoTest_InteractionResolver_ReResolvesOnTargetChange : UCk_AutoTest_B
         Mappings.Add(Mapping);
 
         _Resolver = utils_interaction_resolver::Add(_ResolverOwner,
-            FCk_InteractionResolver_ParamsData(Mappings), ECk_Replication::DoesNotReplicate);
+            FCk_InteractionResolver_Spec(Mappings), ECk_Replication::DoesNotReplicate);
 
         utils_interaction_resolver::BindTo_OnBestTargetsChanged(_Resolver,
             FCk_Delegate_InteractionResolver_OnBestTargetsChanged(this, n"OnBestTargetsChanged"));
@@ -178,7 +178,7 @@ class UCk_AutoTest_InteractionResolver_ReResolvesOnTargetChange : UCk_AutoTest_B
         utils_transform::Add(Owner, FTransform(FRotator::ZeroRotator, k_Base + InOffset),
             ECk_Replication::DoesNotReplicate);
 
-        auto TargetParams = FCk_Fragment_InteractTarget_ParamsData(
+        auto TargetParams = FCk_InteractTarget_Spec(
             interaction_gym_helpers::DefaultChannel());
         TargetParams.Set_CompletionPolicy(ECk_Interaction_CompletionPolicy::Timed);
         // Long enough that the pin phase runs against a provably in-progress

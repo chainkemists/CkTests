@@ -198,7 +198,7 @@ class ACk_GroundNavGym_Markup_PlayerController : ACk_NavigationGym_Presentation_
     // Mirrors the gym base private WaitOneFrame - a one-shot timer on the PC's own entity.
     private void DoWaitOneFrame(FName InCallbackName)
     {
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        auto Params = FCk_Timer_Spec(FCk_Time(0.05));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
 

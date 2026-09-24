@@ -75,14 +75,14 @@ class UCk_AutoTest_Queue_CrowdAdapterFacesOrigin : UCk_AutoTest_Base
         auto AgentTransform = utils_transform::Add(_AgentEntity,
             FTransform(FRotator::ZeroRotator, _Spawn, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
-        auto AgentParams = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto AgentParams = FCk_CrowdAgent_Spec(42.0f, 192.0f);
         AgentParams.Set_MaxSpeed(600.0f);
         _Agent = utils_crowd_agent::Add(AgentTransform, AgentParams);
         utils_velocity::Add(_AgentEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(_AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(_AgentEntity);
     }

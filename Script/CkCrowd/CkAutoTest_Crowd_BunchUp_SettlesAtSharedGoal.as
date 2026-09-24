@@ -138,7 +138,7 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
         // Kick the surface: AutoTests_CkTests_Level has the fixture but the bake is lazy.
         utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(LocalHandle, TimerParams);
@@ -434,7 +434,7 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
 
     private FCk_Handle_CrowdAgent SpawnAgent(FCk_Handle& InOwner, FVector InSpawn, FName InDebugName)
     {
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
 
         // A FRESH child entity per agent. utils_crowd_agent::Add composes onto the handle it is
         // given and permits one agent per entity, so a shared owner leaves a crowd of exactly one.
@@ -445,8 +445,8 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
         auto AgentTransform = utils_transform::Add(AgentEntity, FTransform(Rot, InSpawn, FVector::OneVector), ECk_Replication::DoesNotReplicate);
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
 
-        utils_velocity::Add(AgentEntity, FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
-        utils_acceleration::Add(AgentEntity, FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+        utils_velocity::Add(AgentEntity, FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+        utils_acceleration::Add(AgentEntity, FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(AgentEntity);
 
         // Every agent gets the IDENTICAL target - that is the condition under test.

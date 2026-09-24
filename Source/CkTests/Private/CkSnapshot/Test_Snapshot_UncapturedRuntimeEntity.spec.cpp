@@ -69,7 +69,7 @@ bool FCk_Snapshot_UncapturedRuntimeEntityIsNamed_Gate::RunTest(const FString& /*
 
             // Reuses an existing declared tag rather than requesting one by name: an unregistered tag resolves
             // empty, and the label the timer's child entity is given would be the unnamed one.
-            auto Params = FCk_Fragment_Timer_ParamsData{FCk_Time{30.0}};
+            auto Params = FCk_Timer_Spec{FCk_Time{30.0}};
             Params.Set_TimerName(TAG_Timer_AutoTest_Net_Countdown.GetTag());
 
             const auto Timer = UCk_Utils_Timer_UE::Add(Owner, Params);

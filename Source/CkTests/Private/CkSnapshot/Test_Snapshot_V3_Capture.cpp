@@ -464,7 +464,7 @@ bool
         auto Entity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
         Entity.Add<FFragment_SaveKey>(FGuid::NewGuid());
         UCk_Utils_Velocity_UE::Add(Entity,
-            FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, FVector{static_cast<double>(Index), 0.0, 0.0}},
+            FCk_Velocity_Spec{ECk_LocalWorld::World, FVector{static_cast<double>(Index), 0.0, 0.0}},
             ECk_Replication::DoesNotReplicate);
     }
 

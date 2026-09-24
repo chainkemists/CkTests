@@ -87,7 +87,7 @@ bool UCkResourceInspector_Subsystem::DoEnsureInputLayer()
     { return false; }
     auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(Player);
     _InputLayer = UCk_Utils_InputLayer_UE::Create(Owner,
-        FCk_Fragment_InputLayer_ParamsData{Source, ck_resource_inspector::InputPriority});
+        FCk_InputLayer_Spec{Source, ck_resource_inspector::InputPriority});
     return ck::IsValid(_InputLayer);
 }
 

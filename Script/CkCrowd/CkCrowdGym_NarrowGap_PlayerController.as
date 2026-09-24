@@ -101,7 +101,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
         _ProbeStart = Local_To_World(FVector(WallLineOffset - ApproachOffset, 0.0, SpawnZ));
         _ProbeGoal  = Local_To_World(FVector(WallLineOffset + ApproachOffset, 0.0, SpawnZ));
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(NavProbePollSec));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(NavProbePollSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(_PcEntity, TimerParams);
@@ -361,7 +361,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
     private FCk_Handle_CrowdAgent SpawnAgent(FVector InSpawnLoc, FVector InTargetLoc, FLinearColor InColor, FName InDebugName, bool InIssueMove)
     {
         FCk_Handle TransientOwner = ck::TransientEntity();
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
 
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         AgentEntity.Set_DebugName(InDebugName);
@@ -382,8 +382,8 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
 
         utils_crowd_agent::Set_DebugColor(Agent, InColor);
 
-        utils_velocity::Add(AgentEntity, FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
-        utils_acceleration::Add(AgentEntity, FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+        utils_velocity::Add(AgentEntity, FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+        utils_acceleration::Add(AgentEntity, FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(AgentEntity);
 
         if (InIssueMove)

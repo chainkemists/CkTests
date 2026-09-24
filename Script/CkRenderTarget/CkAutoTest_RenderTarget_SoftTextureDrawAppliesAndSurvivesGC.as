@@ -41,7 +41,7 @@ class UCk_AutoTest_RenderTarget_SoftTextureDrawAppliesAndSurvivesGC : UCk_AutoTe
         auto LocalHandle = InHandle;
         auto SyncName = utils_gameplay_tag::ResolveGameplayTag(n"RenderTarget.AutoTest.SoftTextureDraw");
 
-        auto Params = FCk_Fragment_RenderTarget_ParamsData(SyncName);
+        auto Params = FCk_RenderTarget_Spec(SyncName);
         Params.Set_Size(FIntPoint(64, 64));
         Params.Set_Replication(ECk_Replication::DoesNotReplicate);
 

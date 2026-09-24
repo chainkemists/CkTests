@@ -181,7 +181,7 @@ class UCk_AutoTest_GroundNav_Cook_DuplicateCookKeyIsRefused : UCk_AutoTest_Base
         auto SlabShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         SlabShape.Set_HalfExtents(FVector(SlabHalfX, SlabHalfY, SlabHalfZ));
 
-        auto SlabParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto SlabParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         SlabParams.Set_ShapeDimensions(SlabShape);
         SlabParams.Set_MotionType(ECk_MotionType::Static);
 

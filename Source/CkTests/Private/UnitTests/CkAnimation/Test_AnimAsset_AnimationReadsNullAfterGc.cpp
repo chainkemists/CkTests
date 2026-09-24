@@ -43,7 +43,7 @@ bool FCkTest_AnimAsset_AnimationReadsNullAfterGc::RunTest(const FString& Paramet
 
     auto Entity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
     Entity.Add<ck::FFragment_AnimAsset_Params>(
-        FCk_Fragment_AnimAsset_ParamsData{FCk_AnimAsset_Animation{FGameplayTag{}, Animation}});
+        FCk_AnimAsset_Spec{FCk_AnimAsset_Animation{FGameplayTag{}, Animation}});
 
     Animation = nullptr;
     CollectGarbage(RF_NoFlags, true);
@@ -51,7 +51,7 @@ bool FCkTest_AnimAsset_AnimationReadsNullAfterGc::RunTest(const FString& Paramet
     TestFalse(TEXT("an animation reachable only through an AnimAsset fragment is NOT kept alive by that fragment"),
         WeakAnimation.IsValid());
 
-    const auto& Params = Entity.Get<ck::FFragment_AnimAsset_Params>().Get_Params();
+    const auto& Params = Entity.Get<ck::FFragment_AnimAsset_Params>();
 
     TestNull(TEXT("the collected animation resolves from the params as null, never as a dangling pointer"),
         Params.Get_AnimationAsset().Get_Animation().Get());

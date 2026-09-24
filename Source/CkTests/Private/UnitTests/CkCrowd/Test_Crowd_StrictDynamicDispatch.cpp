@@ -78,7 +78,7 @@ bool FCkTest_Crowd_StrictDynamicDispatch_MalformedConfirmedBlockerFailsTerminall
     auto Transform = UCk_Utils_Transform_UE::Add(
         Owner, FTransform{FVector::ZeroVector}, ECk_Replication::DoesNotReplicate);
     auto Agent = UCk_Utils_CrowdAgent_UE::Add(
-        Transform, FCk_Fragment_CrowdAgent_ParamsData{kAgentRadiusUu, kAgentHeightUu});
+        Transform, FCk_CrowdAgent_Spec{kAgentRadiusUu, kAgentHeightUu});
 
     if (NOT TestTrue(TEXT("the fixture composed a normal authoritative CrowdAgent"), ck::IsValid(Agent)))
     {
@@ -90,7 +90,7 @@ bool FCkTest_Crowd_StrictDynamicDispatch_MalformedConfirmedBlockerFailsTerminall
     auto BlockerTransform = UCk_Utils_Transform_UE::Add(
         BlockerOwner, FTransform{FVector{100.0f, 0.0f, 0.0f}}, ECk_Replication::DoesNotReplicate);
     auto Blocker = UCk_Utils_CrowdAgent_UE::Add(
-        BlockerTransform, FCk_Fragment_CrowdAgent_ParamsData{kAgentRadiusUu, kAgentHeightUu});
+        BlockerTransform, FCk_CrowdAgent_Spec{kAgentRadiusUu, kAgentHeightUu});
 
     if (NOT TestTrue(TEXT("the fixture composed the independent stationary blocker"), ck::IsValid(Blocker)))
     {
@@ -127,7 +127,7 @@ bool FCkTest_Crowd_StrictDynamicDispatch_MalformedConfirmedBlockerFailsTerminall
     const auto MalformedDetour = ck::FProcessor_CrowdAgent_PathRefresh::
         Try_BuildStationaryMarkupDetour(
             Agent, Agent.Get_Entity(), FVector::ZeroVector, FVector{1000.0f, 0.0f, 0.0f},
-            Agent.Get<ck::FFragment_CrowdAgent_Params>(), 0.0f,
+            Agent.Get<ck::FFragment_CrowdAgent_Tunables>(), 0.0f,
             TArray<FVector>{FVector{1000.0f, 0.0f, 0.0f}},
             ECk_CrowdAvoidanceVolume_QueryPhase::Strict, FGameplayTag{}, MalformedDetourWaypoints);
     TestEqual(TEXT("malformed confirmed geometry rejects the PathNetwork detour before no-hit"),
@@ -140,7 +140,7 @@ bool FCkTest_Crowd_StrictDynamicDispatch_MalformedConfirmedBlockerFailsTerminall
     const auto HighZDetour = ck::FProcessor_CrowdAgent_PathRefresh::
         Try_BuildStationaryMarkupDetour(
             Agent, Agent.Get_Entity(), FVector::ZeroVector, FVector{1000.0f, 0.0f, 0.0f},
-            Agent.Get<ck::FFragment_CrowdAgent_Params>(), 0.0f,
+            Agent.Get<ck::FFragment_CrowdAgent_Tunables>(), 0.0f,
             TArray<FVector>{FVector{1000.0f, 0.0f, 0.0f}},
             ECk_CrowdAvoidanceVolume_QueryPhase::Strict, FGameplayTag{}, HighZDetourWaypoints);
     TestEqual(TEXT("a valid high-Z blocker is not a false 2D PathNetwork detour hit"),
@@ -165,7 +165,7 @@ bool FCkTest_Crowd_StrictDynamicDispatch_MalformedConfirmedBlockerFailsTerminall
         EAutomationExpectedErrorFlags::Contains,
         2); // CK_ENSURE reports through both CkEnsure and CkEnsures.
     ck::FProcessor_CrowdAgent_HandleRequests{WorldEntity.Get_RegistryView()}.ForEachEntity(
-        FCk_Time{}, Agent, Agent.Get<ck::FFragment_CrowdAgent_Params>(),
+        FCk_Time{}, Agent, Agent.Get<ck::FFragment_CrowdAgent_Tunables>(),
         Agent.Get<ck::FFragment_CrowdAgent_PathFollow>(),
         Agent.Get<ck::FFragment_CrowdAgent_DesiredVelocity>(),
         Agent.Get<ck::FFragment_CrowdAgent_MoveRequests>());
@@ -211,7 +211,7 @@ bool FCkTest_Crowd_StrictDynamicDispatch_MalformedConfirmedBlockerFailsTerminall
     auto GoalTransform = UCk_Utils_Transform_UE::Add(
         GoalOwner, FTransform{FVector{-500.0f, 0.0f, 0.0f}}, ECk_Replication::DoesNotReplicate);
     auto GoalAgent = UCk_Utils_CrowdAgent_UE::Add(
-        GoalTransform, FCk_Fragment_CrowdAgent_ParamsData{kAgentRadiusUu, kAgentHeightUu});
+        GoalTransform, FCk_CrowdAgent_Spec{kAgentRadiusUu, kAgentHeightUu});
     if (NOT TestTrue(TEXT("the fixture composed the goal-exemption agent"), ck::IsValid(GoalAgent)))
     {
         Teardown();
@@ -221,7 +221,7 @@ bool FCkTest_Crowd_StrictDynamicDispatch_MalformedConfirmedBlockerFailsTerminall
     UCk_Utils_CrowdAgent_UE::Request_MoveTo(
         GoalAgent, FCk_Request_CrowdAgent_MoveTo{Markup._MarkupLocation}, {});
     ck::FProcessor_CrowdAgent_HandleRequests{WorldEntity.Get_RegistryView()}.ForEachEntity(
-        FCk_Time{}, GoalAgent, GoalAgent.Get<ck::FFragment_CrowdAgent_Params>(),
+        FCk_Time{}, GoalAgent, GoalAgent.Get<ck::FFragment_CrowdAgent_Tunables>(),
         GoalAgent.Get<ck::FFragment_CrowdAgent_PathFollow>(),
         GoalAgent.Get<ck::FFragment_CrowdAgent_DesiredVelocity>(),
         GoalAgent.Get<ck::FFragment_CrowdAgent_MoveRequests>());
@@ -235,7 +235,7 @@ bool FCkTest_Crowd_StrictDynamicDispatch_MalformedConfirmedBlockerFailsTerminall
     auto SelfTransform = UCk_Utils_Transform_UE::Add(
         SelfOwner, FTransform{FVector{0.0f, 500.0f, 0.0f}}, ECk_Replication::DoesNotReplicate);
     auto SelfAgent = UCk_Utils_CrowdAgent_UE::Add(
-        SelfTransform, FCk_Fragment_CrowdAgent_ParamsData{kAgentRadiusUu, kAgentHeightUu});
+        SelfTransform, FCk_CrowdAgent_Spec{kAgentRadiusUu, kAgentHeightUu});
     if (NOT TestTrue(TEXT("the fixture composed the self-exemption agent"), ck::IsValid(SelfAgent)))
     {
         Teardown();
@@ -250,7 +250,7 @@ bool FCkTest_Crowd_StrictDynamicDispatch_MalformedConfirmedBlockerFailsTerminall
     UCk_Utils_CrowdAgent_UE::Request_MoveTo(
         SelfAgent, FCk_Request_CrowdAgent_MoveTo{FVector{1000.0f, 500.0f, 0.0f}}, {});
     ck::FProcessor_CrowdAgent_HandleRequests{WorldEntity.Get_RegistryView()}.ForEachEntity(
-        FCk_Time{}, SelfAgent, SelfAgent.Get<ck::FFragment_CrowdAgent_Params>(),
+        FCk_Time{}, SelfAgent, SelfAgent.Get<ck::FFragment_CrowdAgent_Tunables>(),
         SelfAgent.Get<ck::FFragment_CrowdAgent_PathFollow>(),
         SelfAgent.Get<ck::FFragment_CrowdAgent_DesiredVelocity>(),
         SelfAgent.Get<ck::FFragment_CrowdAgent_MoveRequests>());
@@ -297,13 +297,13 @@ bool FCkTest_Crowd_StrictDynamicDispatch_MalformedConfirmedBlockerFailsTerminall
         auto CaseTransform = UCk_Utils_Transform_UE::Add(
             CaseOwner, FTransform{FVector::ZeroVector}, ECk_Replication::DoesNotReplicate);
         auto CaseAgent = UCk_Utils_CrowdAgent_UE::Add(
-            CaseTransform, FCk_Fragment_CrowdAgent_ParamsData{kAgentRadiusUu, kAgentHeightUu});
+            CaseTransform, FCk_CrowdAgent_Spec{kAgentRadiusUu, kAgentHeightUu});
 
         auto CaseBlockerOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CaseWorldEntity);
         auto CaseBlockerTransform = UCk_Utils_Transform_UE::Add(
             CaseBlockerOwner, FTransform{InDiscCenter}, ECk_Replication::DoesNotReplicate);
         auto CaseBlocker = UCk_Utils_CrowdAgent_UE::Add(
-            CaseBlockerTransform, FCk_Fragment_CrowdAgent_ParamsData{kAgentRadiusUu, kAgentHeightUu});
+            CaseBlockerTransform, FCk_CrowdAgent_Spec{kAgentRadiusUu, kAgentHeightUu});
 
         if (NOT TestTrue(TEXT("the resolver case composed an agent"), ck::IsValid(CaseAgent)) ||
             NOT TestTrue(TEXT("the resolver case composed its independent blocker"), ck::IsValid(CaseBlocker)))

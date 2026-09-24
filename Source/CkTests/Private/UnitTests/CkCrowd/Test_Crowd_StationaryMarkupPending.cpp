@@ -68,7 +68,7 @@ bool FCkTest_Crowd_StationaryMarkupPending_InitialRoutesDoNotPaint::RunTest(cons
         auto Transform = UCk_Utils_Transform_UE::Add(
             Owner, FTransform{FVector::ZeroVector}, ECk_Replication::DoesNotReplicate);
         return UCk_Utils_CrowdAgent_UE::Add(
-            Transform, FCk_Fragment_CrowdAgent_ParamsData{kAgentRadiusUu, kAgentHeightUu});
+            Transform, FCk_CrowdAgent_Spec{kAgentRadiusUu, kAgentHeightUu});
     };
 
     const auto RunStationaryMarkup = [](FCk_Handle_CrowdAgent& InAgent, float InSeconds)
@@ -76,7 +76,7 @@ bool FCkTest_Crowd_StationaryMarkupPending_InitialRoutesDoNotPaint::RunTest(cons
         ck::FProcessor_CrowdAgent_StationaryMarkup::ForEachEntity(
             FCk_Time{InSeconds}, InAgent,
             InAgent.Get<ck::FFragment_Transform>(),
-            InAgent.Get<ck::FFragment_CrowdAgent_Params>(),
+            InAgent.Get<ck::FFragment_CrowdAgent_Tunables>(),
             InAgent.Get<ck::FFragment_CrowdAgent_NavMarkup>());
     };
 

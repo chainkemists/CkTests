@@ -46,15 +46,15 @@ class UCk_AutoTest_Crowd_Watchdog_OrphanedPendingSlotIsReleased : UCk_AutoTest_B
         auto AgentTransform = utils_transform::Add(LocalHandle,
             FTransform(FRotator::ZeroRotator, Spawn, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
-        auto AgentParams = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto AgentParams = FCk_CrowdAgent_Spec(42.0f, 192.0f);
         AgentParams.Set_MaxSpeed(60.0f);
         _Agent = utils_crowd_agent::Add(AgentTransform, AgentParams);
 
         utils_velocity::Add(LocalHandle,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(LocalHandle,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(LocalHandle);
 

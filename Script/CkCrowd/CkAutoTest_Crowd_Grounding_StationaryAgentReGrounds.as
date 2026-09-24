@@ -278,7 +278,7 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
         _InitialSettleQuietSinceSec = -1.0;
         _InitialSettleQuietBaseline.Empty();
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(InitialSettleSampleIntervalSec));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(InitialSettleSampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         _InitialSettleTimer = utils_timer::Add(InHandle, TimerParams);
@@ -359,7 +359,7 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
 
     private void DoSpawnAgent(FCk_Handle& InOwner, FVector InSpawn, FName InDebugName)
     {
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(AgentRadius, AgentHeight);
+        auto Params = FCk_CrowdAgent_Spec(AgentRadius, AgentHeight);
 
         // A FRESH child entity per agent. utils_crowd_agent::Add composes onto the handle it is
         // given and permits one agent per entity, so a shared owner leaves a crowd of exactly one.
@@ -373,10 +373,10 @@ class UCk_AutoTest_Crowd_Grounding_StationaryAgentReGrounds : UCk_AutoTest_Base
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
 
         utils_velocity::Add(AgentEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(AgentEntity);
 

@@ -353,7 +353,7 @@ namespace ck_tests_state_machine_authored
 
     auto HasStatus(const FCk_Handle_StateMachine& InSm, ECk_SmRunStatus InStatus) -> bool
     {
-        return ck::IsValid(InSm) && InSm.Has<ck::FFragment_Sm_Current>()
+        return ck::IsValid(InSm) && InSm.Has<ck::FFragment_Sm>()
             && UCk_Utils_StateMachine_UE::Get_RunStatus(InSm) == InStatus;
     }
 
@@ -597,7 +597,7 @@ bool FCkTest_StateMachine_AuthoredInspectorComposition::RunTest(const FString& P
             UCkDebuggerStyleSettings::Get_Mutable()->Selection.EditControlStyle = ECkDebugAxis_EditControlStyle::Inline;
             Scenario->Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld, {});
             if (NOT TestTrue(TEXT("real PIE transient owner created"), ck::IsValid(Scenario->Owner))) { return; }
-            auto Params = FCk_Fragment_StateMachine_ParamsData{UCk_AutoTest_Sm_RecordingState_D::StaticClass()};
+            auto Params = FCk_StateMachine_Spec{UCk_AutoTest_Sm_RecordingState_D::StaticClass()};
             Params.Set_AutoStart(ECk_SmAutoStart::Disabled);
             Scenario->Sm = UCk_Utils_StateMachine_UE::Add(Scenario->Owner, Params);
             Scenario->FixtureCreated = TestTrue(TEXT("production AutoStart-disabled StateMachine composed"),
@@ -1149,10 +1149,10 @@ bool FCkTest_StateMachine_AuthoredInspectorVariants::RunTest(const FString& Para
                 AddExpectedErrorPlain(TEXT("Invalid initial state class when creating StateMachine"),
                     EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
                 const auto InvalidSm = UCk_Utils_StateMachine_UE::Add(
-                    InvalidOwner, FCk_Fragment_StateMachine_ParamsData{});
+                    InvalidOwner, FCk_StateMachine_Spec{});
                 TestTrue(TEXT("invalid initial class fails closed without publishing partial StateMachine state"),
                     ck::Is_NOT_Valid(InvalidSm) && NOT InvalidOwner.Has<ck::FFragment_Sm_Params>()
-                        && NOT InvalidOwner.Has<ck::FFragment_Sm_Current>()
+                        && NOT InvalidOwner.Has<ck::FFragment_Sm>()
                         && NOT InvalidOwner.Has<ck::FTag_Sm_RequiresSetup>());
                 UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(InvalidOwner);
             }
@@ -1161,7 +1161,7 @@ bool FCkTest_StateMachine_AuthoredInspectorVariants::RunTest(const FString& Para
             Scenario->StyleOverridden = true;
             UCkDebuggerStyleSettings::Get_Mutable()->Selection.EditControlStyle = ECkDebugAxis_EditControlStyle::Hidden;
             Scenario->Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld, {});
-            auto Params = FCk_Fragment_StateMachine_ParamsData{Scenario->HierarchyClass};
+            auto Params = FCk_StateMachine_Spec{Scenario->HierarchyClass};
             Params.Set_AutoStart(ECk_SmAutoStart::Disabled);
             Scenario->Sm = UCk_Utils_StateMachine_UE::Add(Scenario->Owner, Params);
             Scenario->ServerReady = TestTrue(TEXT("hierarchical authored-variant StateMachine composed"),
@@ -1334,7 +1334,7 @@ bool FCkTest_StateMachine_AuthoredInspectorVariants::RunTest(const FString& Para
             TickSlate(FSlateApplication::Get());
             Scenario->VariantsAccepted = true;
 
-            auto OverrideParams = FCk_Fragment_StateMachine_ParamsData{Scenario->OverrideBaseClass};
+            auto OverrideParams = FCk_StateMachine_Spec{Scenario->OverrideBaseClass};
             OverrideParams.Set_AutoStart(ECk_SmAutoStart::Disabled);
             Scenario->OverrideOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld, {});
             Scenario->OverrideSm = UCk_Utils_StateMachine_UE::Add(Scenario->OverrideOwner, OverrideParams);
@@ -1385,7 +1385,7 @@ bool FCkTest_StateMachine_AuthoredInspectorVariants::RunTest(const FString& Para
         {
             UCkDebuggerStyleSettings::Get_Mutable()->Selection.EditControlStyle = ECkDebugAxis_EditControlStyle::Inline;
             Scenario->ClientOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld, {});
-            auto Params = FCk_Fragment_StateMachine_ParamsData{Scenario->HierarchyClass};
+            auto Params = FCk_StateMachine_Spec{Scenario->HierarchyClass};
             Params.Set_AutoStart(ECk_SmAutoStart::Disabled);
             Scenario->ClientSm = UCk_Utils_StateMachine_UE::Add(Scenario->ClientOwner, Params);
             auto ClientInspector = MakeUnique<FCkInspector_StateMachine>();
@@ -1464,7 +1464,7 @@ bool FCkTest_StateMachine_AuthoredInspectorVariants::RunTest(const FString& Para
                 ECk_AutoTest_Sm_EventKind::DoExitState);
             Scenario->CascadeOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld, {});
             Scenario->CascadeSm = UCk_Utils_StateMachine_UE::Add(Scenario->CascadeOwner,
-                FCk_Fragment_StateMachine_ParamsData{Scenario->CascadeClass});
+                FCk_StateMachine_Spec{Scenario->CascadeClass});
             Scenario->CascadeCreated = TestTrue(TEXT("active-destruction StateMachine composed"),
                 ck::IsValid(Scenario->CascadeOwner) && ck::IsValid(Scenario->CascadeSm));
             if (ck::IsValid(Scenario->OverrideOwner))

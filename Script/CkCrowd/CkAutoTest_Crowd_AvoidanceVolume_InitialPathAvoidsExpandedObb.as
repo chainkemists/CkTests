@@ -57,7 +57,7 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
 
         utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(0.05));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(LocalHandle, TimerParams);
@@ -166,7 +166,7 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
         auto AgentTransform = utils_transform::Add(_AgentEntity,
             FTransform(FRotator::ZeroRotator, Spawn + FVector(0.0, 0.0, _Centre.Z), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
-        _Agent = utils_crowd_agent::Add(AgentTransform, FCk_Fragment_CrowdAgent_ParamsData(AgentRadius, 192.0f));
+        _Agent = utils_crowd_agent::Add(AgentTransform, FCk_CrowdAgent_Spec(AgentRadius, 192.0f));
         if (ck::Is_NOT_Valid(_Agent))
         { FinishFailure("failed to compose crowd agent"); return; }
         utils_crowd_agent::Request_MoveTo(_Agent, FCk_Request_CrowdAgent_MoveTo(Goal + FVector(0.0, 0.0, _Centre.Z)));
@@ -183,7 +183,7 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
         auto AgentTransform = utils_transform::Add(_AgentEntity,
             FTransform(FRotator::ZeroRotator, Spawn + FVector(0.0, 0.0, _Centre.Z), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
-        _Agent = utils_crowd_agent::Add(AgentTransform, FCk_Fragment_CrowdAgent_ParamsData(AgentRadius, 192.0f));
+        _Agent = utils_crowd_agent::Add(AgentTransform, FCk_CrowdAgent_Spec(AgentRadius, 192.0f));
         if (ck::Is_NOT_Valid(_Agent))
         { FinishFailure("failed to compose replacement crowd agent after removal"); return; }
         utils_crowd_agent::Request_MoveTo(_Agent, FCk_Request_CrowdAgent_MoveTo(Goal + FVector(0.0, 0.0, _Centre.Z)));
@@ -221,12 +221,12 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
             FTransform(FRotator::ZeroRotator, Spawn + FVector(0.0, 0.0, _Centre.Z), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
         _Agent = utils_crowd_agent::Add(
-            AgentTransform, FCk_Fragment_CrowdAgent_ParamsData(AgentRadius, 192.0f));
+            AgentTransform, FCk_CrowdAgent_Spec(AgentRadius, 192.0f));
         utils_velocity::Add(_AgentEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(_AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(_AgentEntity);
 

@@ -193,7 +193,7 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
 
         utils_nav_surface::Request_SurfaceRebuild_ForTesting();
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(LocalHandle, TimerParams);
@@ -417,7 +417,7 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
         const auto Spawn = FVector(SpawnX, SpawnY, _FloorZ + 100.0);
         const auto Goal = FVector(GoalX, RunY, _FloorZ);
 
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(AgentRadiusUu, AgentHeightUu);
+        auto Params = FCk_CrowdAgent_Spec(AgentRadiusUu, AgentHeightUu);
 
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
         AgentEntity.Set_DebugName(n"CornerRetirement_Walker");
@@ -429,10 +429,10 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
         _Agent = utils_crowd_agent::Add(AgentTransform, Params);
 
         utils_velocity::Add(AgentEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(AgentEntity);
 
