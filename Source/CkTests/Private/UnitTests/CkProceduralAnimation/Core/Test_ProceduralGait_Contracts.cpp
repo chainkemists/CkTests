@@ -1,32 +1,45 @@
-#include "CkProceduralAnimation/Core/CkProceduralGaitSolver.h"
 #include "CkProceduralAnimation/Core/CkProceduralFootProbe.h"
-#include "Misc/AutomationTest.h"
+#include "CkProceduralAnimation/Core/CkProceduralGaitSolver.h"
+
+#include "../../CkUnitTest_Common.h"
+
 #include <limits>
 
 #if WITH_DEV_AUTOMATION_TESTS
-namespace ck_procedural_gait_contracts_test
+
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_test_procedural_gait_contracts
 {
-    constexpr auto Flags = EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter;
-    constexpr FCk_Time DeltaTime{1.0 / 60.0};
+    constexpr auto DeltaTime = FCk_Time{1.0 / 60.0};
+    constexpr auto NaN = std::numeric_limits<float>::quiet_NaN();
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkProceduralGaitRejectsInvalidInput,
-    "Ck.ProceduralAnimation.Gait.InvalidInputIsAtomic", ck_procedural_gait_contracts_test::Flags)
+// --------------------------------------------------------------------------------------------------------------------
 
-auto FCkProceduralGaitRejectsInvalidInput::RunTest(const FString& InParameters) -> bool
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitRejectsInvalidInput,
+    "Ck.ProceduralAnimation.Gait.InvalidInputIsAtomic",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitRejectsInvalidInput::
+    RunTest(const FString&)
+    -> bool
 {
-    ck::FProceduralGaitSolver Solver;
-    TArray<FVector> Plants = {FVector{10.0, 20.0, 30.0}};
+    using namespace ck_test_procedural_gait_contracts;
+
+    auto Solver = ck::FProceduralGaitSolver{};
+    const auto Plants = TArray<FVector>{FVector{10.0, 20.0, 30.0}};
     TestTrue(TEXT("Valid reset"), Solver.Reset(Plants));
-    TArray<ck::FProceduralGaitLegInput> Inputs;
+    auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
     Inputs.SetNum(1);
     Inputs[0].Set_IdealTarget(Plants[0]);
-    TArray<ck::FProceduralGaitLegOutput> Outputs;
+    auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
     Outputs.SetNum(1);
     Outputs[0].Set_Position(FVector{777.0, 888.0, 999.0});
     const auto OutputBefore = Outputs[0].Get_Position();
-    const auto NaN = std::numeric_limits<float>::quiet_NaN();
-    const auto AssertUnchanged = [this, &Solver, &Plants, &Outputs, &OutputBefore]()
+    const auto AssertUnchanged = [this, &Solver, &Plants, &Outputs, &OutputBefore]() -> void
     {
         TestEqual(TEXT("Topology unchanged"), Solver.NumLegs(), 1);
         TestTrue(TEXT("Plant unchanged"), Solver.GetLegState(0).Get_PlantedPosition().Equals(Plants[0]));
@@ -35,39 +48,53 @@ auto FCkProceduralGaitRejectsInvalidInput::RunTest(const FString& InParameters) 
     };
     const auto SettingsBefore = Solver.Get_Settings();
     Solver.Get_Settings().Set_StepDuration(FCk_Time{});
-    TestFalse(TEXT("Reject zero step duration"), Solver.Step(ck_procedural_gait_contracts_test::DeltaTime,
-        100.0f, FVector{}, Inputs, Outputs));
+    TestFalse(TEXT("Reject zero step duration"), Solver.Step(DeltaTime, 100.0f, FVector{}, Inputs, Outputs));
     AssertUnchanged();
     Solver.Set_Settings(SettingsBefore);
     Inputs[0].Set_IdealTarget(FVector{NaN, 0.0, 0.0});
-    TestFalse(TEXT("Reject nonfinite target"), Solver.Step(ck_procedural_gait_contracts_test::DeltaTime,
-        100.0f, FVector{}, Inputs, Outputs));
+    TestFalse(TEXT("Reject nonfinite target"), Solver.Step(DeltaTime, 100.0f, FVector{}, Inputs, Outputs));
     AssertUnchanged();
     Inputs[0].Set_IdealTarget(Plants[0]);
     TestFalse(TEXT("Reject nonfinite delta"), Solver.Step(FCk_Time{NaN}, 100.0f, FVector{}, Inputs, Outputs));
     AssertUnchanged();
     Inputs.AddDefaulted();
-    TestFalse(TEXT("Reject topology changes without reset"), Solver.Step(ck_procedural_gait_contracts_test::DeltaTime,
-        100.0f, FVector{}, Inputs, Outputs));
+    TestFalse(TEXT("Reject topology changes without reset"), Solver.Step(DeltaTime, 100.0f, FVector{}, Inputs, Outputs));
     AssertUnchanged();
-    TArray<FVector> InvalidPlants = {FVector{0.0, 0.0, 0.0}, FVector{NaN, 0.0, 0.0}};
+    const auto InvalidPlants = TArray<FVector>{FVector{0.0, 0.0, 0.0}, FVector{NaN, 0.0, 0.0}};
     TestFalse(TEXT("Reject reset atomically"), Solver.Reset(InvalidPlants));
     AssertUnchanged();
+
+    constexpr auto Disabled = false;
+    Inputs.SetNum(1);
+    Inputs[0].Set_Enabled(Disabled);
+    TestTrue(TEXT("Accept a step that disables the leg"), Solver.Step(DeltaTime, 100.0f, FVector{}, Inputs, Outputs));
+    TestFalse(TEXT("The stepped leg reads disabled"), Solver.IsLegEnabled(0));
+    TestFalse(TEXT("Reject reset atomically while a leg is disabled"), Solver.Reset(InvalidPlants));
+    TestFalse(TEXT("A rejected reset leaves the leg disabled"), Solver.IsLegEnabled(0));
+    TestTrue(TEXT("Accept reset"), Solver.Reset(Plants));
+    TestTrue(TEXT("Reset re-enables a previously disabled leg"), Solver.IsLegEnabled(0));
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkProceduralGaitPreviewPreservesState,
-    "Ck.ProceduralAnimation.Gait.PreviewDoesNotInitializePatternState", ck_procedural_gait_contracts_test::Flags)
+// --------------------------------------------------------------------------------------------------------------------
 
-auto FCkProceduralGaitPreviewPreservesState::RunTest(const FString& InParameters) -> bool
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitPreviewPreservesState,
+    "Ck.ProceduralAnimation.Gait.PreviewDoesNotInitializePatternState",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitPreviewPreservesState::
+    RunTest(const FString&)
+    -> bool
 {
-    ck::FProceduralGaitSolver Solver;
-    TArray<FVector> Plants = {FVector{}};
+    auto Solver = ck::FProceduralGaitSolver{};
+    const auto Plants = TArray<FVector>{FVector{}};
     Solver.Reset(Plants);
-    Solver.Get_Settings().Get_Patterns().Add(ck::FProceduralGaitPattern{}.Set_MinSpeed(0.0f));
-    TArray<ck::FProceduralGaitLegInput> Inputs;
+    Solver.Get_Settings().Set_Patterns({ck::FProceduralGaitPattern{}.Set_MinSpeed(0.0f)});
+    auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
     Inputs.SetNum(1);
-    TArray<ck::FProceduralGaitLegOutput> Outputs;
+    auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
     Outputs.SetNum(1);
     TestTrue(TEXT("Accept preview"), Solver.Step(FCk_Time{}, 100.0f, FVector{}, Inputs, Outputs));
     TestEqual(TEXT("Preview preserves uninitialized pattern state"), Solver.GetCurrentPatternIndex(), INDEX_NONE);
@@ -77,42 +104,60 @@ auto FCkProceduralGaitPreviewPreservesState::RunTest(const FString& InParameters
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkProceduralContactGraceUsesElapsedTime,
-    "Ck.ProceduralAnimation.Gait.ContactGraceIsTimestepIndependent", ck_procedural_gait_contracts_test::Flags)
+// --------------------------------------------------------------------------------------------------------------------
 
-auto FCkProceduralContactGraceUsesElapsedTime::RunTest(const FString& InParameters) -> bool
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralContactGraceUsesElapsedTime,
+    "Ck.ProceduralAnimation.Gait.ContactGraceIsTimestepIndependent",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralContactGraceUsesElapsedTime::
+    RunTest(const FString&)
+    -> bool
 {
-    constexpr FCk_Time Grace{0.125};
+    using namespace ck_test_procedural_gait_contracts;
+
+    constexpr auto Grace = FCk_Time{0.125};
+    constexpr auto Hit = true;
+    constexpr auto Miss = false;
     for (const auto Substeps : {1, 2, 4, 8, 16})
     {
-        ck::FProceduralFootProbeState Probe;
+        auto Probe = ck::FProceduralFootProbeState{};
         const auto Delta = Grace / Substeps;
         for (auto Index = 0; Index < Substeps; ++Index)
         {
-            TestTrue(TEXT("Accept valid probe sample"), Probe.Advance(false, Delta, Grace));
+            TestTrue(TEXT("Accept valid probe sample"), Probe.Advance(Miss, Delta, Grace));
             const auto Expected = Index == Substeps - 1
                 ? ck::EProceduralFootProbeState::Lost : ck::EProceduralFootProbeState::Guessing;
             TestTrue(TEXT("Grace state depends on elapsed time"), Probe.Get_State() == Expected);
         }
         TestTrue(TEXT("Saturated missing duration"), Probe.Get_MissingDuration() == Grace);
-        TestTrue(TEXT("Paused sample accepted"), Probe.Advance(true, FCk_Time{}, Grace));
+        TestTrue(TEXT("Paused sample accepted"), Probe.Advance(Hit, FCk_Time{}, Grace));
         TestTrue(TEXT("Pause preserves contact state"), Probe.Get_State() == ck::EProceduralFootProbeState::Lost);
-        TestFalse(TEXT("Reject negative grace"), Probe.Advance(true, Delta, FCk_Time{-1.0}));
+        TestFalse(TEXT("Reject negative grace"), Probe.Advance(Hit, Delta, FCk_Time{-1.0}));
         TestTrue(TEXT("Invalid duration preserves contact state"), Probe.Get_State() == ck::EProceduralFootProbeState::Lost);
-        TestTrue(TEXT("Accept recovery"), Probe.Advance(true, Delta, Grace));
+        TestTrue(TEXT("Accept recovery"), Probe.Advance(Hit, Delta, Grace));
         TestTrue(TEXT("Recovery clears missing duration"), Probe.Get_MissingDuration() == FCk_Time{});
         TestTrue(TEXT("Recovery restores grounded"), Probe.Get_State() == ck::EProceduralFootProbeState::Grounded);
     }
-    ck::FProceduralFootProbeState Immediate;
-    Immediate.Advance(false, ck_procedural_gait_contracts_test::DeltaTime, FCk_Time{});
+    auto Immediate = ck::FProceduralFootProbeState{};
+    Immediate.Advance(Miss, DeltaTime, FCk_Time{});
     TestTrue(TEXT("Zero grace loses contact immediately"), Immediate.Get_State() == ck::EProceduralFootProbeState::Lost);
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkProceduralProbeSpansAreBounded,
-    "Ck.ProceduralAnimation.Gait.ProbeRetriesAreBoundedAndDropConvexLean", ck_procedural_gait_contracts_test::Flags)
+// --------------------------------------------------------------------------------------------------------------------
 
-auto FCkProceduralProbeSpansAreBounded::RunTest(const FString& InParameters) -> bool
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralProbeSpansAreBounded,
+    "Ck.ProceduralAnimation.Gait.ProbeRetriesAreBoundedAndDropConvexLean",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralProbeSpansAreBounded::
+    RunTest(const FString&)
+    -> bool
 {
     const auto Authored = ck::MakeProceduralGroundProbeSpan(0, 50.0f, 100.0f, 0.6f);
     const auto Retry = ck::MakeProceduralGroundProbeSpan(1, 50.0f, 100.0f, 0.6f);
@@ -127,17 +172,24 @@ auto FCkProceduralProbeSpansAreBounded::RunTest(const FString& InParameters) -> 
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkProceduralSupportFramePreservesWorldPlants,
-    "Ck.ProceduralAnimation.Gait.SupportFrameReexpressionPreservesWorldPlantsAndRequests", ck_procedural_gait_contracts_test::Flags)
+// --------------------------------------------------------------------------------------------------------------------
 
-auto FCkProceduralSupportFramePreservesWorldPlants::RunTest(const FString& InParameters) -> bool
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSupportFramePreservesWorldPlants,
+    "Ck.ProceduralAnimation.Gait.SupportFrameReexpressionPreservesWorldPlantsAndRequests",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSupportFramePreservesWorldPlants::
+    RunTest(const FString&)
+    -> bool
 {
     const auto OldBasis = FQuat{FVector::ForwardVector, 0.3};
     const auto NewBasis = FQuat{FVector::RightVector, 1.1};
     const auto WorldPlant = FVector{2700.0, -1400.0, 625.0};
     const auto WorldRequest = FVector{2800.0, -1300.0, 615.0};
-    ck::FProceduralGaitSolver Solver;
-    TArray<FVector> Plants = {OldBasis.UnrotateVector(WorldPlant)};
+    auto Solver = ck::FProceduralGaitSolver{};
+    const auto Plants = TArray<FVector>{OldBasis.UnrotateVector(WorldPlant)};
     Solver.Reset(Plants);
     TestTrue(TEXT("Accept pending catch step"), Solver.RequestStep(0, OldBasis.UnrotateVector(WorldRequest)));
     const auto PendingBefore = Solver.GetLegState(0).Get_PendingStepTime();
@@ -152,24 +204,42 @@ auto FCkProceduralSupportFramePreservesWorldPlants::RunTest(const FString& InPar
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkProceduralSwingProfileRejectsNonfiniteSamples,
-    "Ck.ProceduralAnimation.Gait.SwingProfileRejectsNonfiniteSamplesAtomically", ck_procedural_gait_contracts_test::Flags)
+// --------------------------------------------------------------------------------------------------------------------
 
-auto FCkProceduralSwingProfileRejectsNonfiniteSamples::RunTest(const FString& InParameters) -> bool
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSwingProfileRejectsNonfiniteSamples,
+    "Ck.ProceduralAnimation.Gait.SwingProfileRejectsNonfiniteSamplesAtomically",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSwingProfileRejectsNonfiniteSamples::
+    RunTest(const FString&)
+    -> bool
 {
-    ck::FProceduralGaitSwingProfile Profile;
-    TestTrue(TEXT("Accept initial curve"), Profile.SetEase([](float InPhase) { return InPhase * 2.0f; }));
-    TestFalse(TEXT("Reject curve with nonfinite sample"), Profile.SetEase([](float InPhase)
-    { return InPhase > 0.5f ? std::numeric_limits<float>::quiet_NaN() : InPhase; }));
+    using namespace ck_test_procedural_gait_contracts;
+
+    auto Profile = ck::FProceduralGaitSwingProfile{};
+    TestTrue(TEXT("Accept initial curve"), Profile.SetEase([](float InPhase) -> float { return InPhase * 2.0f; }));
+    TestFalse(TEXT("Reject curve with nonfinite sample"), Profile.SetEase([](float InPhase) -> float
+    {
+        return InPhase > 0.5f ? NaN : InPhase;
+    }));
     TestEqual(TEXT("Earlier samples were not partially overwritten"), Profile.SampleEase(0.25f), 0.5f);
     TestEqual(TEXT("Later samples remain from accepted curve"), Profile.SampleEase(1.0f), 2.0f);
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkProceduralFootOrientationHandlesParallelAxes,
-    "Ck.ProceduralAnimation.Gait.FootOrientationHandlesParallelFacingAndNormal", ck_procedural_gait_contracts_test::Flags)
+// --------------------------------------------------------------------------------------------------------------------
 
-auto FCkProceduralFootOrientationHandlesParallelAxes::RunTest(const FString& InParameters) -> bool
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralFootOrientationHandlesParallelAxes,
+    "Ck.ProceduralAnimation.Gait.FootOrientationHandlesParallelFacingAndNormal",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralFootOrientationHandlesParallelAxes::
+    RunTest(const FString&)
+    -> bool
 {
     for (const auto Normal : {FVector::ForwardVector, FVector::RightVector, FVector::UpVector})
     {
@@ -180,13 +250,22 @@ auto FCkProceduralFootOrientationHandlesParallelAxes::RunTest(const FString& InP
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkProceduralGaitRejectsInvalidSettingRanges,
-    "Ck.ProceduralAnimation.Gait.SettingRangesRejectWithoutMutation", ck_procedural_gait_contracts_test::Flags)
+// --------------------------------------------------------------------------------------------------------------------
 
-auto FCkProceduralGaitRejectsInvalidSettingRanges::RunTest(const FString& InParameters) -> bool
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitRejectsInvalidSettingRanges,
+    "Ck.ProceduralAnimation.Gait.SettingRangesRejectWithoutMutation",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitRejectsInvalidSettingRanges::
+    RunTest(const FString&)
+    -> bool
 {
+    using namespace ck_test_procedural_gait_contracts;
+
     using SettingsType = ck::FProceduralGaitSettings;
-    const TArray<SettingsType> InvalidSettings =
+    const auto InvalidSettings = TArray<SettingsType>
     {
         SettingsType{}.Set_RetargetSmoothing(-1.0f),
         SettingsType{}.Set_AirborneFollowSpeed(-1.0f),
@@ -201,12 +280,12 @@ auto FCkProceduralGaitRejectsInvalidSettingRanges::RunTest(const FString& InPara
         SettingsType{}.Set_ObstacleClearance(-1.0f),
         SettingsType{}.Set_MaxStrokeOvershoot(-1.0f),
     };
-    ck::FProceduralGaitSolver Solver;
-    TArray<FVector> Plants = {FVector{}};
+    auto Solver = ck::FProceduralGaitSolver{};
+    const auto Plants = TArray<FVector>{FVector{}};
     Solver.Reset(Plants);
-    TArray<ck::FProceduralGaitLegInput> Inputs;
+    auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
     Inputs.SetNum(1);
-    TArray<ck::FProceduralGaitLegOutput> Outputs;
+    auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
     Outputs.SetNum(1);
     Outputs[0].Set_Position(FVector{123.0, 456.0, 789.0});
     const auto Before = Outputs[0].Get_Position();
@@ -214,23 +293,31 @@ auto FCkProceduralGaitRejectsInvalidSettingRanges::RunTest(const FString& InPara
     {
         TestFalse(TEXT("Reject invalid rate or normalized phase range"), Solver.ValidateSettings(Settings));
         Solver.Set_Settings(Settings);
-        TestFalse(TEXT("Invalid settings reject simulation"), Solver.Step(ck_procedural_gait_contracts_test::DeltaTime,
-            100.0f, FVector{}, Inputs, Outputs));
+        TestFalse(TEXT("Invalid settings reject simulation"), Solver.Step(DeltaTime, 100.0f, FVector{}, Inputs, Outputs));
         TestEqual(TEXT("Rejected settings do not advance clock"), Solver.GetGaitClock(), 0.0f);
         TestTrue(TEXT("Rejected settings do not alter output"), Outputs[0].Get_Position().Equals(Before));
     }
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkProceduralSwingProfileRejectsNonfinitePhase,
-    "Ck.ProceduralAnimation.Gait.NonfiniteSwingPhaseDoesNotIndexSamples", ck_procedural_gait_contracts_test::Flags)
+// --------------------------------------------------------------------------------------------------------------------
 
-auto FCkProceduralSwingProfileRejectsNonfinitePhase::RunTest(const FString& InParameters) -> bool
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSwingProfileRejectsNonfinitePhase,
+    "Ck.ProceduralAnimation.Gait.NonfiniteSwingPhaseDoesNotIndexSamples",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSwingProfileRejectsNonfinitePhase::
+    RunTest(const FString&)
+    -> bool
 {
-    ck::FProceduralGaitSwingProfile Profile;
-    Profile.SetEase([](float InPhase) { return InPhase; });
-    Profile.SetArc([](float InPhase) { return InPhase * (1.0f - InPhase); });
-    for (const auto Phase : {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::infinity()})
+    using namespace ck_test_procedural_gait_contracts;
+
+    auto Profile = ck::FProceduralGaitSwingProfile{};
+    Profile.SetEase([](float InPhase) -> float { return InPhase; });
+    Profile.SetArc([](float InPhase) -> float { return InPhase * (1.0f - InPhase); });
+    for (const auto Phase : {NaN, std::numeric_limits<float>::infinity()})
     {
         TestFalse(TEXT("Nonfinite ease phase remains visibly invalid"), FMath::IsFinite(Profile.SampleEase(Phase)));
         TestFalse(TEXT("Nonfinite arc phase remains visibly invalid"), FMath::IsFinite(Profile.SampleArc(Phase)));
@@ -239,25 +326,29 @@ auto FCkProceduralSwingProfileRejectsNonfinitePhase::RunTest(const FString& InPa
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkProceduralGaitSupportLossPreservesSwingPose,
-    "Ck.ProceduralAnimation.Gait.MidSwingSupportLossPreservesRenderedPose", ck_procedural_gait_contracts_test::Flags)
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitSupportLossPreservesSwingPose,
+    "Ck.ProceduralAnimation.Gait.MidSwingSupportLossPreservesRenderedPose",
+    ck::tests::kCkUnitTestFlags)
 
 auto
     FCkProceduralGaitSupportLossPreservesSwingPose::
-    RunTest(const FString& InParameters)
+    RunTest(const FString&)
     -> bool
 {
-    ck::FProceduralGaitSolver Solver;
+    auto Solver = ck::FProceduralGaitSolver{};
     Solver.Get_Settings().Set_StepDuration(FCk_Time{1.0}).Set_CycleDuration(FCk_Time{1.0})
         .Set_StepHeight(40.0f).Set_ObstacleClearance(10.0f).Set_StrokeOvershootFraction(0.25f)
         .Set_MaxStrokeOvershoot(25.0f).Set_RetargetFreezePhase(0.0f).Set_SwingToePitchDegrees(30.0f);
-    TArray<FVector> Plants = {FVector{}};
+    const auto Plants = TArray<FVector>{FVector{}};
     TestTrue(TEXT("Initialize one leg"), Solver.Reset(Plants));
-    TArray<ck::FProceduralGaitLegInput> Inputs;
+    auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
     Inputs.SetNum(1);
     Inputs[0].Set_IdealTarget(FVector{100.0, 0.0, 0.0}).Set_FacingDirection(FVector::RightVector)
         .Set_ClearanceGroundZ(70.0f);
-    TArray<ck::FProceduralGaitLegOutput> Outputs;
+    auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
     Outputs.SetNum(1);
     TestTrue(TEXT("Trigger swing"), Solver.Step(FCk_Time{0.01}, 0.0f, FVector{}, Inputs, Outputs));
     TestTrue(TEXT("Advance to swing apex"), Solver.Step(FCk_Time{0.5}, 0.0f, FVector{}, Inputs, Outputs));
@@ -290,15 +381,19 @@ auto
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkProceduralVelocityNegativeDeltaPreservesHistory,
-    "Ck.ProceduralAnimation.Gait.NegativeDeltaPreservesVelocityHistory", ck_procedural_gait_contracts_test::Flags)
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralVelocityNegativeDeltaPreservesHistory,
+    "Ck.ProceduralAnimation.Gait.NegativeDeltaPreservesVelocityHistory",
+    ck::tests::kCkUnitTestFlags)
 
 auto
     FCkProceduralVelocityNegativeDeltaPreservesHistory::
-    RunTest(const FString& InParameters)
+    RunTest(const FString&)
     -> bool
 {
-    ck::FProceduralGaitVelocityTracker Tracker;
+    auto Tracker = ck::FProceduralGaitVelocityTracker{};
     TestTrue(TEXT("Initialize position history"), Tracker.Update(FVector{}, FCk_Time{1.0}).IsNearlyZero());
     TestTrue(TEXT("Negative delta leaves velocity estimate unchanged"),
         Tracker.Update(FVector{100.0, 0.0, 0.0}, FCk_Time{-1.0}).IsNearlyZero());
@@ -307,4 +402,7 @@ auto
         Velocity.Equals(FVector{10.0, 0.0, 0.0}, 0.0001));
     return true;
 }
+
 #endif
+
+// --------------------------------------------------------------------------------------------------------------------

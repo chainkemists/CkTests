@@ -7,9 +7,18 @@
 
 #include "Misc/AutomationTest.h"
 
+#include <limits>
+
+// --------------------------------------------------------------------------------------------------------------------
+
 namespace ck_test_procedural_animation_debugger_history
 {
+    // The debugger is editor tooling; its history is exercised in the editor context.
     constexpr auto TestFlags = EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter;
+    constexpr auto NaN = std::numeric_limits<double>::quiet_NaN();
+    constexpr auto Infinity = std::numeric_limits<double>::infinity();
+    constexpr auto MinCapacity = 1;
+    constexpr auto MaxCapacity = 4096;
 
     auto
         MakeSample(
@@ -25,6 +34,8 @@ namespace ck_test_procedural_animation_debugger_history
         return Sample;
     }
 }
+
+// --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkProceduralAnimationDebugger_HistoryBoundedOrderedCopies,
@@ -57,12 +68,13 @@ auto
             Sample->Get_Sequence(), static_cast<uint64>(Index + 2));
         TestEqual(TEXT("Caller mutation does not alter captured pose"),
             Sample->Get_BodyTransform().GetLocation().X, static_cast<double>(Index + 2));
-
     }
     TestNull(TEXT("Negative sample index is rejected"), History.Get_Sample(-1));
     TestNull(TEXT("Past-end sample index is rejected"), History.Get_Sample(3));
     return true;
 }
+
+// --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkProceduralAnimationDebugger_HistoryHoldScrubLiveReset,
@@ -113,6 +125,8 @@ auto
     return true;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkProceduralAnimationDebugger_HistoryRejectsStaleAndMixedSamples,
     "Ck.ProceduralAnimation.Debugger.History.RejectsStaleAndMixedSamples",
@@ -148,4 +162,70 @@ auto
     return true;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralAnimationDebugger_HistoryRejectsNonFiniteTime,
+    "Ck.ProceduralAnimation.Debugger.History.RejectsNonFiniteTime",
+    ck_test_procedural_animation_debugger_history::TestFlags)
+
+auto
+    FCkProceduralAnimationDebugger_HistoryRejectsNonFiniteTime::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_animation_debugger_history;
+    auto History = FCkProceduralAnimationDebugger_History{3};
+    TestTrue(TEXT("A finite accepted sample starts history"), History.Push(MakeSample(1)));
+
+    auto NaNTime = MakeSample(2);
+    NaNTime.Set_Time(FCk_Time{NaN});
+    TestFalse(TEXT("A sample with a NaN time is rejected"), History.Push(NaNTime));
+
+    auto InfiniteTime = MakeSample(3);
+    InfiniteTime.Set_Time(FCk_Time{Infinity});
+    TestFalse(TEXT("A sample with an infinite time is rejected"), History.Push(InfiniteTime));
+
+    TestEqual(TEXT("Rejected non-finite samples leave the captured count untouched"), History.Get_Count(), 1);
+    if (TestNotNull(TEXT("The finite sample is still displayed"), History.Get_Displayed()))
+    {
+        TestEqual(TEXT("The finite sample keeps its sequence"), History.Get_Displayed()->Get_Sequence(), uint64{1});
+    }
+    TestTrue(TEXT("A finite later sample still appends"), History.Push(MakeSample(4)));
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralAnimationDebugger_HistoryClampsCapacity,
+    "Ck.ProceduralAnimation.Debugger.History.ClampsCapacity",
+    ck_test_procedural_animation_debugger_history::TestFlags)
+
+auto
+    FCkProceduralAnimationDebugger_HistoryClampsCapacity::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_animation_debugger_history;
+    TestEqual(TEXT("A zero capacity clamps to one sample"),
+        FCkProceduralAnimationDebugger_History{0}.Get_Capacity(), MinCapacity);
+    TestEqual(TEXT("A negative capacity clamps to one sample"),
+        FCkProceduralAnimationDebugger_History{-5}.Get_Capacity(), MinCapacity);
+    TestEqual(TEXT("An oversized capacity clamps to the ring maximum"),
+        FCkProceduralAnimationDebugger_History{MaxCapacity + 1000}.Get_Capacity(), MaxCapacity);
+
+    auto Single = FCkProceduralAnimationDebugger_History{0};
+    TestTrue(TEXT("A clamped single-sample ring records"), Single.Push(MakeSample(1)));
+    TestTrue(TEXT("A clamped single-sample ring evicts in place"), Single.Push(MakeSample(2)));
+    TestEqual(TEXT("A clamped single-sample ring holds one sample"), Single.Get_Count(), 1);
+    if (TestNotNull(TEXT("The newest sample is retained"), Single.Get_Sample(0)))
+    {
+        TestEqual(TEXT("The single slot holds the newest sequence"), Single.Get_Sample(0)->Get_Sequence(), uint64{2});
+    }
+    return true;
+}
+
 #endif
+
+// --------------------------------------------------------------------------------------------------------------------

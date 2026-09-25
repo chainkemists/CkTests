@@ -54,21 +54,30 @@ class ACk_ProceduralAnimationDebugger_PieFixture : AActor
                     return;
                 }
             }
-            _Courses[0].Create(_Owner, FVector(120000.0, 30000.0, 600.0),
+            auto Created = _Courses[0].Create(_Owner, FVector(120000.0, 30000.0, 600.0),
                 ECkProceduralAnimationGym_Course::Uneven, false);
-            _Courses[1].Create(_Owner, FVector(120000.0, 33000.0, 600.0),
-                ECkProceduralAnimationGym_Course::RampWall, false);
-            _Courses[2].Create(_Owner, FVector(120000.0, 37000.0, 600.0),
-                ECkProceduralAnimationGym_Course::Ring, false);
+            Created = _Courses[1].Create(_Owner, FVector(120000.0, 33000.0, 600.0),
+                ECkProceduralAnimationGym_Course::RampWall, false) && Created;
+            Created = _Courses[2].Create(_Owner, FVector(120000.0, 37000.0, 600.0),
+                ECkProceduralAnimationGym_Course::Ring, false) && Created;
+            if (Created == false)
+            {
+                ck::Error("[FAIL] Procedural animation debugger PIE fixture could not create its three courses");
+            }
             _ResetPending = false;
         }
         for (auto Index = 0; Index < _Courses.Num(); Index++)
         {
             _Courses[Index].Update(true, false);
+            if (_Courses[Index].CompositionError.IsEmpty() == false)
+            {
+                ck::Error(f"[FAIL] Procedural animation debugger PIE fixture: {_Courses[Index].CompositionError}");
+                _Courses[Index].CompositionError = "";
+            }
         }
     }
 
-    UFUNCTION(BlueprintCallable)
+    UFUNCTION()
     int32 Request_ResetFixture()
     {
         if (_Ended || ck::Is_NOT_Valid(_Owner))
@@ -83,16 +92,27 @@ class ACk_ProceduralAnimationDebugger_PieFixture : AActor
         return 1;
     }
 
-    UFUNCTION(BlueprintCallable)
-    int32 Request_DestroyFirstFoot()
+    // Destroys the hip segment of the first crawler's first leg, which fails exactly that leg's rig.
+    UFUNCTION()
+    int32 Request_DestroyFirstSegment()
     {
         if (_Ended || _ResetPending || _Courses.Num() != 3 ||
-            _Courses[0].Get_IsReady() == false)
+            _Courses[0].Get_IsReady() == false || _Courses[0].Crawlers[0].Legs.Num() == 0)
         {
             return 0;
         }
-        auto Foot = FCk_Handle(_Courses[0].Crawlers[0].VisibleFeet[0]);
-        utils_entity_lifetime::Request_DestroyEntity(Foot);
+        auto Rig = utils_procedural_rig::DoCast(_Courses[0].Crawlers[0].Legs[0]);
+        if (Rig.IsSet() == false)
+        {
+            return 0;
+        }
+        auto Segments = utils_procedural_rig::Get_Chain(Rig.GetValue()).Get_Segments();
+        if (Segments.Num() == 0)
+        {
+            return 0;
+        }
+        auto Segment = FCk_Handle(Segments[0]);
+        utils_entity_lifetime::Request_DestroyEntity(Segment);
         return 1;
     }
 

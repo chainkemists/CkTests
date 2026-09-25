@@ -39,13 +39,13 @@ class UCk_AutoTest_ProceduralAnimation_WalksOnNonOriginFloor : UCk_AutoTest_Base
             Assert_True(utils_surface_motion::Get_IsGrounded(Crawler.Motion), "The body found the actual Jolt floor");
             Assert_True(Crawler.Get_ReplantedCount() == Crawler.LegCount,
                 "Every leg completed a swing and acquired a trusted plant");
-            auto Position = utils_transform::Get_EntityCurrentLocation(utils_transform::DoCastChecked(Crawler.Root));
-            Assert_Equals_Float(Position.Z, _Origin.Z + 65.0, 8.0, "The body holds its authored ground clearance");
+            auto Position = utils_transform::Get_EntityCurrentLocation(Crawler.Root);
+            Assert_Equals_Float(Position.Z, _Origin.Z + ck_procedural_gym::BodyClearance, 8.0,
+                "The body holds its authored ground clearance");
             auto Contacts = 0;
-            auto Feet = utils_procedural_gait::Get_Feet(Crawler.Gait);
-            for (auto Index = 0; Index < Feet.Num(); Index++)
+            for (auto Index = 0; Index < Crawler.Legs.Num(); Index++)
             {
-                auto Foot = Feet[Index];
+                auto Foot = utils_procedural_leg::Get_Foot(Crawler.Legs[Index]);
                 if (Foot.Get_Planted() && Foot.Get_ContactTrusted())
                 {
                     Contacts++;

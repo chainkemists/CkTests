@@ -8,18 +8,99 @@ enum ECkProceduralAnimationGym_Course
     Ring
 }
 
+namespace ck_procedural_gym
+{
+    const float CourseHalfWidth = 540.0;
+    const float SlabHalfThickness = 14.0;
+    const float LaneSpacing = 280.0;
+    const float BodyClearance = 65.0;
+    const float StartX = -1200.0;
+    const float TurnaroundX = 1150.0;
+    const float GoalX = 1250.0;
+    const FVector RingHub = FVector(0.0, 0.0, 911.0);
+    const float RingRadius = 900.0;
+    const float RingStartZ = 90.0;
+    const float RampLandingZ = 738.4;
+    const float WallX = 1300.0;
+    const float WallHalfHeight = 850.0;
+    const float WallSummitZ = 1400.0;
+    const float WallGoalX = 1215.0;
+    const float WallGoalZ = 1480.0;
+    const float ReturnMaxZ = 100.0;
+    // Above the ramp landing and below the turnaround the only supporting surface is the wall's west face.
+    const float WallBandMinZ = 950.0;
+    const float WallBandMaxZ = 1300.0;
+
+    const float TravelSpeed = 180.0;
+    const FVector BodyHalfExtents = FVector(42.0, 30.0, 18.0);
+    const FVector FootHalfExtents = FVector(10.0, 9.0, 5.0);
+    const float SegmentRootThickness = 8.0;
+    const float SegmentTipThickness = 5.5;
+
+    // Ragdoll gets PhysicsBody objects that ignore the Visibility channel the gait and surface-motion
+    // probes trace, so released debris never reads as ground for the survivors.
+    const FName DebrisCollisionProfile = n"Ragdoll";
+    const float DebrisMassKg = 2.0;
+    const float DebrisOutwardSpeed = 100.0;
+    const float DebrisUpSpeed = 50.0;
+    const int32 SlowGaitBelowEnabledLegs = 3;
+
+    UCk_ProceduralRig_Data Get_RigPreset(int32 InLegCount)
+    {
+        if (InLegCount == 4)
+        {
+            return ck::ProceduralGym_Rig4;
+        }
+        if (InLegCount == 6)
+        {
+            return ck::ProceduralGym_Rig6;
+        }
+        return ck::ProceduralGym_Rig8;
+    }
+
+    UCk_ProceduralGait_Data Get_GaitPreset(int32 InLegCount)
+    {
+        return InLegCount == 4 ? ck::ProceduralGym_GaitRedistribute : ck::ProceduralGym_Gait;
+    }
+
+    FVector Get_SegmentHalfExtents(TArray<float32> InLengths, int32 InSegmentIndex)
+    {
+        auto Alpha = InLengths.Num() > 1 ? float(InSegmentIndex) / float(InLengths.Num() - 1) : 0.0;
+        auto Thickness = Math::Lerp(SegmentRootThickness, SegmentTipThickness, Alpha);
+        return FVector(InLengths[InSegmentIndex] * 0.5, Thickness, Thickness);
+    }
+
+    FCk_Fragment_SurfaceMotion_ParamsData MakeMotionParams()
+    {
+        auto Contact = FCk_SurfaceMotion_Contact();
+        Contact.Set_Clearance(65.0f);
+        Contact.Set_ProbeReach(180.0f);
+
+        auto Movement = FCk_SurfaceMotion_Movement();
+        Movement.Set_MaxSpeed(180.0f);
+        Movement.Set_SurfaceTurnRate(240.0f);
+
+        auto Params = FCk_Fragment_SurfaceMotion_ParamsData();
+        Params.Set_Contact(Contact);
+        Params.Set_Movement(Movement);
+        return Params;
+    }
+}
+
 // Scene authoring is shared by the gym and runtime tests. Only production surface-motion
 // requests move a creature; the fixture never writes its root transform after creation.
 struct FCkProceduralAnimationGym_Crawler
 {
     UPROPERTY()
-    FCk_Handle Root;
+    FCk_Handle_Transform Root;
     UPROPERTY()
     FCk_Handle_ProceduralGait Gait;
     UPROPERTY()
     FCk_Handle_SurfaceMotion Motion;
     UPROPERTY()
-    FCk_Handle_ProceduralRig Rig;
+    TArray<FCk_Handle_ProceduralLeg> Legs;
+    UPROPERTY()
+    UCk_ProceduralGait_Data GaitPreset;
     UPROPERTY()
     FVector Origin;
     UPROPERTY()
@@ -55,6 +136,10 @@ struct FCkProceduralAnimationGym_Crawler
     UPROPERTY()
     bool WallSupportLost = false;
     UPROPERTY()
+    bool SignalsBound = false;
+    UPROPERTY()
+    bool FirstLegDisabled = false;
+    UPROPERTY()
     TArray<FCk_Handle_Transform> VisibleFeet;
     UPROPERTY()
     TArray<bool> SawSwing;
@@ -63,9 +148,44 @@ struct FCkProceduralAnimationGym_Crawler
 
     bool Get_IsReady() const
     {
-        return ck::IsValid(Root) && ck::IsValid(Gait) && ck::IsValid(Motion) && ck::IsValid(Rig) &&
-            utils_procedural_gait::Get_IsReady(Gait) && utils_surface_motion::Get_IsReady(Motion) &&
-            utils_procedural_rig::Get_IsReady(Rig);
+        if (ck::Is_NOT_Valid(Root) || ck::Is_NOT_Valid(Gait) || ck::Is_NOT_Valid(Motion) || Legs.Num() != LegCount)
+        {
+            return false;
+        }
+        if (utils_procedural_gait::Get_IsReady(Gait) == false || utils_surface_motion::Get_IsReady(Motion) == false)
+        {
+            return false;
+        }
+        for (auto Leg : Legs)
+        {
+            if (ck::Is_NOT_Valid(Leg))
+            {
+                continue;
+            }
+            auto Rig = utils_procedural_rig::DoCast(Leg);
+            if (Rig.IsSet() == false || utils_procedural_rig::Get_IsReady(Rig.GetValue()) == false)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool Get_HasRigFailure() const
+    {
+        for (auto Leg : Legs)
+        {
+            if (ck::Is_NOT_Valid(Leg))
+            {
+                continue;
+            }
+            auto Rig = utils_procedural_rig::DoCast(Leg);
+            if (Rig.IsSet() && utils_procedural_rig::Get_Failure(Rig.GetValue()) != ECk_ProceduralRig_Failure::None)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     int32 Get_ReplantedCount() const
@@ -104,7 +224,7 @@ struct FCkProceduralAnimationGym_Crawler
         {
             InvalidOutput = true;
         }
-        if (ck::IsValid(Rig) && utils_procedural_rig::Get_Failure(Rig) != ECk_ProceduralRig_Failure::None)
+        if (Get_HasRigFailure())
         {
             InvalidOutput = true;
         }
@@ -118,32 +238,29 @@ struct FCkProceduralAnimationGym_Crawler
         }
         WasReady = true;
 
-        auto Transform = utils_transform::Get_EntityCurrentTransform(utils_transform::DoCastChecked(Root));
+        auto Transform = utils_transform::Get_EntityCurrentTransform(Root);
         auto Position = Transform.GetLocation();
         auto Local = Position - Origin;
         FurthestDistance = Math::Max(FurthestDistance, (Position - Start).Size());
         InvalidOutput = InvalidOutput || Position.ContainsNaN();
-        // This band is above the ramp's 738 cm landing and below the turnaround. On both
-        // ascent and descent, the only supporting surface here is the west face of the wall.
-        // It catches contact-frame flip-flop that a single 'saw a wall' sample would miss.
-        if (Course == ECkProceduralAnimationGym_Course::RampWall && Local.Z > 950.0 && Local.Z < 1300.0)
+        // A band sample catches contact-frame flip-flop that a single 'saw a wall' sample would miss.
+        if (Course == ECkProceduralAnimationGym_Course::RampWall && Local.Z > ck_procedural_gym::WallBandMinZ &&
+            Local.Z < ck_procedural_gym::WallBandMaxZ)
         {
             WallSupportSamples++;
             WallSupportLost = WallSupportLost || utils_surface_motion::Get_HasTrustedContact(Motion) == false ||
                 utils_surface_motion::Get_SupportNormal(Motion).X > -0.9;
         }
 
-        auto Feet = utils_procedural_gait::Get_Feet(Gait);
         PlantedCount = 0;
         TrustedCount = 0;
-        if (Feet.Num() != LegCount)
+        for (auto Index = 0; Index < Legs.Num(); Index++)
         {
-            InvalidOutput = true;
-            return;
-        }
-        for (auto Index = 0; Index < Feet.Num(); Index++)
-        {
-            auto Foot = Feet[Index];
+            if (ck::Is_NOT_Valid(Legs[Index]))
+            {
+                continue;
+            }
+            auto Foot = utils_procedural_leg::Get_Foot(Legs[Index]);
             InvalidOutput = InvalidOutput || Foot.Get_Position().ContainsNaN() || Foot.Get_Normal().ContainsNaN();
             if (Foot.Get_Planted())
             {
@@ -182,7 +299,7 @@ struct FCkProceduralAnimationGym_Crawler
         auto Direction = FVector::ForwardVector;
         if (Course == ECkProceduralAnimationGym_Course::Ring)
         {
-            auto Hub = Origin + FVector(0.0, 0.0, 911.0);
+            auto Hub = Origin + ck_procedural_gym::RingHub;
             auto Radial = Position - Hub;
             Radial.Y = 0.0;
             Direction = FVector(-Radial.Z, 0.0, Radial.X).GetSafeNormal();
@@ -207,36 +324,41 @@ struct FCkProceduralAnimationGym_Crawler
         }
         else if (Course == ECkProceduralAnimationGym_Course::RampWall)
         {
-            if (RouteStage == 0 && Local.Z > 1400.0 && SawWall)
+            if (RouteStage == 0 && Local.Z > ck_procedural_gym::WallSummitZ && SawWall)
             {
                 RouteStage = 1;
             }
-            else if (RouteStage == 1 && Local.X < -1150.0 && Local.Z < 100.0)
+            else if (RouteStage == 1 && Local.X < -ck_procedural_gym::TurnaroundX && Local.Z < ck_procedural_gym::ReturnMaxZ)
             {
                 Traversals++;
                 RouteStage = 0;
             }
-            auto Target = RouteStage == 0 ? FVector(1215.0, LaneY, 1480.0) : FVector(-1250.0, LaneY, 65.0);
+            auto Target = RouteStage == 0 ?
+                FVector(ck_procedural_gym::WallGoalX, LaneY, ck_procedural_gym::WallGoalZ) :
+                FVector(-ck_procedural_gym::GoalX, LaneY, ck_procedural_gym::BodyClearance);
             Direction = Target - Local;
         }
         else
         {
-            if (RouteStage == 0 && Local.X > 1150.0)
+            if (RouteStage == 0 && Local.X > ck_procedural_gym::TurnaroundX)
             {
                 RouteStage = 1;
             }
-            else if (RouteStage == 1 && Local.X < -1150.0)
+            else if (RouteStage == 1 && Local.X < -ck_procedural_gym::TurnaroundX)
             {
                 Traversals++;
                 RouteStage = 0;
             }
-            auto TargetX = RouteStage == 0 ? 1250.0 : -1250.0;
+            auto TargetX = RouteStage == 0 ? ck_procedural_gym::GoalX : -ck_procedural_gym::GoalX;
             Direction = FVector(TargetX, LaneY, Local.Z) - Local;
         }
 
+        // A zero steering direction is only a valid request at zero speed.
+        auto SteerDirection = Direction.GetSafeNormal();
+        auto Moving = InRun && InvalidOutput == false && SteerDirection.IsNearlyZero() == false;
         auto MotionLocal = Motion;
         utils_surface_motion::Request_Steering(MotionLocal,
-            FCk_Request_SurfaceMotion_Steering(Direction.GetSafeNormal(), InRun && InvalidOutput == false ? 180.0 : 0.0));
+            FCk_Request_SurfaceMotion_Steering(SteerDirection, Moving ? ck_procedural_gym::TravelSpeed : 0.0));
         if (InDraw)
         {
             utils_debug_draw::DrawDebugLine(Position, Position + Transform.GetRotation().GetUpVector() * 110.0,
@@ -282,6 +404,13 @@ struct FCkProceduralAnimationGym_Fixture
     TArray<UCk_IsmRenderer_Data> Renderers;
     UPROPERTY()
     bool RenderFailed = false;
+    UPROPERTY()
+    FString CompositionError;
+    // A body's impulse is dropped until Jolt has added it, so released debris waits here for its push.
+    UPROPERTY()
+    TArray<FCk_Handle_JoltBody> PendingDebris;
+    UPROPERTY()
+    TArray<FVector> PendingDebrisImpulses;
 
     // Caller first retires the previous fixture and waits for Get_IsDestroyed(). No overlapping
     // old/new collision bodies are hidden under a reset, even when destruction is deferred.
@@ -297,6 +426,9 @@ struct FCkProceduralAnimationGym_Fixture
         RetirementProbeStarts.Empty();
         RetirementProbeEnds.Empty();
         Crawlers.Empty();
+        PendingDebris.Empty();
+        PendingDebrisImpulses.Empty();
+        CompositionError = "";
         auto Owner = InOwner;
         SceneRoot = utils_entity_lifetime::Request_CreateEntity(Owner);
         SceneRoot.Request_OverrideToSelf();
@@ -310,26 +442,26 @@ struct FCkProceduralAnimationGym_Fixture
         SpawnPending = true;
 
         auto GroundColor = FLinearColor(0.12, 0.18, 0.24, 1.0);
+        auto HalfWidth = ck_procedural_gym::CourseHalfWidth;
         if (Course == ECkProceduralAnimationGym_Course::Ring)
         {
-            auto Hub = FVector(0.0, 0.0, 911.0);
             for (auto Index = 0; Index < 24; Index++)
             {
                 auto Degrees = -90.0 + 15.0 * Index;
                 auto Theta = Math::DegreesToRadians(Degrees);
                 auto Radial = FVector(Math::Cos(Theta), 0.0, Math::Sin(Theta));
                 auto Shade = Index % 2 == 0 ? GroundColor : FLinearColor(0.18, 0.25, 0.31, 1.0);
-                AddSurface(Hub + Radial * 900.0, FRotator(Degrees + 90.0, 0.0, 0.0),
-                    FVector(120.0, 540.0, 14.0), Shade);
+                AddSurface(ck_procedural_gym::RingHub + Radial * ck_procedural_gym::RingRadius,
+                    FRotator(Degrees + 90.0, 0.0, 0.0), FVector(120.0, HalfWidth, ck_procedural_gym::SlabHalfThickness), Shade);
             }
         }
         else if (Course == ECkProceduralAnimationGym_Course::RampWall)
         {
             AddSurface(FVector(-100.0, 0.0, -25.0), FRotator::ZeroRotator,
-                FVector(1400.0, 540.0, 25.0), GroundColor);
-            AddSlab(FVector(400.0, 0.0, 0.0), FVector(1280.0, 0.0, 738.4), GroundColor);
-            AddSurface(FVector(1300.0, 0.0, 850.0), FRotator::ZeroRotator,
-                FVector(20.0, 540.0, 850.0), FLinearColor(0.18, 0.25, 0.31, 1.0));
+                FVector(1400.0, HalfWidth, 25.0), GroundColor);
+            AddSlab(FVector(400.0, 0.0, 0.0), FVector(1280.0, 0.0, ck_procedural_gym::RampLandingZ), GroundColor);
+            AddSurface(FVector(ck_procedural_gym::WallX, 0.0, ck_procedural_gym::WallHalfHeight), FRotator::ZeroRotator,
+                FVector(20.0, HalfWidth, ck_procedural_gym::WallHalfHeight), FLinearColor(0.18, 0.25, 0.31, 1.0));
         }
         else if (Course == ECkProceduralAnimationGym_Course::Uneven)
         {
@@ -348,7 +480,7 @@ struct FCkProceduralAnimationGym_Fixture
         else
         {
             AddSurface(FVector(0.0, 0.0, -25.0), FRotator::ZeroRotator,
-                FVector(1550.0, 540.0, 25.0), GroundColor);
+                FVector(1550.0, HalfWidth, 25.0), GroundColor);
         }
         return true;
     }
@@ -359,8 +491,9 @@ struct FCkProceduralAnimationGym_Fixture
         auto Pitch = Math::RadiansToDegrees(Math::Atan2(Delta.Z, Delta.X));
         auto Angle = Math::DegreesToRadians(Pitch);
         auto Normal = FVector(-Math::Sin(Angle), 0.0, Math::Cos(Angle));
-        AddSurface((InStart + InEnd) * 0.5 - Normal * 14.0, FRotator(Pitch, 0.0, 0.0),
-            FVector(Delta.Size() * 0.5 + 4.0, 540.0, 14.0), InColor);
+        auto Thickness = ck_procedural_gym::SlabHalfThickness;
+        AddSurface((InStart + InEnd) * 0.5 - Normal * Thickness, FRotator(Pitch, 0.0, 0.0),
+            FVector(Delta.Size() * 0.5 + 4.0, ck_procedural_gym::CourseHalfWidth, Thickness), InColor);
     }
 
     UCk_IsmRenderer_Data GetOrCreate_Renderer(FLinearColor InColor)
@@ -374,7 +507,8 @@ struct FCkProceduralAnimationGym_Fixture
         }
 
         auto World = utils_entity_lifetime::Get_WorldForEntity(SceneRoot);
-        auto Mesh = Cast<UStaticMesh>(LoadObject(nullptr, "/Engine/BasicShapes/Cube.Cube"));
+        auto Mesh = Cast<UStaticMesh>(utils_i_o::LoadAssetByName("/Engine/BasicShapes/Cube.Cube",
+            ECk_AssetSearchScope::Engine)._Asset);
         if (ck::Is_NOT_Valid(World) || ck::Is_NOT_Valid(Mesh))
         {
             RenderFailed = true;
@@ -477,73 +611,71 @@ struct FCkProceduralAnimationGym_Fixture
         return Get_AreSurfacesReady();
     }
 
+    FCk_ProceduralWalker_LegChain MakeLegChain(FCkProceduralAnimationGym_Crawler& InOutCrawler,
+        FCk_Fragment_ProceduralLeg_ParamsData InLeg)
+    {
+        auto Lengths = InLeg.Get_Chain().Get_SegmentLengths();
+        auto Segments = TArray<FCk_Handle_Transform>();
+        for (auto SegmentIndex = 0; SegmentIndex < Lengths.Num(); SegmentIndex++)
+        {
+            auto Tint = Lengths.Num() > 1 ? float(SegmentIndex) / float(Lengths.Num() - 1) : 0.0;
+            auto Shade = InOutCrawler.Color * (1.0 - 0.25 * Tint);
+            Shade.A = 1.0;
+            Segments.Add(AddVisual(InOutCrawler.Root, FTransform(InOutCrawler.Start),
+                ck_procedural_gym::Get_SegmentHalfExtents(Lengths, SegmentIndex), Shade));
+        }
+        auto Foot = AddVisual(InOutCrawler.Root, FTransform(InOutCrawler.Start), ck_procedural_gym::FootHalfExtents,
+            FLinearColor(0.8, 0.9, 0.95, 1.0));
+        InOutCrawler.VisibleFeet.Add(Foot);
+
+        auto RigParams = FCk_Fragment_ProceduralRig_ParamsData();
+        RigParams.Set_Segments(Segments);
+        RigParams.Set_Foot(Foot);
+        return FCk_ProceduralWalker_LegChain(InLeg.Get_Id(), RigParams);
+    }
+
     void SpawnCrawler(int32 InIndex)
     {
         auto Crawler = FCkProceduralAnimationGym_Crawler();
         Crawler.LegCount = 4 + InIndex * 2;
-        Crawler.LaneY = RequestedCount == 1 ? 0.0 : (InIndex - 1) * 280.0;
+        Crawler.LaneY = RequestedCount == 1 ? 0.0 : (InIndex - 1) * ck_procedural_gym::LaneSpacing;
         Crawler.Origin = Origin;
         Crawler.Course = Course;
         Crawler.Color = InIndex == 0 ? FLinearColor(0.1, 0.8, 0.85, 1.0) :
             (InIndex == 1 ? FLinearColor(1.0, 0.58, 0.12, 1.0) : FLinearColor(0.65, 0.35, 1.0, 1.0));
         Crawler.Start = Origin + (Course == ECkProceduralAnimationGym_Course::Ring ?
-            FVector(0.0, Crawler.LaneY, 90.0) : FVector(-1200.0, Crawler.LaneY, 65.0));
+            FVector(0.0, Crawler.LaneY, ck_procedural_gym::RingStartZ) :
+            FVector(ck_procedural_gym::StartX, Crawler.LaneY, ck_procedural_gym::BodyClearance));
 
-        // AddVisual composes the root transform before the three runtime features.
-        Crawler.Root = AddVisual(SceneRoot, FTransform(Crawler.Start), FVector(42.0, 30.0, 18.0), Crawler.Color);
-        Crawler.Root.Request_OverrideToSelf();
+        // AddVisual composes the root transform before the runtime features.
+        auto RootEntity = FCk_Handle(AddVisual(SceneRoot, FTransform(Crawler.Start), ck_procedural_gym::BodyHalfExtents,
+            Crawler.Color));
+        RootEntity.Request_OverrideToSelf();
         auto CourseName = Course == ECkProceduralAnimationGym_Course::Flat ? "Flat" :
             Course == ECkProceduralAnimationGym_Course::Uneven ? "Uneven" :
             Course == ECkProceduralAnimationGym_Course::RampWall ? "RampWall" : "Ring";
-        Crawler.Root.Set_DebugName(FName(f"ProceduralAnimation.{CourseName}.Crawler{Crawler.LegCount}"));
+        RootEntity.Set_DebugName(FName(f"ProceduralAnimation.{CourseName}.Crawler{Crawler.LegCount}"));
+        Crawler.Root = utils_transform::DoCastChecked(RootEntity);
 
-        auto MotionParams = FCk_Fragment_SurfaceMotion_ParamsData();
-        MotionParams.Set_Clearance(65.0f);
-        MotionParams.Set_ProbeReach(180.0f);
-        MotionParams.Set_MaxSpeed(180.0f);
-        MotionParams.Set_SurfaceTurnRate(240.0f);
-        Crawler.Motion = utils_surface_motion::Add(Crawler.Root, MotionParams);
+        Crawler.Motion = utils_surface_motion::Add(Crawler.Root, ck_procedural_gym::MakeMotionParams());
 
-        auto GaitLegs = TArray<FCk_ProceduralGait_Leg>();
-        auto RigLegs = TArray<FCk_ProceduralRig_Leg>();
-        for (auto LegIndex = 0; LegIndex < Crawler.LegCount; LegIndex++)
+        auto RigPreset = ck_procedural_gym::Get_RigPreset(Crawler.LegCount);
+        Crawler.GaitPreset = ck_procedural_gym::Get_GaitPreset(Crawler.LegCount);
+        auto Chains = TArray<FCk_ProceduralWalker_LegChain>();
+        for (auto LegParams : RigPreset.Get_Legs())
         {
-            auto Angle = Math::DegreesToRadians(360.0 * (LegIndex + 0.5) / Crawler.LegCount);
-            auto Radial = FVector(Math::Cos(Angle), Math::Sin(Angle), 0.0);
-            auto Id = FName(f"Leg{LegIndex}");
-            auto GaitLeg = FCk_ProceduralGait_Leg();
-            GaitLeg.Set_Id(Id);
-            GaitLeg.Set_HipLocal(Radial * 30.0);
-            GaitLeg.Set_RestFootLocal(Radial * 100.0 - FVector(0.0, 0.0, 65.0));
-            GaitLeg.Set_PhaseOffset(LegIndex % 2 == 0 ? 0.0f : 0.5f);
-            GaitLegs.Add(GaitLeg);
-
-            auto Leg = FCk_ProceduralRig_Leg();
-            Leg.Set_Id(Id);
-            Leg.Set_Upper(AddVisual(Crawler.Root, FTransform(Crawler.Start), FVector(32.5, 8.0, 8.0), Crawler.Color));
-            auto LowerColor = Crawler.Color * 0.75;
-            LowerColor.A = 1.0;
-            Leg.Set_Lower(AddVisual(Crawler.Root, FTransform(Crawler.Start), FVector(42.5, 5.5, 5.5), LowerColor));
-            Leg.Set_Foot(AddVisual(Crawler.Root, FTransform(Crawler.Start), FVector(10.0, 9.0, 5.0), FLinearColor(0.8, 0.9, 0.95, 1.0)));
-            Crawler.VisibleFeet.Add(Leg.Get_Foot());
-            Leg.Set_UpperLength(65.0f);
-            Leg.Set_LowerLength(85.0f);
-            Leg.Set_PoleLocal(Radial * 100.0 + FVector(0.0, 0.0, 65.0));
-            RigLegs.Add(Leg);
+            Chains.Add(MakeLegChain(Crawler, LegParams));
             Crawler.SawSwing.Add(false);
             Crawler.Replanted.Add(false);
         }
 
-        auto GaitParams = FCk_Fragment_ProceduralGait_ParamsData();
-        GaitParams.Set_Legs(GaitLegs);
-        GaitParams.Set_CycleDuration(FCk_Time(0.65));
-        GaitParams.Set_StepDuration(FCk_Time(0.22));
-        GaitParams.Set_StepHeight(24.0f);
-        GaitParams.Set_StepThreshold(30.0f);
-        Crawler.Gait = utils_procedural_gait::Add(Crawler.Root, GaitParams);
-        auto RigParams = FCk_Fragment_ProceduralRig_ParamsData();
-        RigParams.Set_Legs(RigLegs);
-        Crawler.Rig = utils_procedural_rig::Add(Crawler.Root, RigParams);
+        auto Walker = utils_procedural_animation::Add_Walker(Crawler.Root, RigPreset, Crawler.GaitPreset, Chains);
+        Crawler.Gait = Walker.Get_Gait();
+        Crawler.Legs = Walker.Get_Legs();
+        if (ck::Is_NOT_Valid(Crawler.Motion) || ck::Is_NOT_Valid(Crawler.Gait) || Crawler.Legs.Num() != Crawler.LegCount)
+        {
+            CompositionError = f"{CourseName} crawler with {Crawler.LegCount} legs: surface motion or walker composition was rejected";
+        }
         Crawlers.Add(Crawler);
     }
 
@@ -569,6 +701,112 @@ struct FCkProceduralAnimationGym_Fixture
         {
             Crawlers[Index].Update(InRun, InDraw, Render);
         }
+        ApplyPendingDebrisImpulses();
+    }
+
+    bool Get_OwnsLeg(FCk_Handle_ProceduralLeg InLeg) const
+    {
+        auto Leg = FCk_Handle(InLeg);
+        for (auto Crawler : Crawlers)
+        {
+            for (auto Candidate : Crawler.Legs)
+            {
+                if (FCk_Handle(Candidate) == Leg)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // The game-side ragdoll recipe for a detached leg: every released part becomes a dynamic Jolt body
+    // sized like its visual, then gets a small outward push once Jolt has added it.
+    void Request_RagdollReleasedParts(FCk_Handle_ProceduralLeg InLeg, FCk_ProceduralLeg_ReleasedParts InReleasedParts)
+    {
+        auto Lengths = utils_procedural_leg::Get_ChainGeometry(InLeg).Get_SegmentLengths();
+        auto Chain = utils_procedural_rig::Get_Chain(utils_procedural_rig::DoCastChecked(InLeg));
+        auto Body = utils_entity_lifetime::Get_LifetimeOwner(InLeg);
+        auto BodyLocation = utils_transform::Get_EntityCurrentLocation(utils_transform::DoCastChecked(Body));
+        for (auto Part : InReleasedParts.Get_Parts())
+        {
+            auto HalfExtents = ck_procedural_gym::FootHalfExtents;
+            for (auto SegmentIndex = 0; SegmentIndex < Chain.Get_Segments().Num(); SegmentIndex++)
+            {
+                if (FCk_Handle(Chain.Get_Segments()[SegmentIndex]) == FCk_Handle(Part))
+                {
+                    HalfExtents = ck_procedural_gym::Get_SegmentHalfExtents(Lengths, SegmentIndex);
+                }
+            }
+
+            auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
+            Shape.Set_HalfExtents(HalfExtents);
+            auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+            Params.Set_ShapeDimensions(Shape);
+            Params.Set_MotionType(ECk_MotionType::Dynamic);
+            Params.Set_MassSource(ECk_JoltBody_MassSource::Explicit);
+            Params.Set_MassKg(ck_procedural_gym::DebrisMassKg);
+            Params.Set_CollisionProfileName(ck_procedural_gym::DebrisCollisionProfile);
+            auto PartEntity = FCk_Handle(Part);
+            auto Debris = utils_jolt_body::Add(PartEntity, Params);
+
+            auto Outward = utils_transform::Get_EntityCurrentLocation(Part) - BodyLocation;
+            Outward.Z = 0.0;
+            auto Velocity = Outward.GetSafeNormal() * ck_procedural_gym::DebrisOutwardSpeed +
+                FVector::UpVector * ck_procedural_gym::DebrisUpSpeed;
+            PendingDebris.Add(Debris);
+            PendingDebrisImpulses.Add(Velocity * ck_procedural_gym::DebrisMassKg);
+        }
+    }
+
+    void ApplyPendingDebrisImpulses()
+    {
+        for (auto Index = PendingDebris.Num() - 1; Index >= 0; Index--)
+        {
+            auto Debris = PendingDebris[Index];
+            if (ck::IsValid(Debris) && utils_jolt_body::Get_IsBodyAdded(Debris) == false)
+            {
+                continue;
+            }
+            if (ck::IsValid(Debris))
+            {
+                utils_jolt_body::Request_AddImpulse(Debris, FCk_Request_JoltBody_AddImpulse(PendingDebrisImpulses[Index]));
+            }
+            PendingDebris.RemoveAt(Index);
+            PendingDebrisImpulses.RemoveAt(Index);
+        }
+    }
+
+    void Request_ToggleFirstLeg()
+    {
+        for (auto Index = 0; Index < Crawlers.Num(); Index++)
+        {
+            if (Crawlers[Index].Legs.Num() == 0 || ck::Is_NOT_Valid(Crawlers[Index].Legs[0]))
+            {
+                continue;
+            }
+            auto Disable = Crawlers[Index].FirstLegDisabled == false;
+            Crawlers[Index].FirstLegDisabled = Disable;
+            auto Leg = Crawlers[Index].Legs[0];
+            utils_procedural_leg::Request_EnableDisable(Leg,
+                FCk_Request_ProceduralLeg_EnableDisable(Disable ? ECk_EnableDisable::Disable : ECk_EnableDisable::Enable));
+        }
+    }
+
+    bool Request_DetachLeg(int32 InCrawlerIndex, int32 InLegIndex)
+    {
+        if (Crawlers.IsValidIndex(InCrawlerIndex) == false || Crawlers[InCrawlerIndex].Legs.IsValidIndex(InLegIndex) == false)
+        {
+            return false;
+        }
+        auto Leg = Crawlers[InCrawlerIndex].Legs[InLegIndex];
+        if (ck::Is_NOT_Valid(Leg))
+        {
+            return false;
+        }
+        utils_procedural_leg::Request_Detach(Leg,
+            FCk_Request_ProceduralLeg_Detach(ECk_ProceduralLeg_ReleasedPartsOwnership::KeepBodyOwned));
+        return true;
     }
 
     void Request_Destroy()
@@ -612,15 +850,19 @@ struct FCkProceduralAnimationGym_Fixture
             if (Crawler.InvalidOutput || Crawler.FurthestDistance < 150.0 ||
                 Crawler.Get_ReplantedCount() != Crawler.LegCount ||
                 utils_surface_motion::Get_IsGrounded(Crawler.Motion) == false)
-                {
-                    return false;
-                }
+            {
+                return false;
+            }
         }
         return true;
     }
 
     FString Get_Verdict() const
     {
+        if (CompositionError.IsEmpty() == false)
+        {
+            return f"FAILED: {CompositionError}";
+        }
         if (RenderFailed)
         {
             return "FAILED: solid renderer or master material unavailable";
@@ -639,10 +881,6 @@ struct FCkProceduralAnimationGym_Fixture
         auto Completed = 0;
         for (auto Index = 0; Index < Crawlers.Num(); Index++)
         {
-            if (Crawlers[Index].InvalidOutput)
-            {
-                return "FAILED: invalid procedural output";
-            }
             if (Crawlers[Index].Get_HasCompletedCourse())
             {
                 Completed++;

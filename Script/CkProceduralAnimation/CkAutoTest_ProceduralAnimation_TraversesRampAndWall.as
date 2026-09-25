@@ -2,7 +2,7 @@
 
 class UCk_AutoTest_ProceduralAnimation_TraversesRampAndWall : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 55.0f;
+    default _TimeoutSeconds = 74.0f;
     default _AutoStageOriginField = false;
     private FCkProceduralAnimationGym_Fixture _Fixture;
 

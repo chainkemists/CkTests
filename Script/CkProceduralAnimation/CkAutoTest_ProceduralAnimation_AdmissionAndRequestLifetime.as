@@ -20,64 +20,68 @@ class UCk_AutoTest_ProceduralAnimation_AdmissionAndRequestLifetime : UCk_AutoTes
         return utils_transform::Add(Entity, FTransform(InPosition), ECk_Replication::DoesNotReplicate);
     }
 
+    FCk_Fragment_ProceduralRig_ParamsData MakeChain(FCk_Handle_Transform InUpper, FCk_Handle_Transform InLower)
+    {
+        auto Segments = TArray<FCk_Handle_Transform>();
+        Segments.Add(InUpper);
+        Segments.Add(InLower);
+        auto Chain = FCk_Fragment_ProceduralRig_ParamsData();
+        Chain.Set_Segments(Segments);
+        return Chain;
+    }
+
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        _CancelledRoot = CreateTransform(InHandle, FVector(120000.0, 50000.0, 1000.0));
-        auto GaitLegs = TArray<FCk_ProceduralGait_Leg>();
-        auto RigLegs = TArray<FCk_ProceduralRig_Leg>();
-        for (auto Index = 0; Index < 2; Index++)
+        auto Location = FVector(120000.0, 50000.0, 1000.0);
+        auto Root = CreateTransform(InHandle, Location);
+        _CancelledRoot = Root;
+        auto WalkerUpper = CreateTransform(_CancelledRoot, Location);
+        auto WalkerLower = CreateTransform(_CancelledRoot, Location - FVector(0.0, 0.0, 50.0));
+        auto Upper = CreateTransform(_CancelledRoot, Location);
+        auto Lower = CreateTransform(_CancelledRoot, Location - FVector(0.0, 0.0, 50.0));
+        _Parts.Add(WalkerUpper);
+        _Parts.Add(WalkerLower);
+        _Parts.Add(Upper);
+        _Parts.Add(Lower);
+
+        auto Chains = TArray<FCk_ProceduralWalker_LegChain>();
+        Chains.Add(FCk_ProceduralWalker_LegChain(n"Leg0", MakeChain(WalkerUpper, WalkerLower)));
+        auto Walker = utils_procedural_animation::Add_Walker(Root, ck::ProceduralTest_SideRig, ck::ProceduralGym_Gait, Chains);
+        Assert_True(ck::IsValid(Walker.Get_Gait()) && Walker.Get_Legs().Num() == 2,
+            "The target starts with a valid walker composition");
+        if (Walker.Get_Legs().Num() != 2)
         {
-            auto Side = Index == 0 ? -1.0 : 1.0;
-            auto Id = FName(f"Leg{Index}");
-            auto GaitLeg = FCk_ProceduralGait_Leg();
-            GaitLeg.Set_Id(Id);
-            GaitLeg.Set_HipLocal(FVector(0.0, Side * 30.0, 0.0));
-            GaitLeg.Set_RestFootLocal(FVector(0.0, Side * 100.0, -65.0));
-            GaitLeg.Set_PhaseOffset(Index == 0 ? 0.0f : 0.5f);
-            GaitLegs.Add(GaitLeg);
-            auto Leg = FCk_ProceduralRig_Leg();
-            Leg.Set_Id(Id);
-            Leg.Set_Upper(CreateTransform(_CancelledRoot, FVector(120000.0, 50000.0, 1000.0)));
-            Leg.Set_Lower(CreateTransform(_CancelledRoot, FVector(120000.0, 50000.0, 950.0)));
-            _Parts.Add(Leg.Get_Upper());
-            _Parts.Add(Leg.Get_Lower());
-            RigLegs.Add(Leg);
+            return;
         }
-        auto GaitParams = FCk_Fragment_ProceduralGait_ParamsData();
-        GaitParams.Set_Legs(GaitLegs);
-        auto Gait = utils_procedural_gait::Add(_CancelledRoot, GaitParams);
-        Assert_True(ck::IsValid(Gait), "The target starts with a valid gait composition");
+        auto Leg = Walker.Get_Legs()[1];
 
-        auto BadLegs = RigLegs;
-        BadLegs[1].Set_Lower(FCk_Handle_Transform());
-        auto BadParams = FCk_Fragment_ProceduralRig_ParamsData();
-        BadParams.Set_Legs(BadLegs);
-        auto BadRig = utils_procedural_rig::Add(_CancelledRoot, BadParams);
-        Assert_True(ck::Is_NOT_Valid(BadRig) && utils_procedural_rig::Has(_CancelledRoot) == false,
-            "A malformed second leg rejects the whole rig without leaving a partial feature");
+        auto MissingParams = MakeChain(Upper, FCk_Handle_Transform());
+        auto MissingRig = utils_procedural_rig::Add(Leg, MissingParams);
+        Assert_True(ck::Is_NOT_Valid(MissingRig) && utils_procedural_rig::DoCast(Leg).IsSet() == false,
+            "A chain with a missing segment rejects the whole rig without leaving a partial feature");
 
-        auto RetiringPart = FCk_Handle(CreateTransform(_CancelledRoot, FVector(120000.0, 50000.0, 950.0)));
+        auto RetiringPart = FCk_Handle(CreateTransform(_CancelledRoot, Location - FVector(0.0, 0.0, 50.0)));
         auto RetiringTransform = utils_transform::DoCastChecked(RetiringPart);
         utils_entity_lifetime::Request_DestroyEntity(RetiringPart);
-        BadLegs = RigLegs;
-        BadLegs[1].Set_Lower(RetiringTransform);
-        BadParams.Set_Legs(BadLegs);
-        auto RetiringRig = utils_procedural_rig::Add(_CancelledRoot, BadParams);
-        Assert_True(ck::Is_NOT_Valid(RetiringRig) && utils_procedural_rig::Has(_CancelledRoot) == false,
-            "A required part already queued for destruction cannot be admitted into a new rig");
+        auto RetiringRig = utils_procedural_rig::Add(Leg, MakeChain(Upper, RetiringTransform));
+        Assert_True(ck::Is_NOT_Valid(RetiringRig) && utils_procedural_rig::DoCast(Leg).IsSet() == false,
+            "A segment already queued for destruction cannot be admitted into a new rig");
 
-        auto GoodParams = FCk_Fragment_ProceduralRig_ParamsData();
-        GoodParams.Set_Legs(RigLegs);
-        auto GoodRig = utils_procedural_rig::Add(_CancelledRoot, GoodParams);
-        Assert_True(ck::IsValid(GoodRig), "Corrected composition succeeds on the same entity after atomic rejection");
-        auto DuplicateRig = utils_procedural_rig::Add(_CancelledRoot, GoodParams);
-        Assert_True(ck::Is_NOT_Valid(DuplicateRig) && utils_procedural_rig::Has(_CancelledRoot),
+        auto DuplicateSegmentRig = utils_procedural_rig::Add(Leg, MakeChain(Upper, Upper));
+        Assert_True(ck::Is_NOT_Valid(DuplicateSegmentRig) && utils_procedural_rig::DoCast(Leg).IsSet() == false,
+            "A chain that repeats a segment is rejected");
+
+        auto GoodRig = utils_procedural_rig::Add(Leg, MakeChain(Upper, Lower));
+        Assert_True(ck::IsValid(GoodRig), "Corrected composition succeeds on the same leg after atomic rejection");
+        auto DuplicateRig = utils_procedural_rig::Add(Leg, MakeChain(Upper, Lower));
+        Assert_True(ck::Is_NOT_Valid(DuplicateRig) && utils_procedural_rig::DoCast(Leg).IsSet(),
             "Duplicate admission rejects the new feature while preserving the existing rig");
 
-        auto Motion = utils_surface_motion::Add(_CancelledRoot, FCk_Fragment_SurfaceMotion_ParamsData());
-        _SurvivorRoot = CreateTransform(InHandle, FVector(125000.0, 50000.0, 1000.0));
-        _SurvivorMotion = utils_surface_motion::Add(_SurvivorRoot, FCk_Fragment_SurfaceMotion_ParamsData());
+        auto Motion = utils_surface_motion::Add(Root, FCk_Fragment_SurfaceMotion_ParamsData());
+        auto SurvivorRoot = CreateTransform(InHandle, FVector(125000.0, 50000.0, 1000.0));
+        _SurvivorRoot = SurvivorRoot;
+        _SurvivorMotion = utils_surface_motion::Add(SurvivorRoot, FCk_Fragment_SurfaceMotion_ParamsData());
         Assert_True(ck::IsValid(Motion) && ck::IsValid(_SurvivorMotion), "Both request targets have a surface-motion feature");
 
         // These two calls occur on the same stack before the request processor can drain.
@@ -176,8 +180,9 @@ class UCk_AutoTest_ProceduralAnimation_AdmissionAndRequestLifetime : UCk_AutoTes
     }
 }
 
-// Malformed, retiring-part and duplicate admissions exercise loud public-contract rejections.
-// A hand-authored wrapper owns expected diagnostics; they do not belong on the entity script.
+// Missing, retiring, repeated and duplicate rig admissions and the invalid steering target exercise loud
+// public-contract rejections. A hand-authored wrapper owns expected diagnostics; they do not belong on the
+// entity script.
 class ACk_AutoTest_ProceduralAnimation_AdmissionAndRequestLifetime_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 8.0f;
@@ -195,8 +200,8 @@ class ACk_AutoTest_ProceduralAnimation_AdmissionAndRequestLifetime_Actor : ACk_A
     TArray<FString> Get_ExpectedLogErrors() const
     {
         auto Errors = TArray<FString>();
-        Errors.Add("Procedural rig admission requires unit root scale, unique owned transform parts and matching stable gait leg IDs.");
-        Errors.Add("Procedural rig needs a live gait/transform entity with no existing rig feature.");
+        Errors.Add("The leg must be live with no rig; the chain needs 1..8 unique live segments");
+        Errors.Add("the entity must be live with surface motion, and the request needs a");
         return Errors;
     }
 }

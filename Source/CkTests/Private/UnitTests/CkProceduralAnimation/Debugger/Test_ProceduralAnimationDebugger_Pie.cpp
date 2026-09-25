@@ -7,8 +7,11 @@
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
 #include "CkEcs/Handle/CkHandle_Utils.h"
 #include "CkEcsExt/Transform/CkTransform_Utils.h"
+#include "CkProceduralAnimation/CkProceduralAnimation_Utils.h"
 #include "CkProceduralAnimation/Debug/CkProceduralAnimation_Debug.h"
 #include "CkProceduralAnimation/Gait/CkProceduralGait_Utils.h"
+#include "CkProceduralAnimation/Leg/CkProceduralLeg_Utils.h"
+#include "CkProceduralAnimation/Rig/CkProceduralRig_Utils.h"
 #include "CkProceduralAnimationDebugger/Model/CkProceduralAnimationDebugger_Model.h"
 #include "CkProceduralAnimationDebugger/Window/SCkProceduralAnimationDebuggerWindow.h"
 #include "CkTests/Net/CkNetAutomation_Common.h"
@@ -25,9 +28,26 @@
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SCheckBox.h"
 
+// --------------------------------------------------------------------------------------------------------------------
+
 namespace ck_test_procedural_animation_debugger_pie
 {
+    // The debugger is editor tooling; this test mounts its Slate window in the editor context.
     constexpr auto TestFlags = EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter;
+
+    // The AS PIE fixture authors three courses with one 4-, 6- and 8-leg crawler each.
+    constexpr auto CrawlerRootCount = 9;
+    constexpr auto RootsPerLegCount = 3;
+    constexpr auto SmallLegCount = 4;
+    constexpr auto MediumLegCount = 6;
+    constexpr auto LargeLegCount = 8;
+    constexpr auto UnevenFloorMinZ = 599.0;
+    constexpr auto UnevenFloorMaxZ = 666.0;
+    constexpr auto PendingLegCount = 2;
+    const auto SelectedCrawlerName = FName{TEXT("ProceduralAnimation.Uneven.Crawler4")};
+    const auto DamagedLegId = FName{TEXT("Leg0")};
+    const auto IntactLegId = FName{TEXT("Leg1")};
+    const auto PickedLegId = FName{TEXT("Leg2")};
 
     struct FState
     {
@@ -49,6 +69,8 @@ namespace ck_test_procedural_animation_debugger_pie
         FVector CapturedFoot = FVector::ZeroVector;
         int32 HistoryBeforeReset = 0;
     };
+
+    // --------------------------------------------------------------------------------------------------------------------
 
     auto
         FindWidget(
@@ -74,6 +96,8 @@ namespace ck_test_procedural_animation_debugger_pie
         return {};
     }
 
+    // --------------------------------------------------------------------------------------------------------------------
+
     auto
         FindFixtureClass()
         -> UClass*
@@ -88,6 +112,8 @@ namespace ck_test_procedural_animation_debugger_pie
         }
         return nullptr;
     }
+
+    // --------------------------------------------------------------------------------------------------------------------
 
     auto
         Invoke(
@@ -109,6 +135,8 @@ namespace ck_test_procedural_animation_debugger_pie
         return Return->GetPropertyValue_InContainer(Params.GetData());
     }
 
+    // --------------------------------------------------------------------------------------------------------------------
+
     auto
         Refresh(
             const TSharedRef<FState>& InState)
@@ -116,7 +144,41 @@ namespace ck_test_procedural_animation_debugger_pie
     {
         InState->Model->Refresh();
     }
+
+    // --------------------------------------------------------------------------------------------------------------------
+
+    auto
+        MakePendingRig()
+        -> UCk_ProceduralRig_Data*
+    {
+        auto Legs = TArray<FCk_Fragment_ProceduralLeg_ParamsData>{};
+        for (auto Index = 0; Index < PendingLegCount; ++Index)
+        {
+            auto Placement = FCk_ProceduralLeg_Placement{FVector::ZeroVector, FVector{20.0, Index == 0 ? -40.0 : 40.0, -65.0}};
+            Placement.Set_PhaseOffset(Index * 0.5f);
+            Legs.Emplace(FName{*FString::Printf(TEXT("PendingLeg%d"), Index)}, Placement,
+                FCk_ProceduralLeg_ChainGeometry{TArray<float>{60.0f, 80.0f}});
+        }
+
+        auto* Rig = NewObject<UCk_ProceduralRig_Data>();
+        Rig->Set_Legs(Legs);
+        return Rig;
+    }
+
+    // --------------------------------------------------------------------------------------------------------------------
+
+    auto
+        Get_LegRigFailure(
+            const FCk_Handle& InBody,
+            FName InLegId)
+        -> ECk_ProceduralRig_Failure
+    {
+        const auto Leg = UCk_Utils_ProceduralLeg_UE::TryGet_Leg(InBody, InLegId);
+        return UCk_Utils_ProceduralRig_UE::Get_Failure(UCk_Utils_ProceduralRig_UE::Cast(Leg));
+    }
 }
+
+// --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkProceduralAnimationDebugger_RealGymSnapshotAndLifecycle,
@@ -134,9 +196,7 @@ auto
         AddError(TEXT("The debugger PIE test requires Slate and its compiled AS fixture."));
         return false;
     }
-    // Entry contains a brush without a runtime BodySetup; the unrelated Jolt bake diagnostic is known.
-    AddExpectedError(TEXT("BodySetup"), EAutomationExpectedErrorFlags::Contains, -1);
-    AddExpectedError(TEXT("Procedural rig lost an authored part; rig has failed without partially posing its limbs."),
+    AddExpectedError(TEXT("lost an authored part; rig has failed without partially posing its chain."),
         EAutomationExpectedErrorFlags::Contains, 1);
 
     const auto State = MakeShared<FState>();
@@ -162,21 +222,12 @@ auto
             auto Root = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld);
             if (NOT TestTrue(TEXT("PIE transient owner admits the pending root"), ck::IsValid(Root)))
             { return; }
-            UCk_Utils_Transform_UE::Add(Root, FTransform::Identity, ECk_Replication::DoesNotReplicate);
+            auto Body = UCk_Utils_Transform_UE::Add(Root, FTransform::Identity, ECk_Replication::DoesNotReplicate);
             TestFalse(TEXT("A transform without gait is not a procedural snapshot"),
                 UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(Root).Get_Available());
-            auto Params = FCk_Fragment_ProceduralGait_ParamsData{};
-            auto Legs = TArray<FCk_ProceduralGait_Leg>{};
-            for (auto Index = 0; Index < 2; ++Index)
-            {
-                auto Leg = FCk_ProceduralGait_Leg{};
-                Leg.Set_Id(FName{*FString::Printf(TEXT("PendingLeg%d"), Index)})
-                    .Set_RestFootLocal(FVector{20.0, Index == 0 ? -40.0 : 40.0, -65.0})
-                    .Set_PhaseOffset(Index * 0.5f);
-                Legs.Add(Leg);
-            }
-            Params.Set_Legs(Legs);
-            UCk_Utils_ProceduralGait_UE::Add(Root, Params);
+            const auto Walker = UCk_Utils_ProceduralAnimation_UE::Add_Walker(Body, MakePendingRig(),
+                NewObject<UCk_ProceduralGait_Data>(), {});
+            TestTrue(TEXT("The pending walker admits its gait"), ck::IsValid(Walker.Get_Gait()));
             const auto Pending = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(Root);
             TestTrue(TEXT("Admission is available before the first solve"), Pending.Get_Available());
             TestFalse(TEXT("Admission is not an accepted solve"), Pending.Get_HasAcceptedSample());
@@ -220,13 +271,13 @@ auto
         FCk_NetAutoTest_Condition::CreateLambda([State]
         {
             Refresh(State);
-            if (State->Model->Get_Rows().Num() != 9)
+            if (State->Model->Get_Rows().Num() != CrawlerRootCount)
             {
                 return false;
             }
             for (const auto& Row : State->Model->Get_Rows())
             {
-                if (NOT Row.Snapshot.Get_HasAcceptedSample() || NOT Row.Snapshot.Get_RigReady())
+                if (NOT Row.Summary.Get_GaitReady() || NOT Row.Summary.Get_RigReady())
                 {
                     return false;
                 }
@@ -237,16 +288,16 @@ auto
         [this, State](UWorld*)
         {
             auto Names = TSet<FName>{};
-            auto Four = 0;
-            auto Six = 0;
-            auto Eight = 0;
+            auto Small = 0;
+            auto Medium = 0;
+            auto Large = 0;
             for (const auto& Row : State->Model->Get_Rows())
             {
-                Names.Add(Row.Snapshot.Get_EntityName());
-                Four += Row.Snapshot.Get_Legs().Num() == 4 ? 1 : 0;
-                Six += Row.Snapshot.Get_Legs().Num() == 6 ? 1 : 0;
-                Eight += Row.Snapshot.Get_Legs().Num() == 8 ? 1 : 0;
-                if (Row.Snapshot.Get_EntityName() == TEXT("ProceduralAnimation.Uneven.Crawler4"))
+                Names.Add(Row.Summary.Get_EntityName());
+                Small += Row.Summary.Get_LegCount() == SmallLegCount ? 1 : 0;
+                Medium += Row.Summary.Get_LegCount() == MediumLegCount ? 1 : 0;
+                Large += Row.Summary.Get_LegCount() == LargeLegCount ? 1 : 0;
+                if (Row.Summary.Get_EntityName() == SelectedCrawlerName)
                 {
                     State->Selected = Row.Entity;
                 }
@@ -255,10 +306,10 @@ auto
                     State->Other = Row.Entity;
                 }
             }
-            TestEqual(TEXT("Roster labels distinguish all nine courses and leg counts"), Names.Num(), 9);
-            TestEqual(TEXT("Three four-leg roots are present"), Four, 3);
-            TestEqual(TEXT("Three six-leg roots are present"), Six, 3);
-            TestEqual(TEXT("Three eight-leg roots are present"), Eight, 3);
+            TestEqual(TEXT("Roster labels distinguish all nine courses and leg counts"), Names.Num(), CrawlerRootCount);
+            TestEqual(TEXT("Three four-leg roots are present"), Small, RootsPerLegCount);
+            TestEqual(TEXT("Three six-leg roots are present"), Medium, RootsPerLegCount);
+            TestEqual(TEXT("Three eight-leg roots are present"), Large, RootsPerLegCount);
             if (NOT TestTrue(TEXT("The intended production root can be selected"), State->Model->Select(State->Selected)))
             {
                 return;
@@ -278,7 +329,7 @@ auto
                         FMath::Lerp(Leg.Get_ProbeStart(), Leg.Get_ProbeEnd(), Leg.Get_ProbeHitFraction())
                             .Equals(Leg.Get_ProbeHitPosition(), 1.0));
                     TestTrue(TEXT("Probe records the actual non-origin uneven course height range"),
-                        Leg.Get_ProbeHitPosition().Z >= 599.0 && Leg.Get_ProbeHitPosition().Z <= 666.0);
+                        Leg.Get_ProbeHitPosition().Z >= UnevenFloorMinZ && Leg.Get_ProbeHitPosition().Z <= UnevenFloorMaxZ);
                     TestTrue(TEXT("Probe records an actual query attempt"), Leg.Get_ProbeAttemptCount() > 0);
                 }
             }
@@ -287,6 +338,20 @@ auto
             {
                 State->CapturedFoot = State->Captured.Get_Legs()[0].Get_FootPosition();
             }
+
+            const auto PickedLeg = UCk_Utils_ProceduralLeg_UE::TryGet_Leg(State->Selected, PickedLegId);
+            const auto PickedLegEntityId = PickedLeg.Get_Entity().ToString();
+            const auto FromLeg = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(PickedLeg);
+            TestEqual(TEXT("A leg entity resolves to its body's snapshot"), FromLeg.Get_EntityId(), State->Captured.Get_EntityId());
+            TestTrue(TEXT("The body's snapshot carries the picked leg's entity identity"),
+                FromLeg.Get_Legs().ContainsByPredicate([&](const FCk_ProceduralAnimation_DebugLeg& InLeg)
+                {
+                    return InLeg.Get_LegEntityId() == PickedLegEntityId;
+                }));
+            TestTrue(TEXT("Selecting a leg entity selects its body"), State->Model->Select(PickedLeg));
+            TestTrue(TEXT("Leg selection keeps the body as the selected entity"), State->Model->Get_SelectedHandle() == State->Selected);
+            TestEqual(TEXT("Leg selection remembers the picked leg"), State->Model->Get_SelectedLegId(), PickedLegEntityId);
+
             ck::DebugSelectionSync::Broadcast(State->Other, TEXT("ProceduralAnimationExternalTest"));
             TestTrue(TEXT("External selection reaches the mounted production window"),
                 State->Model->Get_SelectedHandle() == State->Other);
@@ -343,27 +408,38 @@ auto
                 TestTrue(TEXT("Mounted Live button resumes latest captured presentation"),
                     State->Model->Get_History().Get_IsLive());
             }
-            TestEqual(TEXT("The production fixture queues destruction of an authored foot"),
-                Invoke(State->Fixture.Get(), TEXT("Request_DestroyFirstFoot")), 1);
+            TestEqual(TEXT("The production fixture queues destruction of one authored segment"),
+                Invoke(State->Fixture.Get(), TEXT("Request_DestroyFirstSegment")), 1);
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
         FCk_NetAutoTest_Condition::CreateLambda([State]
         {
             Refresh(State);
-            const auto Current = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Selected);
-            return Current.Get_RigFailure() == ECk_ProceduralRig_Failure::MissingPart;
-        }), 10.0, TEXT("The debugger observes actual owned-part destruction")));
+            return Get_LegRigFailure(State->Selected, DamagedLegId) == ECk_ProceduralRig_Failure::MissingPart;
+        }), 10.0, TEXT("The damaged leg's rig observes the actual segment destruction")));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
         [this, State](UWorld*)
         {
+            TestEqual(TEXT("The sibling leg's rig is unaffected by the lost segment"),
+                Get_LegRigFailure(State->Selected, IntactLegId), ECk_ProceduralRig_Failure::None);
             const auto Current = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Selected);
             TestTrue(TEXT("Rig failure retains accepted gait evidence"), Current.Get_HasAcceptedSample());
             TestTrue(TEXT("Gait remains live after the independent rig failure"), Current.Get_GaitReady());
             TestFalse(TEXT("Failed rig is not presented as ready"), Current.Get_RigReady());
-            if (TestEqual(TEXT("Failure preserves the original gait leg topology"), Current.Get_Legs().Num(), 4))
+            TestEqual(TEXT("The snapshot reports the lost segment"), Current.Get_RigFailure(), ECk_ProceduralRig_Failure::MissingPart);
+            if (TestEqual(TEXT("Failure preserves the original gait leg topology"), Current.Get_Legs().Num(), SmallLegCount))
             {
-                TestFalse(TEXT("Destroyed foot transform is explicitly unavailable"), Current.Get_Legs()[0].Get_FootAvailable());
-                TestTrue(TEXT("Unaffected upper segment is still inspectable"), Current.Get_Legs()[0].Get_UpperAvailable());
+                const auto& Damaged = Current.Get_Legs()[0];
+                TestEqual(TEXT("The damaged leg reports its own rig failure"), Damaged.Get_RigFailure(),
+                    ECk_ProceduralRig_Failure::MissingPart);
+                TestEqual(TEXT("The intact leg reports no rig failure"), Current.Get_Legs()[1].Get_RigFailure(),
+                    ECk_ProceduralRig_Failure::None);
+                if (TestTrue(TEXT("The damaged leg still lists its segments"), Damaged.Get_Segments().Num() >= 2))
+                {
+                    TestFalse(TEXT("Destroyed segment transform is explicitly unavailable"), Damaged.Get_Segments()[0].Get_Available());
+                    TestTrue(TEXT("Unaffected segment is still inspectable"), Damaged.Get_Segments()[1].Get_Available());
+                }
+                TestTrue(TEXT("Unaffected foot is still inspectable"), Damaged.Get_Foot().Get_Available());
             }
             TestTrue(TEXT("The pre-failure captured value remains ready"), State->Captured.Get_RigReady());
             State->HistoryBeforeReset = State->Model->Get_History().Get_Count();
@@ -375,13 +451,13 @@ auto
         FCk_NetAutoTest_Condition::CreateLambda([State]
         {
             Refresh(State);
-            if (ck::IsValid(State->Selected) || State->Model->Get_Rows().Num() != 9)
+            if (ck::IsValid(State->Selected) || State->Model->Get_Rows().Num() != CrawlerRootCount)
             {
                 return false;
             }
             for (const auto& Row : State->Model->Get_Rows())
             {
-                if (NOT Row.Snapshot.Get_HasAcceptedSample())
+                if (NOT Row.Summary.Get_GaitReady())
                 {
                     return false;
                 }
@@ -403,7 +479,7 @@ auto
             TestEqual(TEXT("World change clears history from the previous lineage"), State->Model->Get_History().Get_Count(), 0);
             State->Model->Set_World(InWorld);
             Refresh(State);
-            TestEqual(TEXT("Rebinding discovers current roots without duplicates"), State->Model->Get_Rows().Num(), 9);
+            TestEqual(TEXT("Rebinding discovers current roots without duplicates"), State->Model->Get_Rows().Num(), CrawlerRootCount);
             if (State->Fixture.IsValid())
             {
                 State->Fixture->Destroy();
@@ -449,6 +525,14 @@ auto
                 ck::Is_NOT_Valid(State->Model->Get_SelectedHandle()));
             State->Model = MakeShared<FCkProceduralAnimationDebugger_Model>();
             State->Model->Set_World(InWorld);
+
+            State->Selected = {};
+            State->Other = {};
+            State->PendingRoot = {};
+            const auto HandlesCleared = ck::Is_NOT_Valid(State->Selected)
+                && ck::Is_NOT_Valid(State->Other)
+                && ck::Is_NOT_Valid(State->PendingRoot);
+            TestTrue(TEXT("Every live handle the test held is released before PIE teardown"), HandlesCleared);
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
@@ -465,3 +549,5 @@ auto
 }
 
 #endif
+
+// --------------------------------------------------------------------------------------------------------------------

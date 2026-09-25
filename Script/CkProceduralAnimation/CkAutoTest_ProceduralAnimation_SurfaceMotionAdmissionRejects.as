@@ -1,0 +1,107 @@
+// Language=angelscript
+
+class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoTest_Base
+{
+    default _TimeoutSeconds = 6.0f;
+    default _AutoStageOriginField = false;
+    private FVector _Origin = FVector(120000.0, 62000.0, 1000.0);
+    private FCk_Handle _Body;
+
+    bool HasMotion(FCk_Handle InBody)
+    {
+        return utils_surface_motion::DoCast(InBody).IsSet();
+    }
+
+    void AssertRejected(FCk_Handle_SurfaceMotion InMotion, int32 InEnsuresBefore, bool InExpectMotion, const FString& InCase)
+    {
+        Assert_True(ck::Is_NOT_Valid(InMotion), f"{InCase}: Add returns an invalid surface-motion handle");
+        Assert_True(HasMotion(_Body) == InExpectMotion, f"{InCase}: the body's surface-motion presence is unchanged");
+        Assert_Equals_Int(utils_ensure::Get_EnsureCount() - InEnsuresBefore, 1, f"{InCase}: exactly one ensure fires");
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void DoBeginPlay(FCk_Handle InHandle)
+    {
+        auto Owner = InHandle;
+        auto Entity = utils_entity_lifetime::Request_CreateEntity(Owner);
+        Entity.Request_OverrideToSelf();
+        auto Body = utils_transform::Add(Entity, FTransform(_Origin), ECk_Replication::DoesNotReplicate);
+        _Body = Body;
+
+        auto ShortReach = FCk_Fragment_SurfaceMotion_ParamsData();
+        auto Contact = FCk_SurfaceMotion_Contact();
+        Contact.Set_Clearance(65.0f);
+        Contact.Set_ProbeReach(65.0f);
+        ShortReach.Set_Contact(Contact);
+        auto EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_surface_motion::Add(Body, ShortReach), EnsuresBefore, false, "Probe reach at the clearance");
+
+        auto Stationary = FCk_Fragment_SurfaceMotion_ParamsData();
+        auto StationaryMovement = FCk_SurfaceMotion_Movement();
+        StationaryMovement.Set_MaxSpeed(0.0f);
+        Stationary.Set_Movement(StationaryMovement);
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_surface_motion::Add(Body, Stationary), EnsuresBefore, false, "Zero max speed");
+
+        auto NaN = Math::Sqrt(-1.0);
+        auto BrokenGravity = FCk_Fragment_SurfaceMotion_ParamsData();
+        auto BrokenMovement = FCk_SurfaceMotion_Movement();
+        BrokenMovement.Set_Gravity(FVector(0.0, 0.0, NaN));
+        BrokenGravity.Set_Movement(BrokenMovement);
+        Assert_True(BrokenMovement.Get_Gravity().ContainsNaN(), "Precondition: the gravity carries a NaN");
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_surface_motion::Add(Body, BrokenGravity), EnsuresBefore, false, "NaN gravity");
+
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        auto Motion = utils_surface_motion::Add(Body, FCk_Fragment_SurfaceMotion_ParamsData());
+        Assert_True(ck::IsValid(Motion) && HasMotion(Body), "Positive control: default parameters are admitted");
+        Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 0, "Positive control: no ensure fires");
+
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_surface_motion::Add(Body, FCk_Fragment_SurfaceMotion_ParamsData()), EnsuresBefore, true,
+            "Duplicate add");
+
+        // Three frames let the surface-motion processors run over the surviving feature.
+        Add_Step_WaitFrames("the world keeps ticking over the rejected compositions", 3);
+        Add_Step("retire the body", n"Step_Destroy");
+        Add_Step_WaitUntil("the body is gone", n"Check_Destroyed");
+        Run_Steps(InHandle);
+    }
+
+    UFUNCTION()
+    private void Step_Destroy(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        Assert_True(ck::IsValid(_Body), "The body survived the rejections");
+        utils_entity_lifetime::Request_DestroyEntity(_Body);
+    }
+
+    UFUNCTION()
+    private void Check_Destroyed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Result = OutResult;
+        Result.Set(ck::Is_NOT_Valid(_Body));
+    }
+}
+
+class ACk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 6.0f;
+
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+
+    UFUNCTION(BlueprintOverride)
+    TArray<FString> Get_ExpectedLogErrors() const
+    {
+        auto Errors = TArray<FString>();
+        Errors.Add("invalid clearance, probe reach, contact grace, speed, turn rate or gravity.");
+        Errors.Add("it must be a live transform entity with no existing surface motion.");
+        return Errors;
+    }
+}
