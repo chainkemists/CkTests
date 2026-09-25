@@ -425,7 +425,8 @@ auto
                 TestTrue(TEXT("Captured nested foot data is an owned copy"),
                     State->Captured.Get_Legs()[0].Get_Foot().Get_Position() == State->CapturedFoot);
             }
-            if (const auto* Displayed = State->Model->Get_History().Get_Displayed())
+            const auto* Displayed = State->Model->Get_History().Get_Displayed();
+            if (TestNotNull(TEXT("The held presentation displays a sample"), Displayed))
             {
                 TestEqual(TEXT("Held presentation stays pinned while production advances"),
                     Displayed->Get_Sample().Get_Sequence(), State->HeldSequence);
@@ -709,7 +710,8 @@ auto
                 ActedCrawlerLegsAfterDetach);
             TestEqual(TEXT("The gait walks on the survivors"), UCk_Utils_ProceduralGait_UE::Get_EnabledLegCount(Gait),
                 ActedCrawlerLegsAfterDetach);
-            if (const auto* Live = State->Model->Get_LiveStatus())
+            const auto* Live = State->Model->Get_LiveStatus();
+            if (TestNotNull(TEXT("The model holds a live snapshot after the detach"), Live))
             {
                 const auto* Detached = Live->Get_Legs().FindByPredicate([](const FCk_ProceduralAnimation_DebugLeg& InLeg)
                 {

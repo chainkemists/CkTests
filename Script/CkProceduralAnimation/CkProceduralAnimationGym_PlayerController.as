@@ -141,7 +141,9 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
             return;
         }
         auto Gait = InGait;
-        utils_procedural_gait::Request_ApplyPreset(Gait, ck::ProceduralGym_GaitSlow);
+        UCk_ProceduralGait_Data SlowPreset = ck::ProceduralGym_GaitSlow;
+        utils_procedural_gait::Request_ApplyPreset(Gait,
+            FCk_Request_ProceduralGait_ApplyPreset(SlowPreset.Get_Timing(), SlowPreset.Get_Step(), SlowPreset.Get_Probe()));
     }
 
     TArray<FCkGym_ControlRow> Get_ControlRows() override
