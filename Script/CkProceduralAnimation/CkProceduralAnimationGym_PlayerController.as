@@ -8,6 +8,8 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
     private bool _Run = true;
     private bool _DrawContacts = false;
     private bool _Started = false;
+    private bool _DetachIssued = false;
+    private FString _CreateError;
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
@@ -37,6 +39,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
             _Courses[Index].Request_Destroy();
         }
         _ResetPending = true;
+        _DetachIssued = false;
     }
 
     UFUNCTION(BlueprintOverride)
@@ -68,9 +71,14 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
                 }
             }
             // Reuse the fixture objects so their material/renderer palettes survive reset.
-            _Courses[0].Create(SceneOwner, _Origin + FVector(0.0, -1500.0, 0.0), ECkProceduralAnimationGym_Course::Uneven);
-            _Courses[1].Create(SceneOwner, _Origin, ECkProceduralAnimationGym_Course::RampWall);
-            _Courses[2].Create(SceneOwner, _Origin + FVector(0.0, 2000.0, 0.0), ECkProceduralAnimationGym_Course::Ring);
+            auto Created = _Courses[0].Create(SceneOwner, _Origin + FVector(0.0, -1500.0, 0.0), ECkProceduralAnimationGym_Course::Uneven);
+            Created = _Courses[1].Create(SceneOwner, _Origin, ECkProceduralAnimationGym_Course::RampWall) && Created;
+            Created = _Courses[2].Create(SceneOwner, _Origin + FVector(0.0, 2000.0, 0.0), ECkProceduralAnimationGym_Course::Ring) && Created;
+            _CreateError = Created ? "" : "a course could not be created on the retired scene";
+            if (Created == false)
+            {
+                ck::Error(f"[FAIL] Procedural animation gym: {_CreateError}");
+            }
             _ResetPending = false;
             Request_Frame(-1);
         }
@@ -78,12 +86,62 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         {
             _Courses[Index].Update(_Run, _DrawContacts);
         }
+        BindCrawlerSignals();
         utils_debug_draw::DrawDebugString(_Origin + FVector(-1200.0, -1500.0, 280.0),
             "UNEVEN GROUND", FLinearColor::White, 0.0f);
         utils_debug_draw::DrawDebugString(_Origin + FVector(-1200.0, 0.0, 280.0),
             "RAMP -> WALL", FLinearColor::White, 0.0f);
         utils_debug_draw::DrawDebugString(_Origin + FVector(0.0, 2000.0, 2000.0),
             "FLOOR -> WALL -> CEILING", FLinearColor::White, 0.0f);
+    }
+
+    void BindCrawlerSignals()
+    {
+        for (auto CourseIndex = 0; CourseIndex < _Courses.Num(); CourseIndex++)
+        {
+            for (auto CrawlerIndex = 0; CrawlerIndex < _Courses[CourseIndex].Crawlers.Num(); CrawlerIndex++)
+            {
+                if (_Courses[CourseIndex].Crawlers[CrawlerIndex].SignalsBound ||
+                    ck::Is_NOT_Valid(_Courses[CourseIndex].Crawlers[CrawlerIndex].Gait))
+                {
+                    continue;
+                }
+                auto Gait = _Courses[CourseIndex].Crawlers[CrawlerIndex].Gait;
+                utils_procedural_gait::BindTo_OnLegSetChanged(Gait,
+                    FCk_Delegate_ProceduralGait_OnLegSetChanged(this, n"OnLegSetChanged"));
+                for (auto Leg : _Courses[CourseIndex].Crawlers[CrawlerIndex].Legs)
+                {
+                    auto BoundLeg = Leg;
+                    utils_procedural_leg::BindTo_OnDetached(BoundLeg,
+                        FCk_Delegate_ProceduralLeg_OnDetached(this, n"OnLegDetached"));
+                }
+                _Courses[CourseIndex].Crawlers[CrawlerIndex].SignalsBound = true;
+            }
+        }
+    }
+
+    UFUNCTION()
+    private void OnLegDetached(FCk_Handle_ProceduralLeg InLeg, FCk_ProceduralLeg_ReleasedParts InReleasedParts)
+    {
+        for (auto Index = 0; Index < _Courses.Num(); Index++)
+        {
+            if (_Courses[Index].Get_OwnsLeg(InLeg))
+            {
+                _Courses[Index].Request_RagdollReleasedParts(InLeg, InReleasedParts);
+                return;
+            }
+        }
+    }
+
+    UFUNCTION()
+    private void OnLegSetChanged(FCk_Handle_ProceduralGait InGait, int32 InEnabledCount, int32 InTotalCount)
+    {
+        if (InEnabledCount >= ck_procedural_gym::SlowGaitBelowEnabledLegs)
+        {
+            return;
+        }
+        auto Gait = InGait;
+        utils_procedural_gait::Request_ApplyPreset(Gait, ck::ProceduralGym_GaitSlow);
     }
 
     TArray<FCkGym_ControlRow> Get_ControlRows() override
@@ -98,6 +156,8 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         Rows.Add(CkGym_Control::Toggle(EKeys::P, "P", "Travel", _Run));
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Reset all courses"));
         Rows.Add(CkGym_Control::Toggle(EKeys::V, "V", "Contact diagnostics", _DrawContacts));
+        Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Disable / enable leg 0 of every crawler"));
+        Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Detach leg 1 of the first crawler; its parts ragdoll", _DetachIssued == false));
         Rows.Add(CkGym_Control::Action(EKeys::Home, "Home", "Overview"));
         Rows.Add(CkGym_Control::Action(EKeys::One, "1", "View uneven ground"));
         Rows.Add(CkGym_Control::Action(EKeys::Two, "2", "View ramp / wall"));
@@ -107,35 +167,75 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        if (InRowIndex == 6)
+        auto Rows = Get_ControlRows();
+        if (Rows.IsValidIndex(InRowIndex) == false)
+        {
+            return;
+        }
+        auto Key = Rows[InRowIndex].Key;
+        if (Key == EKeys::P)
         {
             _Run = !_Run;
         }
-        else if (InRowIndex == 7)
+        else if (Key == EKeys::R)
         {
             Request_Reset();
         }
-        else if (InRowIndex == 8)
+        else if (Key == EKeys::V)
         {
             _DrawContacts = !_DrawContacts;
         }
-        else if (InRowIndex == 9)
+        else if (Key == EKeys::K)
+        {
+            Request_ToggleFirstLegs();
+        }
+        else if (Key == EKeys::J)
+        {
+            Request_DetachFirstCrawlerLeg();
+        }
+        else if (Key == EKeys::Home)
         {
             Request_Frame(-1);
         }
-        else if (InRowIndex >= 10 && InRowIndex <= 12)
+        else if (Key == EKeys::One)
         {
-            Request_Frame(InRowIndex - 10);
+            Request_Frame(0);
         }
+        else if (Key == EKeys::Two)
+        {
+            Request_Frame(1);
+        }
+        else if (Key == EKeys::Three)
+        {
+            Request_Frame(2);
+        }
+    }
+
+    void Request_ToggleFirstLegs()
+    {
+        if (_ResetPending)
+        {
+            return;
+        }
+        for (auto Index = 0; Index < _Courses.Num(); Index++)
+        {
+            _Courses[Index].Request_ToggleFirstLeg();
+        }
+    }
+
+    void Request_DetachFirstCrawlerLeg()
+    {
+        if (_ResetPending || _DetachIssued || _Courses.Num() == 0)
+        {
+            return;
+        }
+        _DetachIssued = _Courses[0].Request_DetachLeg(0, 1);
     }
 
     UFUNCTION(Exec)
     void Ck_ProceduralAnimation_Control(int32 InRowIndex)
     {
-        if (InRowIndex >= 6 && InRowIndex <= 12)
-        {
-            Request_ControlActivated(InRowIndex);
-        }
+        Request_ControlActivated(InRowIndex);
     }
 
     FString Get_CourseVerdict(int32 InIndex)
@@ -149,6 +249,10 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
 
     FString Get_Verdict()
     {
+        if (_CreateError.IsEmpty() == false)
+        {
+            return f"FAILED: {_CreateError}";
+        }
         if (_ResetPending || _Courses.Num() != 3)
         {
             return "Pending: resetting owned scenes";
@@ -156,6 +260,10 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         auto Completed = 0;
         for (auto CourseIndex = 0; CourseIndex < _Courses.Num(); CourseIndex++)
         {
+            if (_Courses[CourseIndex].CompositionError.IsEmpty() == false)
+            {
+                return f"FAILED: {_Courses[CourseIndex].CompositionError}";
+            }
             if (_Courses[CourseIndex].RenderFailed)
             {
                 return "FAILED: solid renderer or master material unavailable";

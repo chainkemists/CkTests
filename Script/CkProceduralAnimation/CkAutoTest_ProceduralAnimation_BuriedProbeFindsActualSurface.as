@@ -6,6 +6,7 @@ class UCk_AutoTest_ProceduralAnimation_BuriedProbeFindsActualSurface : UCk_AutoT
     default _AutoStageOriginField = false;
     private FCkProceduralAnimationGym_Fixture _Fixture;
     private FCk_Handle_ProceduralGait _Gait;
+    private TArray<FCk_Handle_ProceduralLeg> _Legs;
     private FVector _Origin = FVector(120000.0, 55000.0, 600.0);
 
     UFUNCTION(BlueprintOverride)
@@ -41,26 +42,13 @@ class UCk_AutoTest_ProceduralAnimation_BuriedProbeFindsActualSurface : UCk_AutoT
         auto Root = utils_entity_lifetime::Request_CreateEntity(Owner);
         Root.Request_OverrideToSelf();
         _Fixture.Entities.Add(Root);
-        utils_transform::Add(Root, FTransform(_Origin + FVector(0.0, 0.0, 10.0)), ECk_Replication::DoesNotReplicate);
+        auto Body = utils_transform::Add(Root, FTransform(_Origin + FVector(0.0, 0.0, 10.0)), ECk_Replication::DoesNotReplicate);
 
-        auto Legs = TArray<FCk_ProceduralGait_Leg>();
-        for (auto Index = 0; Index < 2; Index++)
-        {
-            auto Side = Index == 0 ? -1.0 : 1.0;
-            auto Leg = FCk_ProceduralGait_Leg();
-            Leg.Set_Id(FName(f"BuriedLeg{Index}"));
-            Leg.Set_HipLocal(FVector(0.0, Side * 30.0, 0.0));
-            Leg.Set_RestFootLocal(FVector(0.0, Side * 100.0, -65.0));
-            Leg.Set_PhaseOffset(Index == 0 ? 0.0f : 0.5f);
-            Legs.Add(Leg);
-        }
-        auto Params = FCk_Fragment_ProceduralGait_ParamsData();
-        Params.Set_Legs(Legs);
-        Params.Set_ProbeUp(10.0f);
-        Params.Set_ProbeDown(200.0f);
-        Params.Set_OutwardProbeLean(0.0f);
-        _Gait = utils_procedural_gait::Add(Root, Params);
-        Assert_True(ck::IsValid(_Gait), "Gait admits the valid authored legs without any mover or rig");
+        auto Walker = utils_procedural_animation::Add_Walker(Body, ck::ProceduralTest_SideRig,
+            ck::ProceduralTest_BuriedProbeGait, TArray<FCk_ProceduralWalker_LegChain>());
+        _Gait = Walker.Get_Gait();
+        _Legs = Walker.Get_Legs();
+        Assert_True(ck::IsValid(_Gait) && _Legs.Num() == 2, "A gait-only walker admits the valid authored legs without any mover or rig");
 
         // Fixture floor spans local Z [-50, 0]. Ideal feet are at -55, so the first
         // ray begins at -45 INSIDE the floor. Jolt reports that as a zero-fraction hit.
@@ -80,10 +68,10 @@ class UCk_AutoTest_ProceduralAnimation_BuriedProbeFindsActualSurface : UCk_AutoT
     UFUNCTION()
     private void Step_CheckFeet(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        auto Feet = utils_procedural_gait::Get_Feet(_Gait);
-        Assert_Equals_Int(Feet.Num(), 2, "Both authored feet have outputs");
-        for (auto Foot : Feet)
+        Assert_Equals_Int(_Legs.Num(), 2, "Both authored legs have outputs");
+        for (auto Leg : _Legs)
         {
+            auto Foot = utils_procedural_leg::Get_Foot(Leg);
             Assert_True(Foot.Get_Planted() && Foot.Get_ContactTrusted(), "The exterior surface is a trusted initial plant");
             Assert_Equals_Float(Foot.Get_Position().Z, _Origin.Z, 0.5,
                 "A wider probe must find Z=600, rather than treating the buried Z=555 start as the floor");
