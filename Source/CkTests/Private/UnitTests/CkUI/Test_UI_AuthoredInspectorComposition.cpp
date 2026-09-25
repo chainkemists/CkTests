@@ -134,9 +134,26 @@ namespace ck_tests_ui_authored_inspector
         return Params;
     }
 
+    auto AddParams(FCk_Handle& InEntity) -> void
+    {
+        const auto Spec = MakeParams();
+        InEntity.Add<ck::FFragment_WorldSpaceWidget_Params>(
+            Spec.Get_Widget(),
+            Spec.Get_InitialViewportOperation(),
+            Spec.Get_ZOrder(),
+            Spec.Get_RenderMode(),
+            Spec.Get_WorldComponentInfo());
+    }
+
     auto AddFixtureComposition(FCk_Handle& InEntity) -> void
     {
-        InEntity.Add<ck::FFragment_WorldSpaceWidget_Params>(MakeParams());
+        const auto Spec = MakeParams();
+        AddParams(InEntity);
+        InEntity.Add<ck::FFragment_WorldSpaceWidget_Tunables>(
+            Spec.Get_LocationInfo(),
+            Spec.Get_ScalingInfo(),
+            Spec.Get_FadingInfo(),
+            Spec.Get_OcclusionInfo());
         InEntity.Add<ck::FFragment_WorldSpaceWidget>();
     }
 
@@ -355,7 +372,7 @@ bool FCkTest_UI_AuthoredInspectorComposition::RunTest(const FString&)
                     && Scenario->Entity.Has<ck::FTag_WorldSpaceWidget_Disabled>()
                     && NOT Scenario->Entity.Has<ck::FFragment_WorldSpaceWidget_Requests>());
 
-            Scenario->Entity.Add<ck::FFragment_WorldSpaceWidget_Params>(MakeParams());
+            AddParams(Scenario->Entity);
             Tick(Slate);
             Scenario->Entity.Add<ck::FTag_DestroyEntity_Initiate>();
             Toggle(Scenario->EnabledSwitch.ToSharedRef());
