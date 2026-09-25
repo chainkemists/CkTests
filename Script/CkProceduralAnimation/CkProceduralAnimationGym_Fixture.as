@@ -33,6 +33,9 @@ namespace ck_procedural_gym
 
     const float TravelSpeed = 180.0;
     const FVector BodyHalfExtents = FVector(42.0, 30.0, 18.0);
+    // Below BodyClearance: a body that has lost a leg or two must not sink into the floor.
+    const float BodyCollapseDrop = 45.0;
+    const float BodyMaxTilt = 22.0;
     const FVector FootHalfExtents = FVector(10.0, 9.0, 5.0);
     const float SegmentRootThickness = 8.0;
     const float SegmentTipThickness = 5.5;
@@ -92,9 +95,13 @@ struct FCkProceduralAnimationGym_CrawlerHandles
     UPROPERTY()
     FCk_Handle_Transform Root;
     UPROPERTY()
+    FCk_Handle_Transform Presentation;
+    UPROPERTY()
     FCk_Handle_ProceduralGait Gait;
     UPROPERTY()
     FCk_Handle_SurfaceMotion Motion;
+    UPROPERTY()
+    FCk_Handle_ProceduralBodyPose BodyPose;
     UPROPERTY()
     TArray<FCk_Handle_ProceduralLeg> Legs;
     UPROPERTY()
@@ -177,7 +184,8 @@ struct FCkProceduralAnimationGym_Crawler
             return false;
         }
         if (utils_procedural_gait::Get_Status(Handles.Gait) != ECk_ProceduralAnimation_Status::Ready ||
-            utils_surface_motion::Get_Status(Handles.Motion) != ECk_ProceduralAnimation_Status::Ready)
+            utils_surface_motion::Get_Status(Handles.Motion) != ECk_ProceduralAnimation_Status::Ready ||
+            utils_procedural_body_pose::Get_Status(Handles.BodyPose) != ECk_ProceduralAnimation_Status::Ready)
         {
             return false;
         }
@@ -696,15 +704,18 @@ struct FCkProceduralAnimationGym_Fixture
             FVector(0.0, Crawler.Layout.LaneY, ck_procedural_gym::RingStartZ) :
             FVector(ck_procedural_gym::StartX, Crawler.Layout.LaneY, ck_procedural_gym::BodyClearance));
 
-        // AddVisual composes the root transform before the runtime features.
-        auto RootEntity = FCk_Handle(AddVisual(SceneRoot, FTransform(Crawler.Layout.Start), ck_procedural_gym::BodyHalfExtents,
-            Crawler.Layout.Color));
+        // The root is the simulation body; its visual lives on the presentation entity, which the body pose sags.
+        auto Owner = SceneRoot;
+        auto RootEntity = utils_entity_lifetime::Request_CreateEntity(Owner);
+        Crawler.Handles.Root = utils_transform::Add(RootEntity, FTransform(Crawler.Layout.Start), ECk_Replication::DoesNotReplicate);
+        Entities.Add(RootEntity);
         RootEntity.Request_OverrideToSelf();
         auto CourseName = Spawn.Course == ECkProceduralAnimationGym_Course::Flat ? "Flat" :
             Spawn.Course == ECkProceduralAnimationGym_Course::Uneven ? "Uneven" :
             Spawn.Course == ECkProceduralAnimationGym_Course::RampWall ? "RampWall" : "Ring";
         RootEntity.Set_DebugName(FName(f"ProceduralAnimation.{CourseName}.Crawler{Crawler.Layout.LegCount}"));
-        Crawler.Handles.Root = utils_transform::DoCastChecked(RootEntity);
+        Crawler.Handles.Presentation = AddVisual(RootEntity, FTransform(Crawler.Layout.Start), ck_procedural_gym::BodyHalfExtents,
+            Crawler.Layout.Color);
 
         Crawler.Handles.Motion = utils_surface_motion::Add(Crawler.Handles.Root, ck_procedural_gym::MakeMotionParams());
 
@@ -721,9 +732,19 @@ struct FCkProceduralAnimationGym_Fixture
         auto Walker = utils_procedural_animation::Add_Walker(Crawler.Handles.Root, RigPreset, Crawler.Layout.GaitPreset, Chains);
         Crawler.Handles.Gait = Walker.Get_Gait();
         Crawler.Handles.Legs = Walker.Get_Legs();
-        if (ck::Is_NOT_Valid(Crawler.Handles.Motion) || ck::Is_NOT_Valid(Crawler.Handles.Gait) || Crawler.Handles.Legs.Num() != Crawler.Layout.LegCount)
+        if (ck::IsValid(Crawler.Handles.Gait))
         {
-            CompositionError = f"{CourseName} crawler with {Crawler.Layout.LegCount} legs: surface motion or walker composition was rejected";
+            auto Support = FCk_ProceduralBodyPose_Support();
+            Support.Set_CollapseDrop(ck_procedural_gym::BodyCollapseDrop);
+            Support.Set_MaxTilt(ck_procedural_gym::BodyMaxTilt);
+            auto PoseSpec = FCk_ProceduralBodyPose_Spec(Crawler.Handles.Presentation);
+            PoseSpec.Set_Support(Support);
+            Crawler.Handles.BodyPose = utils_procedural_body_pose::Add(Crawler.Handles.Gait, PoseSpec);
+        }
+        if (ck::Is_NOT_Valid(Crawler.Handles.Motion) || ck::Is_NOT_Valid(Crawler.Handles.Gait) || Crawler.Handles.Legs.Num() != Crawler.Layout.LegCount ||
+            ck::Is_NOT_Valid(Crawler.Handles.BodyPose))
+        {
+            CompositionError = f"{CourseName} crawler with {Crawler.Layout.LegCount} legs: surface motion, walker or body pose composition was rejected";
         }
         Crawlers.Add(Crawler);
     }
