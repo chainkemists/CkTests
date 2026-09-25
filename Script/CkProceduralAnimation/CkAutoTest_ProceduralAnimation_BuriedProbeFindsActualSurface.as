@@ -62,7 +62,7 @@ class UCk_AutoTest_ProceduralAnimation_BuriedProbeFindsActualSurface : UCk_AutoT
     private void Check_GaitReady(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         auto Result = OutResult;
-        Result.Set(ck::IsValid(_Gait) && utils_procedural_gait::Get_IsReady(_Gait));
+        Result.Set(ck::IsValid(_Gait) && utils_procedural_gait::Get_Status(_Gait) == ECk_ProceduralAnimation_Status::Ready);
     }
 
     UFUNCTION()
@@ -72,7 +72,8 @@ class UCk_AutoTest_ProceduralAnimation_BuriedProbeFindsActualSurface : UCk_AutoT
         for (auto Leg : _Legs)
         {
             auto Foot = utils_procedural_leg::Get_Foot(Leg);
-            Assert_True(Foot.Get_Planted() && Foot.Get_ContactTrusted(), "The exterior surface is a trusted initial plant");
+            Assert_True(Foot.Get_Phase() == ECk_ProceduralLeg_FootPhase::Planted && Foot.Get_Contact() == ECk_ProceduralLeg_FootContact::Trusted,
+                "The exterior surface is a trusted initial plant");
             Assert_Equals_Float(Foot.Get_Position().Z, _Origin.Z, 0.5,
                 "A wider probe must find Z=600, rather than treating the buried Z=555 start as the floor");
             Assert_True(Foot.Get_Normal().Z > 0.99, "The accepted normal is the exterior upward floor normal");

@@ -26,7 +26,7 @@ namespace ck_test_procedural_animation_debugger_history
         -> FCk_ProceduralAnimation_DebugSnapshot
     {
         auto Sample = FCk_ProceduralAnimation_DebugSnapshot{};
-        Sample.Get_Status().Set_Available(true).Set_HasAcceptedSample(true).Set_GaitReady(true);
+        Sample.Get_Status().Set_Available(true).Set_HasAcceptedSample(true).Set_GaitStatus(ECk_ProceduralAnimation_Status::Ready);
         Sample.Get_Sample().Set_Sequence(InSequence).Set_FrameNumber(InSequence)
             .Set_Time(FCk_Time{static_cast<double>(InSequence) * 0.1});
         Sample.Set_EntityId(TEXT("HistoryFixture"));

@@ -97,7 +97,7 @@ class ACk_ProceduralAnimationDebugger_PieFixture : AActor
     int32 Request_DestroyFirstSegment()
     {
         if (_Ended || _ResetPending || _Courses.Num() != 3 ||
-            _Courses[0].Get_IsReady() == false || _Courses[0].Crawlers[0].Handles.Legs.Num() == 0)
+            _Courses[0].Get_AllReady() == false || _Courses[0].Crawlers[0].Handles.Legs.Num() == 0)
         {
             return 0;
         }

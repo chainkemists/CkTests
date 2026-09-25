@@ -53,7 +53,7 @@ class UCk_AutoTest_ProceduralAnimation_DetachLegReleasesPartsAndRebalances : UCk
             return;
         }
         auto Result = OutResult;
-        Result.Set(_Fixture.Get_IsReady());
+        Result.Set(_Fixture.Get_AllReady());
     }
 
     UFUNCTION()
@@ -147,7 +147,7 @@ class UCk_AutoTest_ProceduralAnimation_DetachLegReleasesPartsAndRebalances : UCk
         Assert_Equals_Int(_TotalCount, 4, "The leg-set change reports four authored legs");
         Assert_Equals_Int(utils_procedural_leg::Get_Legs(Crawler.Handles.Root).Num(), 3, "The body's record keeps three legs");
         Assert_Equals_Int(utils_procedural_gait::Get_EnabledLegCount(Crawler.Handles.Gait), 3, "The gait counts three enabled legs");
-        Assert_True(utils_procedural_gait::Get_IsReady(Crawler.Handles.Gait), "The gait keeps evaluating on the survivors");
+        Assert_True(utils_procedural_gait::Get_Status(Crawler.Handles.Gait) == ECk_ProceduralAnimation_Status::Ready, "The gait keeps evaluating on the survivors");
         Assert_Equals_Int(utils_ensure::Get_EnsureCount() - _EnsuresBefore, 0, "Detaching and ragdolling fire no ensure");
 
         auto Travel = (utils_transform::Get_EntityCurrentLocation(Crawler.Handles.Root) - _BodyAtDetach).Size();

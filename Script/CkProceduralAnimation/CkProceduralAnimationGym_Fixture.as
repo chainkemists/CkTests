@@ -170,13 +170,14 @@ struct FCkProceduralAnimationGym_Crawler
     UPROPERTY()
     bool FirstLegDisabled = false;
 
-    bool Get_IsReady() const
+    bool Get_AllReady() const
     {
         if (ck::Is_NOT_Valid(Handles.Root) || ck::Is_NOT_Valid(Handles.Gait) || ck::Is_NOT_Valid(Handles.Motion) || Handles.Legs.Num() != Layout.LegCount)
         {
             return false;
         }
-        if (utils_procedural_gait::Get_IsReady(Handles.Gait) == false || utils_surface_motion::Get_IsReady(Handles.Motion) == false)
+        if (utils_procedural_gait::Get_Status(Handles.Gait) != ECk_ProceduralAnimation_Status::Ready ||
+            utils_surface_motion::Get_Status(Handles.Motion) != ECk_ProceduralAnimation_Status::Ready)
         {
             return false;
         }
@@ -187,7 +188,7 @@ struct FCkProceduralAnimationGym_Crawler
                 continue;
             }
             auto Rig = utils_procedural_rig::DoCast(Leg);
-            if (Rig.IsSet() == false || utils_procedural_rig::Get_IsReady(Rig.GetValue()) == false)
+            if (Rig.IsSet() == false || utils_procedural_rig::Get_Status(Rig.GetValue()) != ECk_ProceduralAnimation_Status::Ready)
             {
                 return false;
             }
@@ -227,7 +228,7 @@ struct FCkProceduralAnimationGym_Crawler
 
     bool Get_HasCompletedCourse() const
     {
-        if (Get_IsReady() == false || Evidence.InvalidOutput || Progress.Traversals == 0 || Get_ReplantedCount() != Layout.LegCount)
+        if (Get_AllReady() == false || Evidence.InvalidOutput || Progress.Traversals == 0 || Get_ReplantedCount() != Layout.LegCount)
         {
             return false;
         }
@@ -244,7 +245,7 @@ struct FCkProceduralAnimationGym_Crawler
 
     void Update(bool InRun, bool InDraw, bool InLabels)
     {
-        if (ck::IsValid(Handles.Gait) && utils_procedural_gait::Get_HasFailed(Handles.Gait))
+        if (ck::IsValid(Handles.Gait) && utils_procedural_gait::Get_Status(Handles.Gait) == ECk_ProceduralAnimation_Status::Failed)
         {
             Evidence.InvalidOutput = true;
         }
@@ -252,7 +253,7 @@ struct FCkProceduralAnimationGym_Crawler
         {
             Evidence.InvalidOutput = true;
         }
-        if (Get_IsReady() == false)
+        if (Get_AllReady() == false)
         {
             // Startup is pending; losing an initialized production feature is a failure.
             // Otherwise a destroyed limb or rejected runtime input could erase an observed fault
@@ -272,7 +273,7 @@ struct FCkProceduralAnimationGym_Crawler
             Local.Z < ck_procedural_gym::WallBandMaxZ)
         {
             Evidence.WallSupportSamples++;
-            Evidence.WallSupportLost = Evidence.WallSupportLost || utils_surface_motion::Get_HasTrustedContact(Handles.Motion) == false ||
+            Evidence.WallSupportLost = Evidence.WallSupportLost || utils_surface_motion::Get_ContactQuery(Handles.Motion) != ECk_SurfaceMotion_ContactQuery::Trusted ||
                 utils_surface_motion::Get_SupportNormal(Handles.Motion).X > -0.9;
         }
 
@@ -286,10 +287,10 @@ struct FCkProceduralAnimationGym_Crawler
             }
             auto Foot = utils_procedural_leg::Get_Foot(Handles.Legs[Index]);
             Evidence.InvalidOutput = Evidence.InvalidOutput || Foot.Get_Position().ContainsNaN() || Foot.Get_Normal().ContainsNaN();
-            if (Foot.Get_Planted())
+            if (Foot.Get_Phase() == ECk_ProceduralLeg_FootPhase::Planted)
             {
                 Progress.PlantedCount++;
-                if (Evidence.SawSwing[Index] && Foot.Get_ContactTrusted())
+                if (Evidence.SawSwing[Index] && Foot.Get_Contact() == ECk_ProceduralLeg_FootContact::Trusted)
                 {
                     Evidence.Replanted[Index] = true;
                 }
@@ -298,7 +299,7 @@ struct FCkProceduralAnimationGym_Crawler
             {
                 Evidence.SawSwing[Index] = true;
             }
-            if (Foot.Get_ContactTrusted())
+            if (Foot.Get_Contact() == ECk_ProceduralLeg_FootContact::Trusted)
             {
                 Progress.TrustedCount++;
                 auto Normal = Foot.Get_Normal();
@@ -313,7 +314,7 @@ struct FCkProceduralAnimationGym_Crawler
             }
             if (InDraw)
             {
-                auto FootColor = Foot.Get_Planted() ? FLinearColor::Green : FLinearColor(1.0, 0.5, 0.0, 1.0);
+                auto FootColor = Foot.Get_Phase() == ECk_ProceduralLeg_FootPhase::Planted ? FLinearColor::Green : FLinearColor(1.0, 0.5, 0.0, 1.0);
                 utils_debug_draw::DrawDebugSphere(Foot.Get_Position(), 7.0, 8, FootColor, 0.0, 1.5);
                 utils_debug_draw::DrawDebugLine(Foot.Get_Position(), Foot.Get_Position() + Foot.Get_Normal() * 35.0,
                     FLinearColor(0.0, 1.0, 1.0, 1.0), 0.0, 1.5);
@@ -643,7 +644,7 @@ struct FCkProceduralAnimationGym_Fixture
         return true;
     }
 
-    bool Get_IsReady() const
+    bool Get_AllReady() const
     {
         if (Spawn.Pending || Crawlers.Num() != Spawn.Count)
         {
@@ -651,7 +652,7 @@ struct FCkProceduralAnimationGym_Fixture
         }
         for (auto Index = 0; Index < Crawlers.Num(); Index++)
         {
-            if (Crawlers[Index].Get_IsReady() == false)
+            if (Crawlers[Index].Get_AllReady() == false)
             {
                 return false;
             }
@@ -888,7 +889,7 @@ struct FCkProceduralAnimationGym_Fixture
 
     bool Get_HasObservedWalking() const
     {
-        if (Get_IsReady() == false)
+        if (Get_AllReady() == false)
         {
             return false;
         }
@@ -897,7 +898,7 @@ struct FCkProceduralAnimationGym_Fixture
             auto Crawler = Crawlers[Index];
             if (Crawler.Evidence.InvalidOutput || Crawler.Progress.FurthestDistance < 150.0 ||
                 Crawler.Get_ReplantedCount() != Crawler.Layout.LegCount ||
-                utils_surface_motion::Get_IsGrounded(Crawler.Handles.Motion) == false)
+                utils_surface_motion::Get_Support(Crawler.Handles.Motion) != ECk_SurfaceMotion_Support::Grounded)
             {
                 return false;
             }
@@ -922,7 +923,7 @@ struct FCkProceduralAnimationGym_Fixture
                 return "FAILED: procedural output or readiness lost";
             }
         }
-        if (Get_IsReady() == false)
+        if (Get_AllReady() == false)
         {
             return "Pending: collision and rigs initializing";
         }
