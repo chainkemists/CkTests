@@ -54,6 +54,18 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
         AssertRejected(utils_procedural_gait::Add(OneLegBody, ck::ProceduralGym_Gait), OneLegBody, EnsuresBefore,
             false, "One leg");
 
+        auto DyingBody = CreateBody(InHandle, _Origin + FVector(0.0, -500.0, 0.0));
+        for (auto LegParams : ck::ProceduralTest_SideRig.Get_Legs())
+        {
+            Assert_True(ck::IsValid(utils_procedural_leg::Create(DyingBody, LegParams)),
+                "Precondition: the dying body gets its two legs");
+        }
+        FCk_Handle DyingEntity = DyingBody;
+        utils_entity_lifetime::Request_DestroyEntity(DyingEntity);
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_procedural_gait::Add(DyingBody, ck::ProceduralGym_Gait), DyingBody, EnsuresBefore,
+            false, "Body pending destruction");
+
         EnsuresBefore = utils_ensure::Get_EnsureCount();
         auto Gait = utils_procedural_gait::Add(Body, ck::ProceduralGym_Gait);
         Assert_True(ck::IsValid(Gait) && HasGait(Body), "Positive control: the corrected composition admits a gait");
