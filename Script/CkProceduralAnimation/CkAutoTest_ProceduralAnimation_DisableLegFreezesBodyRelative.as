@@ -73,7 +73,7 @@ class UCk_AutoTest_ProceduralAnimation_DisableLegFreezesBodyRelative : UCk_AutoT
             FinishFailure(f"The walker could not be composed: {_Fixture.CompositionError}");
             return;
         }
-        auto Ready = _Fixture.Get_IsReady();
+        auto Ready = _Fixture.Get_AllReady();
         if (Ready)
         {
             _PhaseStart = float(System::GetGameTimeInSeconds());
@@ -101,7 +101,7 @@ class UCk_AutoTest_ProceduralAnimation_DisableLegFreezesBodyRelative : UCk_AutoT
     private void Check_Disabled(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         _Fixture.Update();
-        auto Disabled = utils_procedural_leg::Get_IsEnabled(Get_Leg()) == false;
+        auto Disabled = utils_procedural_leg::Get_EnableDisable(Get_Leg()) != ECk_EnableDisable::Enable;
         if (Disabled)
         {
             _BodyAtFreeze = Get_Body().GetLocation();
@@ -126,7 +126,7 @@ class UCk_AutoTest_ProceduralAnimation_DisableLegFreezesBodyRelative : UCk_AutoT
             _HasFrozenReference = true;
         }
         _MaxLocalDrift = Math::Max(_MaxLocalDrift, (Local - _FrozenLocal).Size());
-        _PlantedWhileFrozen = _PlantedWhileFrozen && Foot.Get_Planted();
+        _PlantedWhileFrozen = _PlantedWhileFrozen && Foot.Get_Phase() == ECk_ProceduralLeg_FootPhase::Planted;
         auto Result = OutResult;
         Result.Set(Get_Elapsed() >= 2.0);
     }
@@ -135,7 +135,7 @@ class UCk_AutoTest_ProceduralAnimation_DisableLegFreezesBodyRelative : UCk_AutoT
     private void Step_VerifyFrozenAndEnable(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         auto Leg = Get_Leg();
-        Assert_False(utils_procedural_leg::Get_IsEnabled(Leg), "Leg 0 reads disabled");
+        Assert_True(utils_procedural_leg::Get_EnableDisable(Leg) == ECk_EnableDisable::Disable, "Leg 0 reads disabled");
         Assert_True(_PlantedWhileFrozen, "The disabled foot reports planted on every sampled frame");
         Assert_True(_MaxLocalDrift < 1.0, f"The frozen foot stays body-relative (max drift {_MaxLocalDrift :.3} cm)");
         auto Travel = (Get_Body().GetLocation() - _BodyAtFreeze).Size();
@@ -159,7 +159,7 @@ class UCk_AutoTest_ProceduralAnimation_DisableLegFreezesBodyRelative : UCk_AutoT
         auto Foot = utils_procedural_leg::Get_Foot(Get_Leg());
         if (_ReenableObserved == false)
         {
-            if (utils_procedural_leg::Get_IsEnabled(Get_Leg()))
+            if (utils_procedural_leg::Get_EnableDisable(Get_Leg()) == ECk_EnableDisable::Enable)
             {
                 _ReenableObserved = true;
                 _ReenableJump = (Foot.Get_Position() - _LastFrozenFoot).Size();

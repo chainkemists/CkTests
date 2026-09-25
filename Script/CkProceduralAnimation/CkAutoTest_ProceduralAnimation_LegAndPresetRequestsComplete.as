@@ -185,9 +185,9 @@ class UCk_AutoTest_ProceduralAnimation_LegAndPresetRequestsComplete : UCk_AutoTe
         AssertCompletedOnce(_EnableDisableResults, "Request_EnableDisable");
         AssertCompletedOnce(_DetachResults, "Request_Detach");
         AssertCompletedOnce(_ApplyPresetResults, "Request_ApplyPreset");
-        Assert_True(ck::IsValid(_DisabledLeg) && utils_procedural_leg::Get_IsEnabled(_DisabledLeg) == false,
+        Assert_True(ck::IsValid(_DisabledLeg) && utils_procedural_leg::Get_EnableDisable(_DisabledLeg) != ECk_EnableDisable::Enable,
             "The drained enable/disable request left its leg disabled");
-        Assert_True(ck::IsValid(_RetunedGait) && utils_procedural_gait::Get_HasFailed(_RetunedGait) == false,
+        Assert_True(ck::IsValid(_RetunedGait) && utils_procedural_gait::Get_Status(_RetunedGait) != ECk_ProceduralAnimation_Status::Failed,
             "The retuned gait is still live and has not failed");
         utils_entity_lifetime::Request_DestroyEntity(_SucceedingRoot);
     }

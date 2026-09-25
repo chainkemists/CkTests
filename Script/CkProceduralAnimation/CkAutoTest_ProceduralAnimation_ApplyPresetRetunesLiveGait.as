@@ -46,7 +46,7 @@ class UCk_AutoTest_ProceduralAnimation_ApplyPresetRetunesLiveGait : UCk_AutoTest
         }
         for (auto Index = 0; Index < Legs.Num(); Index++)
         {
-            auto Planted = utils_procedural_leg::Get_Foot(Legs[Index]).Get_Planted();
+            auto Planted = utils_procedural_leg::Get_Foot(Legs[Index]).Get_Phase() == ECk_ProceduralLeg_FootPhase::Planted;
             if (Planted && _WasPlanted[Index] == false)
             {
                 _Landings++;
@@ -66,7 +66,7 @@ class UCk_AutoTest_ProceduralAnimation_ApplyPresetRetunesLiveGait : UCk_AutoTest
         {
             auto Foot = utils_procedural_leg::Get_Foot(Leg);
             _LastFeet.Add(Foot.Get_Position());
-            _LastPlanted.Add(Foot.Get_Planted());
+            _LastPlanted.Add(Foot.Get_Phase() == ECk_ProceduralLeg_FootPhase::Planted);
         }
     }
 
@@ -123,7 +123,7 @@ class UCk_AutoTest_ProceduralAnimation_ApplyPresetRetunesLiveGait : UCk_AutoTest
             FinishFailure(f"The walker could not be composed: {_Fixture.CompositionError}");
             return;
         }
-        auto Ready = _Fixture.Get_IsReady();
+        auto Ready = _Fixture.Get_AllReady();
         if (Ready)
         {
             _PhaseStart = float(System::GetGameTimeInSeconds());
@@ -200,7 +200,7 @@ class UCk_AutoTest_ProceduralAnimation_ApplyPresetRetunesLiveGait : UCk_AutoTest
         for (auto Index = 0; Index < Legs.Num() && Index < _LastFeet.Num(); Index++)
         {
             auto Foot = utils_procedural_leg::Get_Foot(Legs[Index]);
-            if (_LastPlanted[Index] && Foot.Get_Planted())
+            if (_LastPlanted[Index] && Foot.Get_Phase() == ECk_ProceduralLeg_FootPhase::Planted)
             {
                 _FeetPlantedAcrossApply++;
                 _ApplyFootShift = Math::Max(_ApplyFootShift, (Foot.Get_Position() - _LastFeet[Index]).Size());

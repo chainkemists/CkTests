@@ -36,7 +36,7 @@ class UCk_AutoTest_ProceduralAnimation_WalksOnNonOriginFloor : UCk_AutoTest_Base
         Assert_Equals_Int(_Fixture.Crawlers.Num(), 3, "The fixture contains three distinct authored leg counts");
         for (auto Crawler : _Fixture.Crawlers)
         {
-            Assert_True(utils_surface_motion::Get_IsGrounded(Crawler.Handles.Motion), "The body found the actual Jolt floor");
+            Assert_True(utils_surface_motion::Get_Support(Crawler.Handles.Motion) == ECk_SurfaceMotion_Support::Grounded, "The body found the actual Jolt floor");
             Assert_True(Crawler.Get_ReplantedCount() == Crawler.Layout.LegCount,
                 "Every leg completed a swing and acquired a trusted plant");
             auto Position = utils_transform::Get_EntityCurrentLocation(Crawler.Handles.Root);
@@ -46,7 +46,7 @@ class UCk_AutoTest_ProceduralAnimation_WalksOnNonOriginFloor : UCk_AutoTest_Base
             for (auto Index = 0; Index < Crawler.Handles.Legs.Num(); Index++)
             {
                 auto Foot = utils_procedural_leg::Get_Foot(Crawler.Handles.Legs[Index]);
-                if (Foot.Get_Planted() && Foot.Get_ContactTrusted())
+                if (Foot.Get_Phase() == ECk_ProceduralLeg_FootPhase::Planted && Foot.Get_Contact() == ECk_ProceduralLeg_FootContact::Trusted)
                 {
                     Contacts++;
                     Assert_Equals_Float(Foot.Get_Position().Z, _Origin.Z, 3.0,

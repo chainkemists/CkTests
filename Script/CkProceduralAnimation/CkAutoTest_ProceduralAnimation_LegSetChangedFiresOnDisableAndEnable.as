@@ -40,7 +40,7 @@ class UCk_AutoTest_ProceduralAnimation_LegSetChangedFiresOnDisableAndEnable : UC
             return;
         }
         auto Result = OutResult;
-        Result.Set(_Fixture.Get_IsReady());
+        Result.Set(_Fixture.Get_AllReady());
     }
 
     UFUNCTION()

@@ -305,7 +305,8 @@ auto
             }
             for (const auto& Row : State->Model->Get_Rows())
             {
-                if (NOT Row.Summary.Get_GaitReady() || NOT Row.Summary.Get_RigReady())
+                if (Row.Summary.Get_GaitStatus() != ECk_ProceduralAnimation_Status::Ready
+                    || Row.Summary.Get_RigStatus() != ECk_ProceduralAnimation_Status::Ready)
                 {
                     return false;
                 }
@@ -453,8 +454,10 @@ auto
                 Get_LegRigFailure(State->Selected, IntactLegId), ECk_ProceduralRig_Failure::None);
             const auto Current = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Selected);
             TestTrue(TEXT("Rig failure retains accepted gait evidence"), Current.Get_Status().Get_HasAcceptedSample());
-            TestTrue(TEXT("Gait remains live after the independent rig failure"), Current.Get_Status().Get_GaitReady());
-            TestFalse(TEXT("Failed rig is not presented as ready"), Current.Get_Status().Get_RigReady());
+            TestEqual(TEXT("Gait remains live after the independent rig failure"), Current.Get_Status().Get_GaitStatus(),
+                ECk_ProceduralAnimation_Status::Ready);
+            TestTrue(TEXT("Failed rig is not presented as ready"),
+                Current.Get_Status().Get_RigStatus() != ECk_ProceduralAnimation_Status::Ready);
             TestEqual(TEXT("The snapshot reports the lost segment"), Current.Get_Status().Get_RigFailure(), ECk_ProceduralRig_Failure::MissingPart);
             if (TestEqual(TEXT("Failure preserves the original gait leg topology"), Current.Get_Legs().Num(), SmallLegCount))
             {
@@ -470,7 +473,8 @@ auto
                 }
                 TestTrue(TEXT("Unaffected foot is still inspectable"), Damaged.Get_Rig().Get_Foot().Get_Available());
             }
-            TestTrue(TEXT("The pre-failure captured value remains ready"), State->Captured.Get_Status().Get_RigReady());
+            TestTrue(TEXT("The pre-failure captured value remains ready"),
+                State->Captured.Get_Status().Get_RigStatus() == ECk_ProceduralAnimation_Status::Ready);
             State->HistoryBeforeReset = State->Model->Get_History().Get_Count();
             TestTrue(TEXT("The selected live entity has history before reset"), State->HistoryBeforeReset > 0);
             TestEqual(TEXT("The shared fixture accepts a full reset"),
@@ -486,7 +490,7 @@ auto
             }
             for (const auto& Row : State->Model->Get_Rows())
             {
-                if (NOT Row.Summary.Get_GaitReady())
+                if (Row.Summary.Get_GaitStatus() != ECk_ProceduralAnimation_Status::Ready)
                 {
                     return false;
                 }
@@ -621,7 +625,9 @@ auto
             {
                 return InRow.Summary.Get_EntityName() == SelectedCrawlerName;
             });
-            return Row != nullptr && Row->Summary.Get_GaitReady() && Row->Summary.Get_RigReady();
+            return Row != nullptr
+                && Row->Summary.Get_GaitStatus() == ECk_ProceduralAnimation_Status::Ready
+                && Row->Summary.Get_RigStatus() == ECk_ProceduralAnimation_Status::Ready;
         }), 20.0, TEXT("The four-leg uneven-course crawler is discovered with a ready gait and rig")));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
         [this, State](UWorld*)
@@ -669,7 +675,7 @@ auto
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
         FCk_NetAutoTest_Condition::CreateLambda([State]
         {
-            return NOT UCk_Utils_ProceduralLeg_UE::Get_IsEnabled(State->Leg);
+            return UCk_Utils_ProceduralLeg_UE::Get_EnableDisable(State->Leg) == ECk_EnableDisable::Disable;
         }), 10.0, TEXT("The mounted Disable button disables the selected leg through its request")));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
         [this, State](UWorld*)
@@ -683,7 +689,7 @@ auto
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
         FCk_NetAutoTest_Condition::CreateLambda([State]
         {
-            return UCk_Utils_ProceduralLeg_UE::Get_IsEnabled(State->Leg);
+            return UCk_Utils_ProceduralLeg_UE::Get_EnableDisable(State->Leg) == ECk_EnableDisable::Enable;
         }), 10.0, TEXT("The same button re-enables a disabled leg")));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
         [this, State](UWorld*)
