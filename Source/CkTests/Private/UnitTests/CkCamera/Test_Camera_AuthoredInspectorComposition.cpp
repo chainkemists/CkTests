@@ -264,9 +264,9 @@ bool FCkTest_Camera_AuthoredInspectorComposition::RunTest(const FString&)
             { return; }
             TestTrue(TEXT("physical boom and intention inputs update real Current immediately"),
                 FMath::IsNearlyEqual(
-                    Scenario->Camera.Get<ck::FFragment_Camera>().Get_PovState()._BoomArmRotation.Yaw, 47.5f)
+                    Scenario->Camera.Get<ck::FFragment_Camera_Pov>().Get_PovState()._BoomArmRotation.Yaw, 47.5f)
                     && FMath::IsNearlyEqual(
-                        Scenario->Camera.Get<ck::FFragment_Camera>().Get_OrientationIntention().X, 0.625f));
+                        Scenario->Camera.Get<ck::FFragment_Camera_Pov>().Get_OrientationIntention().X, 0.625f));
             TSharedPtr<SCkInspector_CameraAuthored> DedicatedView;
             UWorld* const DedicatedWorld = UWorld::CreateWorld(EWorldType::PIE, false);
             ON_SCOPE_EXIT { if (DedicatedWorld != nullptr) { DedicatedWorld->DestroyWorld(false); } };
