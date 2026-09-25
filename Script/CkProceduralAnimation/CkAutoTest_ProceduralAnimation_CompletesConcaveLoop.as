@@ -29,7 +29,7 @@ class UCk_AutoTest_ProceduralAnimation_CompletesConcaveLoop : UCk_AutoTest_Base
         auto Complete = _Fixture.Get_HasObservedWalking();
         for (auto Crawler : _Fixture.Crawlers)
         {
-            Complete = Complete && Crawler.Traversals > 0 && Crawler.SawWall && Crawler.SawCeiling;
+            Complete = Complete && Crawler.Progress.Traversals > 0 && Crawler.Evidence.SawWall && Crawler.Evidence.SawCeiling;
         }
         auto Result = OutResult;
         Result.Set(Complete);
@@ -40,10 +40,10 @@ class UCk_AutoTest_ProceduralAnimation_CompletesConcaveLoop : UCk_AutoTest_Base
     {
         for (auto Crawler : _Fixture.Crawlers)
         {
-            Assert_True(Crawler.SawCeiling, "At least one trusted foot contact normal faced down on the ceiling");
-            Assert_True(Crawler.SawWall && Crawler.Traversals > 0, "Ordered location milestones prove a complete loop");
-            Assert_True(Crawler.InvalidOutput == false, "Body and foot outputs remained finite through inversion");
-            Assert_Equals_Int(Crawler.Get_ReplantedCount(), Crawler.LegCount, "Every leg completed swing and reacquired support");
+            Assert_True(Crawler.Evidence.SawCeiling, "At least one trusted foot contact normal faced down on the ceiling");
+            Assert_True(Crawler.Evidence.SawWall && Crawler.Progress.Traversals > 0, "Ordered location milestones prove a complete loop");
+            Assert_True(Crawler.Evidence.InvalidOutput == false, "Body and foot outputs remained finite through inversion");
+            Assert_Equals_Int(Crawler.Get_ReplantedCount(), Crawler.Layout.LegCount, "Every leg completed swing and reacquired support");
         }
     }
 

@@ -46,9 +46,9 @@ class UCk_AutoTest_ProceduralAnimation_LegSetChangedFiresOnDisableAndEnable : UC
     UFUNCTION()
     private void Step_Disable(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        auto Gait = _Fixture.Crawlers[0].Gait;
+        auto Gait = _Fixture.Crawlers[0].Handles.Gait;
         utils_procedural_gait::BindTo_OnLegSetChanged(Gait, FCk_Delegate_ProceduralGait_OnLegSetChanged(this, n"OnLegSetChanged"));
-        auto Leg = _Fixture.Crawlers[0].Legs[0];
+        auto Leg = _Fixture.Crawlers[0].Handles.Legs[0];
         utils_procedural_leg::Request_EnableDisable(Leg, FCk_Request_ProceduralLeg_EnableDisable(ECk_EnableDisable::Disable));
     }
 
@@ -71,7 +71,7 @@ class UCk_AutoTest_ProceduralAnimation_LegSetChangedFiresOnDisableAndEnable : UC
     private void Step_Enable(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(_EnabledCounts.Num(), 1, "Disabling one leg reports exactly one leg-set change");
-        auto Leg = _Fixture.Crawlers[0].Legs[0];
+        auto Leg = _Fixture.Crawlers[0].Handles.Legs[0];
         utils_procedural_leg::Request_EnableDisable(Leg, FCk_Request_ProceduralLeg_EnableDisable(ECk_EnableDisable::Enable));
     }
 

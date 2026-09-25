@@ -51,7 +51,7 @@ class UCk_AutoTest_ProceduralAnimation_DetachTransfersOwnershipWhenRequested : U
     UFUNCTION()
     private void Step_Bind(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        auto Leg = _Fixture.Crawlers[0].Legs[1];
+        auto Leg = _Fixture.Crawlers[0].Handles.Legs[1];
         utils_procedural_leg::BindTo_OnDetached(Leg, FCk_Delegate_ProceduralLeg_OnDetached(this, n"OnDetached"));
         _PhaseStart = float(System::GetGameTimeInSeconds());
     }
@@ -67,7 +67,7 @@ class UCk_AutoTest_ProceduralAnimation_DetachTransfersOwnershipWhenRequested : U
     UFUNCTION()
     private void Step_Detach(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        auto Leg = _Fixture.Crawlers[0].Legs[1];
+        auto Leg = _Fixture.Crawlers[0].Handles.Legs[1];
         utils_procedural_leg::Request_Detach(Leg,
             FCk_Request_ProceduralLeg_Detach(ECk_ProceduralLeg_ReleasedPartsOwnership::TransferToWorld));
     }
@@ -85,7 +85,7 @@ class UCk_AutoTest_ProceduralAnimation_DetachTransfersOwnershipWhenRequested : U
     {
         _Fixture.Update();
         auto Result = OutResult;
-        Result.Set(_Detachments > 0 && ck::Is_NOT_Valid(_Fixture.Crawlers[0].Legs[1]));
+        Result.Set(_Detachments > 0 && ck::Is_NOT_Valid(_Fixture.Crawlers[0].Handles.Legs[1]));
     }
 
     UFUNCTION()
@@ -93,9 +93,9 @@ class UCk_AutoTest_ProceduralAnimation_DetachTransfersOwnershipWhenRequested : U
     {
         Assert_Equals_Int(_Detachments, 1, "OnDetached fires exactly once");
         Assert_Equals_Int(_ReleasedParts.Num(), 3, "The released chain carries both segments and the foot");
-        _Body = _Fixture.Crawlers[0].Root;
-        _Gait = _Fixture.Crawlers[0].Gait;
-        _Legs = _Fixture.Crawlers[0].Legs;
+        _Body = _Fixture.Crawlers[0].Handles.Root;
+        _Gait = _Fixture.Crawlers[0].Handles.Gait;
+        _Legs = _Fixture.Crawlers[0].Handles.Legs;
         utils_entity_lifetime::Request_DestroyEntity(_Body);
     }
 

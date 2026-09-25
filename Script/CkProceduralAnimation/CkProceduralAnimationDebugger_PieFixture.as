@@ -97,11 +97,11 @@ class ACk_ProceduralAnimationDebugger_PieFixture : AActor
     int32 Request_DestroyFirstSegment()
     {
         if (_Ended || _ResetPending || _Courses.Num() != 3 ||
-            _Courses[0].Get_IsReady() == false || _Courses[0].Crawlers[0].Legs.Num() == 0)
+            _Courses[0].Get_IsReady() == false || _Courses[0].Crawlers[0].Handles.Legs.Num() == 0)
         {
             return 0;
         }
-        auto Rig = utils_procedural_rig::DoCast(_Courses[0].Crawlers[0].Legs[0]);
+        auto Rig = utils_procedural_rig::DoCast(_Courses[0].Crawlers[0].Handles.Legs[0]);
         if (Rig.IsSet() == false)
         {
             return 0;

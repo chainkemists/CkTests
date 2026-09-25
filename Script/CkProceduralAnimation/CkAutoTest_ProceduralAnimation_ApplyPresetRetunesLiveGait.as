@@ -34,7 +34,7 @@ class UCk_AutoTest_ProceduralAnimation_ApplyPresetRetunesLiveGait : UCk_AutoTest
 
     void CountLandings()
     {
-        auto Legs = _Fixture.Crawlers[0].Legs;
+        auto Legs = _Fixture.Crawlers[0].Handles.Legs;
         if (_WasPlanted.Num() != Legs.Num())
         {
             _WasPlanted.SetNum(Legs.Num());
@@ -52,12 +52,12 @@ class UCk_AutoTest_ProceduralAnimation_ApplyPresetRetunesLiveGait : UCk_AutoTest
 
     void SampleGait()
     {
-        auto Clock = utils_procedural_gait::Get_GaitClock(_Fixture.Crawlers[0].Gait);
+        auto Clock = utils_procedural_gait::Get_GaitClock(_Fixture.Crawlers[0].Handles.Gait);
         _LastClockDelta = Get_WrappedDelta(_LastClock, Clock);
         _LastClock = Clock;
         _LastFeet.Reset();
         _LastPlanted.Reset();
-        for (auto Leg : _Fixture.Crawlers[0].Legs)
+        for (auto Leg : _Fixture.Crawlers[0].Handles.Legs)
         {
             auto Foot = utils_procedural_leg::Get_Foot(Leg);
             _LastFeet.Add(Foot.Get_Position());
@@ -133,7 +133,7 @@ class UCk_AutoTest_ProceduralAnimation_ApplyPresetRetunesLiveGait : UCk_AutoTest
         _LandingsBefore = _Landings;
         _Landings = 0;
         SampleGait();
-        auto Gait = _Fixture.Crawlers[0].Gait;
+        auto Gait = _Fixture.Crawlers[0].Handles.Gait;
         utils_procedural_gait::Request_ApplyPreset(Gait, ck::ProceduralGym_GaitSlow,
             FCk_Delegate_Request_OnCompleted(this, n"OnApplied"));
     }
@@ -158,8 +158,8 @@ class UCk_AutoTest_ProceduralAnimation_ApplyPresetRetunesLiveGait : UCk_AutoTest
             return;
         }
         _ApplyObserved = true;
-        _ApplyClockDelta = Get_WrappedDelta(_LastClock, utils_procedural_gait::Get_GaitClock(_Fixture.Crawlers[0].Gait));
-        auto Legs = _Fixture.Crawlers[0].Legs;
+        _ApplyClockDelta = Get_WrappedDelta(_LastClock, utils_procedural_gait::Get_GaitClock(_Fixture.Crawlers[0].Handles.Gait));
+        auto Legs = _Fixture.Crawlers[0].Handles.Legs;
         for (auto Index = 0; Index < Legs.Num() && Index < _LastFeet.Num(); Index++)
         {
             auto Foot = utils_procedural_leg::Get_Foot(Legs[Index]);
