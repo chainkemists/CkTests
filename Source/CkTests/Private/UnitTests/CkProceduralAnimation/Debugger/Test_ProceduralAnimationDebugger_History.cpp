@@ -26,11 +26,11 @@ namespace ck_test_procedural_animation_debugger_history
         -> FCk_ProceduralAnimation_DebugSnapshot
     {
         auto Sample = FCk_ProceduralAnimation_DebugSnapshot{};
-        Sample.Set_Available(true).Set_HasAcceptedSample(true).Set_GaitReady(true)
-            .Set_Sequence(InSequence).Set_FrameNumber(InSequence)
-            .Set_Time(FCk_Time{static_cast<double>(InSequence) * 0.1})
-            .Set_EntityId(TEXT("HistoryFixture"))
-            .Set_BodyTransform(FTransform{FVector{static_cast<double>(InSequence), 0.0, 0.0}});
+        Sample.Get_Status().Set_Available(true).Set_HasAcceptedSample(true).Set_GaitReady(true);
+        Sample.Get_Sample().Set_Sequence(InSequence).Set_FrameNumber(InSequence)
+            .Set_Time(FCk_Time{static_cast<double>(InSequence) * 0.1});
+        Sample.Set_EntityId(TEXT("HistoryFixture"));
+        Sample.Get_Gait().Set_BodyTransform(FTransform{FVector{static_cast<double>(InSequence), 0.0, 0.0}});
         return Sample;
     }
 }
@@ -53,7 +53,8 @@ auto
     {
         auto Sample = MakeSample(Sequence);
         TestTrue(TEXT("An accepted advancing sample is recorded"), History.Push(Sample));
-        Sample.Set_Sequence(999).Set_BodyTransform(FTransform{FVector{999.0, 0.0, 0.0}});
+        Sample.Get_Sample().Set_Sequence(999);
+        Sample.Get_Gait().Set_BodyTransform(FTransform{FVector{999.0, 0.0, 0.0}});
     }
     TestEqual(TEXT("History retains the configured bounded count"), History.Get_Count(), 3);
     TestEqual(TEXT("History reports its effective capacity"), History.Get_Capacity(), 3);
@@ -65,9 +66,9 @@ auto
             continue;
         }
         TestEqual(TEXT("Oldest is evicted while retained samples remain ordered"),
-            Sample->Get_Sequence(), static_cast<uint64>(Index + 2));
+            Sample->Get_Sample().Get_Sequence(), static_cast<uint64>(Index + 2));
         TestEqual(TEXT("Caller mutation does not alter captured pose"),
-            Sample->Get_BodyTransform().GetLocation().X, static_cast<double>(Index + 2));
+            Sample->Get_Gait().Get_BodyTransform().GetLocation().X, static_cast<double>(Index + 2));
     }
     TestNull(TEXT("Negative sample index is rejected"), History.Get_Sample(-1));
     TestNull(TEXT("Past-end sample index is rejected"), History.Get_Sample(3));
@@ -97,25 +98,25 @@ auto
     TestFalse(TEXT("Hold leaves capture running but presentation frozen"), History.Get_IsLive());
     if (TestNotNull(TEXT("Held value survives eviction"), History.Get_Displayed()))
     {
-        TestEqual(TEXT("Held value is independently pinned"), History.Get_Displayed()->Get_Sequence(), uint64{1});
+        TestEqual(TEXT("Held value is independently pinned"), History.Get_Displayed()->Get_Sample().Get_Sequence(), uint64{1});
     }
     TestEqual(TEXT("Capture advanced while presentation was held"), History.Get_Count(), 3);
     TestTrue(TEXT("Scrub accepts an existing chronological sample"), History.Scrub(0));
     if (TestNotNull(TEXT("Scrubbed sample is displayed"), History.Get_Displayed()))
     {
-        TestEqual(TEXT("Scrub selects oldest retained sample"), History.Get_Displayed()->Get_Sequence(), uint64{3});
+        TestEqual(TEXT("Scrub selects oldest retained sample"), History.Get_Displayed()->Get_Sample().Get_Sequence(), uint64{3});
     }
     TestFalse(TEXT("Negative scrub index is rejected"), History.Scrub(-1));
     TestFalse(TEXT("Past-end scrub index is rejected"), History.Scrub(3));
     if (TestNotNull(TEXT("Rejected scrub retains selection"), History.Get_Displayed()))
     {
-        TestEqual(TEXT("Rejected scrub cannot replace the pinned value"), History.Get_Displayed()->Get_Sequence(), uint64{3});
+        TestEqual(TEXT("Rejected scrub cannot replace the pinned value"), History.Get_Displayed()->Get_Sample().Get_Sequence(), uint64{3});
     }
     History.GoLive();
     TestTrue(TEXT("Go live restores presentation tracking"), History.Get_IsLive());
     if (TestNotNull(TEXT("Newest live sample is displayed"), History.Get_Displayed()))
     {
-        TestEqual(TEXT("Go live jumps to newest captured value"), History.Get_Displayed()->Get_Sequence(), uint64{5});
+        TestEqual(TEXT("Go live jumps to newest captured value"), History.Get_Displayed()->Get_Sample().Get_Sequence(), uint64{5});
     }
     History.Reset();
     TestEqual(TEXT("Reset removes captured history"), History.Get_Count(), 0);
@@ -142,7 +143,7 @@ auto
     TestFalse(TEXT("Default unavailable sample cannot become history"),
         History.Push(FCk_ProceduralAnimation_DebugSnapshot{}));
     auto Unsampled = MakeSample(1);
-    Unsampled.Set_HasAcceptedSample(false);
+    Unsampled.Get_Status().Set_HasAcceptedSample(false);
     TestFalse(TEXT("Admitted but unsolved state cannot become a pose sample"), History.Push(Unsampled));
     TestTrue(TEXT("First accepted pose starts history"), History.Push(MakeSample(2)));
     TestFalse(TEXT("Repeated getter of the same accepted solve is deduplicated"), History.Push(MakeSample(2)));
@@ -151,12 +152,12 @@ auto
     Mixed.Set_EntityId(TEXT("OtherEntity"));
     TestFalse(TEXT("Another entity cannot mix into selected history"), History.Push(Mixed));
     auto BackwardsTime = MakeSample(3);
-    BackwardsTime.Set_Time(FCk_Time{0.05});
+    BackwardsTime.Get_Sample().Set_Time(FCk_Time{0.05});
     TestFalse(TEXT("Advancing sequence with backwards time is rejected"), History.Push(BackwardsTime));
     TestEqual(TEXT("Every rejected append leaves the captured count untouched"), History.Get_Count(), 1);
     if (TestNotNull(TEXT("Rejected appends retain the original sample"), History.Get_Displayed()))
     {
-        TestEqual(TEXT("Rejected appends preserve the accepted sequence"), History.Get_Displayed()->Get_Sequence(), uint64{2});
+        TestEqual(TEXT("Rejected appends preserve the accepted sequence"), History.Get_Displayed()->Get_Sample().Get_Sequence(), uint64{2});
     }
     TestTrue(TEXT("A valid later sample still appends after rejection"), History.Push(MakeSample(3)));
     return true;
@@ -179,17 +180,17 @@ auto
     TestTrue(TEXT("A finite accepted sample starts history"), History.Push(MakeSample(1)));
 
     auto NaNTime = MakeSample(2);
-    NaNTime.Set_Time(FCk_Time{NaN});
+    NaNTime.Get_Sample().Set_Time(FCk_Time{NaN});
     TestFalse(TEXT("A sample with a NaN time is rejected"), History.Push(NaNTime));
 
     auto InfiniteTime = MakeSample(3);
-    InfiniteTime.Set_Time(FCk_Time{Infinity});
+    InfiniteTime.Get_Sample().Set_Time(FCk_Time{Infinity});
     TestFalse(TEXT("A sample with an infinite time is rejected"), History.Push(InfiniteTime));
 
     TestEqual(TEXT("Rejected non-finite samples leave the captured count untouched"), History.Get_Count(), 1);
     if (TestNotNull(TEXT("The finite sample is still displayed"), History.Get_Displayed()))
     {
-        TestEqual(TEXT("The finite sample keeps its sequence"), History.Get_Displayed()->Get_Sequence(), uint64{1});
+        TestEqual(TEXT("The finite sample keeps its sequence"), History.Get_Displayed()->Get_Sample().Get_Sequence(), uint64{1});
     }
     TestTrue(TEXT("A finite later sample still appends"), History.Push(MakeSample(4)));
     return true;
@@ -221,7 +222,7 @@ auto
     TestEqual(TEXT("A clamped single-sample ring holds one sample"), Single.Get_Count(), 1);
     if (TestNotNull(TEXT("The newest sample is retained"), Single.Get_Sample(0)))
     {
-        TestEqual(TEXT("The single slot holds the newest sequence"), Single.Get_Sample(0)->Get_Sequence(), uint64{2});
+        TestEqual(TEXT("The single slot holds the newest sequence"), Single.Get_Sample(0)->Get_Sample().Get_Sequence(), uint64{2});
     }
     return true;
 }

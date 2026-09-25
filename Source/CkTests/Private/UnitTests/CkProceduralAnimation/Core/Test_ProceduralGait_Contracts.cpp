@@ -42,12 +42,12 @@ auto
     const auto AssertUnchanged = [this, &Solver, &Plants, &Outputs, &OutputBefore]() -> void
     {
         TestEqual(TEXT("Topology unchanged"), Solver.NumLegs(), 1);
-        TestTrue(TEXT("Plant unchanged"), Solver.GetLegState(0).Get_PlantedPosition().Equals(Plants[0]));
+        TestTrue(TEXT("Plant unchanged"), Solver.GetLegState(0).Get_Plant().Get_Position().Equals(Plants[0]));
         TestEqual(TEXT("Clock unchanged"), Solver.GetGaitClock(), 0.0f);
         TestTrue(TEXT("Output unchanged"), Outputs[0].Get_Position().Equals(OutputBefore));
     };
     const auto SettingsBefore = Solver.Get_Settings();
-    Solver.Get_Settings().Set_StepDuration(FCk_Time{});
+    Solver.Get_Settings().Get_Step().Set_Duration(FCk_Time{});
     TestFalse(TEXT("Reject zero step duration"), Solver.Step(DeltaTime, 100.0f, FVector{}, Inputs, Outputs));
     AssertUnchanged();
     Solver.Set_Settings(SettingsBefore);
@@ -91,7 +91,7 @@ auto
     auto Solver = ck::FProceduralGaitSolver{};
     const auto Plants = TArray<FVector>{FVector{}};
     Solver.Reset(Plants);
-    Solver.Get_Settings().Set_Patterns({ck::FProceduralGaitPattern{}.Set_MinSpeed(0.0f)});
+    Solver.Get_Settings().Get_Pattern().Set_Patterns({ck::FProceduralGaitPattern{}.Set_MinSpeed(0.0f)});
     auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
     Inputs.SetNum(1);
     auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
@@ -192,14 +192,14 @@ auto
     const auto Plants = TArray<FVector>{OldBasis.UnrotateVector(WorldPlant)};
     Solver.Reset(Plants);
     TestTrue(TEXT("Accept pending catch step"), Solver.RequestStep(0, OldBasis.UnrotateVector(WorldRequest)));
-    const auto PendingBefore = Solver.GetLegState(0).Get_PendingStepTime();
+    const auto PendingBefore = Solver.GetLegState(0).Get_PendingStep().Get_Time();
     Solver.TransformState(NewBasis.Inverse() * OldBasis);
     const auto& State = Solver.GetLegState(0);
     TestTrue(TEXT("World plant welded through basis change"),
-        NewBasis.RotateVector(State.Get_PlantedPosition()).Equals(WorldPlant, 0.001));
+        NewBasis.RotateVector(State.Get_Plant().Get_Position()).Equals(WorldPlant, 0.001));
     TestTrue(TEXT("Requested world landing survives basis change"),
-        NewBasis.RotateVector(State.Get_PendingStepTarget()).Equals(WorldRequest, 0.001));
-    TestTrue(TEXT("Basis change does not age request"), State.Get_PendingStepTime() == PendingBefore);
+        NewBasis.RotateVector(State.Get_PendingStep().Get_Target()).Equals(WorldRequest, 0.001));
+    TestTrue(TEXT("Basis change does not age request"), State.Get_PendingStep().Get_Time() == PendingBefore);
     TestEqual(TEXT("Basis change does not advance clock"), Solver.GetGaitClock(), 0.0f);
     return true;
 }
@@ -267,18 +267,18 @@ auto
     using SettingsType = ck::FProceduralGaitSettings;
     const auto InvalidSettings = TArray<SettingsType>
     {
-        SettingsType{}.Set_RetargetSmoothing(-1.0f),
-        SettingsType{}.Set_AirborneFollowSpeed(-1.0f),
-        SettingsType{}.Set_EmergencyStepFactor(0.5f),
-        SettingsType{}.Set_RetargetFreezePhase(1.1f),
-        SettingsType{}.Set_SwingApexPhase(-0.1f),
-        SettingsType{}.Set_SwingApexSharpness(0.0f),
-        SettingsType{}.Set_ScheduleAdvanceFraction(1.1f),
-        SettingsType{}.Set_SettleThresholdFraction(0.0f),
-        SettingsType{}.Set_LandingStepDurationScale(1.1f),
-        SettingsType{}.Set_PatternSwitchHysteresis(0.0f),
-        SettingsType{}.Set_ObstacleClearance(-1.0f),
-        SettingsType{}.Set_MaxStrokeOvershoot(-1.0f),
+        SettingsType{}.Set_Step(ck::FProceduralGaitStepSettings{}.Set_RetargetSmoothing(-1.0f)),
+        SettingsType{}.Set_Airborne(ck::FProceduralGaitAirborneSettings{}.Set_FollowSpeed(-1.0f)),
+        SettingsType{}.Set_Step(ck::FProceduralGaitStepSettings{}.Set_EmergencyFactor(0.5f)),
+        SettingsType{}.Set_Step(ck::FProceduralGaitStepSettings{}.Set_RetargetFreezePhase(1.1f)),
+        SettingsType{}.Set_Swing(ck::FProceduralGaitSwingSettings{}.Set_ApexPhase(-0.1f)),
+        SettingsType{}.Set_Swing(ck::FProceduralGaitSwingSettings{}.Set_ApexSharpness(0.0f)),
+        SettingsType{}.Set_Schedule(ck::FProceduralGaitScheduleSettings{}.Set_AdvanceFraction(1.1f)),
+        SettingsType{}.Set_Settle(ck::FProceduralGaitSettleSettings{}.Set_ThresholdFraction(0.0f)),
+        SettingsType{}.Set_Airborne(ck::FProceduralGaitAirborneSettings{}.Set_LandingStepDurationScale(1.1f)),
+        SettingsType{}.Set_Pattern(ck::FProceduralGaitPatternSettings{}.Set_SwitchHysteresis(0.0f)),
+        SettingsType{}.Set_Swing(ck::FProceduralGaitSwingSettings{}.Set_ObstacleClearance(-1.0f)),
+        SettingsType{}.Set_Step(ck::FProceduralGaitStepSettings{}.Set_MaxStrokeOvershoot(-1.0f)),
     };
     auto Solver = ck::FProceduralGaitSolver{};
     const auto Plants = TArray<FVector>{FVector{}};
@@ -339,9 +339,10 @@ auto
     -> bool
 {
     auto Solver = ck::FProceduralGaitSolver{};
-    Solver.Get_Settings().Set_StepDuration(FCk_Time{1.0}).Set_CycleDuration(FCk_Time{1.0})
-        .Set_StepHeight(40.0f).Set_ObstacleClearance(10.0f).Set_StrokeOvershootFraction(0.25f)
-        .Set_MaxStrokeOvershoot(25.0f).Set_RetargetFreezePhase(0.0f).Set_SwingToePitchDegrees(30.0f);
+    Solver.Get_Settings().Get_Step().Set_Duration(FCk_Time{1.0}).Set_StrokeOvershootFraction(0.25f)
+        .Set_MaxStrokeOvershoot(25.0f).Set_RetargetFreezePhase(0.0f);
+    Solver.Get_Settings().Get_Cadence().Set_CycleDuration(FCk_Time{1.0});
+    Solver.Get_Settings().Get_Swing().Set_Height(40.0f).Set_ObstacleClearance(10.0f).Set_ToePitchDegrees(30.0f);
     const auto Plants = TArray<FVector>{FVector{}};
     TestTrue(TEXT("Initialize one leg"), Solver.Reset(Plants));
     auto Inputs = TArray<ck::FProceduralGaitLegInput>{};

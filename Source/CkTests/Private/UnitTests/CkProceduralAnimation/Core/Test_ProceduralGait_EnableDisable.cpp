@@ -85,7 +85,7 @@ namespace ck_test_procedural_gait_enable_disable
             FGaitHarness& InOutHarness)
         -> void
     {
-        InOutHarness.Solver.Get_Settings().Set_PatternBlendTime(LegLossBlendTime);
+        InOutHarness.Solver.Get_Settings().Get_Pattern().Set_BlendTime(LegLossBlendTime);
         InitQuadruped(InOutHarness, {0.0f, 0.5f, 0.0f, 0.5f});
     }
 
@@ -141,7 +141,7 @@ namespace ck_test_procedural_gait_enable_disable
             FGaitHarness& InOutHarness)
         -> bool
     {
-        InOutHarness.Solver.Get_Settings().Set_LegLossPolicy(ck::EProceduralGaitLegLossPolicy::RedistributeOffsets);
+        InOutHarness.Solver.Get_Settings().Get_Pattern().Set_LegLossPolicy(ck::EProceduralGaitLegLossPolicy::RedistributeOffsets);
         InitTrotQuadruped(InOutHarness);
         if (NOT Walk(InOutHarness, WalkBeforeLoss))
         {
@@ -198,7 +198,7 @@ auto
     auto PlantsBefore = TArray<FVector>{};
     for (auto Leg = 0; Leg < H.Solver.NumLegs(); ++Leg)
     {
-        PlantsBefore.Add(H.Solver.GetLegState(Leg).Get_PlantedPosition());
+        PlantsBefore.Add(H.Solver.GetLegState(Leg).Get_Plant().Get_Position());
     }
 
     constexpr auto Disabled = false;
@@ -220,10 +220,10 @@ auto
             continue;
         }
         TestTrue(FString::Printf(TEXT("Leg %d's plant does not pop when leg 1 is disabled"), Leg),
-            H.Solver.GetLegState(Leg).Get_PlantedPosition().Equals(PlantsBefore[Leg], 1.0e-3f));
+            H.Solver.GetLegState(Leg).Get_Plant().Get_Position().Equals(PlantsBefore[Leg], 1.0e-3f));
     }
 
-    const auto TwoCycleFrames = FMath::CeilToInt32(H.Solver.Get_Settings().Get_CycleDuration() * 2.0f / FrameDt);
+    const auto TwoCycleFrames = FMath::CeilToInt32(H.Solver.Get_Settings().Get_Cadence().Get_CycleDuration() * 2.0f / FrameDt);
     for (auto Frame = 0; Frame < TwoCycleFrames; ++Frame)
     {
         H.Tick(FrameDt);
@@ -260,14 +260,14 @@ auto
 
     constexpr auto Disabled = false;
     H.Inputs[FrozenLeg].Set_Enabled(Disabled);
-    const auto OneCycleFrames = FMath::CeilToInt32(H.Solver.Get_Settings().Get_CycleDuration() / FrameDt);
+    const auto OneCycleFrames = FMath::CeilToInt32(H.Solver.Get_Settings().Get_Cadence().Get_CycleDuration() / FrameDt);
     for (auto Frame = 0; Frame < OneCycleFrames; ++Frame)
     {
         H.Tick(FrameDt);
     }
 
     const auto FrozenPosition = H.Outputs[FrozenLeg].Get_Position();
-    const auto StepThreshold = H.Solver.Get_Settings().Get_StepThreshold();
+    const auto StepThreshold = H.Solver.Get_Settings().Get_Step().Get_Threshold();
     TestTrue(TEXT("A cycle of walking leaves the ideal target beyond a step threshold of the frozen pose"),
         FVector::Dist(FrozenPosition, H.Inputs[FrozenLeg].Get_IdealTarget()) > StepThreshold);
 
@@ -277,10 +277,10 @@ auto
 
     const auto Displacement = FVector::Dist(H.Outputs[FrozenLeg].Get_Position(), FrozenPosition);
     TestTrue(FString::Printf(TEXT("The re-enabled leg does not teleport (moved %.2f)"), Displacement),
-        Displacement < H.Solver.Get_Settings().Get_StepHeight());
+        Displacement < H.Solver.Get_Settings().Get_Swing().Get_Height());
     TestTrue(TEXT("The re-enabled leg starts a swing"), H.Outputs[FrozenLeg].Get_SwingAlpha() > 0.0f);
 
-    const auto LandingBudgetFrames = FMath::CeilToInt32(H.Solver.Get_Settings().Get_StepDuration() * 1.5f / FrameDt);
+    const auto LandingBudgetFrames = FMath::CeilToInt32(H.Solver.Get_Settings().Get_Step().Get_Duration() * 1.5f / FrameDt);
     auto Landed = false;
     for (auto Frame = 1; Frame < LandingBudgetFrames; ++Frame)
     {
@@ -319,7 +319,7 @@ auto
     using namespace ck_test_procedural_gait_enable_disable;
 
     auto Solver = ck::FProceduralGaitSolver{};
-    Solver.Get_Settings().Set_MaxSimultaneousSwings(1).Set_SwingWindow(1.0f);
+    Solver.Get_Settings().Get_Cadence().Set_MaxSimultaneousSwings(1).Set_SwingWindow(1.0f);
     Solver.Reset({FVector::ZeroVector, FVector::ZeroVector, FVector::ZeroVector});
 
     auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
@@ -328,7 +328,7 @@ auto
     Outputs.SetNum(3);
     for (auto& In : Inputs)
     {
-        In.Set_IdealTarget(FVector{Solver.Get_Settings().Get_StepThreshold() * 1.3f, 0.0, 0.0});
+        In.Set_IdealTarget(FVector{Solver.Get_Settings().Get_Step().Get_Threshold() * 1.3f, 0.0, 0.0});
     }
 
     Solver.Step(FrameDt, 100.0f, FVector::ZeroVector, Inputs, Outputs);
@@ -346,7 +346,7 @@ auto
     TestTrue(TEXT("Another leg lifts on the step that disables the swinging leg"),
         NOT Outputs[1].Get_Planted() || NOT Outputs[2].Get_Planted());
 
-    const auto OneCycleFrames = FMath::CeilToInt32(Solver.Get_Settings().Get_CycleDuration() / FrameDt);
+    const auto OneCycleFrames = FMath::CeilToInt32(Solver.Get_Settings().Get_Cadence().Get_CycleDuration() / FrameDt);
     auto OtherLegSwung = false;
     for (auto Frame = 0; Frame < OneCycleFrames && NOT OtherLegSwung; ++Frame)
     {
@@ -435,7 +435,7 @@ auto
     const auto Pattern = ck::FProceduralGaitPattern{}.Set_MinSpeed(0.0f).Set_PhaseOffsets({0.0f, 0.5f, 0.25f, 0.75f});
 
     auto H = FGaitHarness{};
-    H.Solver.Get_Settings().Set_Patterns({Pattern});
+    H.Solver.Get_Settings().Get_Pattern().Set_Patterns({Pattern});
     InitQuadruped(H);
 
     H.Tick(FrameDt);
@@ -455,7 +455,7 @@ auto
         H.Solver.RequestStep(1, H.Inputs[1].Get_IdealTarget()));
 
     auto Redistributing = FGaitHarness{};
-    Redistributing.Solver.Get_Settings()
+    Redistributing.Solver.Get_Settings().Get_Pattern()
         .Set_Patterns({Pattern})
         .Set_LegLossPolicy(ck::EProceduralGaitLegLossPolicy::RedistributeOffsets);
     InitQuadruped(Redistributing);
@@ -464,7 +464,7 @@ auto
     const auto PatternIndexBefore = Redistributing.Solver.GetCurrentPatternIndex();
 
     Redistributing.Inputs[1].Set_Enabled(Disabled);
-    const auto BlendFrames = FramesIn(Redistributing.Solver.Get_Settings().Get_PatternBlendTime()) + 2;
+    const auto BlendFrames = FramesIn(Redistributing.Solver.Get_Settings().Get_Pattern().Get_BlendTime()) + 2;
     for (auto Frame = 0; Frame < BlendFrames; ++Frame)
     {
         Redistributing.Tick(FrameDt);
@@ -500,7 +500,7 @@ auto
     using namespace ck_test_procedural_gait_enable_disable;
 
     auto H = FGaitHarness{};
-    H.Solver.Get_Settings().Set_LegLossPolicy(ck::EProceduralGaitLegLossPolicy::RedistributeOffsets);
+    H.Solver.Get_Settings().Get_Pattern().Set_LegLossPolicy(ck::EProceduralGaitLegLossPolicy::RedistributeOffsets);
     InitTrotQuadruped(H);
 
     if (NOT TestTrue(TEXT("The solver accepts the RedistributeOffsets policy"), Walk(H, WalkBeforeLoss)))
@@ -579,7 +579,7 @@ auto
     auto H = FGaitHarness{};
     InitTrotQuadruped(H);
     TestTrue(TEXT("KeepAuthoredOffsets is the default leg-loss policy"),
-        H.Solver.Get_Settings().Get_LegLossPolicy() == ck::EProceduralGaitLegLossPolicy::KeepAuthoredOffsets);
+        H.Solver.Get_Settings().Get_Pattern().Get_LegLossPolicy() == ck::EProceduralGaitLegLossPolicy::KeepAuthoredOffsets);
 
     if (NOT TestTrue(TEXT("The walk before the loss is accepted"), Walk(H, WalkBeforeLoss)))
     {
@@ -652,10 +652,10 @@ auto
     const auto& Settings = H.Solver.Get_Settings();
     TestTrue(TEXT("The disabled leg holds its frozen pose while airborne"),
         H.Outputs[FrozenLeg].Get_Position().Equals(Frozen, 1.0e-3f));
-    const auto StaleAirDistance = FVector::Dist(H.Solver.GetLegState(FrozenLeg).Get_AirPosition(), Frozen);
+    const auto StaleAirDistance = FVector::Dist(H.Solver.GetLegState(FrozenLeg).Get_Emitted().Get_AirPosition(), Frozen);
     if (NOT TestTrue(FString::Printf(TEXT("The disabled leg's stored air pose is stale (%.2f from the frozen pose)"),
             StaleAirDistance),
-        StaleAirDistance > Settings.Get_StepHeight()))
+        StaleAirDistance > Settings.Get_Swing().Get_Height()))
     {
         return false;
     }
@@ -666,9 +666,9 @@ auto
 
     const auto EnableDisplacement = FVector::Dist(H.Outputs[FrozenLeg].Get_Position(), Frozen);
     TestTrue(FString::Printf(TEXT("The leg re-enabled mid-air starts from its frozen pose (moved %.2f)"), EnableDisplacement),
-        EnableDisplacement < Settings.Get_StepHeight());
+        EnableDisplacement < Settings.Get_Swing().Get_Height());
 
-    const auto TuckTarget = H.Inputs[FrozenLeg].Get_IdealTarget() + FVector{0.0, 0.0, Settings.Get_AirborneTuckLift()};
+    const auto TuckTarget = H.Inputs[FrozenLeg].Get_IdealTarget() + FVector{0.0, 0.0, Settings.Get_Airborne().Get_TuckLift()};
     auto PreviousDistance = FVector::Dist(H.Outputs[FrozenLeg].Get_Position(), TuckTarget);
     for (auto Frame = 0; Frame < AirborneFramesAfterEnable; ++Frame)
     {
@@ -796,7 +796,7 @@ auto
     const auto FrozenPosition = H.Outputs[LostLeg].Get_Position();
 
     auto Settings = H.Solver.Get_Settings();
-    Settings.Set_LegLossPolicy(ck::EProceduralGaitLegLossPolicy::KeepAuthoredOffsets);
+    Settings.Get_Pattern().Set_LegLossPolicy(ck::EProceduralGaitLegLossPolicy::KeepAuthoredOffsets);
     H.Solver.Set_Settings(Settings);
 
     if (NOT TestTrue(TEXT("The first step after the policy flip is accepted"), H.Tick(FrameDt)))
@@ -871,11 +871,11 @@ auto
         H.Solver.SetDisabledPose(EnabledLeg, MovedPosition, MovedRotation, MovedNormal));
     const auto& EnabledAfter = H.Solver.GetLegState(EnabledLeg);
     TestTrue(TEXT("A refused SetDisabledPose leaves the enabled leg's current pose unchanged"),
-        EnabledAfter.Get_CurrentPosition().Equals(EnabledBefore.Get_CurrentPosition(), 0.0f)
-        && EnabledAfter.Get_CurrentRotation().Equals(EnabledBefore.Get_CurrentRotation(), 0.0f));
+        EnabledAfter.Get_Emitted().Get_Position().Equals(EnabledBefore.Get_Emitted().Get_Position(), 0.0f)
+        && EnabledAfter.Get_Emitted().Get_Rotation().Equals(EnabledBefore.Get_Emitted().Get_Rotation(), 0.0f));
     TestTrue(TEXT("A refused SetDisabledPose leaves the enabled leg's planted pose unchanged"),
-        EnabledAfter.Get_PlantedPosition().Equals(EnabledBefore.Get_PlantedPosition(), 0.0f)
-        && EnabledAfter.Get_PlantedNormal().Equals(EnabledBefore.Get_PlantedNormal(), 0.0f));
+        EnabledAfter.Get_Plant().Get_Position().Equals(EnabledBefore.Get_Plant().Get_Position(), 0.0f)
+        && EnabledAfter.Get_Plant().Get_Normal().Equals(EnabledBefore.Get_Plant().Get_Normal(), 0.0f));
     TestFalse(TEXT("SetDisabledPose on an out-of-range leg is refused"),
         H.Solver.SetDisabledPose(H.Solver.NumLegs(), MovedPosition, MovedRotation, MovedNormal));
 
@@ -898,7 +898,7 @@ auto
 
     const auto Displacement = FVector::Dist(H.Outputs[FrozenLeg].Get_Position(), MovedPosition);
     TestTrue(FString::Printf(TEXT("The re-enabled leg starts from the set pose (moved %.2f)"), Displacement),
-        Displacement < H.Solver.Get_Settings().Get_StepHeight());
+        Displacement < H.Solver.Get_Settings().Get_Swing().Get_Height());
 
     return true;
 }

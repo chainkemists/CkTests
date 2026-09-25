@@ -203,7 +203,7 @@ auto
     H.Init({FVector{30.0, 0.0, 0.0}}, {0.0f});
     H.BodyVelocity = FVector{100.0, 0.0, 0.0};
 
-    H.Solver.Get_Settings().Set_StrokeOvershootFraction(0.0f);
+    H.Solver.Get_Settings().Get_Step().Set_StrokeOvershootFraction(0.0f);
 
     auto SwingStartFrame = int32{INDEX_NONE};
     for (auto Frame = 0; Frame < 120; ++Frame)
@@ -220,7 +220,7 @@ auto
         return false;
     }
 
-    const auto MaxSwingFrames = FMath::CeilToInt32(H.Solver.Get_Settings().Get_StepDuration() / FrameDt) + 2;
+    const auto MaxSwingFrames = FMath::CeilToInt32(H.Solver.Get_Settings().Get_Step().Get_Duration() / FrameDt) + 2;
     for (auto Frame = 0; Frame < MaxSwingFrames; ++Frame)
     {
         H.Tick(FrameDt);
@@ -304,12 +304,12 @@ auto
     auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
     Outputs.SetNum(1);
 
-    Inputs[0].Set_IdealTarget(FVector{Solver.Get_Settings().Get_StepThreshold() * 1.2f, 0.0, 0.0});
+    Inputs[0].Set_IdealTarget(FVector{Solver.Get_Settings().Get_Step().Get_Threshold() * 1.2f, 0.0, 0.0});
     Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
     TestTrue(TEXT("Sub-emergency error waits for its window"), Outputs[0].Get_Planted());
 
     Inputs[0].Set_IdealTarget(FVector{
-        Solver.Get_Settings().Get_StepThreshold() * Solver.Get_Settings().Get_EmergencyStepFactor() * 1.1f, 0.0, 0.0});
+        Solver.Get_Settings().Get_Step().Get_Threshold() * Solver.Get_Settings().Get_Step().Get_EmergencyFactor() * 1.1f, 0.0, 0.0});
     Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
     TestFalse(TEXT("Emergency error steps through a closed window"), Outputs[0].Get_Planted());
 
@@ -367,7 +367,7 @@ auto
     using namespace ck_test_procedural_gait_solver;
 
     auto Solver = ck::FProceduralGaitSolver{};
-    Solver.Get_Settings().Set_MaxSimultaneousSwings(1).Set_SwingWindow(1.0f);
+    Solver.Get_Settings().Get_Cadence().Set_MaxSimultaneousSwings(1).Set_SwingWindow(1.0f);
     Solver.Reset({FVector::ZeroVector, FVector::ZeroVector, FVector::ZeroVector});
 
     auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
@@ -376,7 +376,7 @@ auto
     Outputs.SetNum(3);
     for (auto& In : Inputs)
     {
-        In.Set_IdealTarget(FVector{Solver.Get_Settings().Get_StepThreshold() * 1.3f, 0.0, 0.0});
+        In.Set_IdealTarget(FVector{Solver.Get_Settings().Get_Step().Get_Threshold() * 1.3f, 0.0, 0.0});
     }
 
     Solver.Step(FrameDt, 100.0f, FVector::ZeroVector, Inputs, Outputs);
@@ -413,7 +413,7 @@ auto
     const auto ClockAfterOneStep = [&Inputs, &Outputs](float InCadenceSpeedRef, float InSpeed) -> float
     {
         auto Solver = ck::FProceduralGaitSolver{};
-        Solver.Get_Settings().Set_CadenceSpeedRef(InCadenceSpeedRef);
+        Solver.Get_Settings().Get_Cadence().Set_CadenceSpeedRef(InCadenceSpeedRef);
         Solver.Reset({FVector::ZeroVector});
         Solver.Step(FrameDt, InSpeed, FVector::ZeroVector, Inputs, Outputs);
         return Solver.GetGaitClock();
@@ -541,10 +541,10 @@ auto
     auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
     Outputs.SetNum(1);
 
-    const auto Ideal = FVector{Solver.Get_Settings().Get_StepThreshold() * 0.5f, 0.0, 0.0};
+    const auto Ideal = FVector{Solver.Get_Settings().Get_Step().Get_Threshold() * 0.5f, 0.0, 0.0};
     Inputs[0].Set_IdealTarget(Ideal);
 
-    const auto DelayFrames = FMath::CeilToInt32(Solver.Get_Settings().Get_SettleDelay() / FrameDt);
+    const auto DelayFrames = FMath::CeilToInt32(Solver.Get_Settings().Get_Settle().Get_Delay() / FrameDt);
     for (auto Frame = 0; Frame < DelayFrames - 2; ++Frame)
     {
         Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
@@ -557,7 +557,7 @@ auto
 
     auto SawSwing = false;
     const auto MaxFrames = FMath::CeilToInt32(
-        (Solver.Get_Settings().Get_SettleDelay() + Solver.Get_Settings().Get_StepDuration()) / FrameDt) + 10;
+        (Solver.Get_Settings().Get_Settle().Get_Delay() + Solver.Get_Settings().Get_Step().Get_Duration()) / FrameDt) + 10;
     for (auto Frame = 0; Frame < MaxFrames; ++Frame)
     {
         Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
@@ -617,13 +617,13 @@ auto
         }
     }
     const auto ExpectedTuck = H.Inputs[0].Get_IdealTarget()
-        + FVector{0.0, 0.0, H.Solver.Get_Settings().Get_AirborneTuckLift()};
+        + FVector{0.0, 0.0, H.Solver.Get_Settings().Get_Airborne().Get_TuckLift()};
     TestTrue(FString::Printf(TEXT("Airborne foot converged on the tuck hold (at %s, expected %s)"),
             *H.Outputs[0].Get_Position().ToCompactString(), *ExpectedTuck.ToCompactString()),
         H.Outputs[0].Get_Position().Equals(ExpectedTuck, 2.0f));
 
     const auto MaxLandingFrames = FMath::CeilToInt32(
-        H.Solver.Get_Settings().Get_StepDuration() * H.Solver.Get_Settings().Get_LandingStepDurationScale() / FrameDt) + 3;
+        H.Solver.Get_Settings().Get_Step().Get_Duration() * H.Solver.Get_Settings().Get_Airborne().Get_LandingStepDurationScale() / FrameDt) + 3;
     constexpr auto Grounded = false;
     auto LandedFrame = int32{INDEX_NONE};
     for (auto Frame = 0; Frame < MaxLandingFrames; ++Frame)
@@ -673,7 +673,7 @@ auto
         Walk.Set_MinSpeed(0.0f).Set_PhaseOffsets({0.0f, 0.5f});
         auto Pace = ck::FProceduralGaitPattern{};
         Pace.Set_MinSpeed(200.0f).Set_PhaseOffsets({0.0f, 0.25f}).Set_CycleDurationScale(0.75f);
-        Solver.Get_Settings().Set_Patterns({Walk, Pace});
+        Solver.Get_Settings().Get_Pattern().Set_Patterns({Walk, Pace});
     }
     Solver.Reset({FVector{30.0, 20.0, 0.0}, FVector{30.0, -20.0, 0.0}});
 
@@ -698,7 +698,7 @@ auto
         FMath::IsNearlyEqual(Solver.GetEffectivePhaseOffset(1), 0.5f, KINDA_SMALL_NUMBER));
 
     auto Previous = Solver.GetEffectivePhaseOffset(1);
-    const auto BlendFrames = FMath::CeilToInt32(Solver.Get_Settings().Get_PatternBlendTime() / FrameDt) + 10;
+    const auto BlendFrames = FMath::CeilToInt32(Solver.Get_Settings().Get_Pattern().Get_BlendTime() / FrameDt) + 10;
     for (auto Frame = 0; Frame < BlendFrames; ++Frame)
     {
         TickAt(300.0f);
@@ -762,7 +762,7 @@ auto
     const auto Facing = FVector{0.0, 1.0, 0.0};
     Inputs[0].Set_IdealTarget(FVector{200.0, 0.0, 0.0}).Set_GroundNormal(SlopeNormal).Set_FacingDirection(Facing);
 
-    const auto SwingFrames = FMath::CeilToInt32(Solver.Get_Settings().Get_StepDuration() / FrameDt) + 3;
+    const auto SwingFrames = FMath::CeilToInt32(Solver.Get_Settings().Get_Step().Get_Duration() / FrameDt) + 3;
     for (auto Frame = 0; Frame < SwingFrames; ++Frame)
     {
         Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
@@ -806,7 +806,7 @@ auto
     const auto LandingXForFraction = [](float InFraction, float InMaxOvershoot) -> double
     {
         auto Solver = ck::FProceduralGaitSolver{};
-        Solver.Get_Settings().Set_StrokeOvershootFraction(InFraction).Set_MaxStrokeOvershoot(InMaxOvershoot);
+        Solver.Get_Settings().Get_Step().Set_StrokeOvershootFraction(InFraction).Set_MaxStrokeOvershoot(InMaxOvershoot);
         Solver.Reset({FVector::ZeroVector});
 
         auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
@@ -815,7 +815,7 @@ auto
         Outputs.SetNum(1);
         Inputs[0].Set_IdealTarget(FVector{100.0, 0.0, 0.0});
 
-        const auto Frames = FMath::CeilToInt32(Solver.Get_Settings().Get_StepDuration() / FrameDt) + 3;
+        const auto Frames = FMath::CeilToInt32(Solver.Get_Settings().Get_Step().Get_Duration() / FrameDt) + 3;
         for (auto Frame = 0; Frame < Frames; ++Frame)
         {
             Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
@@ -837,7 +837,7 @@ auto
 
     {
         auto Solver = ck::FProceduralGaitSolver{};
-        Solver.Get_Settings().Set_StrokeOvershootFraction(0.5f);
+        Solver.Get_Settings().Get_Step().Set_StrokeOvershootFraction(0.5f);
         Solver.Reset({FVector::ZeroVector});
 
         auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
@@ -845,11 +845,11 @@ auto
         auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
         Outputs.SetNum(1);
 
-        const auto Home = FVector{Solver.Get_Settings().Get_StepThreshold() * 0.5f, 0.0, 0.0};
+        const auto Home = FVector{Solver.Get_Settings().Get_Step().Get_Threshold() * 0.5f, 0.0, 0.0};
         Inputs[0].Set_IdealTarget(Home);
 
         const auto Frames = FMath::CeilToInt32(
-            (Solver.Get_Settings().Get_SettleDelay() + Solver.Get_Settings().Get_StepDuration()) / FrameDt) + 10;
+            (Solver.Get_Settings().Get_Settle().Get_Delay() + Solver.Get_Settings().Get_Step().Get_Duration()) / FrameDt) + 10;
         auto SawSwing = false;
         for (auto Frame = 0; Frame < Frames; ++Frame)
         {
@@ -890,13 +890,14 @@ auto
     {
         constexpr auto SettleAtRest = false;
         auto Solver = ck::FProceduralGaitSolver{};
-        Solver.Get_Settings().Set_ScheduleAdvanceFraction(InAdvanceFraction).Set_SettleAtRest(SettleAtRest);
+        Solver.Get_Settings().Get_Schedule().Set_AdvanceFraction(InAdvanceFraction);
+        Solver.Get_Settings().Get_Settle().Set_AtRest(SettleAtRest);
         Solver.Reset({FVector::ZeroVector});
 
         auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
         Inputs.SetNum(1);
         Inputs[0].Set_PhaseOffset(ClosedPhaseOffset)
-            .Set_IdealTarget(FVector{Solver.Get_Settings().Get_StepThreshold() * InErrorFactor, 0.0, 0.0});
+            .Set_IdealTarget(FVector{Solver.Get_Settings().Get_Step().Get_Threshold() * InErrorFactor, 0.0, 0.0});
         auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
         Outputs.SetNum(1);
 
@@ -932,7 +933,7 @@ auto
 
     {
         auto Solver = ck::FProceduralGaitSolver{};
-        Solver.Get_Settings().Set_SwingWindow(1.0f);
+        Solver.Get_Settings().Get_Cadence().Set_SwingWindow(1.0f);
         Solver.Reset({FVector::ZeroVector, FVector::ZeroVector});
 
         auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
