@@ -28,7 +28,7 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
         auto Body = utils_transform::Add(Entity, FTransform(_Origin), ECk_Replication::DoesNotReplicate);
         _Body = Body;
 
-        auto ShortReach = FCk_Fragment_SurfaceMotion_ParamsData();
+        auto ShortReach = FCk_SurfaceMotion_Spec();
         auto Contact = FCk_SurfaceMotion_Contact();
         Contact.Set_Clearance(65.0f);
         Contact.Set_ProbeReach(65.0f);
@@ -36,7 +36,7 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
         auto EnsuresBefore = utils_ensure::Get_EnsureCount();
         AssertRejected(utils_surface_motion::Add(Body, ShortReach), EnsuresBefore, false, "Probe reach at the clearance");
 
-        auto Stationary = FCk_Fragment_SurfaceMotion_ParamsData();
+        auto Stationary = FCk_SurfaceMotion_Spec();
         auto StationaryMovement = FCk_SurfaceMotion_Movement();
         StationaryMovement.Set_MaxSpeed(0.0f);
         Stationary.Set_Movement(StationaryMovement);
@@ -44,7 +44,7 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
         AssertRejected(utils_surface_motion::Add(Body, Stationary), EnsuresBefore, false, "Zero max speed");
 
         auto NaN = Math::Sqrt(-1.0);
-        auto BrokenGravity = FCk_Fragment_SurfaceMotion_ParamsData();
+        auto BrokenGravity = FCk_SurfaceMotion_Spec();
         auto BrokenMovement = FCk_SurfaceMotion_Movement();
         BrokenMovement.Set_Gravity(FVector(0.0, 0.0, NaN));
         BrokenGravity.Set_Movement(BrokenMovement);
@@ -53,12 +53,12 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
         AssertRejected(utils_surface_motion::Add(Body, BrokenGravity), EnsuresBefore, false, "NaN gravity");
 
         EnsuresBefore = utils_ensure::Get_EnsureCount();
-        auto Motion = utils_surface_motion::Add(Body, FCk_Fragment_SurfaceMotion_ParamsData());
+        auto Motion = utils_surface_motion::Add(Body, FCk_SurfaceMotion_Spec());
         Assert_True(ck::IsValid(Motion) && HasMotion(Body), "Positive control: default parameters are admitted");
         Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 0, "Positive control: no ensure fires");
 
         EnsuresBefore = utils_ensure::Get_EnsureCount();
-        AssertRejected(utils_surface_motion::Add(Body, FCk_Fragment_SurfaceMotion_ParamsData()), EnsuresBefore, true,
+        AssertRejected(utils_surface_motion::Add(Body, FCk_SurfaceMotion_Spec()), EnsuresBefore, true,
             "Duplicate add");
 
         // Three frames let the surface-motion processors run over the surviving feature.

@@ -179,7 +179,7 @@ namespace ck_test_procedural_animation_debugger_pie
         MakePendingRig()
         -> UCk_ProceduralRig_Data*
     {
-        auto Legs = TArray<FCk_Fragment_ProceduralLeg_ParamsData>{};
+        auto Legs = TArray<FCk_ProceduralLeg_Spec>{};
         for (auto Index = 0; Index < PendingLegCount; ++Index)
         {
             auto Placement = FCk_ProceduralLeg_Placement{FVector::ZeroVector, FVector{20.0, Index == 0 ? -40.0 : 40.0, -65.0}};
