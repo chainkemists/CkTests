@@ -22,7 +22,7 @@ class UCk_AutoTest_ProceduralAnimation_WalkerAdmissionRejects : UCk_AutoTest_Bas
         {
             Segments.Add(CreateTransform(InBody, _Origin + FVector(0.0, 0.0, -10.0 * Index)));
         }
-        auto Chain = FCk_Fragment_ProceduralRig_ParamsData();
+        auto Chain = FCk_ProceduralRig_Spec();
         Chain.Set_Segments(Segments);
         return FCk_ProceduralWalker_LegChain(InLegId, Chain);
     }

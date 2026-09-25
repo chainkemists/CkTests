@@ -25,9 +25,9 @@ class UCk_AutoTest_ProceduralAnimation_LegAndRigAdmissionRejects : UCk_AutoTest_
         return Part;
     }
 
-    FCk_Fragment_ProceduralRig_ParamsData MakeChain(TArray<FCk_Handle_Transform> InSegments)
+    FCk_ProceduralRig_Spec MakeChain(TArray<FCk_Handle_Transform> InSegments)
     {
-        auto Chain = FCk_Fragment_ProceduralRig_ParamsData();
+        auto Chain = FCk_ProceduralRig_Spec();
         Chain.Set_Segments(InSegments);
         return Chain;
     }

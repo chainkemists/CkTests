@@ -20,12 +20,12 @@ class UCk_AutoTest_ProceduralAnimation_AdmissionAndRequestLifetime : UCk_AutoTes
         return utils_transform::Add(Entity, FTransform(InPosition), ECk_Replication::DoesNotReplicate);
     }
 
-    FCk_Fragment_ProceduralRig_ParamsData MakeChain(FCk_Handle_Transform InUpper, FCk_Handle_Transform InLower)
+    FCk_ProceduralRig_Spec MakeChain(FCk_Handle_Transform InUpper, FCk_Handle_Transform InLower)
     {
         auto Segments = TArray<FCk_Handle_Transform>();
         Segments.Add(InUpper);
         Segments.Add(InLower);
-        auto Chain = FCk_Fragment_ProceduralRig_ParamsData();
+        auto Chain = FCk_ProceduralRig_Spec();
         Chain.Set_Segments(Segments);
         return Chain;
     }
@@ -78,10 +78,10 @@ class UCk_AutoTest_ProceduralAnimation_AdmissionAndRequestLifetime : UCk_AutoTes
         Assert_True(ck::Is_NOT_Valid(DuplicateRig) && utils_procedural_rig::DoCast(Leg).IsSet(),
             "Duplicate admission rejects the new feature while preserving the existing rig");
 
-        auto Motion = utils_surface_motion::Add(Root, FCk_Fragment_SurfaceMotion_ParamsData());
+        auto Motion = utils_surface_motion::Add(Root, FCk_SurfaceMotion_Spec());
         auto SurvivorRoot = CreateTransform(InHandle, FVector(125000.0, 50000.0, 1000.0));
         _SurvivorRoot = SurvivorRoot;
-        _SurvivorMotion = utils_surface_motion::Add(SurvivorRoot, FCk_Fragment_SurfaceMotion_ParamsData());
+        _SurvivorMotion = utils_surface_motion::Add(SurvivorRoot, FCk_SurfaceMotion_Spec());
         Assert_True(ck::IsValid(Motion) && ck::IsValid(_SurvivorMotion), "Both request targets have a surface-motion feature");
 
         // These two calls occur on the same stack before the request processor can drain.

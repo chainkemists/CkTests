@@ -31,7 +31,7 @@ class UCk_AutoTest_ProceduralAnimation_SteeringRequestRejects : UCk_AutoTest_Bas
         Entity.Request_OverrideToSelf();
         auto Body = utils_transform::Add(Entity, FTransform(_Origin), ECk_Replication::DoesNotReplicate);
         _Body = Body;
-        auto Motion = utils_surface_motion::Add(Body, FCk_Fragment_SurfaceMotion_ParamsData());
+        auto Motion = utils_surface_motion::Add(Body, FCk_SurfaceMotion_Spec());
         Assert_True(ck::IsValid(Motion), "Precondition: the body has surface motion");
 
         auto NaN = Math::Sqrt(-1.0);

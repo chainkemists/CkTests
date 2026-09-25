@@ -70,7 +70,7 @@ namespace ck_procedural_gym
         return FVector(InLengths[InSegmentIndex] * 0.5, Thickness, Thickness);
     }
 
-    FCk_Fragment_SurfaceMotion_ParamsData MakeMotionParams()
+    FCk_SurfaceMotion_Spec MakeMotionParams()
     {
         auto Contact = FCk_SurfaceMotion_Contact();
         Contact.Set_Clearance(65.0f);
@@ -80,7 +80,7 @@ namespace ck_procedural_gym
         Movement.Set_MaxSpeed(180.0f);
         Movement.Set_SurfaceTurnRate(240.0f);
 
-        auto Params = FCk_Fragment_SurfaceMotion_ParamsData();
+        auto Params = FCk_SurfaceMotion_Spec();
         Params.Set_Contact(Contact);
         Params.Set_Movement(Movement);
         return Params;
@@ -598,7 +598,7 @@ struct FCkProceduralAnimationGym_Fixture
             auto Renderer = GetOrCreate_Renderer(InColor);
             if (ck::IsValid(Renderer))
             {
-                auto Params = FCk_Fragment_IsmProxy_ParamsData(Renderer);
+                auto Params = FCk_IsmProxy_Spec(Renderer);
                 // Engine cube: 100cm side / 50cm half-extent. Render scale belongs on the proxy,
                 // never the ECS root: gait/IK and Jolt use the unscaled transform in both modes.
                 Params.Set_ScaleMultiplier(InExtents / 50.0);
@@ -614,7 +614,7 @@ struct FCkProceduralAnimationGym_Fixture
         FCk_Handle Entity = AddVisual(SceneRoot, FTransform(InRotation, Spawn.Origin + InLocation), InHalfExtents, InColor);
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         Shape.Set_HalfExtents(InHalfExtents);
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Static);
         Params.Set_CollisionProfileName(n"BlockAll");
@@ -660,7 +660,7 @@ struct FCkProceduralAnimationGym_Fixture
     }
 
     FCk_ProceduralWalker_LegChain MakeLegChain(FCkProceduralAnimationGym_Crawler& InOutCrawler,
-        FCk_Fragment_ProceduralLeg_ParamsData InLeg)
+        FCk_ProceduralLeg_Spec InLeg)
     {
         auto Lengths = InLeg.Get_Chain().Get_SegmentLengths();
         auto Segments = TArray<FCk_Handle_Transform>();
@@ -676,7 +676,7 @@ struct FCkProceduralAnimationGym_Fixture
             FLinearColor(0.8, 0.9, 0.95, 1.0));
         InOutCrawler.Handles.VisibleFeet.Add(Foot);
 
-        auto RigParams = FCk_Fragment_ProceduralRig_ParamsData();
+        auto RigParams = FCk_ProceduralRig_Spec();
         RigParams.Set_Segments(Segments);
         RigParams.Set_Foot(Foot);
         return FCk_ProceduralWalker_LegChain(InLeg.Get_Id(), RigParams);
@@ -789,7 +789,7 @@ struct FCkProceduralAnimationGym_Fixture
 
             auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
             Shape.Set_HalfExtents(HalfExtents);
-            auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+            auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
             Params.Set_ShapeDimensions(Shape);
             Params.Set_MotionType(ECk_MotionType::Dynamic);
             Params.Set_MassSource(ECk_JoltBody_MassSource::Explicit);

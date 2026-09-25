@@ -23,7 +23,7 @@ namespace ck_procedural_gym_assets
         return Lengths;
     }
 
-    FCk_Fragment_ProceduralLeg_ParamsData MakeLeg(FName InId, FVector InHipLocal, FVector InRestFootLocal,
+    FCk_ProceduralLeg_Spec MakeLeg(FName InId, FVector InHipLocal, FVector InRestFootLocal,
         FVector InPoleLocal, float32 InPhaseOffset, int32 InSegmentCount)
     {
         auto Placement = FCk_ProceduralLeg_Placement(InHipLocal, InRestFootLocal);
@@ -33,10 +33,10 @@ namespace ck_procedural_gym_assets
         Chain.Set_SegmentLengths(MakeSegmentLengths(InSegmentCount));
         Chain.Set_PoleLocal(InPoleLocal);
 
-        return FCk_Fragment_ProceduralLeg_ParamsData(InId, Placement, Chain);
+        return FCk_ProceduralLeg_Spec(InId, Placement, Chain);
     }
 
-    FCk_Fragment_ProceduralLeg_ParamsData MakeRadialLeg(int32 InLegIndex, int32 InLegCount, int32 InSegmentCount)
+    FCk_ProceduralLeg_Spec MakeRadialLeg(int32 InLegIndex, int32 InLegCount, int32 InSegmentCount)
     {
         auto Angle = Math::DegreesToRadians(360.0 * (InLegIndex + 0.5) / InLegCount);
         auto Radial = FVector(Math::Cos(Angle), Math::Sin(Angle), 0.0);
@@ -45,9 +45,9 @@ namespace ck_procedural_gym_assets
             Radial * RestRadius + Drop, InLegIndex % 2 == 0 ? 0.0f : 0.5f, InSegmentCount);
     }
 
-    TArray<FCk_Fragment_ProceduralLeg_ParamsData> MakeRadialLegs(int32 InLegCount, int32 InSegmentCount)
+    TArray<FCk_ProceduralLeg_Spec> MakeRadialLegs(int32 InLegCount, int32 InSegmentCount)
     {
-        auto Legs = TArray<FCk_Fragment_ProceduralLeg_ParamsData>();
+        auto Legs = TArray<FCk_ProceduralLeg_Spec>();
         for (auto LegIndex = 0; LegIndex < InLegCount; LegIndex++)
         {
             Legs.Add(MakeRadialLeg(LegIndex, InLegCount, InSegmentCount));
@@ -56,7 +56,7 @@ namespace ck_procedural_gym_assets
     }
 
     // Two legs on the body's lateral axis, the layout the admission and buried-probe tests assert against.
-    FCk_Fragment_ProceduralLeg_ParamsData MakeSideLeg(int32 InLegIndex)
+    FCk_ProceduralLeg_Spec MakeSideLeg(int32 InLegIndex)
     {
         auto Side = InLegIndex == 0 ? -1.0 : 1.0;
         auto Drop = FVector(0.0, 0.0, RestDrop);
@@ -65,9 +65,9 @@ namespace ck_procedural_gym_assets
             InLegIndex == 0 ? 0.0f : 0.5f, 2);
     }
 
-    TArray<FCk_Fragment_ProceduralLeg_ParamsData> MakeSideLegs()
+    TArray<FCk_ProceduralLeg_Spec> MakeSideLegs()
     {
-        auto Legs = TArray<FCk_Fragment_ProceduralLeg_ParamsData>();
+        auto Legs = TArray<FCk_ProceduralLeg_Spec>();
         Legs.Add(MakeSideLeg(0));
         Legs.Add(MakeSideLeg(1));
         return Legs;
