@@ -410,16 +410,18 @@ auto
     auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
     Outputs.SetNum(1);
 
-    const auto ClockAfterOneStep = [&Inputs, &Outputs](float InCadenceSpeedRef, float InSpeed) -> float
+    const auto ClockAfterOneStep = [this, &Inputs, &Outputs](float InCadenceSpeedRef, float InSpeed) -> float
     {
         auto Solver = ck::FProceduralGaitSolver{};
         Solver.Get_Settings().Get_Cadence().Set_CadenceSpeedRef(InCadenceSpeedRef);
         Solver.Reset({FVector::ZeroVector});
-        Solver.Step(FrameDt, InSpeed, FVector::ZeroVector, Inputs, Outputs);
+        const auto Stepped = Solver.Step(FrameDt, InSpeed, FVector::ZeroVector, Inputs, Outputs);
+        TestTrue(TEXT("The solver accepts the cadence step"), Stepped);
         return Solver.GetGaitClock();
     };
 
     const auto BaseClock = ClockAfterOneStep(0.0f, 300.0f);
+    TestTrue(TEXT("Precondition: the authored cadence advances the clock"), BaseClock > 0.0f);
     TestEqual(TEXT("Feature off: cadence fixed regardless of speed"),
         ClockAfterOneStep(0.0f, 600.0f), BaseClock);
     TestEqual(TEXT("At reference speed: authored cadence"),
@@ -943,6 +945,7 @@ auto
         auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
         Outputs.SetNum(2);
 
+        auto SawSwing = false;
         for (auto Frame = 0; Frame < 200; ++Frame)
         {
             Solver.Step(FrameDt, 200.0f, FVector{200.0, 0.0, 0.0}, Inputs, Outputs);
@@ -952,7 +955,10 @@ auto
                     TEXT("Opposing phase groups swung together at frame %d — inhibition was bypassed"), Frame));
                 return false;
             }
+
+            SawSwing = SawSwing || NOT Outputs[0].Get_Planted() || NOT Outputs[1].Get_Planted();
         }
+        TestTrue(TEXT("At least one leg swung, so the inhibition check was exercised"), SawSwing);
     }
 
     return true;

@@ -25,6 +25,18 @@ class UCk_AutoTest_ProceduralAnimation_LegAndRigAdmissionRejects : UCk_AutoTest_
         return Part;
     }
 
+    FCk_ProceduralLeg_Spec MakeLegWithSegmentCount(FCk_ProceduralLeg_Spec InTemplate, int32 InSegmentCount)
+    {
+        auto Lengths = TArray<float32>();
+        for (auto Index = 0; Index < InSegmentCount; Index++)
+        {
+            Lengths.Add(40.0f);
+        }
+        auto Chain = InTemplate.Get_Chain();
+        Chain.Set_SegmentLengths(Lengths);
+        return FCk_ProceduralLeg_Spec(n"ParamsRejected", InTemplate.Get_Placement(), Chain);
+    }
+
     FCk_ProceduralRig_Spec MakeChain(TArray<FCk_Handle_Transform> InSegments)
     {
         auto Chain = FCk_ProceduralRig_Spec();
@@ -59,6 +71,18 @@ class UCk_AutoTest_ProceduralAnimation_LegAndRigAdmissionRejects : UCk_AutoTest_
         Assert_True(ck::IsValid(utils_procedural_leg::Create(LegBody, LegA)), "Positive control: the first leg is created");
         auto EnsuresBefore = utils_ensure::Get_EnsureCount();
         AssertLegRejected(utils_procedural_leg::Create(LegBody, LegA), LegBody, 1, EnsuresBefore, "Duplicate leg id");
+
+        auto NoIdLeg = FCk_ProceduralLeg_Spec(NAME_None, LegB.Get_Placement(), LegB.Get_Chain());
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertLegRejected(utils_procedural_leg::Create(LegBody, NoIdLeg), LegBody, 1, EnsuresBefore, "None leg id");
+
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertLegRejected(utils_procedural_leg::Create(LegBody, MakeLegWithSegmentCount(LegB, 0)), LegBody, 1, EnsuresBefore,
+            "Zero segment lengths");
+
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertLegRejected(utils_procedural_leg::Create(LegBody, MakeLegWithSegmentCount(LegB, 9)), LegBody, 1, EnsuresBefore,
+            "Nine segment lengths");
 
         auto GaitBody = CreateTransform(InHandle, _Origin + FVector(0.0, 400.0, 0.0));
         _Roots.Add(GaitBody);
@@ -181,6 +205,7 @@ class ACk_AutoTest_ProceduralAnimation_LegAndRigAdmissionRejects_Actor : ACk_Aut
     {
         auto Errors = TArray<FString>();
         Errors.Add("the Id is already used or the body already has 64 legs.");
+        Errors.Add("it needs an Id, a finite placement and 1..8 positive segment lengths.");
         Errors.Add("it must be a live transform entity that can own children and has no gait yet.");
         Errors.Add("The leg must be live with no rig; the chain needs 1..8 unique live segments");
         return Errors;

@@ -52,6 +52,18 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
         EnsuresBefore = utils_ensure::Get_EnsureCount();
         AssertRejected(utils_surface_motion::Add(Body, BrokenGravity), EnsuresBefore, false, "NaN gravity");
 
+        auto DyingEntity = utils_entity_lifetime::Request_CreateEntity(Owner);
+        DyingEntity.Request_OverrideToSelf();
+        auto DyingBody = utils_transform::Add(DyingEntity, FTransform(_Origin + FVector(0.0, -500.0, 0.0)),
+            ECk_Replication::DoesNotReplicate);
+        FCk_Handle DyingHandle = DyingBody;
+        utils_entity_lifetime::Request_DestroyEntity(DyingHandle);
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        auto DyingMotion = utils_surface_motion::Add(DyingBody, FCk_SurfaceMotion_Spec());
+        Assert_True(ck::Is_NOT_Valid(DyingMotion), "Body pending destruction: Add returns an invalid surface-motion handle");
+        Assert_False(HasMotion(DyingBody), "Body pending destruction: the body gets no surface motion");
+        Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 1, "Body pending destruction: exactly one ensure fires");
+
         EnsuresBefore = utils_ensure::Get_EnsureCount();
         auto Motion = utils_surface_motion::Add(Body, FCk_SurfaceMotion_Spec());
         Assert_True(ck::IsValid(Motion) && HasMotion(Body), "Positive control: default parameters are admitted");
