@@ -70,6 +70,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("PMG Shapes",         ACk_PmgShapesGym_GameMode,               "", "CkPmg");
         CkGym_Cycler::RegisterProjectGym("Probe",              ACk_ProbeGym_GameMode,                   "", "CkSpatialQuery");
         CkGym_Cycler::RegisterProjectGym("Projectiles & Lag Comp", ACk_ProjectileGym_GameMode,          "", "CkProjectile");
+        CkGym_Cycler::RegisterProjectGym("Procedural Animation Surface Traversal", ACk_ProceduralAnimationGym_GameMode, "", "CkProceduralAnimation");
         CkGym_Cycler::RegisterProjectGym("Render Target",      ACk_RenderTargetGym_GameMode,            "", "CkRenderTarget");
         CkGym_Cycler::RegisterProjectGym("Replication",        ACk_ReplicationGym_GameMode,             "", "CkEcs");
         CkGym_Cycler::RegisterProjectGym("Scene Node",         ACk_SceneNodeGym_GameMode,               "", "CkEcsExt");

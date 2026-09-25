@@ -69,6 +69,7 @@ public class CkTests : CkModuleRules
             "CkActorRelay",
             "CkAggro",
             "CkAnimation",
+            "CkProceduralAnimation",
             "CkAttribute",
             "CkAudio",
             "CkCamera",
@@ -183,6 +184,8 @@ public class CkTests : CkModuleRules
                 "CkAiDebugger",
                 // The GOAP Squad PIE fixture mounts the production authored table over a real planner roster.
                 "CkGoapDebugger",
+                // Procedural debugger tests mount the real window over the shared crawler gym fixture.
+                "CkProceduralAnimationDebugger",
                 // The Save debugger authored-navigation fixture opens an actual snapshot file through the
                 // editor debugger window; keep the diagnostic host editor-only.
                 "CkSaveDebugger",
