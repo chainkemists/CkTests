@@ -36,23 +36,23 @@ class UCk_AutoTest_ProceduralAnimation_WalksOnNonOriginFloor : UCk_AutoTest_Base
         Assert_Equals_Int(_Fixture.Crawlers.Num(), 3, "The fixture contains three distinct authored leg counts");
         for (auto Crawler : _Fixture.Crawlers)
         {
-            Assert_True(utils_surface_motion::Get_IsGrounded(Crawler.Motion), "The body found the actual Jolt floor");
-            Assert_True(Crawler.Get_ReplantedCount() == Crawler.LegCount,
+            Assert_True(utils_surface_motion::Get_IsGrounded(Crawler.Handles.Motion), "The body found the actual Jolt floor");
+            Assert_True(Crawler.Get_ReplantedCount() == Crawler.Layout.LegCount,
                 "Every leg completed a swing and acquired a trusted plant");
-            auto Position = utils_transform::Get_EntityCurrentLocation(Crawler.Root);
+            auto Position = utils_transform::Get_EntityCurrentLocation(Crawler.Handles.Root);
             Assert_Equals_Float(Position.Z, _Origin.Z + ck_procedural_gym::BodyClearance, 8.0,
                 "The body holds its authored ground clearance");
             auto Contacts = 0;
-            for (auto Index = 0; Index < Crawler.Legs.Num(); Index++)
+            for (auto Index = 0; Index < Crawler.Handles.Legs.Num(); Index++)
             {
-                auto Foot = utils_procedural_leg::Get_Foot(Crawler.Legs[Index]);
+                auto Foot = utils_procedural_leg::Get_Foot(Crawler.Handles.Legs[Index]);
                 if (Foot.Get_Planted() && Foot.Get_ContactTrusted())
                 {
                     Contacts++;
                     Assert_Equals_Float(Foot.Get_Position().Z, _Origin.Z, 3.0,
                         "Trusted planted feet touch Z=600 rather than a failed query's world origin");
                     Assert_True(Foot.Get_Normal().Z > 0.99, "The contact normal matches the actual floor");
-                    auto VisibleFoot = utils_transform::Get_EntityCurrentLocation(Crawler.VisibleFeet[Index]);
+                    auto VisibleFoot = utils_transform::Get_EntityCurrentLocation(Crawler.Handles.VisibleFeet[Index]);
                     Assert_Equals_Float(VisibleFoot.Z, _Origin.Z, 8.0,
                         "The real rig output moves the authored foot entity to the floor contact");
                 }

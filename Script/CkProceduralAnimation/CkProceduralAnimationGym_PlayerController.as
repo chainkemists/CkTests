@@ -102,14 +102,14 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
             for (auto CrawlerIndex = 0; CrawlerIndex < _Courses[CourseIndex].Crawlers.Num(); CrawlerIndex++)
             {
                 if (_Courses[CourseIndex].Crawlers[CrawlerIndex].SignalsBound ||
-                    ck::Is_NOT_Valid(_Courses[CourseIndex].Crawlers[CrawlerIndex].Gait))
+                    ck::Is_NOT_Valid(_Courses[CourseIndex].Crawlers[CrawlerIndex].Handles.Gait))
                 {
                     continue;
                 }
-                auto Gait = _Courses[CourseIndex].Crawlers[CrawlerIndex].Gait;
+                auto Gait = _Courses[CourseIndex].Crawlers[CrawlerIndex].Handles.Gait;
                 utils_procedural_gait::BindTo_OnLegSetChanged(Gait,
                     FCk_Delegate_ProceduralGait_OnLegSetChanged(this, n"OnLegSetChanged"));
-                for (auto Leg : _Courses[CourseIndex].Crawlers[CrawlerIndex].Legs)
+                for (auto Leg : _Courses[CourseIndex].Crawlers[CrawlerIndex].Handles.Legs)
                 {
                     auto BoundLeg = Leg;
                     utils_procedural_leg::BindTo_OnDetached(BoundLeg,
@@ -264,13 +264,13 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
             {
                 return f"FAILED: {_Courses[CourseIndex].CompositionError}";
             }
-            if (_Courses[CourseIndex].RenderFailed)
+            if (_Courses[CourseIndex].Rendering.RenderFailed)
             {
                 return "FAILED: solid renderer or master material unavailable";
             }
             for (auto Crawler : _Courses[CourseIndex].Crawlers)
             {
-                if (Crawler.InvalidOutput)
+                if (Crawler.Evidence.InvalidOutput)
                 {
                     return "FAILED: invalid output; inspect contact diagnostics";
                 }
@@ -295,7 +295,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         auto Eye = _Origin + FVector(-4300.0, -5400.0, 4400.0);
         if (_Courses.IsValidIndex(InCourse))
         {
-            Target = _Courses[InCourse].Origin + FVector(0.0, 0.0, InCourse == 0 ? 80.0 : 800.0);
+            Target = _Courses[InCourse].Spawn.Origin + FVector(0.0, 0.0, InCourse == 0 ? 80.0 : 800.0);
             Eye = Target + FVector(-2100.0, -2400.0, 1400.0);
             if (InCourse == 2)
             {
@@ -314,7 +314,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         {
             for (auto Crawler : _Courses[Index].Crawlers)
             {
-                ck::Trace(f"[PROCEDURAL-GYM] course={Index} legs={Crawler.LegCount} displacement={Crawler.FurthestDistance :.1} replanted={Crawler.Get_ReplantedCount()} wall={Crawler.SawWall} ceiling={Crawler.SawCeiling} traversals={Crawler.Traversals}");
+                ck::Trace(f"[PROCEDURAL-GYM] course={Index} legs={Crawler.Layout.LegCount} displacement={Crawler.Progress.FurthestDistance :.1} replanted={Crawler.Get_ReplantedCount()} wall={Crawler.Evidence.SawWall} ceiling={Crawler.Evidence.SawCeiling} traversals={Crawler.Progress.Traversals}");
             }
         }
     }

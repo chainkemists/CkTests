@@ -20,12 +20,12 @@ class UCk_AutoTest_ProceduralAnimation_DisableLegFreezesBodyRelative : UCk_AutoT
 
     FCk_Handle_ProceduralLeg Get_Leg() const
     {
-        return _Fixture.Crawlers[0].Legs[0];
+        return _Fixture.Crawlers[0].Handles.Legs[0];
     }
 
     FTransform Get_Body() const
     {
-        return utils_transform::Get_EntityCurrentTransform(_Fixture.Crawlers[0].Root);
+        return utils_transform::Get_EntityCurrentTransform(_Fixture.Crawlers[0].Handles.Root);
     }
 
     TArray<FVector> Get_SegmentLocations() const
@@ -177,7 +177,7 @@ class UCk_AutoTest_ProceduralAnimation_DisableLegFreezesBodyRelative : UCk_AutoT
     UFUNCTION()
     private void Step_VerifyReenable(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        auto StepHeight = _Fixture.Crawlers[0].GaitPreset.Get_Step().Get_Height();
+        auto StepHeight = _Fixture.Crawlers[0].Layout.GaitPreset.Get_Step().Get_Height();
         Assert_True(_ReenableObserved, "Leg 0 reads enabled after the enable request");
         Assert_True(_ReenableJump < StepHeight,
             f"On the re-enable frame the foot is within a step height of its last frozen pose (moved {_ReenableJump :.2} cm)");

@@ -59,9 +59,9 @@ class UCk_AutoTest_ProceduralAnimation_DetachLegReleasesPartsAndRebalances : UCk
     UFUNCTION()
     private void Step_Bind(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        auto Leg = _Fixture.Crawlers[0].Legs[1];
+        auto Leg = _Fixture.Crawlers[0].Handles.Legs[1];
         utils_procedural_leg::BindTo_OnDetached(Leg, FCk_Delegate_ProceduralLeg_OnDetached(this, n"OnDetached"));
-        auto Gait = _Fixture.Crawlers[0].Gait;
+        auto Gait = _Fixture.Crawlers[0].Handles.Gait;
         utils_procedural_gait::BindTo_OnLegSetChanged(Gait, FCk_Delegate_ProceduralGait_OnLegSetChanged(this, n"OnLegSetChanged"));
         _PhaseStart = float(System::GetGameTimeInSeconds());
     }
@@ -78,9 +78,9 @@ class UCk_AutoTest_ProceduralAnimation_DetachLegReleasesPartsAndRebalances : UCk
     private void Step_Detach(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         _EnsuresBefore = utils_ensure::Get_EnsureCount();
-        _BodyAtDetach = utils_transform::Get_EntityCurrentLocation(_Fixture.Crawlers[0].Root);
-        _ReleasedFoot = _Fixture.Crawlers[0].VisibleFeet[1];
-        auto Leg = _Fixture.Crawlers[0].Legs[1];
+        _BodyAtDetach = utils_transform::Get_EntityCurrentLocation(_Fixture.Crawlers[0].Handles.Root);
+        _ReleasedFoot = _Fixture.Crawlers[0].Handles.VisibleFeet[1];
+        auto Leg = _Fixture.Crawlers[0].Handles.Legs[1];
         utils_procedural_leg::Request_Detach(Leg,
             FCk_Request_ProceduralLeg_Detach(ECk_ProceduralLeg_ReleasedPartsOwnership::KeepBodyOwned),
             FCk_Delegate_Request_OnCompleted(this, n"OnDetachCompleted"));
@@ -145,12 +145,12 @@ class UCk_AutoTest_ProceduralAnimation_DetachLegReleasesPartsAndRebalances : UCk
         Assert_Equals_Int(_LegSetChanges, 1, "OnLegSetChanged fires exactly once");
         Assert_Equals_Int(_EnabledCount, 3, "The leg-set change reports three enabled legs");
         Assert_Equals_Int(_TotalCount, 4, "The leg-set change reports four authored legs");
-        Assert_Equals_Int(utils_procedural_leg::Get_Legs(Crawler.Root).Num(), 3, "The body's record keeps three legs");
-        Assert_Equals_Int(utils_procedural_gait::Get_EnabledLegCount(Crawler.Gait), 3, "The gait counts three enabled legs");
-        Assert_True(utils_procedural_gait::Get_IsReady(Crawler.Gait), "The gait keeps evaluating on the survivors");
+        Assert_Equals_Int(utils_procedural_leg::Get_Legs(Crawler.Handles.Root).Num(), 3, "The body's record keeps three legs");
+        Assert_Equals_Int(utils_procedural_gait::Get_EnabledLegCount(Crawler.Handles.Gait), 3, "The gait counts three enabled legs");
+        Assert_True(utils_procedural_gait::Get_IsReady(Crawler.Handles.Gait), "The gait keeps evaluating on the survivors");
         Assert_Equals_Int(utils_ensure::Get_EnsureCount() - _EnsuresBefore, 0, "Detaching and ragdolling fire no ensure");
 
-        auto Travel = (utils_transform::Get_EntityCurrentLocation(Crawler.Root) - _BodyAtDetach).Size();
+        auto Travel = (utils_transform::Get_EntityCurrentLocation(Crawler.Handles.Root) - _BodyAtDetach).Size();
         Assert_True(Travel > 100.0, f"The survivors keep walking after the detach ({Travel :.1} cm)");
 
         for (auto Index = 0; Index < _ReleasedParts.Num() && Index < _ReleasedZ.Num(); Index++)

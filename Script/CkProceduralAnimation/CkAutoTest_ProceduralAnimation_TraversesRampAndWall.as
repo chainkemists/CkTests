@@ -29,7 +29,7 @@ class UCk_AutoTest_ProceduralAnimation_TraversesRampAndWall : UCk_AutoTest_Base
         auto Complete = _Fixture.Get_HasObservedWalking();
         for (auto Crawler : _Fixture.Crawlers)
         {
-            Complete = Complete && Crawler.Traversals > 0 && Crawler.SawWall;
+            Complete = Complete && Crawler.Progress.Traversals > 0 && Crawler.Evidence.SawWall;
         }
         auto Result = OutResult;
         Result.Set(Complete);
@@ -40,11 +40,11 @@ class UCk_AutoTest_ProceduralAnimation_TraversesRampAndWall : UCk_AutoTest_Base
     {
         for (auto Crawler : _Fixture.Crawlers)
         {
-            Assert_True(Crawler.SawWall && Crawler.Traversals > 0, "Actual contact normals and ordered spatial milestones prove the wall traversal");
-            Assert_True(Crawler.WallSupportSamples > 0 && Crawler.WallSupportLost == false,
+            Assert_True(Crawler.Evidence.SawWall && Crawler.Progress.Traversals > 0, "Actual contact normals and ordered spatial milestones prove the wall traversal");
+            Assert_True(Crawler.Evidence.WallSupportSamples > 0 && Crawler.Evidence.WallSupportLost == false,
                 "The accepted support normal stays on the wall while the body advances above the ramp");
-            Assert_True(Crawler.InvalidOutput == false, "Root and foot outputs stayed finite across surface transitions");
-            Assert_Equals_Int(Crawler.Get_ReplantedCount(), Crawler.LegCount, "All legs acquired a plant after swinging");
+            Assert_True(Crawler.Evidence.InvalidOutput == false, "Root and foot outputs stayed finite across surface transitions");
+            Assert_Equals_Int(Crawler.Get_ReplantedCount(), Crawler.Layout.LegCount, "All legs acquired a plant after swinging");
         }
     }
 
