@@ -48,6 +48,8 @@ namespace ck_test_procedural_animation_debugger_pie
     const auto DamagedLegId = FName{TEXT("Leg0")};
     const auto IntactLegId = FName{TEXT("Leg1")};
     const auto PickedLegId = FName{TEXT("Leg2")};
+    const auto ActedLegId = FName{TEXT("Leg3")};
+    constexpr auto ActedCrawlerLegsAfterDetach = SmallLegCount - 1;
 
     struct FState
     {
@@ -68,6 +70,20 @@ namespace ck_test_procedural_animation_debugger_pie
         uint64 HeldSequence = 0;
         FVector CapturedFoot = FVector::ZeroVector;
         int32 HistoryBeforeReset = 0;
+    };
+
+    // --------------------------------------------------------------------------------------------------------------------
+
+    struct FLegActionState
+    {
+        TWeakObjectPtr<AActor> Fixture;
+        TSharedPtr<SCkProceduralAnimationDebuggerWindow> Panel;
+        TSharedPtr<SWindow> Host;
+        TSharedPtr<FCkProceduralAnimationDebugger_Model> Model;
+        TSharedPtr<SButton> EnableDisableButton;
+        TSharedPtr<SButton> DetachButton;
+        FCk_Handle Body;
+        FCk_Handle_ProceduralLeg Leg;
     };
 
     // --------------------------------------------------------------------------------------------------------------------
@@ -94,6 +110,18 @@ namespace ck_test_procedural_animation_debugger_pie
             }
         }
         return {};
+    }
+
+    // --------------------------------------------------------------------------------------------------------------------
+
+    // Enabled state is a cached Slate attribute refreshed during prepass, which a headless run never performs.
+    auto
+        Get_IsButtonEnabled(
+            const TSharedPtr<SButton>& InButton)
+        -> bool
+    {
+        InButton->SlatePrepass();
+        return InButton->IsEnabled();
     }
 
     // --------------------------------------------------------------------------------------------------------------------
@@ -216,22 +244,22 @@ auto
             State->World = InWorld;
             State->Model->Set_World(InWorld);
             const auto Invalid = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(FCk_Handle{});
-            TestFalse(TEXT("Invalid handle has no available feature"), Invalid.Get_Available());
-            TestFalse(TEXT("Invalid handle cannot fabricate an accepted sample"), Invalid.Get_HasAcceptedSample());
+            TestFalse(TEXT("Invalid handle has no available feature"), Invalid.Get_Status().Get_Available());
+            TestFalse(TEXT("Invalid handle cannot fabricate an accepted sample"), Invalid.Get_Status().Get_HasAcceptedSample());
 
             auto Root = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld);
             if (NOT TestTrue(TEXT("PIE transient owner admits the pending root"), ck::IsValid(Root)))
             { return; }
             auto Body = UCk_Utils_Transform_UE::Add(Root, FTransform::Identity, ECk_Replication::DoesNotReplicate);
             TestFalse(TEXT("A transform without gait is not a procedural snapshot"),
-                UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(Root).Get_Available());
+                UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(Root).Get_Status().Get_Available());
             const auto Walker = UCk_Utils_ProceduralAnimation_UE::Add_Walker(Body, MakePendingRig(),
                 NewObject<UCk_ProceduralGait_Data>(), {});
             TestTrue(TEXT("The pending walker admits its gait"), ck::IsValid(Walker.Get_Gait()));
             const auto Pending = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(Root);
-            TestTrue(TEXT("Admission is available before the first solve"), Pending.Get_Available());
-            TestFalse(TEXT("Admission is not an accepted solve"), Pending.Get_HasAcceptedSample());
-            TestEqual(TEXT("Unsampled sequence is zero"), Pending.Get_Sequence(), uint64{0});
+            TestTrue(TEXT("Admission is available before the first solve"), Pending.Get_Status().Get_Available());
+            TestFalse(TEXT("Admission is not an accepted solve"), Pending.Get_Status().Get_HasAcceptedSample());
+            TestEqual(TEXT("Unsampled sequence is zero"), Pending.Get_Sample().Get_Sequence(), uint64{0});
             TestEqual(TEXT("Unsampled snapshot has no invented foot positions"), Pending.Get_Legs().Num(), 0);
             State->PendingRoot = Root;
             State->PendingId = Pending.Get_EntityId();
@@ -243,7 +271,7 @@ auto
         FCk_NetAutoTest_Condition::CreateLambda([State]
         {
             Refresh(State);
-            return UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->PendingRoot).Get_Sequence() >= 2;
+            return UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->PendingRoot).Get_Sample().Get_Sequence() >= 2;
         }), 10.0, TEXT("The selected pending admission advances into its first accepted solve")));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
         [this, State](UWorld* InWorld)
@@ -316,27 +344,27 @@ auto
             }
             Refresh(State);
             State->Captured = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Selected);
-            State->CapturedSequence = State->Captured.Get_Sequence();
-            TestTrue(TEXT("Actual surface motion is present"), State->Captured.Get_HasSurfaceMotion());
-            TestTrue(TEXT("Rig composition is present"), State->Captured.Get_HasRig());
+            State->CapturedSequence = State->Captured.Get_Sample().Get_Sequence();
+            TestTrue(TEXT("Actual surface motion is present"), State->Captured.Get_Status().Get_HasSurfaceMotion());
+            TestTrue(TEXT("Rig composition is present"), State->Captured.Get_Status().Get_HasRig());
             auto ActualHits = 0;
             for (const auto& Leg : State->Captured.Get_Legs())
             {
-                if (Leg.Get_ProbeHit() && Leg.Get_ProbeHitFraction() > 0.0f)
+                if (Leg.Get_Probe().Get_Hit() && Leg.Get_Probe().Get_HitFraction() > 0.0f)
                 {
                     ++ActualHits;
                     TestTrue(TEXT("Probe report is the actual ray hit, not an ideal foot target"),
-                        FMath::Lerp(Leg.Get_ProbeStart(), Leg.Get_ProbeEnd(), Leg.Get_ProbeHitFraction())
-                            .Equals(Leg.Get_ProbeHitPosition(), 1.0));
+                        FMath::Lerp(Leg.Get_Probe().Get_Start(), Leg.Get_Probe().Get_End(), Leg.Get_Probe().Get_HitFraction())
+                            .Equals(Leg.Get_Probe().Get_HitPosition(), 1.0));
                     TestTrue(TEXT("Probe records the actual non-origin uneven course height range"),
-                        Leg.Get_ProbeHitPosition().Z >= UnevenFloorMinZ && Leg.Get_ProbeHitPosition().Z <= UnevenFloorMaxZ);
-                    TestTrue(TEXT("Probe records an actual query attempt"), Leg.Get_ProbeAttemptCount() > 0);
+                        Leg.Get_Probe().Get_HitPosition().Z >= UnevenFloorMinZ && Leg.Get_Probe().Get_HitPosition().Z <= UnevenFloorMaxZ);
+                    TestTrue(TEXT("Probe records an actual query attempt"), Leg.Get_Probe().Get_AttemptCount() > 0);
                 }
             }
             TestTrue(TEXT("Accepted solve contains real Jolt probe hits"), ActualHits > 0);
             if (State->Captured.Get_Legs().Num() > 0)
             {
-                State->CapturedFoot = State->Captured.Get_Legs()[0].Get_FootPosition();
+                State->CapturedFoot = State->Captured.Get_Legs()[0].Get_Foot().Get_Position();
             }
 
             const auto PickedLeg = UCk_Utils_ProceduralLeg_UE::TryGet_Leg(State->Selected, PickedLegId);
@@ -371,7 +399,7 @@ auto
                     TestFalse(TEXT("Mounted hold control pins presentation"), State->Model->Get_History().Get_IsLive());
                     if (const auto* Displayed = State->Model->Get_History().Get_Displayed())
                     {
-                        State->HeldSequence = Displayed->Get_Sequence();
+                        State->HeldSequence = Displayed->Get_Sample().Get_Sequence();
                     }
                 }
             }
@@ -384,23 +412,23 @@ auto
         FCk_NetAutoTest_Condition::CreateLambda([State]
         {
             Refresh(State);
-            return UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Selected).Get_Sequence()
+            return UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Selected).Get_Sample().Get_Sequence()
                 > State->CapturedSequence + 5;
         }), 10.0, TEXT("Production advances after the captured snapshot")));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
         [this, State](UWorld*)
         {
             TestEqual(TEXT("Captured sequence stays immutable while simulation advances"),
-                State->Captured.Get_Sequence(), State->CapturedSequence);
+                State->Captured.Get_Sample().Get_Sequence(), State->CapturedSequence);
             if (State->Captured.Get_Legs().Num() > 0)
             {
                 TestTrue(TEXT("Captured nested foot data is an owned copy"),
-                    State->Captured.Get_Legs()[0].Get_FootPosition() == State->CapturedFoot);
+                    State->Captured.Get_Legs()[0].Get_Foot().Get_Position() == State->CapturedFoot);
             }
             if (const auto* Displayed = State->Model->Get_History().Get_Displayed())
             {
                 TestEqual(TEXT("Held presentation stays pinned while production advances"),
-                    Displayed->Get_Sequence(), State->HeldSequence);
+                    Displayed->Get_Sample().Get_Sequence(), State->HeldSequence);
             }
             if (State->HeldLiveButton.IsValid())
             {
@@ -423,25 +451,25 @@ auto
             TestEqual(TEXT("The sibling leg's rig is unaffected by the lost segment"),
                 Get_LegRigFailure(State->Selected, IntactLegId), ECk_ProceduralRig_Failure::None);
             const auto Current = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Selected);
-            TestTrue(TEXT("Rig failure retains accepted gait evidence"), Current.Get_HasAcceptedSample());
-            TestTrue(TEXT("Gait remains live after the independent rig failure"), Current.Get_GaitReady());
-            TestFalse(TEXT("Failed rig is not presented as ready"), Current.Get_RigReady());
-            TestEqual(TEXT("The snapshot reports the lost segment"), Current.Get_RigFailure(), ECk_ProceduralRig_Failure::MissingPart);
+            TestTrue(TEXT("Rig failure retains accepted gait evidence"), Current.Get_Status().Get_HasAcceptedSample());
+            TestTrue(TEXT("Gait remains live after the independent rig failure"), Current.Get_Status().Get_GaitReady());
+            TestFalse(TEXT("Failed rig is not presented as ready"), Current.Get_Status().Get_RigReady());
+            TestEqual(TEXT("The snapshot reports the lost segment"), Current.Get_Status().Get_RigFailure(), ECk_ProceduralRig_Failure::MissingPart);
             if (TestEqual(TEXT("Failure preserves the original gait leg topology"), Current.Get_Legs().Num(), SmallLegCount))
             {
                 const auto& Damaged = Current.Get_Legs()[0];
-                TestEqual(TEXT("The damaged leg reports its own rig failure"), Damaged.Get_RigFailure(),
+                TestEqual(TEXT("The damaged leg reports its own rig failure"), Damaged.Get_Rig().Get_Failure(),
                     ECk_ProceduralRig_Failure::MissingPart);
-                TestEqual(TEXT("The intact leg reports no rig failure"), Current.Get_Legs()[1].Get_RigFailure(),
+                TestEqual(TEXT("The intact leg reports no rig failure"), Current.Get_Legs()[1].Get_Rig().Get_Failure(),
                     ECk_ProceduralRig_Failure::None);
-                if (TestTrue(TEXT("The damaged leg still lists its segments"), Damaged.Get_Segments().Num() >= 2))
+                if (TestTrue(TEXT("The damaged leg still lists its segments"), Damaged.Get_Rig().Get_Segments().Num() >= 2))
                 {
-                    TestFalse(TEXT("Destroyed segment transform is explicitly unavailable"), Damaged.Get_Segments()[0].Get_Available());
-                    TestTrue(TEXT("Unaffected segment is still inspectable"), Damaged.Get_Segments()[1].Get_Available());
+                    TestFalse(TEXT("Destroyed segment transform is explicitly unavailable"), Damaged.Get_Rig().Get_Segments()[0].Get_Available());
+                    TestTrue(TEXT("Unaffected segment is still inspectable"), Damaged.Get_Rig().Get_Segments()[1].Get_Available());
                 }
-                TestTrue(TEXT("Unaffected foot is still inspectable"), Damaged.Get_Foot().Get_Available());
+                TestTrue(TEXT("Unaffected foot is still inspectable"), Damaged.Get_Rig().Get_Foot().Get_Available());
             }
-            TestTrue(TEXT("The pre-failure captured value remains ready"), State->Captured.Get_RigReady());
+            TestTrue(TEXT("The pre-failure captured value remains ready"), State->Captured.Get_Status().Get_RigReady());
             State->HistoryBeforeReset = State->Model->Get_History().Get_Count();
             TestTrue(TEXT("The selected live entity has history before reset"), State->HistoryBeforeReset > 0);
             TestEqual(TEXT("The shared fixture accepts a full reset"),
@@ -473,7 +501,7 @@ auto
             TestTrue(TEXT("Destroyed selection retains copied history for diagnosis"),
                 State->Model->Get_History().Get_Count() >= State->HistoryBeforeReset);
             TestFalse(TEXT("A retired entity snapshot is unavailable"),
-                UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Selected).Get_Available());
+                UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Selected).Get_Status().Get_Available());
             State->Model->Set_World(nullptr);
             TestEqual(TEXT("World change clears the roster"), State->Model->Get_Rows().Num(), 0);
             TestEqual(TEXT("World change clears history from the previous lineage"), State->Model->Get_History().Get_Count(), 0);
@@ -545,6 +573,169 @@ auto
             State->Model.Reset();
             return WorldReleased;
         }), TEXT("Session invalidation retires debugger state before the next PIE world")));
+    return true;
+}
+
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralAnimationDebugger_LegActions,
+    "Ck.ProceduralAnimation.Debugger.PIE.LegActions",
+    ck_test_procedural_animation_debugger_pie::TestFlags)
+
+auto
+    FCkProceduralAnimationDebugger_LegActions::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_animation_debugger_pie;
+    if (NOT FSlateApplication::IsInitialized() || FindFixtureClass() == nullptr)
+    {
+        AddError(TEXT("The debugger PIE test requires Slate and its compiled AS fixture."));
+        return false;
+    }
+
+    const auto State = MakeShared<FLegActionState>();
+    State->Panel = SNew(SCkProceduralAnimationDebuggerWindow);
+    State->Model = State->Panel->Get_Model();
+    State->Host = SNew(SWindow).ClientSize(FVector2D{1200.0, 800.0})
+        .AutoCenter(EAutoCenter::None).CreateTitleBar(false).HasCloseButton(false)
+        [State->Panel.ToSharedRef()];
+    FSlateApplication::Get().AddWindow(State->Host.ToSharedRef(), true);
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(1, TEXT("/Engine/Maps/Entry")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(1, 30.0f));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [State](UWorld* InWorld)
+        {
+            State->Model->Set_World(InWorld);
+            State->Fixture = InWorld->SpawnActor<AActor>(FindFixtureClass(), FTransform::Identity);
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([State]
+        {
+            State->Model->Refresh();
+            const auto* Row = State->Model->Get_Rows().FindByPredicate([](const FCkProceduralAnimationDebugger_Row& InRow)
+            {
+                return InRow.Summary.Get_EntityName() == SelectedCrawlerName;
+            });
+            return Row != nullptr && Row->Summary.Get_GaitReady() && Row->Summary.Get_RigReady();
+        }), 20.0, TEXT("The four-leg uneven-course crawler is discovered with a ready gait and rig")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, State](UWorld*)
+        {
+            for (const auto& Row : State->Model->Get_Rows())
+            {
+                if (Row.Summary.Get_EntityName() == SelectedCrawlerName)
+                {
+                    State->Body = Row.Entity;
+                }
+            }
+            if (NOT TestTrue(TEXT("The crawler can be selected"), State->Model->Select(State->Body)))
+            {
+                return;
+            }
+
+            const auto EnableDisable = FindWidget(State->Panel.ToSharedRef(), TEXT("ProceduralAnimation.EnableDisableLeg"), TEXT("SButton"));
+            const auto Detach = FindWidget(State->Panel.ToSharedRef(), TEXT("ProceduralAnimation.DetachLeg"), TEXT("SButton"));
+            if (NOT TestTrue(TEXT("The mounted window exposes both leg actions"), EnableDisable.IsValid() && Detach.IsValid()))
+            {
+                return;
+            }
+            State->EnableDisableButton = StaticCastSharedPtr<SButton>(EnableDisable);
+            State->DetachButton = StaticCastSharedPtr<SButton>(Detach);
+
+            TestTrue(TEXT("A body selection alone selects no leg"), ck::Is_NOT_Valid(State->Model->Get_SelectedLeg()));
+            TestFalse(TEXT("Leg actions are unavailable without a selected leg"),
+                Get_IsButtonEnabled(State->EnableDisableButton) || Get_IsButtonEnabled(State->DetachButton));
+            TestFalse(TEXT("Disable is rejected without a selected leg"),
+                State->Model->Request_EnableDisableSelectedLeg(ECk_EnableDisable::Disable));
+            TestFalse(TEXT("Detach is rejected without a selected leg"),
+                State->Model->Request_DetachSelectedLeg(ECk_ProceduralLeg_ReleasedPartsOwnership::KeepBodyOwned));
+
+            State->Leg = UCk_Utils_ProceduralLeg_UE::TryGet_Leg(State->Body, ActedLegId);
+            if (NOT TestTrue(TEXT("The acted-on leg exists"), ck::IsValid(State->Leg)))
+            {
+                return;
+            }
+            State->Model->Request_SelectLeg(State->Leg.Get_Entity().ToString());
+            TestTrue(TEXT("The selected leg id resolves to the live leg"), State->Model->Get_SelectedLeg() == State->Leg);
+            TestTrue(TEXT("Leg actions are available once a live leg is selected"),
+                Get_IsButtonEnabled(State->EnableDisableButton) && Get_IsButtonEnabled(State->DetachButton));
+            State->EnableDisableButton->SimulateClick();
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([State]
+        {
+            return NOT UCk_Utils_ProceduralLeg_UE::Get_IsEnabled(State->Leg);
+        }), 10.0, TEXT("The mounted Disable button disables the selected leg through its request")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, State](UWorld*)
+        {
+            const auto Gait = UCk_Utils_ProceduralGait_UE::Cast(State->Body);
+            TestEqual(TEXT("Only the selected leg is disabled"), UCk_Utils_ProceduralGait_UE::Get_EnabledLegCount(Gait),
+                SmallLegCount - 1);
+            TestTrue(TEXT("A disabled leg stays selected and actionable"), State->Model->Get_SelectedLeg() == State->Leg);
+            State->EnableDisableButton->SimulateClick();
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([State]
+        {
+            return UCk_Utils_ProceduralLeg_UE::Get_IsEnabled(State->Leg);
+        }), 10.0, TEXT("The same button re-enables a disabled leg")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, State](UWorld*)
+        {
+            const auto Gait = UCk_Utils_ProceduralGait_UE::Cast(State->Body);
+            TestEqual(TEXT("Re-enabling restores the full leg set"), UCk_Utils_ProceduralGait_UE::Get_EnabledLegCount(Gait),
+                SmallLegCount);
+            State->DetachButton->SimulateClick();
+            TestTrue(TEXT("Detach clears the selected leg"), State->Model->Get_SelectedLegId().IsEmpty());
+            TestFalse(TEXT("Leg actions become unavailable once the selected leg is detached"),
+                Get_IsButtonEnabled(State->EnableDisableButton) || Get_IsButtonEnabled(State->DetachButton));
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([State]
+        {
+            return ck::Is_NOT_Valid(UCk_Utils_ProceduralLeg_UE::TryGet_Leg(State->Body, ActedLegId));
+        }), 10.0, TEXT("The mounted Detach button removes the selected leg from its body")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, State](UWorld*)
+        {
+            State->Model->Refresh();
+            const auto Gait = UCk_Utils_ProceduralGait_UE::Cast(State->Body);
+            TestEqual(TEXT("The body keeps its surviving legs"), UCk_Utils_ProceduralLeg_UE::Get_Legs(State->Body).Num(),
+                ActedCrawlerLegsAfterDetach);
+            TestEqual(TEXT("The gait walks on the survivors"), UCk_Utils_ProceduralGait_UE::Get_EnabledLegCount(Gait),
+                ActedCrawlerLegsAfterDetach);
+            if (const auto* Live = State->Model->Get_LiveStatus())
+            {
+                const auto* Detached = Live->Get_Legs().FindByPredicate([](const FCk_ProceduralAnimation_DebugLeg& InLeg)
+                {
+                    return InLeg.Get_Id() == ActedLegId;
+                });
+                TestTrue(TEXT("The detached leg keeps its index-stable snapshot slot without an entity"),
+                    Detached != nullptr && Detached->Get_LegEntityId().IsEmpty());
+            }
+
+            State->Panel->ReleaseSession();
+            FSlateApplication::Get().DestroyWindowImmediately(State->Host.ToSharedRef());
+            State->EnableDisableButton.Reset();
+            State->DetachButton.Reset();
+            State->Host.Reset();
+            State->Panel.Reset();
+            if (State->Fixture.IsValid())
+            {
+                State->Fixture->Destroy();
+            }
+
+            State->Body = {};
+            State->Leg = {};
+            const auto HandlesCleared = ck::Is_NOT_Valid(State->Body) && ck::Is_NOT_Valid(State->Leg);
+            TestTrue(TEXT("Every live handle the test held is released before PIE teardown"), HandlesCleared);
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
     return true;
 }
 

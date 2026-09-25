@@ -98,7 +98,7 @@ auto
         auto PlantPosition = FVector::ZeroVector;
 
         const auto BoundFrames = FMath::CeilToInt32(
-            (H.Solver.Get_Settings().Get_StepDuration() + FCk_Time{0.25f}) / FrameDt);
+            (H.Solver.Get_Settings().Get_Step().Get_Duration() + FCk_Time{0.25f}) / FrameDt);
         for (auto Frame = 0; Frame < BoundFrames; ++Frame)
         {
             H.Tick();
@@ -142,11 +142,11 @@ auto
 
         const auto SwingDuration = FrameDt * (PlantFrame - LiftFrame);
         TestTrue(FString::Printf(TEXT("The swing lasted about StepDuration (%.3f s vs %.3f s)"),
-                SwingDuration.Get_Seconds(), H.Solver.Get_Settings().Get_StepDuration().Get_Seconds()),
-            FMath::Abs((SwingDuration - H.Solver.Get_Settings().Get_StepDuration()) / FrameDt) <= 3.0);
+                SwingDuration.Get_Seconds(), H.Solver.Get_Settings().Get_Step().Get_Duration().Get_Seconds()),
+            FMath::Abs((SwingDuration - H.Solver.Get_Settings().Get_Step().Get_Duration()) / FrameDt) <= 3.0);
         TestTrue(FString::Printf(TEXT("The foot arced rather than teleported (peak lift %.1f of %.1f)"),
-                PeakLift, H.Solver.Get_Settings().Get_StepHeight()),
-            PeakLift > 0.5f * H.Solver.Get_Settings().Get_StepHeight());
+                PeakLift, H.Solver.Get_Settings().Get_Swing().Get_Height()),
+            PeakLift > 0.5f * H.Solver.Get_Settings().Get_Swing().Get_Height());
 
         TestTrue(FString::Printf(TEXT("The foot landed on the requested spot (%s vs %s)"),
                 *PlantPosition.ToCompactString(), *Target.ToCompactString()),
@@ -174,7 +174,7 @@ auto
         auto PlantPosition = FVector::ZeroVector;
         auto Planted = false;
         const auto BoundFrames = FMath::CeilToInt32(
-            (Solver.Get_Settings().Get_StepDuration() + FCk_Time{0.25f}) / FrameDt);
+            (Solver.Get_Settings().Get_Step().Get_Duration() + FCk_Time{0.25f}) / FrameDt);
         auto Lifted = false;
         for (auto Frame = 0; Frame < BoundFrames; ++Frame)
         {
@@ -244,7 +244,7 @@ auto
     auto StillPendingDuringInhibition = false;
 
     const auto BoundFrames = FMath::CeilToInt32(
-        (Solver.Get_Settings().Get_StepDuration() * 2.0f + FCk_Time{0.5f}) / FrameDt);
+        (Solver.Get_Settings().Get_Step().Get_Duration() * 2.0f + FCk_Time{0.5f}) / FrameDt);
     for (auto Frame = 0; Frame < BoundFrames; ++Frame)
     {
         Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
@@ -401,7 +401,8 @@ auto
     using namespace ck_test_procedural_gait_catch_step;
 
     auto Solver = ck::FProceduralGaitSolver{};
-    Solver.Get_Settings().Set_StepDuration(FCk_Time{1.0f}).Set_CatchStepLifetime(FCk_Time{0.2f});
+    Solver.Get_Settings().Get_Step().Set_Duration(FCk_Time{1.0f});
+    Solver.Get_Settings().Get_Schedule().Set_CatchStepLifetime(FCk_Time{0.2f});
 
     const auto Stand = FVector{0.0, 0.0, 0.0};
     Solver.Reset({Stand});
@@ -423,7 +424,7 @@ auto
     TestTrue(TEXT("The request is accepted even though it cannot fire yet"),
         Solver.RequestStep(0, Target));
 
-    const auto ExpiryFrames = FMath::CeilToInt32(Solver.Get_Settings().Get_CatchStepLifetime() / FrameDt) + 1;
+    const auto ExpiryFrames = FMath::CeilToInt32(Solver.Get_Settings().Get_Schedule().Get_CatchStepLifetime() / FrameDt) + 1;
     for (auto Frame = 0; Frame < ExpiryFrames; ++Frame)
     {
         Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
@@ -450,7 +451,7 @@ auto
     auto Lifted = false;
     auto Landed = false;
     const auto BoundFrames = FMath::CeilToInt32(
-        (Solver.Get_Settings().Get_StepDuration() + FCk_Time{0.25f}) / FrameDt);
+        (Solver.Get_Settings().Get_Step().Get_Duration() + FCk_Time{0.25f}) / FrameDt);
     for (auto Frame = 0; Frame < BoundFrames; ++Frame)
     {
         Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);

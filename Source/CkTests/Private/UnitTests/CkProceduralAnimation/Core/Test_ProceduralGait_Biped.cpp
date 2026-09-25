@@ -99,7 +99,7 @@ auto
     {
         auto H = FBipedGaitHarness{};
         H.Init({FVector{0.0, 20.0, 0.0}, FVector{0.0, -20.0, 0.0}}, {0.0f, 0.5f});
-        H.Solver.Get_Settings().Set_MaxSimultaneousSwings(1);
+        H.Solver.Get_Settings().Get_Cadence().Set_MaxSimultaneousSwings(1);
         H.BodyVelocity = FVector{80.0, 0.0, 0.0};
 
         auto StepsLeg0 = 0;
@@ -116,7 +116,7 @@ auto
     {
         auto H = FBipedGaitHarness{};
         H.Init({FVector{0.0, 20.0, 0.0}, FVector{0.0, -20.0, 0.0}}, {0.0f, 0.0f});
-        H.Solver.Get_Settings().Set_MaxSimultaneousSwings(1).Set_SwingWindow(1.0f);
+        H.Solver.Get_Settings().Get_Cadence().Set_MaxSimultaneousSwings(1).Set_SwingWindow(1.0f);
 
         H.BodyVelocity = FVector{40.0, 0.0, 0.0};
 
@@ -163,9 +163,9 @@ auto
     auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
     Outputs.SetNum(2);
 
-    const auto DelayFrames = FMath::FloorToInt32(Solver.Get_Settings().Get_SettleDelay() / FrameDt);
+    const auto DelayFrames = FMath::FloorToInt32(Solver.Get_Settings().Get_Settle().Get_Delay() / FrameDt);
     const auto BoundFrames = FMath::CeilToInt32(
-        (Solver.Get_Settings().Get_SettleDelay() + Solver.Get_Settings().Get_StepDuration() * 2.0f + FCk_Time{0.5f}) / FrameDt);
+        (Solver.Get_Settings().Get_Settle().Get_Delay() + Solver.Get_Settings().Get_Step().Get_Duration() * 2.0f + FCk_Time{0.5f}) / FrameDt);
 
     auto ConvergedFrame = int32{INDEX_NONE};
     for (auto Frame = 0; Frame < BoundFrames; ++Frame)
