@@ -870,7 +870,6 @@ auto
 
     constexpr auto LowerTreadZ = -45.0;
     constexpr auto UpperTreadZ = -25.0;
-    constexpr auto WithinTheSafetyNetZ = LowerTreadZ + 1.5;
     constexpr auto UnreachableGroundZ = 60.0;
     constexpr auto BelowTheTargetZ = -60.0;
     constexpr auto Frames = 60;
@@ -878,6 +877,12 @@ auto
     constexpr auto MinInFlightLift = 1.0;
     // The default 0.25 s swing advances a fifteenth of its phase per frame, so a swing past this phase lands next frame.
     constexpr auto LastSwingFramePhase = 0.9f;
+    // A rise of three quarters of the touchdown net: a touchdown-only report of it still lifts the plant.
+    constexpr auto ShareOfTheSafetyNet = 0.75;
+
+    const auto DefaultSettings = ck::FProceduralGaitSettings{};
+    const auto SafetyNet = DefaultSettings.Get_Reach().Get_TouchdownLiftFraction() * DefaultSettings.Get_Swing().Get_Height();
+    const auto WithinTheSafetyNetZ = LowerTreadZ + ShareOfTheSafetyNet * SafetyNet;
 
     struct FLanding
     {
@@ -889,6 +894,9 @@ auto
         TArray<double> SwingHeights;
         int32 MissedLifts = 0;
         bool LiftedBeforeFreeze = false;
+        bool TookOff = false;
+        FVector TakeOffLandingPoint = FVector::ZeroVector;
+        FVector TakeOffTarget = FVector::ZeroVector;
     };
 
     constexpr auto FromTheFirstSwingFrame = 0;
@@ -931,6 +939,12 @@ auto
             if (NOT Swing.Get_Active())
             { continue; }
 
+            if (NOT Landing.TookOff)
+            {
+                Landing.TookOff = true;
+                Landing.TakeOffLandingPoint = Swing.Get_LandingPoint();
+                Landing.TakeOffTarget = Swing.Get_Target();
+            }
             Landing.LiftedBeforeFreeze |= NOT Swing.Get_TargetFrozen() && Swing.Get_LandingLiftStartAlpha() >= 0.0f;
             if (Swing.Get_TargetFrozen())
             {
@@ -950,6 +964,9 @@ auto
     const auto Unknown = DoStep({}, FromTheFreeze);
     if (NOT TestTrue(TEXT("Precondition: the swing freezes its target and lands"), Unknown.SawFreeze && Unknown.Landed))
     { return false; }
+    TestTrue(FString::Printf(TEXT("On the take-off frame the exposed landing point is the swing target the ECS probes next frame "
+        "(%s against %s)"), *Unknown.TakeOffLandingPoint.ToString(), *Unknown.TakeOffTarget.ToString()),
+        Unknown.TookOff && Unknown.TakeOffLandingPoint.Equals(Unknown.TakeOffTarget, Tolerance));
     TestTrue(FString::Printf(TEXT("The exposed landing point is where the swing lands (%s against %s)"), *Unknown.LandingPoint.ToString(),
         *Unknown.Plant.ToString()), Unknown.LandingPoint.Equals(Unknown.Plant, Tolerance));
     TestEqual(TEXT("With no landing ground the foot plants on the lower tread"), Unknown.Plant.Z, LowerTreadZ, Tolerance);
@@ -990,6 +1007,52 @@ auto
 
     const auto Lower = DoStep(BelowTheTargetZ, FromTheFreeze);
     TestEqual(TEXT("Ground below the landing target never lowers the plant"), Lower.Plant.Z, LowerTreadZ, Tolerance);
+
+    // Stepping down: the foot leaves the upper tread for a target on the lower one, and from its first swing frame on it is
+    // told the ground under the landing point the solver exposed on the frame before, as the ECS probe tells it. The riser
+    // lies past the world origin, so a stale point (the zero vector a fresh solver holds, or the plant just left) reports the
+    // tread the foot is leaving, which lies above the target and within reach. A descending stroke's overshoot carries the
+    // landing point below the lower tread, so lifting onto the lower tread is expected; lifting toward the upper one is not.
+    {
+        constexpr auto RiserX = 10.0;
+        const auto GroundUnder = [&](const FVector& InPoint) -> double { return InPoint.X < RiserX ? UpperTreadZ : LowerTreadZ; };
+
+        auto Solver = ck::FProceduralGaitSolver{};
+        Solver.Reset({FVector{-30.0, 50.0, UpperTreadZ}});
+        auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+        Inputs.SetNum(1);
+        Inputs[0].Set_Hip(FVector::ZeroVector).Set_Reach(LegReach).Set_IdealTarget(FVector{25.0, 50.0, LowerTreadZ});
+        auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+        Outputs.SetNum(1);
+
+        auto WasPlanted = true;
+        auto Landed = false;
+        auto Plant = FVector::ZeroVector;
+        auto HighestLift = -TNumericLimits<double>::Max();
+        for (auto Frame = 0; Frame < Frames && NOT Landed; ++Frame)
+        {
+            const auto& Before = Solver.GetLegState(0).Get_Swing();
+            Inputs[0].Set_LandingGroundZ(Before.Get_Active() ? static_cast<float>(GroundUnder(Before.Get_LandingPoint())) : -FLT_MAX);
+            Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+
+            const auto& After = Solver.GetLegState(0).Get_Swing();
+            if (After.Get_Active() && After.Get_LandingLiftStartAlpha() >= 0.0f)
+            { HighestLift = FMath::Max(HighestLift, After.Get_LiftedLandingPoint().Z); }
+            if (NOT WasPlanted && Outputs[0].Get_Planted())
+            {
+                Landed = true;
+                Plant = Outputs[0].Get_Position();
+            }
+            WasPlanted = Outputs[0].Get_Planted();
+        }
+
+        if (TestTrue(TEXT("Precondition: the step-down swing lands"), Landed))
+        {
+            TestTrue(FString::Printf(TEXT("A step-down swing never lifts toward the tread it left (highest lifted point %.2f, lower tread "
+                "%.2f)"), HighestLift, LowerTreadZ), HighestLift <= LowerTreadZ + Tolerance);
+            TestEqual(TEXT("The step-down swing plants on the lower tread"), Plant.Z, LowerTreadZ, Tolerance);
+        }
+    }
 
     return true;
 }

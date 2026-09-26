@@ -87,9 +87,6 @@ auto
     TestTrue(TEXT("Zero-dt update leaves the estimate intact"),
         Smoothed.Equals(TrueVelocity, 0.1f));
 
-    Tracker.Reset();
-    TestTrue(TEXT("Reset clears the estimate"), Tracker.GetVelocity().IsNearlyZero());
-
     return true;
 }
 

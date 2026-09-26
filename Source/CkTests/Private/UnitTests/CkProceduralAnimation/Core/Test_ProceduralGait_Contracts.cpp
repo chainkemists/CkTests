@@ -295,8 +295,22 @@ auto
         SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_ForceStepFraction(1.1f)),
         SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_HardOverstretchFraction(0.99f)),
         SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_HardOverstretchFraction(1.51f)),
-        SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_ForceStepFraction(1.0f).Set_HardOverstretchFraction(1.0f)),
+        SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_TouchdownLiftFraction(-0.01f)),
+        SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_TouchdownLiftFraction(1.01f)),
+        SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_TouchdownLiftFraction(std::numeric_limits<float>::quiet_NaN())),
     };
+    // A force-step reach of the whole chain with the default hard-overstretch reach is valid: the hard-overstretch reach
+    // may equal the force-step reach.
+    const auto ValidSettings = TArray<SettingsType>
+    {
+        SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_ForceStepFraction(1.0f).Set_HardOverstretchFraction(1.0f)),
+        SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_TouchdownLiftFraction(0.0f)),
+        SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_TouchdownLiftFraction(1.0f)),
+    };
+    for (const auto& Settings : ValidSettings)
+    {
+        TestTrue(TEXT("Accept a boundary reach setting"), ck::FProceduralGaitSolver::ValidateSettings(Settings));
+    }
     auto Solver = ck::FProceduralGaitSolver{};
     const auto Plants = TArray<FVector>{FVector{}};
     Solver.Reset(Plants);
