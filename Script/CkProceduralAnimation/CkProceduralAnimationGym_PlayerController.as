@@ -11,6 +11,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
     private bool _DetachIssued = false;
     private FString _CreateError;
     private int32 _Set = 0;
+    private int32 _SetCount = 4;
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
@@ -21,6 +22,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         Station.Description.Add(FText::FromString("4 / 6 / 8 legs on uneven ground, a wall and a closed loop."));
         Station.Description.Add(FText::FromString("Authored routes steer real surface motion. Planted feet and joint poses are solved by CkFoundation."));
         Station.Description.Add(FText::FromString("N switches to a spider, a centipede, a tentacled walker and a mixed-chain beast on stairs, rubble and a convex hump."));
+        Station.Description.Add(FText::FromString("Two stress sets follow: a step field, a ledge and a sharp ridge; a log, narrow beams and a pillar field."));
         Station.AutoSize = true;
         Stations.Add(Station);
         return Stations;
@@ -36,6 +38,16 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
 
     ECkProceduralAnimationGym_Course Get_SetCourse(int32 InSlot) const
     {
+        if (_Set == 2)
+        {
+            return InSlot == 0 ? ECkProceduralAnimationGym_Course::StepField :
+                (InSlot == 1 ? ECkProceduralAnimationGym_Course::Ledge : ECkProceduralAnimationGym_Course::Ridge);
+        }
+        if (_Set == 3)
+        {
+            return InSlot == 0 ? ECkProceduralAnimationGym_Course::Log :
+                (InSlot == 1 ? ECkProceduralAnimationGym_Course::Beam : ECkProceduralAnimationGym_Course::Pillars);
+        }
         if (_Set == 1)
         {
             return InSlot == 0 ? ECkProceduralAnimationGym_Course::Stairs :
@@ -47,6 +59,10 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
 
     TArray<ECkProceduralAnimationGym_Species> Get_SetRoster(int32 InSlot) const
     {
+        if (_Set >= 2)
+        {
+            return ck_procedural_gym::Get_StressRoster(Get_SetCourse(InSlot));
+        }
         auto Roster = TArray<ECkProceduralAnimationGym_Species>();
         if (_Set == 0)
         {
@@ -100,6 +116,30 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         if (InCourse == ECkProceduralAnimationGym_Course::Hump)
         {
             return "CONVEX HUMP";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::StepField)
+        {
+            return "STEP FIELD: RISERS 10-40 CM";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Ledge)
+        {
+            return "150 CM LEDGE";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Ridge)
+        {
+            return "SHARP RIDGE";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Log)
+        {
+            return "LOG";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Beam)
+        {
+            return "30 CM BEAMS";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Pillars)
+        {
+            return "PILLAR FIELD";
         }
         return "FLAT";
     }
@@ -223,9 +263,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
     {
         auto Rows = TArray<FCkGym_ControlRow>();
         Rows.Add(CkGym_Control::Header("PROCEDURAL ANIMATION"));
-        Rows.Add(CkGym_Control::Status("This shows", _Set == 0 ?
-            "Nine crawlers traverse uneven ground, a ramp and wall, and a closed loop with live contacts and articulated limbs." :
-            "A spider, a centipede, a tentacled walker and a mixed-chain beast cross stairs, rubble and a convex hump with live contacts and articulated limbs."));
+        Rows.Add(CkGym_Control::Status("This shows", Get_SetDescription()));
         Rows.Add(CkGym_Control::Status("Verdict", Get_Verdict(), _ResetPending));
         for (auto Index = 0; Index < 3; Index++)
         {
@@ -233,7 +271,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         }
         Rows.Add(CkGym_Control::Toggle(EKeys::P, "P", "Travel", _Run));
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Reset all courses"));
-        Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Switch walker set (original / menagerie)"));
+        Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Switch walker set (original / menagerie / stress A / stress B)"));
         Rows.Add(CkGym_Control::Toggle(EKeys::V, "V", "Contact diagnostics", _DrawContacts));
         Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Disable / enable leg 0 of every crawler"));
         Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Detach leg 1 of the first crawler; its parts ragdoll", _DetachIssued == false));
@@ -265,7 +303,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         }
         else if (Key == EKeys::N)
         {
-            _Set = (_Set + 1) % 2;
+            _Set = (_Set + 1) % _SetCount;
             Request_Reset();
         }
         else if (Key == EKeys::V)
@@ -323,6 +361,23 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
     void Ck_ProceduralAnimation_Control(int32 InRowIndex)
     {
         Request_ControlActivated(InRowIndex);
+    }
+
+    FString Get_SetDescription() const
+    {
+        if (_Set == 0)
+        {
+            return "Nine crawlers traverse uneven ground, a ramp and wall, and a closed loop with live contacts and articulated limbs.";
+        }
+        if (_Set == 1)
+        {
+            return "A spider, a centipede, a tentacled walker and a mixed-chain beast cross stairs, rubble and a convex hump with live contacts and articulated limbs.";
+        }
+        if (_Set == 2)
+        {
+            return "Stress A: a step field with 10-40 cm risers, a 150 cm ledge and a sharp 90 degree ridge.";
+        }
+        return "Stress B: a log of radius 80 cm, a 30 cm beam per walker and a field of 40 cm pillars.";
     }
 
     FString Get_CourseVerdict(int32 InIndex)

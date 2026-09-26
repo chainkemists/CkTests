@@ -19,7 +19,21 @@ enum ECkProceduralAnimationGym_Course
     Ring,
     Stairs,
     Rubble,
-    Hump
+    Hump,
+    StepField,
+    Ledge,
+    Ridge,
+    Log,
+    Beam,
+    Pillars,
+    Spin
+}
+
+// SpinThenRoute turns the walker in place before it walks the course's route.
+enum ECkProceduralAnimationGym_Patrol
+{
+    Route,
+    SpinThenRoute
 }
 
 struct FCkProceduralAnimationGym_SpeciesProfile
@@ -81,6 +95,26 @@ namespace ck_procedural_gym
     // Solid enough that no probe can start under a facet's top face and fall through to the floor below.
     const float HumpSlabHalfThickness = 60.0;
 
+    const float StepFieldTread = 60.0;
+    const float LedgeHalfLength = 150.0;
+    const float LedgeHeight = 150.0;
+    const float RidgeHalfBase = 150.0;
+    const float RidgeHeight = 150.0;
+    const float RidgeSlabHalfThickness = 60.0;
+    const float LogRadius = 80.0;
+    const int32 LogFacets = 32;
+    // Each facet's slab reaches the axis, so no probe can start in a hollow core.
+    const float LogSlabHalfThickness = 40.0;
+    const float BeamHalfLength = 1000.0;
+    const float BeamHalfWidth = 15.0;
+    const float BeamHeight = 60.0;
+    const float PillarHalfSize = 20.0;
+    const float PillarHeight = 200.0;
+    const float PillarSpacing = 150.0;
+    const float PillarHalfSpanX = 900.0;
+    const float SpinSeconds = 6.0;
+    const float SpinDegreesPerSecond = 120.0;
+
     const float TravelSpeed = 180.0;
     const FVector BodyHalfExtents = FVector(42.0, 30.0, 18.0);
     // Crawler hips sit on a 30 cm radius; these boxes put every hip on a side face instead of inside the body.
@@ -104,6 +138,33 @@ namespace ck_procedural_gym
     const float DebrisOutwardSpeed = 100.0;
     const float DebrisUpSpeed = 50.0;
     const int32 SlowGaitBelowEnabledLegs = 3;
+
+    // The step field's tread tops: up the authored risers, then down the same risers in reverse order.
+    TArray<float> Get_StepFieldTreadHeights()
+    {
+        auto Risers = TArray<float>();
+        Risers.Add(10.0);
+        Risers.Add(25.0);
+        Risers.Add(40.0);
+        Risers.Add(15.0);
+        Risers.Add(30.0);
+        Risers.Add(20.0);
+        Risers.Add(35.0);
+        Risers.Add(12.0);
+        auto Heights = TArray<float>();
+        auto Height = 0.0;
+        for (auto Rise : Risers)
+        {
+            Height += Rise;
+            Heights.Add(Height);
+        }
+        for (auto Index = Risers.Num() - 2; Index >= 0; Index--)
+        {
+            auto Mirrored = Heights[Index];
+            Heights.Add(Mirrored);
+        }
+        return Heights;
+    }
 
     FCkProceduralAnimationGym_SpeciesProfile Get_SpeciesProfile(ECkProceduralAnimationGym_Species InSpecies)
     {
@@ -198,6 +259,34 @@ namespace ck_procedural_gym
         {
             return "Rubble";
         }
+        if (InCourse == ECkProceduralAnimationGym_Course::StepField)
+        {
+            return "Step field";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Ledge)
+        {
+            return "Ledge";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Ridge)
+        {
+            return "Sharp ridge";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Log)
+        {
+            return "Log";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Beam)
+        {
+            return "Narrow beams";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Pillars)
+        {
+            return "Pillar field";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Spin)
+        {
+            return "Spin in place";
+        }
         return "Convex hump";
     }
 
@@ -228,13 +317,104 @@ namespace ck_procedural_gym
         {
             return "Rubble";
         }
+        if (InCourse == ECkProceduralAnimationGym_Course::StepField)
+        {
+            return "StepField";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Ledge)
+        {
+            return "Ledge";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Ridge)
+        {
+            return "Ridge";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Log)
+        {
+            return "Log";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Beam)
+        {
+            return "Beam";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Pillars)
+        {
+            return "Pillars";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Spin)
+        {
+            return "Spin";
+        }
         return "Hump";
     }
 
+    bool Get_IsStressCourse(ECkProceduralAnimationGym_Course InCourse)
+    {
+        return InCourse == ECkProceduralAnimationGym_Course::StepField || InCourse == ECkProceduralAnimationGym_Course::Ledge ||
+            InCourse == ECkProceduralAnimationGym_Course::Ridge || InCourse == ECkProceduralAnimationGym_Course::Log ||
+            InCourse == ECkProceduralAnimationGym_Course::Beam || InCourse == ECkProceduralAnimationGym_Course::Pillars ||
+            InCourse == ECkProceduralAnimationGym_Course::Spin;
+    }
+
+    // The menagerie's legs span up to 2.6 m, so its courses and every stress course space their lanes wider.
     bool Get_IsWideCourse(ECkProceduralAnimationGym_Course InCourse)
     {
         return InCourse == ECkProceduralAnimationGym_Course::Stairs || InCourse == ECkProceduralAnimationGym_Course::Rubble ||
-            InCourse == ECkProceduralAnimationGym_Course::Hump;
+            InCourse == ECkProceduralAnimationGym_Course::Hump || Get_IsStressCourse(InCourse);
+    }
+
+    // Three walkers per stress course; every species crosses at least two of them. The gym and the PaViz harness share it.
+    TArray<ECkProceduralAnimationGym_Species> Get_StressRoster(ECkProceduralAnimationGym_Course InCourse)
+    {
+        auto Roster = TArray<ECkProceduralAnimationGym_Species>();
+        if (InCourse == ECkProceduralAnimationGym_Course::StepField)
+        {
+            Roster.Add(ECkProceduralAnimationGym_Species::Beast);
+            Roster.Add(ECkProceduralAnimationGym_Species::Spider);
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler4);
+        }
+        else if (InCourse == ECkProceduralAnimationGym_Course::Ledge)
+        {
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler6);
+            Roster.Add(ECkProceduralAnimationGym_Species::Tentacled);
+            Roster.Add(ECkProceduralAnimationGym_Species::Beast);
+        }
+        else if (InCourse == ECkProceduralAnimationGym_Course::Ridge)
+        {
+            Roster.Add(ECkProceduralAnimationGym_Species::Spider);
+            Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler8);
+        }
+        else if (InCourse == ECkProceduralAnimationGym_Course::Log)
+        {
+            Roster.Add(ECkProceduralAnimationGym_Species::Tentacled);
+            Roster.Add(ECkProceduralAnimationGym_Species::Beast);
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler4);
+        }
+        else if (InCourse == ECkProceduralAnimationGym_Course::Beam)
+        {
+            Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
+            Roster.Add(ECkProceduralAnimationGym_Species::Spider);
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler6);
+        }
+        else if (InCourse == ECkProceduralAnimationGym_Course::Pillars)
+        {
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler8);
+            Roster.Add(ECkProceduralAnimationGym_Species::Tentacled);
+            Roster.Add(ECkProceduralAnimationGym_Species::Spider);
+        }
+        else if (InCourse == ECkProceduralAnimationGym_Course::Spin)
+        {
+            Roster.Add(ECkProceduralAnimationGym_Species::Beast);
+            Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
+            Roster.Add(ECkProceduralAnimationGym_Species::Tentacled);
+        }
+        return Roster;
+    }
+
+    float Get_LaneY(int32 InIndex, int32 InRosterCount, ECkProceduralAnimationGym_Course InCourse)
+    {
+        return InRosterCount == 1 ? 0.0 : (InIndex - (InRosterCount - 1) * 0.5) * Get_LaneSpacing(InCourse);
     }
 
     float Get_LaneSpacing(ECkProceduralAnimationGym_Course InCourse)
@@ -260,6 +440,15 @@ namespace ck_procedural_gym
         if (InCourse == ECkProceduralAnimationGym_Course::Hump)
         {
             return 250.0;
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::StepField || InCourse == ECkProceduralAnimationGym_Course::Ledge ||
+            InCourse == ECkProceduralAnimationGym_Course::Ridge || InCourse == ECkProceduralAnimationGym_Course::Pillars)
+        {
+            return 150.0;
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Log)
+        {
+            return 120.0;
         }
         return 80.0;
     }
@@ -346,10 +535,16 @@ struct FCkProceduralAnimationGym_CrawlerLayout
     int32 LegCount = 0;
     UPROPERTY()
     float LaneY = 0.0;
+    UPROPERTY()
+    ECkProceduralAnimationGym_Patrol Patrol = ECkProceduralAnimationGym_Patrol::Route;
 }
 
 struct FCkProceduralAnimationGym_CrawlerProgress
 {
+    UPROPERTY()
+    bool Spinning = false;
+    UPROPERTY()
+    float SpinStartTime = -1.0;
     UPROPERTY()
     int32 RouteStage = 0;
     UPROPERTY()
@@ -454,6 +649,21 @@ struct FCkProceduralAnimationGym_Crawler
             }
         }
         return Count;
+    }
+
+    // The spin starts on the first update after the walker is ready.
+    bool DoUpdateSpin()
+    {
+        if (Layout.Patrol != ECkProceduralAnimationGym_Patrol::SpinThenRoute)
+        {
+            return false;
+        }
+        auto Now = float(System::GetGameTimeInSeconds());
+        if (Progress.SpinStartTime < 0.0)
+        {
+            Progress.SpinStartTime = Now;
+        }
+        return Now - Progress.SpinStartTime < ck_procedural_gym::SpinSeconds;
     }
 
     bool Get_HasCompletedCourse() const
@@ -608,9 +818,17 @@ struct FCkProceduralAnimationGym_Crawler
             Direction = FVector(TargetX, Layout.LaneY, Local.Z) - Local;
         }
 
-        // A zero steering direction is only a valid request at zero speed.
+        Progress.Spinning = DoUpdateSpin();
+        if (Progress.Spinning)
+        {
+            auto SpinYaw = ck_procedural_gym::SpinDegreesPerSecond * (float(System::GetGameTimeInSeconds()) - Progress.SpinStartTime);
+            Direction = FRotator(0.0, SpinYaw, 0.0).Vector();
+        }
+
+        // A zero steering direction is only a valid request at zero speed. A spinning walker turns in place: surface
+        // motion faces the steering direction at any speed.
         auto SteerDirection = Direction.GetSafeNormal();
-        auto Moving = InRun && Evidence.InvalidOutput == false && SteerDirection.IsNearlyZero() == false;
+        auto Moving = InRun && Progress.Spinning == false && Evidence.InvalidOutput == false && SteerDirection.IsNearlyZero() == false;
         auto MotionLocal = Handles.Motion;
         utils_surface_motion::Request_Steering(MotionLocal,
             FCk_Request_SurfaceMotion_Steering(SteerDirection, Moving ? ck_procedural_gym::TravelSpeed : 0.0));
@@ -787,8 +1005,85 @@ struct FCkProceduralAnimationGym_Fixture
             {
                 AddHump(GroundColor, RaisedColor);
             }
+            else if (Spawn.Course == ECkProceduralAnimationGym_Course::StepField)
+            {
+                AddStepField(HalfWidth, RaisedColor);
+            }
+            else if (Spawn.Course == ECkProceduralAnimationGym_Course::Ledge)
+            {
+                AddSurface(FVector(0.0, 0.0, ck_procedural_gym::LedgeHeight * 0.5), FRotator::ZeroRotator,
+                    FVector(ck_procedural_gym::LedgeHalfLength, HalfWidth, ck_procedural_gym::LedgeHeight * 0.5), RaisedColor);
+            }
+            else if (Spawn.Course == ECkProceduralAnimationGym_Course::Ridge)
+            {
+                AddSlabWithShape(FVector(-ck_procedural_gym::RidgeHalfBase, 0.0, 0.0), FVector(0.0, 0.0, ck_procedural_gym::RidgeHeight),
+                    RaisedColor, ck_procedural_gym::RidgeSlabHalfThickness);
+                AddSlabWithShape(FVector(0.0, 0.0, ck_procedural_gym::RidgeHeight), FVector(ck_procedural_gym::RidgeHalfBase, 0.0, 0.0),
+                    GroundColor, ck_procedural_gym::RidgeSlabHalfThickness);
+            }
+            else if (Spawn.Course == ECkProceduralAnimationGym_Course::Log)
+            {
+                AddLog(GroundColor, RaisedColor);
+            }
+            else if (Spawn.Course == ECkProceduralAnimationGym_Course::Beam)
+            {
+                for (auto Index = 0; Index < Spawn.Roster.Num(); Index++)
+                {
+                    auto LaneY = ck_procedural_gym::Get_LaneY(Index, Spawn.Roster.Num(), Spawn.Course);
+                    AddSurface(FVector(0.0, LaneY, ck_procedural_gym::BeamHeight * 0.5), FRotator::ZeroRotator,
+                        FVector(ck_procedural_gym::BeamHalfLength, ck_procedural_gym::BeamHalfWidth, ck_procedural_gym::BeamHeight * 0.5),
+                        RaisedColor);
+                }
+            }
+            else if (Spawn.Course == ECkProceduralAnimationGym_Course::Pillars)
+            {
+                AddPillars(HalfWidth, RaisedColor);
+            }
         }
         return true;
+    }
+
+    // Each tread is a box from the floor to its top; neighbouring boxes share their riser plane.
+    void AddStepField(float InHalfWidth, FLinearColor InColor)
+    {
+        auto Heights = ck_procedural_gym::Get_StepFieldTreadHeights();
+        auto StartX = -0.5 * Heights.Num() * ck_procedural_gym::StepFieldTread;
+        for (auto Index = 0; Index < Heights.Num(); Index++)
+        {
+            auto HalfTop = Heights[Index] * 0.5;
+            AddSurface(FVector(StartX + ck_procedural_gym::StepFieldTread * (Index + 0.5), 0.0, HalfTop), FRotator::ZeroRotator,
+                FVector(ck_procedural_gym::StepFieldTread * 0.5, InHalfWidth, HalfTop), InColor);
+        }
+    }
+
+    // A horizontal cylinder resting on the floor, its axis along Y. The facets run clockwise seen from -Y, so every slab's
+    // top face points out of the log.
+    void AddLog(FLinearColor InColor, FLinearColor InAlternateColor)
+    {
+        auto Radius = ck_procedural_gym::LogRadius;
+        for (auto Index = 0; Index < ck_procedural_gym::LogFacets; Index++)
+        {
+            auto FromAngle = Math::PI - 2.0 * Math::PI * Index / ck_procedural_gym::LogFacets;
+            auto ToAngle = Math::PI - 2.0 * Math::PI * (Index + 1) / ck_procedural_gym::LogFacets;
+            AddSlabWithShape(FVector(Radius * Math::Cos(FromAngle), 0.0, Radius + Radius * Math::Sin(FromAngle)),
+                FVector(Radius * Math::Cos(ToAngle), 0.0, Radius + Radius * Math::Sin(ToAngle)),
+                Math::IntegerDivisionTrunc(Index, 2) % 2 == 0 ? InColor : InAlternateColor, ck_procedural_gym::LogSlabHalfThickness);
+        }
+    }
+
+    void AddPillars(float InHalfWidth, FLinearColor InColor)
+    {
+        auto Columns = Math::RoundToInt(2.0 * ck_procedural_gym::PillarHalfSpanX / ck_procedural_gym::PillarSpacing);
+        auto Rows = Math::FloorToInt((InHalfWidth - ck_procedural_gym::PillarHalfSize) / ck_procedural_gym::PillarSpacing);
+        auto HalfExtents = FVector(ck_procedural_gym::PillarHalfSize, ck_procedural_gym::PillarHalfSize, ck_procedural_gym::PillarHeight * 0.5);
+        for (auto Column = 0; Column <= Columns; Column++)
+        {
+            for (auto Row = -Rows; Row <= Rows; Row++)
+            {
+                AddSurface(FVector(-ck_procedural_gym::PillarHalfSpanX + ck_procedural_gym::PillarSpacing * Column,
+                    ck_procedural_gym::PillarSpacing * Row, HalfExtents.Z), FRotator::ZeroRotator, HalfExtents, InColor);
+            }
+        }
     }
 
     void AddStairs(float InHalfWidth, FLinearColor InColor)
@@ -1010,11 +1305,11 @@ struct FCkProceduralAnimationGym_Fixture
         Crawler.Layout.Species = Spawn.Roster[InIndex];
         auto Profile = ck_procedural_gym::Get_SpeciesProfile(Crawler.Layout.Species);
         Crawler.Layout.LegCount = Profile.Rig.Get_Legs().Num();
-        auto RosterCount = Spawn.Roster.Num();
-        Crawler.Layout.LaneY = RosterCount == 1 ? 0.0 :
-            (InIndex - (RosterCount - 1) * 0.5) * ck_procedural_gym::Get_LaneSpacing(Spawn.Course);
+        Crawler.Layout.LaneY = ck_procedural_gym::Get_LaneY(InIndex, Spawn.Roster.Num(), Spawn.Course);
         Crawler.Layout.Origin = Spawn.Origin;
         Crawler.Layout.Course = Spawn.Course;
+        Crawler.Layout.Patrol = Spawn.Course == ECkProceduralAnimationGym_Course::Spin ?
+            ECkProceduralAnimationGym_Patrol::SpinThenRoute : ECkProceduralAnimationGym_Patrol::Route;
         Crawler.Layout.Color = InIndex == 0 ? FLinearColor(0.1, 0.8, 0.85, 1.0) :
             (InIndex == 1 ? FLinearColor(1.0, 0.58, 0.12, 1.0) : FLinearColor(0.65, 0.35, 1.0, 1.0));
         Crawler.Layout.Start = Spawn.Origin + (Spawn.Course == ECkProceduralAnimationGym_Course::Ring ?

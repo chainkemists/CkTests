@@ -33,6 +33,15 @@ class UCk_AutoTest_ProceduralAnimation_BodyPoseAdmissionRejects : UCk_AutoTest_B
         return Spec;
     }
 
+    FCk_ProceduralBodyPose_Spec MakeSpecWithAttitudeLag(FCk_Handle_Transform InPresentation, float32 InMaxAttitudeLag)
+    {
+        auto Spring = FCk_ProceduralBodyPose_Spring();
+        Spring.Set_MaxAttitudeLag(InMaxAttitudeLag);
+        auto Spec = FCk_ProceduralBodyPose_Spec(InPresentation);
+        Spec.Set_Spring(Spring);
+        return Spec;
+    }
+
     FCk_ProceduralBodyPose_Spec MakeSpecWithSupport(FCk_Handle_Transform InPresentation, float32 InCollapseDrop, float32 InMaxTilt)
     {
         auto Support = FCk_ProceduralBodyPose_Support();
@@ -118,6 +127,10 @@ class UCk_AutoTest_ProceduralAnimation_BodyPoseAdmissionRejects : UCk_AutoTest_B
         EnsuresBefore = utils_ensure::Get_EnsureCount();
         AssertRejected(utils_procedural_body_pose::Add(Gait, MakeSpecWithSpring(Presentation, 40.0f, 0.0f)), Body, EnsuresBefore, false,
             "Zero spring mass");
+
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_procedural_body_pose::Add(Gait, MakeSpecWithAttitudeLag(Presentation, -1.0f)), Body, EnsuresBefore, false,
+            "Negative max attitude lag");
 
         EnsuresBefore = utils_ensure::Get_EnsureCount();
         AssertRejected(utils_procedural_body_pose::Add(Gait, MakeSpecWithSupport(Presentation, -1.0f, 25.0f)), Body, EnsuresBefore, false,
