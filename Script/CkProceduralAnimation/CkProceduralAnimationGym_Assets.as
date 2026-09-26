@@ -15,7 +15,9 @@ namespace ck_procedural_gym_assets
     const FVector SpiderBodyHalfExtents = FVector(34.0, 30.0, 20.0);
     const FVector CentipedeBodyHalfExtents = FVector(130.0, 24.0, 12.0);
     const FVector TentacledBodyHalfExtents = FVector(30.0, 30.0, 20.0);
-    const FVector BeastBodyHalfExtents = FVector(62.0, 28.0, 22.0);
+    // Shorter than the beast's 64 cm clearance, so surface motion's confirmation window (180 cm/s for 0.075 s, 13.5 cm) cannot
+    // carry its nose into a head-on wall; the hips at X +-45 stay on the side faces.
+    const FVector BeastBodyHalfExtents = FVector(50.0, 28.0, 22.0);
 
     TArray<float32> MakeSegmentLengths(int32 InSegmentCount)
     {
