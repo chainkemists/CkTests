@@ -20,7 +20,7 @@ namespace ck_test_iskm_batched_shadow_assets
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_IskmRenderer_BatchedShadowAssets,
     "Ck.IskmRenderer.VisualLod.BatchedShadowAssets",
-    ck_test_iskm_batched_shadow_assets::TestFlags)
+    ck_test_iskm_batched_shadow_assets::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 auto
     FCkTest_IskmRenderer_BatchedShadowAssets::
@@ -72,11 +72,15 @@ auto
 
     if (NOT FApp::CanEverRender())
     {
-        AddInfo(TEXT("Skipped material shader-map verdict: this process cannot render (for example -nullrhi)."));
-        AddInfo(TEXT("Skipped Ck batched-VF flag inspection: CkTests has no direct public CkIskmRendererVF contract; "
-                     "the test does not reach through renderer-private registration state."));
-        return true;
+        // Flagged EAutomationTestFlags::NonNullRHI, so a -nullrhi editor never lists this test and the
+        // toolbox runs it in its real-renderer pass. Reaching here headless would skip the shader-map
+        // verdict, which must never read as a pass (it used to: AddInfo("Skipped") + return true).
+        AddError(TEXT("Requires a real renderer (this test is flagged NonNullRHI); run it through the "
+                      "toolbox gate or with --no-nullrhi."));
+        return false;
     }
+    // The Ck batched-VF flag is deliberately not inspected: CkTests has no direct public
+    // CkIskmRendererVF contract, and the test does not reach through renderer-private registration state.
 
     const auto Resource = Material->GetMaterialResource(GMaxRHIShaderPlatform);
     TestNotNull(TEXT("VisualLod crowd fade material exposes a render-platform resource"), Resource);

@@ -149,7 +149,7 @@ namespace ck_tests_ai_debugger_authored_roster_pie
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkAiDebugger_AuthoredRosterPie,
     "Ck.AiDebugger.AuthoredRoster.PIE",
-    ck_tests_ai_debugger_authored_roster_pie::TestFlags)
+    ck_tests_ai_debugger_authored_roster_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkAiDebugger_AuthoredRosterPie::RunTest(const FString&)
 {

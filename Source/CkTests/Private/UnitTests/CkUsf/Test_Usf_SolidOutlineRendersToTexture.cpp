@@ -156,9 +156,10 @@ namespace ck_test_usf_outline_render
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_Usf_SolidOutlineRendersToTexture,
     "CkTests.UnitTests.CkUsf.SolidOutlineRendersToTexture",
-    // Toolbox discovers under NullRHI even for --no-nullrhi execution. Keep discovery enabled;
-    // RunTest explicitly rejects a non-rendering invocation before touching GPU resources.
-    ck::tests::kCkUnitTestFlags)
+    // Needs a real renderer: UnrealToolbox (v1.51+) discovers it with one and runs it in its
+    // real-renderer pass. RunTest still rejects a non-rendering invocation loudly, before touching GPU
+    // resources, for any host that reaches it headless anyway.
+    ck::tests::kCkUnitTestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkTest_Usf_SolidOutlineRendersToTexture::RunTest(const FString& Parameters)
 {

@@ -92,7 +92,7 @@ namespace ck_tests_ui_tabs_panel_state
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTabs_PanelState,
     "Ck.UiAuthoring.Tabs.PanelStateRetention",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTabs_PanelState::RunTest(const FString&) -> bool
 {

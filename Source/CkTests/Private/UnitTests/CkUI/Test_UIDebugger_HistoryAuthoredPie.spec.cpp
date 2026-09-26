@@ -423,7 +423,7 @@ namespace ck_tests_ui_debugger_history_authored_pie
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkUIDebugger_HistoryAuthoredPie,
     "Ck.UIDebugger.History.PIE",
-    ck_tests_ui_debugger_history_authored_pie::TestFlags)
+    ck_tests_ui_debugger_history_authored_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkUIDebugger_HistoryAuthoredPie::RunTest(const FString&)
 {

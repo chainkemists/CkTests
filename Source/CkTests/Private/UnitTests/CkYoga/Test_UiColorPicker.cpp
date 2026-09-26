@@ -180,7 +180,7 @@ namespace ck_tests_ui_color_picker
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiColorPicker_Runtime,
     "Ck.UiAuthoring.ColorPicker.RetainedOwnedPopup",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiColorPicker_Runtime::RunTest(const FString&) -> bool
 {

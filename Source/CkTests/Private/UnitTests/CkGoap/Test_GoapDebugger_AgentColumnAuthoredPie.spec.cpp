@@ -207,7 +207,7 @@ namespace ck_tests_goap_debugger_agent_column_authored_pie
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkGoapDebugger_AgentColumnAuthoredPie,
     "Ck.GoapDebugger.AgentColumn.Authored.PIE",
-    ck_tests_goap_debugger_agent_column_authored_pie::TestFlags)
+    ck_tests_goap_debugger_agent_column_authored_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkGoapDebugger_AgentColumnAuthoredPie::RunTest(const FString&)
 {

@@ -183,7 +183,7 @@ namespace ck_tests_resource_inspector
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkResourceInspector_ModelView,
     "Ck.ResourceInspector.ModelView.NativeResources",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkResourceInspector_ModelView::RunTest(const FString&) -> bool
 {

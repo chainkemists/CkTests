@@ -104,7 +104,7 @@ namespace ck_tests_resource_inspector_activity
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkResourceInspector_Activity,
     "Ck.ResourceInspector.Activity.History",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkResourceInspector_Activity::RunTest(const FString&) -> bool
 {

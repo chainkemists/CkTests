@@ -172,7 +172,7 @@ namespace ck_tests_ui_int32_input
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkUiInt32Input_Runtime,
     "Ck.UiAuthoring.Int32Input.RetainedNative",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto
     FCkUiInt32Input_Runtime::

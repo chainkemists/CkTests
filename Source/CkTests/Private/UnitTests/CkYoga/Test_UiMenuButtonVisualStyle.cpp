@@ -87,7 +87,7 @@ namespace ck_tests_ui_menu_button_visual_style
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkUiMenuButtonVisualStyle_Runtime,
     "Ck.UiAuthoring.Menus.VisualStyle",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiMenuButtonVisualStyle_Runtime::RunTest(const FString&) -> bool
 {

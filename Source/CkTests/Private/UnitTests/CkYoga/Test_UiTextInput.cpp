@@ -58,7 +58,7 @@ namespace ck_tests_ui_text_input
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTextInput_Runtime,
     "Ck.UiAuthoring.TextInput.RetainedDraftAndCommit",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTextInput_Runtime::RunTest(const FString&) -> bool
 {

@@ -242,7 +242,7 @@ namespace ck_tests_ui_context_menu_runtime
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiContextMenu_Runtime,
     "Ck.UiAuthoring.ContextMenus.NativeRuntime",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiContextMenu_Runtime::RunTest(const FString&) -> bool
 {

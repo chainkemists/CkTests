@@ -71,7 +71,7 @@ namespace ck_tests_ui_single_selection
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSingleSelection_Runtime,
     "Ck.UiAuthoring.Selection.NativeSingleSelection",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiSingleSelection_Runtime::RunTest(const FString&) -> bool
 {

@@ -115,7 +115,7 @@ namespace ck_tests_ui_tabs
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTabs_Runtime,
     "Ck.UiAuthoring.Tabs.RetainedRuntime",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTabs_Runtime::RunTest(const FString&) -> bool
 {

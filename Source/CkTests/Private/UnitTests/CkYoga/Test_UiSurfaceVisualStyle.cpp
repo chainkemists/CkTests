@@ -66,7 +66,7 @@ namespace ck_tests_ui_surface_visual_style
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkUiSurfaceVisualStyle,
     "Ck.UiAuthoring.Surface.VisualStyle",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiSurfaceVisualStyle::RunTest(const FString&) -> bool
 {

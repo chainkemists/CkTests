@@ -36,7 +36,7 @@ namespace ck_tests_ui_text_wrapping
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTextWrapping_Runtime,
     "Ck.UiAuthoring.TextWrapping.RuntimeAndTableReload",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTextWrapping_Runtime::RunTest(const FString&) -> bool
 {

@@ -51,7 +51,7 @@ namespace ck_tests_resource_inspector_repeat
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkResourceInspector_PinnedSnapshots,
     "Ck.ResourceInspector.PinnedSnapshots.NativeRepeat",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkResourceInspector_PinnedSnapshots::RunTest(const FString&) -> bool
 {

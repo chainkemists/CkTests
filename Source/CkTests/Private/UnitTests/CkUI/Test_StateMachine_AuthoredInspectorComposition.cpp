@@ -575,7 +575,7 @@ namespace ck_tests_state_machine_authored
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkTest_StateMachine_AuthoredInspectorComposition,
-    "Ck.UiAuthoring.EcsDebugger.StateMachineInspector.AuthoredComposition", ck_tests_state_machine_authored::kFlags)
+    "Ck.UiAuthoring.EcsDebugger.StateMachineInspector.AuthoredComposition", ck_tests_state_machine_authored::kFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkTest_StateMachine_AuthoredInspectorComposition::RunTest(const FString& Parameters)
 {
@@ -1092,7 +1092,7 @@ bool FCkTest_StateMachine_AuthoredInspectorComposition::RunTest(const FString& P
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkTest_StateMachine_AuthoredInspectorVariants,
-    "Ck.UiAuthoring.EcsDebugger.StateMachineInspector.AuthoredVariants", ck_tests_state_machine_authored::kFlags)
+    "Ck.UiAuthoring.EcsDebugger.StateMachineInspector.AuthoredVariants", ck_tests_state_machine_authored::kFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkTest_StateMachine_AuthoredInspectorVariants::RunTest(const FString& Parameters)
 {

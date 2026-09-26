@@ -56,7 +56,7 @@ namespace ck_tests_goap_debugger_window_selection_sync_pie
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkGoapDebugger_WindowSelectionSyncPie,
     "Ck.UiAuthoring.GoapDebugger.Window.SelectionSync.PIE",
-    ck_tests_goap_debugger_window_selection_sync_pie::TestFlags)
+    ck_tests_goap_debugger_window_selection_sync_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 auto FCkGoapDebugger_WindowSelectionSyncPie::RunTest(const FString&) -> bool
 {

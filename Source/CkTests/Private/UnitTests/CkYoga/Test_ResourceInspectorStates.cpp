@@ -213,7 +213,7 @@ namespace ck_tests_resource_inspector_states
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkResourceInspector_States,
     "Ck.ResourceInspector.PresentationStates.NativeScenarios",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkResourceInspector_States::RunTest(const FString&) -> bool
 {

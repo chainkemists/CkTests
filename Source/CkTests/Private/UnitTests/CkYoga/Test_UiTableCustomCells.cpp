@@ -156,7 +156,7 @@ namespace ck_tests_ui_table_custom_cells
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTableCustomCells_Runtime,
     "Ck.UiAuthoring.Table.CustomCellsTypedBindings",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTableCustomCells_Runtime::RunTest(const FString&) -> bool
 {
@@ -252,7 +252,7 @@ auto FCkUiTableCustomCells_Validation::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTableCustomCells_Actions,
     "Ck.UiAuthoring.Table.CustomCellsActions",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTableCustomCells_Actions::RunTest(const FString&) -> bool
 {

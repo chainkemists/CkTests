@@ -60,7 +60,7 @@ namespace ck_tests_resource_inspector_menus
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkResourceInspector_Menus,
     "Ck.ResourceInspector.Menus.NativeActions",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkResourceInspector_Menus::RunTest(const FString&) -> bool
 {

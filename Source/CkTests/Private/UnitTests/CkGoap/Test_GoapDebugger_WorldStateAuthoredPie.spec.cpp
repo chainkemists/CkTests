@@ -127,7 +127,7 @@ namespace ck_tests_goap_debugger_world_state_authored_pie
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkGoapDebugger_WorldStateAuthoredPie,
     "Ck.GoapDebugger.WorldState.Authored.PIE",
-    ck_tests_goap_debugger_world_state_authored_pie::TestFlags)
+    ck_tests_goap_debugger_world_state_authored_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkGoapDebugger_WorldStateAuthoredPie::RunTest(const FString&)
 {

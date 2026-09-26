@@ -1522,7 +1522,7 @@ auto RunActiveDialogOwnerReleaseAcceptance(FAutomationTestBase& InTest, FSlateAp
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkCapabilityGallery_InstalledResources,
     "Ck.CapabilityGallery.InstalledResources",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkCapabilityGallery_InstalledResources::RunTest(const FString&) -> bool
 {

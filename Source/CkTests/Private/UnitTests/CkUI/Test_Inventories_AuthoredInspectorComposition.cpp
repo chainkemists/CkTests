@@ -252,7 +252,7 @@ namespace ck_tests_inventories_authored_inspector
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_Inventories_AuthoredInspectorComposition,
     "Ck.UiAuthoring.EcsDebugger.InventoriesInspector.AuthoredComposition",
-    ck_tests_inventories_authored_inspector::kFlags)
+    ck_tests_inventories_authored_inspector::kFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkTest_Inventories_AuthoredInspectorComposition::RunTest(const FString&)
 {

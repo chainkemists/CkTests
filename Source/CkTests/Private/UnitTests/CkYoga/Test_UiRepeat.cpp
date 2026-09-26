@@ -639,7 +639,7 @@ auto FCkUiRepeat_CollectionReplacement::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiRepeat_ConstrainedGeometry,
     "Ck.UiAuthoring.Repeat.ConstrainedGeometry",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiRepeat_ConstrainedGeometry::RunTest(const FString&) -> bool
 {

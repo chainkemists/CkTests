@@ -114,7 +114,7 @@ namespace ck_tests_ui_tree_mutation
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTreeMutation_Runtime,
     "Ck.UiAuthoring.Tree.MutationGuards",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTreeMutation_Runtime::RunTest(const FString&) -> bool
 {

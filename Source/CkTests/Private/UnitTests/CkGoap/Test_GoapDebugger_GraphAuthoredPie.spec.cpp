@@ -85,7 +85,7 @@ auto Refresh(const TSharedRef<FState>& State) -> void
 }
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkGoapDebugger_GraphAuthoredPie, "Ck.GoapDebugger.Graph.Authored.PIE", ck_tests_goap_debugger_graph_authored_pie::TestFlags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkGoapDebugger_GraphAuthoredPie, "Ck.GoapDebugger.Graph.Authored.PIE", ck_tests_goap_debugger_graph_authored_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 bool FCkGoapDebugger_GraphAuthoredPie::RunTest(const FString&)
 {
     using namespace ck_tests_goap_debugger_graph_authored_pie;

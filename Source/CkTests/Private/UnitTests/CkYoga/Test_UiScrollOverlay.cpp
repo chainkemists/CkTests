@@ -110,7 +110,7 @@ namespace ck_tests_ui_scroll_overlay
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiScrollOverlay_Runtime,
     "Ck.UiAuthoring.ScrollOverlay.Runtime",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiScrollOverlay_Runtime::RunTest(const FString&) -> bool
 {

@@ -71,7 +71,7 @@ namespace ck_tests_ui_table_interaction
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTableInteraction_Runtime,
     "Ck.UiAuthoring.Table.InteractionVirtualizedRows",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTableInteraction_Runtime::RunTest(const FString&) -> bool
 {

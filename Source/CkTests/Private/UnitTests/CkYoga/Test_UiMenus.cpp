@@ -190,7 +190,7 @@ namespace ck_tests_ui_menus
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiMenus_Runtime,
     "Ck.UiAuthoring.Menus.NativeRuntime",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiMenus_Runtime::RunTest(const FString&) -> bool
 {

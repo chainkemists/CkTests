@@ -81,7 +81,7 @@ namespace ck_tests_resource_inspector_number
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkResourceInspector_Number,
     "Ck.ResourceInspector.Form.ResourceCount",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkResourceInspector_Number::RunTest(const FString&) -> bool
 {

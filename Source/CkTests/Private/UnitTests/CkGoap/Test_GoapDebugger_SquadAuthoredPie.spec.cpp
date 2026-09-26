@@ -297,7 +297,7 @@ namespace ck_tests_goap_debugger_squad_authored_pie
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkGoapDebugger_SquadAuthoredPie,
     "Ck.GoapDebugger.Squad.Authored.PIE",
-    ck_tests_goap_debugger_squad_authored_pie::TestFlags)
+    ck_tests_goap_debugger_squad_authored_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkGoapDebugger_SquadAuthoredPie::RunTest(const FString&)
 {

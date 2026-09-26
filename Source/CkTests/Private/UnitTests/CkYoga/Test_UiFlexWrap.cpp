@@ -79,7 +79,7 @@ namespace ck_tests_ui_flex_wrap
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiFlexWrap_Runtime,
     "Ck.UiAuthoring.Layout.FlexWrapRenderedGeometryAndValidation",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiFlexWrap_Runtime::RunTest(const FString&) -> bool
 {

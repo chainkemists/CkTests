@@ -98,7 +98,7 @@ namespace ck_tests_ui_splitter
     }
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSplitter_Runtime, "Ck.UiAuthoring.Splitter.RuntimeRetentionAndDrag", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSplitter_Runtime, "Ck.UiAuthoring.Splitter.RuntimeRetentionAndDrag", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiSplitter_Runtime::RunTest(const FString&) -> bool
 {

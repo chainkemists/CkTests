@@ -80,7 +80,7 @@ namespace ck_tests_ui_select
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSelect_Runtime,
     "Ck.UiAuthoring.Select.RetainedCollectionKeyboard",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiSelect_Runtime::RunTest(const FString&) -> bool
 {

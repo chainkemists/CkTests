@@ -149,7 +149,7 @@ namespace ck_tests_ui_slider
     };
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSlider_Pointer, "Ck.UiAuthoring.Slider.PointerAndReload", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSlider_Pointer, "Ck.UiAuthoring.Slider.PointerAndReload", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 auto FCkUiSlider_Pointer::RunTest(const FString&) -> bool
 {
     using namespace ck_tests_ui_slider;
@@ -237,7 +237,7 @@ auto FCkUiSlider_Pointer::RunTest(const FString&) -> bool
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSlider_TouchKeyboard, "Ck.UiAuthoring.Slider.TouchKeyboardController", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSlider_TouchKeyboard, "Ck.UiAuthoring.Slider.TouchKeyboardController", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 auto FCkUiSlider_TouchKeyboard::RunTest(const FString&) -> bool
 {
     using namespace ck_tests_ui_slider;
@@ -333,7 +333,7 @@ auto FCkUiSlider_TouchKeyboard::RunTest(const FString&) -> bool
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSlider_Orientation, "Ck.UiAuthoring.Slider.Orientation", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSlider_Orientation, "Ck.UiAuthoring.Slider.Orientation", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 auto FCkUiSlider_Orientation::RunTest(const FString&) -> bool
 {
     using namespace ck_tests_ui_slider;
@@ -435,7 +435,7 @@ auto FCkUiSlider_Orientation::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSlider_CustomStyles,
     "Ck.UiAuthoring.Slider.CustomStylesAndLifecycle",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiSlider_CustomStyles::RunTest(const FString&) -> bool
 {
@@ -524,7 +524,7 @@ auto FCkUiSlider_CustomStyles::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSlider_RoutedInput,
     "Ck.UiAuthoring.Slider.RoutedFocusNavigation",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiSlider_RoutedInput::RunTest(const FString&) -> bool
 {
@@ -604,7 +604,7 @@ auto FCkUiSlider_RoutedInput::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSlider_MultiUserOwnership,
     "Ck.UiAuthoring.Slider.MultiUserOwnership",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiSlider_MultiUserOwnership::RunTest(const FString&) -> bool
 {

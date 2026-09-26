@@ -87,7 +87,7 @@ namespace ck_tests_ui_status_pill
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkUiStatusPill_SharedRuntime,
     "Ck.UiAuthoring.StatusPill.Runtime",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiStatusPill_SharedRuntime::RunTest(const FString&) -> bool
 {

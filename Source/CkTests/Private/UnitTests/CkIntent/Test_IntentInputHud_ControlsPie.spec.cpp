@@ -223,7 +223,7 @@ namespace ck_tests_intent_input_hud_controls_pie
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkIntentInputHud_ControlsPie,
     "Ck.IntentDebugger.InputHudControls.PIE",
-    ck_tests_intent_input_hud_controls_pie::TestFlags)
+    ck_tests_intent_input_hud_controls_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkIntentInputHud_ControlsPie::RunTest(const FString&)
 {
