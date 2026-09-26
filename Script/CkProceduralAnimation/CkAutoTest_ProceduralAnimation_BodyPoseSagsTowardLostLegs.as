@@ -10,6 +10,8 @@ class UCk_AutoTest_ProceduralAnimation_BodyPoseSagsTowardLostLegs : UCk_AutoTest
     private int32 _LegCount = 0;
     private int32 _RearCount = 0;
     private float _TiltDisabled = 0.0;
+    private bool _TrackingOvershoot = false;
+    private float _PeakOffsetZ = 0.0;
 
     FTransform Get_Body() const
     {
@@ -132,13 +134,24 @@ class UCk_AutoTest_ProceduralAnimation_BodyPoseSagsTowardLostLegs : UCk_AutoTest
                 utils_procedural_leg::Request_EnableDisable(RearLeg, FCk_Request_ProceduralLeg_EnableDisable(ECk_EnableDisable::Disable));
             }
         }
+        _TrackingOvershoot = true;
+        _PeakOffsetZ = 0.0;
         _PhaseStart = float(System::GetGameTimeInSeconds());
+    }
+
+    void Track_Overshoot()
+    {
+        if (_TrackingOvershoot)
+        {
+            _PeakOffsetZ = Math::Min(_PeakOffsetZ, Get_OffsetZ());
+        }
     }
 
     UFUNCTION()
     private void Check_RearSag(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         _Fixture.Update();
+        Track_Overshoot();
         auto Result = OutResult;
         Result.Set(Get_OffsetZ() <= -0.9 * Get_RearDrop() || Get_Elapsed() >= 3.0);
     }
@@ -160,6 +173,7 @@ class UCk_AutoTest_ProceduralAnimation_BodyPoseSagsTowardLostLegs : UCk_AutoTest
     private void Check_SettleElapsed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         _Fixture.Update();
+        Track_Overshoot();
         auto Result = OutResult;
         Result.Set(Get_Elapsed() >= 1.5);
     }
@@ -168,7 +182,11 @@ class UCk_AutoTest_ProceduralAnimation_BodyPoseSagsTowardLostLegs : UCk_AutoTest
     private void Step_RecordTiltAndDetachRear(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         _TiltDisabled = Get_ForwardTiltDegrees();
-        ck::Trace(f"[BODY-POSE-SAGS] rear disabled, settled: drop {Get_PresentationLocal().Z :.3} cm, tilt {_TiltDisabled :.3} deg");
+        _TrackingOvershoot = false;
+        auto Settled = Get_OffsetZ();
+        auto Overshoot = Settled < -0.01 ? (Settled - _PeakOffsetZ) / -Settled : 0.0;
+        ck::Trace(f"[BODY-POSE-SAGS] rear disabled, settled: drop {Get_PresentationLocal().Z :.3} cm, tilt {_TiltDisabled :.3} deg, peak {_PeakOffsetZ :.3} cm, overshoot {Overshoot * 100.0 :.2}%");
+        Assert_True(Overshoot < 0.02, f"The critically damped body-pose spring does not overshoot its settled drop ({Overshoot * 100.0 :.2}%)");
         for (auto Leg : _Fixture.Crawlers[0].Handles.Legs)
         {
             if (ck::IsValid(Leg) && Get_IsRear(Leg))

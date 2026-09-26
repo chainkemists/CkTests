@@ -55,6 +55,17 @@ auto
     TestFalse(TEXT("Reject nonfinite target"), Solver.Step(DeltaTime, 100.0f, FVector{}, Inputs, Outputs));
     AssertUnchanged();
     Inputs[0].Set_IdealTarget(Plants[0]);
+    Inputs[0].Set_Hip(FVector{NaN, 0.0, 0.0});
+    TestFalse(TEXT("Reject nonfinite hip"), Solver.Step(DeltaTime, 100.0f, FVector{}, Inputs, Outputs));
+    AssertUnchanged();
+    Inputs[0].Set_Hip(FVector::ZeroVector);
+    Inputs[0].Set_Reach(-1.0f);
+    TestFalse(TEXT("Reject negative reach"), Solver.Step(DeltaTime, 100.0f, FVector{}, Inputs, Outputs));
+    AssertUnchanged();
+    Inputs[0].Set_Reach(NaN);
+    TestFalse(TEXT("Reject nonfinite reach"), Solver.Step(DeltaTime, 100.0f, FVector{}, Inputs, Outputs));
+    AssertUnchanged();
+    Inputs[0].Set_Reach(0.0f);
     TestFalse(TEXT("Reject nonfinite delta"), Solver.Step(FCk_Time{NaN}, 100.0f, FVector{}, Inputs, Outputs));
     AssertUnchanged();
     Inputs.AddDefaulted();
@@ -279,6 +290,9 @@ auto
         SettingsType{}.Set_Pattern(ck::FProceduralGaitPatternSettings{}.Set_SwitchHysteresis(0.0f)),
         SettingsType{}.Set_Swing(ck::FProceduralGaitSwingSettings{}.Set_ObstacleClearance(-1.0f)),
         SettingsType{}.Set_Step(ck::FProceduralGaitStepSettings{}.Set_MaxStrokeOvershoot(-1.0f)),
+        SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_TargetFraction(0.0f)),
+        SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_TargetFraction(0.95f)),
+        SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_ForceStepFraction(1.1f)),
     };
     auto Solver = ck::FProceduralGaitSolver{};
     const auto Plants = TArray<FVector>{FVector{}};

@@ -61,6 +61,11 @@ class UCk_AutoTest_ProceduralAnimation_WalkerAdmissionRejects : UCk_AutoTest_Bas
         AssertRejected(utils_procedural_animation::Add_Walker(Body, ck::ProceduralTest_SideRig, ck::ProceduralGym_Gait, WrongCount),
             Body, EnsuresBefore, "Segment count mismatch");
 
+        auto NoChains = TArray<FCk_ProceduralWalker_LegChain>();
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_procedural_animation::Add_Walker(Body, ck::ProceduralTest_SideRig, ck::ProceduralTest_TightReachGait, NoChains),
+            Body, EnsuresBefore, "Preset target reach excludes a rest foot");
+
         auto Valid = TArray<FCk_ProceduralWalker_LegChain>();
         Valid.Add(MakeLegChain(n"Leg0", Body, 2));
         EnsuresBefore = utils_ensure::Get_EnsureCount();
