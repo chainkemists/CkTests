@@ -7644,6 +7644,19 @@ class ACk_AutoTest_ProceduralAnimation_DisableLegFreezesBodyRelative_Actor : ACk
     }
 }
 
+class ACk_AutoTest_ProceduralAnimation_FootfallSignalsFireOnPlantAndLift_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 12.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_ProceduralAnimation_FootfallSignalsFireOnPlantAndLift");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_ProceduralAnimation_LegSetChangedFiresOnDisableAndEnable_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 10.0f;
