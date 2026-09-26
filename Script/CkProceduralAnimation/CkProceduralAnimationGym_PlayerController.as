@@ -10,6 +10,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
     private bool _Started = false;
     private bool _DetachIssued = false;
     private FString _CreateError;
+    private int32 _Set = 0;
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
@@ -19,6 +20,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         Station.Title = FText::FromString("PROCEDURAL SURFACE TRAVERSAL");
         Station.Description.Add(FText::FromString("4 / 6 / 8 legs on uneven ground, a wall and a closed loop."));
         Station.Description.Add(FText::FromString("Authored routes steer real surface motion. Planted feet and joint poses are solved by CkFoundation."));
+        Station.Description.Add(FText::FromString("N switches to a spider, a centipede, a tentacled walker and a mixed-chain beast on stairs, rubble and a convex hump."));
         Station.AutoSize = true;
         Stations.Add(Station);
         return Stations;
@@ -30,6 +32,76 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
             ECk_GymStation_Anchor::FootprintCenter) + FVector(-3500.0, 0.0, 200.0);
         _Started = true;
         Request_Reset();
+    }
+
+    ECkProceduralAnimationGym_Course Get_SetCourse(int32 InSlot) const
+    {
+        if (_Set == 1)
+        {
+            return InSlot == 0 ? ECkProceduralAnimationGym_Course::Stairs :
+                (InSlot == 1 ? ECkProceduralAnimationGym_Course::Rubble : ECkProceduralAnimationGym_Course::Hump);
+        }
+        return InSlot == 0 ? ECkProceduralAnimationGym_Course::Uneven :
+            (InSlot == 1 ? ECkProceduralAnimationGym_Course::RampWall : ECkProceduralAnimationGym_Course::Ring);
+    }
+
+    TArray<ECkProceduralAnimationGym_Species> Get_SetRoster(int32 InSlot) const
+    {
+        auto Roster = TArray<ECkProceduralAnimationGym_Species>();
+        if (_Set == 0)
+        {
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler4);
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler6);
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler8);
+        }
+        else if (InSlot == 0)
+        {
+            Roster.Add(ECkProceduralAnimationGym_Species::Beast);
+            Roster.Add(ECkProceduralAnimationGym_Species::Spider);
+            Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
+        }
+        else if (InSlot == 1)
+        {
+            Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
+            Roster.Add(ECkProceduralAnimationGym_Species::Tentacled);
+            Roster.Add(ECkProceduralAnimationGym_Species::Beast);
+        }
+        else
+        {
+            Roster.Add(ECkProceduralAnimationGym_Species::Spider);
+            Roster.Add(ECkProceduralAnimationGym_Species::Tentacled);
+            Roster.Add(ECkProceduralAnimationGym_Species::Beast);
+        }
+        return Roster;
+    }
+
+    FString Get_CourseBanner(ECkProceduralAnimationGym_Course InCourse) const
+    {
+        if (InCourse == ECkProceduralAnimationGym_Course::Uneven)
+        {
+            return "UNEVEN GROUND";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::RampWall)
+        {
+            return "RAMP -> WALL";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Ring)
+        {
+            return "FLOOR -> WALL -> CEILING";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Stairs)
+        {
+            return "STAIRS";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Rubble)
+        {
+            return "RUBBLE";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Hump)
+        {
+            return "CONVEX HUMP";
+        }
+        return "FLAT";
     }
 
     void Request_Reset()
@@ -71,9 +143,9 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
                 }
             }
             // Reuse the fixture objects so their material/renderer palettes survive reset.
-            auto Created = _Courses[0].Create(SceneOwner, _Origin + FVector(0.0, -1500.0, 0.0), ECkProceduralAnimationGym_Course::Uneven);
-            Created = _Courses[1].Create(SceneOwner, _Origin, ECkProceduralAnimationGym_Course::RampWall) && Created;
-            Created = _Courses[2].Create(SceneOwner, _Origin + FVector(0.0, 2000.0, 0.0), ECkProceduralAnimationGym_Course::Ring) && Created;
+            auto Created = _Courses[0].Create_WithRoster(SceneOwner, _Origin + FVector(0.0, -1500.0, 0.0), Get_SetCourse(0), Get_SetRoster(0));
+            Created = _Courses[1].Create_WithRoster(SceneOwner, _Origin, Get_SetCourse(1), Get_SetRoster(1)) && Created;
+            Created = _Courses[2].Create_WithRoster(SceneOwner, _Origin + FVector(0.0, 2000.0, 0.0), Get_SetCourse(2), Get_SetRoster(2)) && Created;
             _CreateError = Created ? "" : "a course could not be created on the retired scene";
             if (Created == false)
             {
@@ -87,12 +159,13 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
             _Courses[Index].Update(_Run, _DrawContacts);
         }
         BindCrawlerSignals();
-        utils_debug_draw::DrawDebugString(_Origin + FVector(-1200.0, -1500.0, 280.0),
-            "UNEVEN GROUND", FLinearColor::White, 0.0f);
-        utils_debug_draw::DrawDebugString(_Origin + FVector(-1200.0, 0.0, 280.0),
-            "RAMP -> WALL", FLinearColor::White, 0.0f);
-        utils_debug_draw::DrawDebugString(_Origin + FVector(0.0, 2000.0, 2000.0),
-            "FLOOR -> WALL -> CEILING", FLinearColor::White, 0.0f);
+        for (auto Index = 0; Index < _Courses.Num(); Index++)
+        {
+            auto Course = _Courses[Index].Spawn.Course;
+            auto BannerOffset = Course == ECkProceduralAnimationGym_Course::Ring ? FVector(0.0, 0.0, 2000.0) : FVector(-1200.0, 0.0, 280.0);
+            utils_debug_draw::DrawDebugString(_Courses[Index].Spawn.Origin + BannerOffset,
+                Get_CourseBanner(Course), FLinearColor::White, 0.0f);
+        }
     }
 
     void BindCrawlerSignals()
@@ -150,20 +223,27 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
     {
         auto Rows = TArray<FCkGym_ControlRow>();
         Rows.Add(CkGym_Control::Header("PROCEDURAL ANIMATION"));
-        Rows.Add(CkGym_Control::Status("This shows", "Nine crawlers traverse uneven ground, a ramp and wall, and a closed loop with live contacts and articulated limbs."));
+        Rows.Add(CkGym_Control::Status("This shows", _Set == 0 ?
+            "Nine crawlers traverse uneven ground, a ramp and wall, and a closed loop with live contacts and articulated limbs." :
+            "A spider, a centipede, a tentacled walker and a mixed-chain beast cross stairs, rubble and a convex hump with live contacts and articulated limbs."));
         Rows.Add(CkGym_Control::Status("Verdict", Get_Verdict(), _ResetPending));
-        Rows.Add(CkGym_Control::Status("Uneven", Get_CourseVerdict(0)));
-        Rows.Add(CkGym_Control::Status("Ramp / wall", Get_CourseVerdict(1)));
-        Rows.Add(CkGym_Control::Status("Closed loop", Get_CourseVerdict(2)));
+        for (auto Index = 0; Index < 3; Index++)
+        {
+            Rows.Add(CkGym_Control::Status(ck_procedural_gym::Get_CourseTitle(Get_SetCourse(Index)), Get_CourseVerdict(Index)));
+        }
         Rows.Add(CkGym_Control::Toggle(EKeys::P, "P", "Travel", _Run));
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Reset all courses"));
+        Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Switch walker set (original / menagerie)"));
         Rows.Add(CkGym_Control::Toggle(EKeys::V, "V", "Contact diagnostics", _DrawContacts));
         Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Disable / enable leg 0 of every crawler"));
         Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Detach leg 1 of the first crawler; its parts ragdoll", _DetachIssued == false));
         Rows.Add(CkGym_Control::Action(EKeys::Home, "Home", "Overview"));
-        Rows.Add(CkGym_Control::Action(EKeys::One, "1", "View uneven ground"));
-        Rows.Add(CkGym_Control::Action(EKeys::Two, "2", "View ramp / wall"));
-        Rows.Add(CkGym_Control::Action(EKeys::Three, "3", "View closed loop"));
+        auto FirstTitle = ck_procedural_gym::Get_CourseTitle(Get_SetCourse(0));
+        auto SecondTitle = ck_procedural_gym::Get_CourseTitle(Get_SetCourse(1));
+        auto ThirdTitle = ck_procedural_gym::Get_CourseTitle(Get_SetCourse(2));
+        Rows.Add(CkGym_Control::Action(EKeys::One, "1", f"View {FirstTitle}"));
+        Rows.Add(CkGym_Control::Action(EKeys::Two, "2", f"View {SecondTitle}"));
+        Rows.Add(CkGym_Control::Action(EKeys::Three, "3", f"View {ThirdTitle}"));
         return Rows;
     }
 
@@ -181,6 +261,11 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         }
         else if (Key == EKeys::R)
         {
+            Request_Reset();
+        }
+        else if (Key == EKeys::N)
+        {
+            _Set = (_Set + 1) % 2;
             Request_Reset();
         }
         else if (Key == EKeys::V)
@@ -297,9 +382,10 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         auto Eye = _Origin + FVector(-4300.0, -5400.0, 4400.0);
         if (_Courses.IsValidIndex(InCourse))
         {
-            Target = _Courses[InCourse].Spawn.Origin + FVector(0.0, 0.0, InCourse == 0 ? 80.0 : 800.0);
+            auto Course = _Courses[InCourse].Spawn.Course;
+            Target = _Courses[InCourse].Spawn.Origin + FVector(0.0, 0.0, ck_procedural_gym::Get_FrameTargetZ(Course));
             Eye = Target + FVector(-2100.0, -2400.0, 1400.0);
-            if (InCourse == 2)
+            if (Course == ECkProceduralAnimationGym_Course::Ring)
             {
                 Eye = Target + FVector(-600.0, -3100.0, 650.0);
             }
@@ -316,7 +402,8 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         {
             for (auto Crawler : _Courses[Index].Crawlers)
             {
-                ck::Trace(f"[PROCEDURAL-GYM] course={Index} legs={Crawler.Layout.LegCount} displacement={Crawler.Progress.FurthestDistance :.1} replanted={Crawler.Get_ReplantedCount()} wall={Crawler.Evidence.SawWall} ceiling={Crawler.Evidence.SawCeiling} traversals={Crawler.Progress.Traversals}");
+                auto SpeciesName = ck_procedural_gym::Get_SpeciesName(Crawler.Layout.Species);
+                ck::Trace(f"[PROCEDURAL-GYM] course={Index} species={SpeciesName} legs={Crawler.Layout.LegCount} displacement={Crawler.Progress.FurthestDistance :.1} replanted={Crawler.Get_ReplantedCount()} wall={Crawler.Evidence.SawWall} ceiling={Crawler.Evidence.SawCeiling} traversals={Crawler.Progress.Traversals}");
             }
         }
     }

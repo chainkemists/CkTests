@@ -7,6 +7,10 @@ namespace ck_procedural_gym_assets
     const float RestDrop = 65.0;
     const float SideHipOffset = 30.0;
     const float SideRestOffset = 100.0;
+    const float SpiderRestDrop = 90.0;
+    const float CentipedeRestDrop = 45.0;
+    const float TentacledRestDrop = 55.0;
+    const float BeastRestDrop = 80.0;
 
     TArray<float32> MakeSegmentLengths(int32 InSegmentCount)
     {
@@ -23,23 +27,34 @@ namespace ck_procedural_gym_assets
         return Lengths;
     }
 
-    FCk_ProceduralLeg_Spec MakeLeg(FName InId, FVector InHipLocal, FVector InRestFootLocal,
-        FVector InPoleLocal, float32 InPhaseOffset, int32 InSegmentCount)
+    FCk_ProceduralLeg_Spec MakeLegWithLengths(FName InId, FVector InHipLocal, FVector InRestFootLocal,
+        FVector InPoleLocal, float32 InPhaseOffset, TArray<float32> InLengths)
     {
         auto Placement = FCk_ProceduralLeg_Placement(InHipLocal, InRestFootLocal);
         Placement.Set_PhaseOffset(InPhaseOffset);
 
         auto Chain = FCk_ProceduralLeg_ChainGeometry();
-        Chain.Set_SegmentLengths(MakeSegmentLengths(InSegmentCount));
+        Chain.Set_SegmentLengths(InLengths);
         Chain.Set_PoleLocal(InPoleLocal);
 
         return FCk_ProceduralLeg_Spec(InId, Placement, Chain);
     }
 
-    FCk_ProceduralLeg_Spec MakeRadialLeg(int32 InLegIndex, int32 InLegCount, int32 InSegmentCount)
+    FCk_ProceduralLeg_Spec MakeLeg(FName InId, FVector InHipLocal, FVector InRestFootLocal,
+        FVector InPoleLocal, float32 InPhaseOffset, int32 InSegmentCount)
+    {
+        return MakeLegWithLengths(InId, InHipLocal, InRestFootLocal, InPoleLocal, InPhaseOffset, MakeSegmentLengths(InSegmentCount));
+    }
+
+    FVector Get_RadialDirection(int32 InLegIndex, int32 InLegCount)
     {
         auto Angle = Math::DegreesToRadians(360.0 * (InLegIndex + 0.5) / InLegCount);
-        auto Radial = FVector(Math::Cos(Angle), Math::Sin(Angle), 0.0);
+        return FVector(Math::Cos(Angle), Math::Sin(Angle), 0.0);
+    }
+
+    FCk_ProceduralLeg_Spec MakeRadialLeg(int32 InLegIndex, int32 InLegCount, int32 InSegmentCount)
+    {
+        auto Radial = Get_RadialDirection(InLegIndex, InLegCount);
         auto Drop = FVector(0.0, 0.0, RestDrop);
         return MakeLeg(FName(f"Leg{InLegIndex}"), Radial * HipRadius, Radial * RestRadius - Drop,
             Radial * RestRadius + Drop, InLegIndex % 2 == 0 ? 0.0f : 0.5f, InSegmentCount);
@@ -70,6 +85,87 @@ namespace ck_procedural_gym_assets
         auto Legs = TArray<FCk_ProceduralLeg_Spec>();
         Legs.Add(MakeSideLeg(0));
         Legs.Add(MakeSideLeg(1));
+        return Legs;
+    }
+
+    TArray<FCk_ProceduralLeg_Spec> MakeRadialLegsWithLengths(int32 InLegCount, float InHipRadius, float InRestRadius,
+        float InRestDrop, float InPoleRadius, float InPoleHeight, TArray<float32> InLengths)
+    {
+        auto Legs = TArray<FCk_ProceduralLeg_Spec>();
+        for (auto LegIndex = 0; LegIndex < InLegCount; LegIndex++)
+        {
+            auto Radial = Get_RadialDirection(LegIndex, InLegCount);
+            Legs.Add(MakeLegWithLengths(FName(f"Leg{LegIndex}"), Radial * InHipRadius,
+                Radial * InRestRadius - FVector(0.0, 0.0, InRestDrop), Radial * InPoleRadius + FVector(0.0, 0.0, InPoleHeight),
+                LegIndex % 2 == 0 ? 0.0f : 0.5f, InLengths));
+        }
+        return Legs;
+    }
+
+    TArray<FCk_ProceduralLeg_Spec> MakeSpiderLegs()
+    {
+        auto Lengths = TArray<float32>();
+        Lengths.Add(50.0f);
+        Lengths.Add(60.0f);
+        Lengths.Add(60.0f);
+        Lengths.Add(50.0f);
+        return MakeRadialLegsWithLengths(8, 35.0, 170.0, SpiderRestDrop, 85.0, 225.0, Lengths);
+    }
+
+    TArray<FCk_ProceduralLeg_Spec> MakeTentacledLegs()
+    {
+        auto Lengths = TArray<float32>();
+        for (auto SegmentIndex = 0; SegmentIndex < 8; SegmentIndex++)
+        {
+            Lengths.Add(18.0f);
+        }
+        return MakeRadialLegsWithLengths(6, 32.0, 110.0, TentacledRestDrop, 50.0, 140.0, Lengths);
+    }
+
+    // Four phase groups of four legs, a quarter cycle apart: the gait only overlaps swings of legs that share an offset,
+    // so four serialized groups must fit in one cycle. Each right leg is half a cycle behind its left.
+    TArray<FCk_ProceduralLeg_Spec> MakeCentipedeLegs()
+    {
+        auto Lengths = TArray<float32>();
+        Lengths.Add(45.0f);
+        Lengths.Add(55.0f);
+        auto Legs = TArray<FCk_ProceduralLeg_Spec>();
+        for (auto Pair = 0; Pair < 8; Pair++)
+        {
+            auto HipX = 105.0 - 30.0 * Pair;
+            for (auto SideIndex = 0; SideIndex < 2; SideIndex++)
+            {
+                auto Side = SideIndex == 0 ? -1.0 : 1.0;
+                auto PhaseOffset = Math::Frac((Pair % 4) * 0.25 + (SideIndex == 0 ? 0.0 : 0.5));
+                Legs.Add(MakeLegWithLengths(FName(SideIndex == 0 ? f"L{Pair}" : f"R{Pair}"), FVector(HipX, Side * 22.0, 0.0),
+                    FVector(HipX, Side * 90.0, -CentipedeRestDrop), FVector(HipX, Side * 60.0, 80.0), float32(PhaseOffset), Lengths));
+            }
+        }
+        return Legs;
+    }
+
+    FCk_ProceduralLeg_Spec MakeBeastLeg(FName InId, float InFore, float InSide, float32 InPhaseOffset, TArray<float32> InLengths)
+    {
+        auto HipX = InFore * 45.0;
+        return MakeLegWithLengths(InId, FVector(HipX, InSide * 26.0, 0.0), FVector(InFore * 52.0, InSide * 60.0, -BeastRestDrop),
+            FVector(HipX - InFore * 80.0, InSide * 40.0, -20.0), InPhaseOffset, InLengths);
+    }
+
+    TArray<FCk_ProceduralLeg_Spec> MakeBeastLegs()
+    {
+        auto FrontLengths = TArray<float32>();
+        FrontLengths.Add(50.0f);
+        FrontLengths.Add(50.0f);
+        auto RearLengths = TArray<float32>();
+        RearLengths.Add(30.0f);
+        RearLengths.Add(35.0f);
+        RearLengths.Add(30.0f);
+        RearLengths.Add(25.0f);
+        auto Legs = TArray<FCk_ProceduralLeg_Spec>();
+        Legs.Add(MakeBeastLeg(n"FL", 1.0, -1.0, 0.0f, FrontLengths));
+        Legs.Add(MakeBeastLeg(n"FR", 1.0, 1.0, 0.5f, FrontLengths));
+        Legs.Add(MakeBeastLeg(n"RL", -1.0, -1.0, 0.5f, RearLengths));
+        Legs.Add(MakeBeastLeg(n"RR", -1.0, 1.0, 0.0f, RearLengths));
         return Legs;
     }
 }
@@ -103,6 +199,41 @@ namespace ck
         _Step.Set_Threshold(30.0f);
     }
 
+    asset ProceduralGym_GaitSpider of UCk_ProceduralGait_Data
+    {
+        _Timing.Set_CycleDuration(FCk_Time(1.0));
+        _Timing.Set_StepDuration(FCk_Time(0.3));
+        _Step.Set_Height(40.0f);
+        _Step.Set_Threshold(50.0f);
+    }
+
+    asset ProceduralGym_GaitCentipede of UCk_ProceduralGait_Data
+    {
+        _Timing.Set_CycleDuration(FCk_Time(1.0));
+        _Timing.Set_StepDuration(FCk_Time(0.2));
+        _Timing.Set_CadenceSpeedRef(60.0f);
+        _Step.Set_Height(16.0f);
+        _Step.Set_Threshold(25.0f);
+    }
+
+    asset ProceduralGym_GaitTentacled of UCk_ProceduralGait_Data
+    {
+        _Timing.Set_CycleDuration(FCk_Time(1.1));
+        _Timing.Set_StepDuration(FCk_Time(0.35));
+        _Timing.Set_LegLossPolicy(ECk_ProceduralGait_LegLossPolicy::RedistributeOffsets);
+        _Step.Set_Height(30.0f);
+        _Step.Set_Threshold(35.0f);
+    }
+
+    asset ProceduralGym_GaitBeast of UCk_ProceduralGait_Data
+    {
+        _Timing.Set_CycleDuration(FCk_Time(0.7));
+        _Timing.Set_StepDuration(FCk_Time(0.24));
+        _Timing.Set_LegLossPolicy(ECk_ProceduralGait_LegLossPolicy::RedistributeOffsets);
+        _Step.Set_Height(26.0f);
+        _Step.Set_Threshold(35.0f);
+    }
+
     asset ProceduralGym_Rig4 of UCk_ProceduralRig_Data
     {
         _Legs.Append(ck_procedural_gym_assets::MakeRadialLegs(4, 2));
@@ -116,6 +247,26 @@ namespace ck
     asset ProceduralGym_Rig8 of UCk_ProceduralRig_Data
     {
         _Legs.Append(ck_procedural_gym_assets::MakeRadialLegs(8, 2));
+    }
+
+    asset ProceduralGym_RigSpider of UCk_ProceduralRig_Data
+    {
+        _Legs.Append(ck_procedural_gym_assets::MakeSpiderLegs());
+    }
+
+    asset ProceduralGym_RigCentipede of UCk_ProceduralRig_Data
+    {
+        _Legs.Append(ck_procedural_gym_assets::MakeCentipedeLegs());
+    }
+
+    asset ProceduralGym_RigTentacled of UCk_ProceduralRig_Data
+    {
+        _Legs.Append(ck_procedural_gym_assets::MakeTentacledLegs());
+    }
+
+    asset ProceduralGym_RigBeast of UCk_ProceduralRig_Data
+    {
+        _Legs.Append(ck_procedural_gym_assets::MakeBeastLegs());
     }
 
     asset ProceduralTest_SideRig of UCk_ProceduralRig_Data

@@ -1,18 +1,48 @@
 // Language=angelscript
 
+enum ECkProceduralAnimationGym_Species
+{
+    Crawler4,
+    Crawler6,
+    Crawler8,
+    Spider,
+    Centipede,
+    Tentacled,
+    Beast
+}
+
 enum ECkProceduralAnimationGym_Course
 {
     Flat,
     Uneven,
     RampWall,
-    Ring
+    Ring,
+    Stairs,
+    Rubble,
+    Hump
+}
+
+struct FCkProceduralAnimationGym_SpeciesProfile
+{
+    UPROPERTY()
+    UCk_ProceduralRig_Data Rig;
+    UPROPERTY()
+    UCk_ProceduralGait_Data Gait;
+    UPROPERTY()
+    float Clearance = 65.0;
+    UPROPERTY()
+    float CollapseDrop = 45.0;
+    UPROPERTY()
+    FVector BodyHalfExtents;
 }
 
 namespace ck_procedural_gym
 {
-    const float CourseHalfWidth = 540.0;
+    const float NarrowCourseHalfWidth = 540.0;
+    const float WideCourseHalfWidth = 660.0;
     const float SlabHalfThickness = 14.0;
-    const float LaneSpacing = 280.0;
+    const float NarrowLaneSpacing = 280.0;
+    const float WideLaneSpacing = 380.0;
     const float BodyClearance = 65.0;
     const float StartX = -1200.0;
     const float TurnaroundX = 1150.0;
@@ -30,12 +60,32 @@ namespace ck_procedural_gym
     // Above the ramp landing and below the turnaround the only supporting surface is the wall's west face.
     const float WallBandMinZ = 950.0;
     const float WallBandMaxZ = 1300.0;
+    const float StairRun = 70.0;
+    // Half a run plus 1 cm, so neighbouring treads overlap and no seam opens between the boxes.
+    const float StairHalfTread = 36.0;
+    const int32 StairsUpSteps = 6;
+    const float StairsUpRise = 20.0;
+    const int32 StairsDownSteps = 3;
+    const float StairsDownRise = 30.0;
+    const float StairsLandingHalfLength = 220.0;
+    const float StairsLandingZ = 120.0;
+    const int32 RubbleCount = 36;
+    const float RubbleHalfSpanX = 1000.0;
+    const float RubbleEdgeMargin = 80.0;
+    const float RubbleMaxTilt = 8.0;
+    const float HumpRadius = 600.0;
+    const float HumpTopZ = 300.0;
+    const float HumpHalfArcDegrees = 60.0;
+    const int32 HumpSlabCount = 12;
 
     const float TravelSpeed = 180.0;
     const FVector BodyHalfExtents = FVector(42.0, 30.0, 18.0);
     // Below BodyClearance: a body that has lost a leg or two must not sink into the floor.
     const float BodyCollapseDrop = 45.0;
+    // The same bound for the other species, scaled to their clearance.
+    const float CollapseDropPerClearance = 0.7;
     const float BodyMaxTilt = 22.0;
+    const float ProbeReachBeyondClearance = 115.0;
     const FVector FootHalfExtents = FVector(10.0, 9.0, 5.0);
     const float SegmentRootThickness = 8.0;
     const float SegmentTipThickness = 5.5;
@@ -48,22 +98,169 @@ namespace ck_procedural_gym
     const float DebrisUpSpeed = 50.0;
     const int32 SlowGaitBelowEnabledLegs = 3;
 
-    UCk_ProceduralRig_Data Get_RigPreset(int32 InLegCount)
+    FCkProceduralAnimationGym_SpeciesProfile Get_SpeciesProfile(ECkProceduralAnimationGym_Species InSpecies)
     {
-        if (InLegCount == 4)
+        auto Profile = FCkProceduralAnimationGym_SpeciesProfile();
+        if (InSpecies == ECkProceduralAnimationGym_Species::Spider)
         {
-            return ck::ProceduralGym_Rig4;
+            Profile.Rig = ck::ProceduralGym_RigSpider;
+            Profile.Gait = ck::ProceduralGym_GaitSpider;
+            Profile.Clearance = ck_procedural_gym_assets::SpiderRestDrop;
+            Profile.BodyHalfExtents = FVector(34.0, 30.0, 20.0);
         }
-        if (InLegCount == 6)
+        else if (InSpecies == ECkProceduralAnimationGym_Species::Centipede)
         {
-            return ck::ProceduralGym_Rig6;
+            Profile.Rig = ck::ProceduralGym_RigCentipede;
+            Profile.Gait = ck::ProceduralGym_GaitCentipede;
+            Profile.Clearance = ck_procedural_gym_assets::CentipedeRestDrop;
+            Profile.BodyHalfExtents = FVector(130.0, 24.0, 12.0);
         }
-        return ck::ProceduralGym_Rig8;
+        else if (InSpecies == ECkProceduralAnimationGym_Species::Tentacled)
+        {
+            Profile.Rig = ck::ProceduralGym_RigTentacled;
+            Profile.Gait = ck::ProceduralGym_GaitTentacled;
+            Profile.Clearance = ck_procedural_gym_assets::TentacledRestDrop;
+            Profile.BodyHalfExtents = FVector(38.0, 38.0, 24.0);
+        }
+        else if (InSpecies == ECkProceduralAnimationGym_Species::Beast)
+        {
+            Profile.Rig = ck::ProceduralGym_RigBeast;
+            Profile.Gait = ck::ProceduralGym_GaitBeast;
+            Profile.Clearance = ck_procedural_gym_assets::BeastRestDrop;
+            Profile.BodyHalfExtents = FVector(62.0, 28.0, 22.0);
+        }
+        else
+        {
+            Profile.Rig = InSpecies == ECkProceduralAnimationGym_Species::Crawler4 ? ck::ProceduralGym_Rig4 :
+                (InSpecies == ECkProceduralAnimationGym_Species::Crawler6 ? ck::ProceduralGym_Rig6 : ck::ProceduralGym_Rig8);
+            Profile.Gait = InSpecies == ECkProceduralAnimationGym_Species::Crawler4 ? ck::ProceduralGym_GaitRedistribute : ck::ProceduralGym_Gait;
+            Profile.Clearance = BodyClearance;
+            Profile.CollapseDrop = BodyCollapseDrop;
+            Profile.BodyHalfExtents = BodyHalfExtents;
+            return Profile;
+        }
+        Profile.CollapseDrop = CollapseDropPerClearance * Profile.Clearance;
+        return Profile;
     }
 
-    UCk_ProceduralGait_Data Get_GaitPreset(int32 InLegCount)
+    FString Get_SpeciesName(ECkProceduralAnimationGym_Species InSpecies)
     {
-        return InLegCount == 4 ? ck::ProceduralGym_GaitRedistribute : ck::ProceduralGym_Gait;
+        if (InSpecies == ECkProceduralAnimationGym_Species::Spider)
+        {
+            return "Spider";
+        }
+        if (InSpecies == ECkProceduralAnimationGym_Species::Centipede)
+        {
+            return "Centipede";
+        }
+        if (InSpecies == ECkProceduralAnimationGym_Species::Tentacled)
+        {
+            return "Tentacled";
+        }
+        if (InSpecies == ECkProceduralAnimationGym_Species::Beast)
+        {
+            return "Beast";
+        }
+        return "Crawler";
+    }
+
+    FString Get_CourseTitle(ECkProceduralAnimationGym_Course InCourse)
+    {
+        if (InCourse == ECkProceduralAnimationGym_Course::Flat)
+        {
+            return "Flat";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Uneven)
+        {
+            return "Uneven";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::RampWall)
+        {
+            return "Ramp / wall";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Ring)
+        {
+            return "Closed loop";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Stairs)
+        {
+            return "Stairs";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Rubble)
+        {
+            return "Rubble";
+        }
+        return "Convex hump";
+    }
+
+    // The course part of each walker's debug name; the debugger PIE test selects walkers by that name.
+    FString Get_CourseIdentifier(ECkProceduralAnimationGym_Course InCourse)
+    {
+        if (InCourse == ECkProceduralAnimationGym_Course::Flat)
+        {
+            return "Flat";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Uneven)
+        {
+            return "Uneven";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::RampWall)
+        {
+            return "RampWall";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Ring)
+        {
+            return "Ring";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Stairs)
+        {
+            return "Stairs";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Rubble)
+        {
+            return "Rubble";
+        }
+        return "Hump";
+    }
+
+    bool Get_IsWideCourse(ECkProceduralAnimationGym_Course InCourse)
+    {
+        return InCourse == ECkProceduralAnimationGym_Course::Stairs || InCourse == ECkProceduralAnimationGym_Course::Rubble ||
+            InCourse == ECkProceduralAnimationGym_Course::Hump;
+    }
+
+    float Get_LaneSpacing(ECkProceduralAnimationGym_Course InCourse)
+    {
+        return Get_IsWideCourse(InCourse) ? WideLaneSpacing : NarrowLaneSpacing;
+    }
+
+    float Get_CourseHalfWidth(ECkProceduralAnimationGym_Course InCourse)
+    {
+        return Get_IsWideCourse(InCourse) ? WideCourseHalfWidth : NarrowCourseHalfWidth;
+    }
+
+    float Get_FrameTargetZ(ECkProceduralAnimationGym_Course InCourse)
+    {
+        if (InCourse == ECkProceduralAnimationGym_Course::RampWall || InCourse == ECkProceduralAnimationGym_Course::Ring)
+        {
+            return 800.0;
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Stairs)
+        {
+            return 120.0;
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Hump)
+        {
+            return 250.0;
+        }
+        return 80.0;
+    }
+
+    // Deterministic, stateless pseudo-random value in [0, 1): the rubble must be identical on every reset.
+    float Hash01(int32 InN)
+    {
+        auto S = Math::Sin(float(InN) * 12.9898) * 43758.5453;
+        return S - Math::FloorToFloat(S);
     }
 
     FVector Get_SegmentHalfExtents(TArray<float32> InLengths, int32 InSegmentIndex)
@@ -73,11 +270,11 @@ namespace ck_procedural_gym
         return FVector(InLengths[InSegmentIndex] * 0.5, Thickness, Thickness);
     }
 
-    FCk_SurfaceMotion_Spec MakeMotionParams()
+    FCk_SurfaceMotion_Spec MakeMotionParams(float InClearance)
     {
         auto Contact = FCk_SurfaceMotion_Contact();
-        Contact.Set_Clearance(65.0f);
-        Contact.Set_ProbeReach(180.0f);
+        Contact.Set_Clearance(InClearance);
+        Contact.Set_ProbeReach(InClearance + ProbeReachBeyondClearance);
 
         auto Movement = FCk_SurfaceMotion_Movement();
         Movement.Set_MaxSpeed(180.0f);
@@ -110,6 +307,8 @@ struct FCkProceduralAnimationGym_CrawlerHandles
 
 struct FCkProceduralAnimationGym_CrawlerLayout
 {
+    UPROPERTY()
+    ECkProceduralAnimationGym_Species Species;
     UPROPERTY()
     UCk_ProceduralGait_Data GaitPreset;
     UPROPERTY()
@@ -399,8 +598,9 @@ struct FCkProceduralAnimationGym_Crawler
         }
         if (InLabels)
         {
+            auto SpeciesName = ck_procedural_gym::Get_SpeciesName(Layout.Species);
             utils_debug_draw::DrawDebugString(Position + FVector(0.0, 0.0, 145.0),
-                f"{Layout.LegCount} legs | {Progress.PlantedCount}/{Layout.LegCount} planted | laps {Progress.Traversals}", Layout.Color, 0.0f);
+                f"{SpeciesName} | {Progress.PlantedCount}/{Layout.LegCount} planted | laps {Progress.Traversals}", Layout.Color, 0.0f);
         }
     }
 }
@@ -445,7 +645,7 @@ struct FCkProceduralAnimationGym_SpawnRequest
     UPROPERTY()
     bool Pending = false;
     UPROPERTY()
-    int32 Count = 3;
+    TArray<ECkProceduralAnimationGym_Species> Roster;
 }
 
 struct FCkProceduralAnimationGym_Fixture
@@ -469,12 +669,25 @@ struct FCkProceduralAnimationGym_Fixture
     UPROPERTY()
     FCkProceduralAnimationGym_Debris Debris;
 
-    // Caller first retires the previous fixture and waits for Get_IsDestroyed(). No overlapping
-    // old/new collision bodies are hidden under a reset, even when destruction is deferred.
+    // The first InCount of the 4, 6 and 8-leg crawlers; see Create_WithRoster.
     bool Create(FCk_Handle InOwner, FVector InOrigin, ECkProceduralAnimationGym_Course InCourse,
         bool InRender = true, int32 InCount = 3)
     {
-        if (Get_IsDestroyed() == false || ck::Is_NOT_Valid(InOwner) || InCount < 1 || InCount > 3)
+        auto Roster = TArray<ECkProceduralAnimationGym_Species>();
+        for (auto Index = 0; Index < InCount; Index++)
+        {
+            Roster.Add(Index == 0 ? ECkProceduralAnimationGym_Species::Crawler4 :
+                (Index == 1 ? ECkProceduralAnimationGym_Species::Crawler6 : ECkProceduralAnimationGym_Species::Crawler8));
+        }
+        return Create_WithRoster(InOwner, InOrigin, InCourse, Roster, InRender);
+    }
+
+    // Caller first retires the previous fixture and waits for Get_IsDestroyed(). No overlapping
+    // old/new collision bodies are hidden under a reset, even when destruction is deferred.
+    bool Create_WithRoster(FCk_Handle InOwner, FVector InOrigin, ECkProceduralAnimationGym_Course InCourse,
+        TArray<ECkProceduralAnimationGym_Species> InRoster, bool InRender = true)
+    {
+        if (Get_IsDestroyed() == false || ck::Is_NOT_Valid(InOwner) || InRoster.Num() < 1 || InRoster.Num() > 3)
         {
             return false;
         }
@@ -495,11 +708,12 @@ struct FCkProceduralAnimationGym_Fixture
         Rendering.Render = InRender;
         Rendering.RenderFailed = false;
         Spawn.Course = InCourse;
-        Spawn.Count = InCount;
+        Spawn.Roster = InRoster;
         Spawn.Pending = true;
 
         auto GroundColor = FLinearColor(0.12, 0.18, 0.24, 1.0);
-        auto HalfWidth = ck_procedural_gym::CourseHalfWidth;
+        auto RaisedColor = FLinearColor(0.18, 0.25, 0.31, 1.0);
+        auto HalfWidth = ck_procedural_gym::Get_CourseHalfWidth(Spawn.Course);
         if (Spawn.Course == ECkProceduralAnimationGym_Course::Ring)
         {
             for (auto Index = 0; Index < 24; Index++)
@@ -507,7 +721,7 @@ struct FCkProceduralAnimationGym_Fixture
                 auto Degrees = -90.0 + 15.0 * Index;
                 auto Theta = Math::DegreesToRadians(Degrees);
                 auto Radial = FVector(Math::Cos(Theta), 0.0, Math::Sin(Theta));
-                auto Shade = Index % 2 == 0 ? GroundColor : FLinearColor(0.18, 0.25, 0.31, 1.0);
+                auto Shade = Index % 2 == 0 ? GroundColor : RaisedColor;
                 AddSurface(ck_procedural_gym::RingHub + Radial * ck_procedural_gym::RingRadius,
                     FRotator(Degrees + 90.0, 0.0, 0.0), FVector(120.0, HalfWidth, ck_procedural_gym::SlabHalfThickness), Shade);
             }
@@ -518,7 +732,7 @@ struct FCkProceduralAnimationGym_Fixture
                 FVector(1400.0, HalfWidth, 25.0), GroundColor);
             AddSlab(FVector(400.0, 0.0, 0.0), FVector(1280.0, 0.0, ck_procedural_gym::RampLandingZ), GroundColor);
             AddSurface(FVector(ck_procedural_gym::WallX, 0.0, ck_procedural_gym::WallHalfHeight), FRotator::ZeroRotator,
-                FVector(20.0, HalfWidth, ck_procedural_gym::WallHalfHeight), FLinearColor(0.18, 0.25, 0.31, 1.0));
+                FVector(20.0, HalfWidth, ck_procedural_gym::WallHalfHeight), RaisedColor);
         }
         else if (Spawn.Course == ECkProceduralAnimationGym_Course::Uneven)
         {
@@ -538,8 +752,70 @@ struct FCkProceduralAnimationGym_Fixture
         {
             AddSurface(FVector(0.0, 0.0, -25.0), FRotator::ZeroRotator,
                 FVector(1550.0, HalfWidth, 25.0), GroundColor);
+            if (Spawn.Course == ECkProceduralAnimationGym_Course::Stairs)
+            {
+                AddStairs(HalfWidth, RaisedColor);
+            }
+            else if (Spawn.Course == ECkProceduralAnimationGym_Course::Rubble)
+            {
+                AddRubble(HalfWidth, RaisedColor);
+            }
+            else if (Spawn.Course == ECkProceduralAnimationGym_Course::Hump)
+            {
+                AddHump(GroundColor, RaisedColor);
+            }
         }
         return true;
+    }
+
+    void AddStairs(float InHalfWidth, FLinearColor InColor)
+    {
+        auto UpStartX = -ck_procedural_gym::StairsLandingHalfLength - ck_procedural_gym::StairsUpSteps * ck_procedural_gym::StairRun;
+        for (auto Step = 1; Step <= ck_procedural_gym::StairsUpSteps; Step++)
+        {
+            auto HalfTop = ck_procedural_gym::StairsUpRise * Step * 0.5;
+            AddSurface(FVector(UpStartX + ck_procedural_gym::StairRun * (Step - 0.5), 0.0, HalfTop), FRotator::ZeroRotator,
+                FVector(ck_procedural_gym::StairHalfTread, InHalfWidth, HalfTop), InColor);
+        }
+        auto LandingHalfHeight = ck_procedural_gym::StairsLandingZ * 0.5;
+        AddSurface(FVector(0.0, 0.0, LandingHalfHeight), FRotator::ZeroRotator,
+            FVector(ck_procedural_gym::StairsLandingHalfLength, InHalfWidth, LandingHalfHeight), InColor);
+        for (auto Step = 1; Step <= ck_procedural_gym::StairsDownSteps; Step++)
+        {
+            auto HalfTop = (ck_procedural_gym::StairsLandingZ - ck_procedural_gym::StairsDownRise * Step) * 0.5;
+            AddSurface(FVector(ck_procedural_gym::StairsLandingHalfLength + ck_procedural_gym::StairRun * (Step - 0.5), 0.0, HalfTop),
+                FRotator::ZeroRotator, FVector(ck_procedural_gym::StairHalfTread, InHalfWidth, HalfTop), InColor);
+        }
+    }
+
+    // Every rock is half buried: its centre sits half its half-height above the floor.
+    void AddRubble(float InHalfWidth, FLinearColor InColor)
+    {
+        for (auto Index = 0; Index < ck_procedural_gym::RubbleCount; Index++)
+        {
+            auto Seed = 8 * Index;
+            auto HalfExtents = FVector(15.0 + 30.0 * ck_procedural_gym::Hash01(Seed + 3), 15.0 + 30.0 * ck_procedural_gym::Hash01(Seed + 4),
+                5.0 + 13.0 * ck_procedural_gym::Hash01(Seed + 5));
+            auto Location = FVector(ck_procedural_gym::RubbleHalfSpanX * (2.0 * ck_procedural_gym::Hash01(Seed + 1) - 1.0),
+                (2.0 * ck_procedural_gym::Hash01(Seed + 2) - 1.0) * (InHalfWidth - ck_procedural_gym::RubbleEdgeMargin), HalfExtents.Z * 0.5);
+            auto Rotation = FRotator(ck_procedural_gym::RubbleMaxTilt * (2.0 * ck_procedural_gym::Hash01(Seed + 7) - 1.0),
+                90.0 * ck_procedural_gym::Hash01(Seed + 6), ck_procedural_gym::RubbleMaxTilt * (2.0 * ck_procedural_gym::Hash01(Seed + 8) - 1.0));
+            AddSurface(Location, Rotation, HalfExtents, InColor);
+        }
+    }
+
+    void AddHump(FLinearColor InColor, FLinearColor InAlternateColor)
+    {
+        auto Centre = FVector(0.0, 0.0, ck_procedural_gym::HumpTopZ - ck_procedural_gym::HumpRadius);
+        auto StepDegrees = 2.0 * ck_procedural_gym::HumpHalfArcDegrees / ck_procedural_gym::HumpSlabCount;
+        for (auto Index = 0; Index < ck_procedural_gym::HumpSlabCount; Index++)
+        {
+            auto From = Math::DegreesToRadians(-ck_procedural_gym::HumpHalfArcDegrees + StepDegrees * Index);
+            auto To = Math::DegreesToRadians(-ck_procedural_gym::HumpHalfArcDegrees + StepDegrees * (Index + 1));
+            AddSlab(Centre + FVector(Math::Sin(From), 0.0, Math::Cos(From)) * ck_procedural_gym::HumpRadius,
+                Centre + FVector(Math::Sin(To), 0.0, Math::Cos(To)) * ck_procedural_gym::HumpRadius,
+                Index % 2 == 0 ? InColor : InAlternateColor);
+        }
     }
 
     void AddSlab(FVector InStart, FVector InEnd, FLinearColor InColor)
@@ -550,7 +826,7 @@ struct FCkProceduralAnimationGym_Fixture
         auto Normal = FVector(-Math::Sin(Angle), 0.0, Math::Cos(Angle));
         auto Thickness = ck_procedural_gym::SlabHalfThickness;
         AddSurface((InStart + InEnd) * 0.5 - Normal * Thickness, FRotator(Pitch, 0.0, 0.0),
-            FVector(Delta.Size() * 0.5 + 4.0, ck_procedural_gym::CourseHalfWidth, Thickness), InColor);
+            FVector(Delta.Size() * 0.5 + 4.0, ck_procedural_gym::Get_CourseHalfWidth(Spawn.Course), Thickness), InColor);
     }
 
     UCk_IsmRenderer_Data GetOrCreate_Renderer(FLinearColor InColor)
@@ -654,7 +930,7 @@ struct FCkProceduralAnimationGym_Fixture
 
     bool Get_AllReady() const
     {
-        if (Spawn.Pending || Crawlers.Num() != Spawn.Count)
+        if (Spawn.Pending || Crawlers.Num() != Spawn.Roster.Num())
         {
             return false;
         }
@@ -694,15 +970,19 @@ struct FCkProceduralAnimationGym_Fixture
     void SpawnCrawler(int32 InIndex)
     {
         auto Crawler = FCkProceduralAnimationGym_Crawler();
-        Crawler.Layout.LegCount = 4 + InIndex * 2;
-        Crawler.Layout.LaneY = Spawn.Count == 1 ? 0.0 : (InIndex - 1) * ck_procedural_gym::LaneSpacing;
+        Crawler.Layout.Species = Spawn.Roster[InIndex];
+        auto Profile = ck_procedural_gym::Get_SpeciesProfile(Crawler.Layout.Species);
+        Crawler.Layout.LegCount = Profile.Rig.Get_Legs().Num();
+        auto RosterCount = Spawn.Roster.Num();
+        Crawler.Layout.LaneY = RosterCount == 1 ? 0.0 :
+            (InIndex - (RosterCount - 1) * 0.5) * ck_procedural_gym::Get_LaneSpacing(Spawn.Course);
         Crawler.Layout.Origin = Spawn.Origin;
         Crawler.Layout.Course = Spawn.Course;
         Crawler.Layout.Color = InIndex == 0 ? FLinearColor(0.1, 0.8, 0.85, 1.0) :
             (InIndex == 1 ? FLinearColor(1.0, 0.58, 0.12, 1.0) : FLinearColor(0.65, 0.35, 1.0, 1.0));
         Crawler.Layout.Start = Spawn.Origin + (Spawn.Course == ECkProceduralAnimationGym_Course::Ring ?
             FVector(0.0, Crawler.Layout.LaneY, ck_procedural_gym::RingStartZ) :
-            FVector(ck_procedural_gym::StartX, Crawler.Layout.LaneY, ck_procedural_gym::BodyClearance));
+            FVector(ck_procedural_gym::StartX, Crawler.Layout.LaneY, Profile.Clearance));
 
         // The root is the simulation body; its visual lives on the presentation entity, which the body pose sags.
         auto Owner = SceneRoot;
@@ -710,32 +990,30 @@ struct FCkProceduralAnimationGym_Fixture
         Crawler.Handles.Root = utils_transform::Add(RootEntity, FTransform(Crawler.Layout.Start), ECk_Replication::DoesNotReplicate);
         Entities.Add(RootEntity);
         RootEntity.Request_OverrideToSelf();
-        auto CourseName = Spawn.Course == ECkProceduralAnimationGym_Course::Flat ? "Flat" :
-            Spawn.Course == ECkProceduralAnimationGym_Course::Uneven ? "Uneven" :
-            Spawn.Course == ECkProceduralAnimationGym_Course::RampWall ? "RampWall" : "Ring";
-        RootEntity.Set_DebugName(FName(f"ProceduralAnimation.{CourseName}.Crawler{Crawler.Layout.LegCount}"));
-        Crawler.Handles.Presentation = AddVisual(RootEntity, FTransform(Crawler.Layout.Start), ck_procedural_gym::BodyHalfExtents,
+        auto CourseIdentifier = ck_procedural_gym::Get_CourseIdentifier(Spawn.Course);
+        auto SpeciesName = ck_procedural_gym::Get_SpeciesName(Crawler.Layout.Species);
+        RootEntity.Set_DebugName(FName(f"ProceduralAnimation.{CourseIdentifier}.{SpeciesName}{Crawler.Layout.LegCount}"));
+        Crawler.Handles.Presentation = AddVisual(RootEntity, FTransform(Crawler.Layout.Start), Profile.BodyHalfExtents,
             Crawler.Layout.Color);
 
-        Crawler.Handles.Motion = utils_surface_motion::Add(Crawler.Handles.Root, ck_procedural_gym::MakeMotionParams());
+        Crawler.Handles.Motion = utils_surface_motion::Add(Crawler.Handles.Root, ck_procedural_gym::MakeMotionParams(Profile.Clearance));
 
-        auto RigPreset = ck_procedural_gym::Get_RigPreset(Crawler.Layout.LegCount);
-        Crawler.Layout.GaitPreset = ck_procedural_gym::Get_GaitPreset(Crawler.Layout.LegCount);
+        Crawler.Layout.GaitPreset = Profile.Gait;
         auto Chains = TArray<FCk_ProceduralWalker_LegChain>();
-        for (auto LegParams : RigPreset.Get_Legs())
+        for (auto LegParams : Profile.Rig.Get_Legs())
         {
             Chains.Add(MakeLegChain(Crawler, LegParams));
             Crawler.Evidence.SawSwing.Add(false);
             Crawler.Evidence.Replanted.Add(false);
         }
 
-        auto Walker = utils_procedural_animation::Add_Walker(Crawler.Handles.Root, RigPreset, Crawler.Layout.GaitPreset, Chains);
+        auto Walker = utils_procedural_animation::Add_Walker(Crawler.Handles.Root, Profile.Rig, Crawler.Layout.GaitPreset, Chains);
         Crawler.Handles.Gait = Walker.Get_Gait();
         Crawler.Handles.Legs = Walker.Get_Legs();
         if (ck::IsValid(Crawler.Handles.Gait))
         {
             auto Support = FCk_ProceduralBodyPose_Support();
-            Support.Set_CollapseDrop(ck_procedural_gym::BodyCollapseDrop);
+            Support.Set_CollapseDrop(Profile.CollapseDrop);
             Support.Set_MaxTilt(ck_procedural_gym::BodyMaxTilt);
             auto PoseSpec = FCk_ProceduralBodyPose_Spec(Crawler.Handles.Presentation);
             PoseSpec.Set_Support(Support);
@@ -744,7 +1022,7 @@ struct FCkProceduralAnimationGym_Fixture
         if (ck::Is_NOT_Valid(Crawler.Handles.Motion) || ck::Is_NOT_Valid(Crawler.Handles.Gait) || Crawler.Handles.Legs.Num() != Crawler.Layout.LegCount ||
             ck::Is_NOT_Valid(Crawler.Handles.BodyPose))
         {
-            CompositionError = f"{CourseName} crawler with {Crawler.Layout.LegCount} legs: surface motion, walker or body pose composition was rejected";
+            CompositionError = f"{CourseIdentifier} {SpeciesName} with {Crawler.Layout.LegCount} legs: surface motion, walker or body pose composition was rejected";
         }
         Crawlers.Add(Crawler);
     }
@@ -761,7 +1039,7 @@ struct FCkProceduralAnimationGym_Fixture
             {
                 return;
             }
-            for (auto Index = 0; Index < Spawn.Count; Index++)
+            for (auto Index = 0; Index < Spawn.Roster.Num(); Index++)
             {
                 SpawnCrawler(Index);
             }
