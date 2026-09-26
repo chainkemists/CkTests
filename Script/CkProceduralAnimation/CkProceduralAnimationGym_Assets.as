@@ -232,7 +232,8 @@ namespace ck
         _Timing.Set_CadenceSpeedRef(60.0f);
         _Step.Set_Height(16.0f);
         _Step.Set_Threshold(25.0f);
-        _Step.Set_MaxVelocityLead(25.0f);
+        // Also caps the turn's lead: a spin in place needs about 40 cm at the end legs.
+        _Step.Set_MaxVelocityLead(40.0f);
     }
 
     asset ProceduralGym_GaitTentacled of UCk_ProceduralGait_Data

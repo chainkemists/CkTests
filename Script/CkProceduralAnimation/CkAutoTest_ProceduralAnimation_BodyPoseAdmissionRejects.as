@@ -65,6 +65,17 @@ class UCk_AutoTest_ProceduralAnimation_BodyPoseAdmissionRejects : UCk_AutoTest_B
         return Spec;
     }
 
+    FCk_ProceduralBodyPose_Spec MakeSpecWithConformRates(FCk_Handle_Transform InPresentation, float32 InMaxTiltRate, float32 InMaxHeightRate)
+    {
+        auto Conform = FCk_ProceduralBodyPose_Conform();
+        Conform.Set_Mode(ECk_ProceduralBodyPose_ConformMode::PlantedFeet);
+        Conform.Set_MaxTiltRate(InMaxTiltRate);
+        Conform.Set_MaxHeightRate(InMaxHeightRate);
+        auto Spec = FCk_ProceduralBodyPose_Spec(InPresentation);
+        Spec.Set_Conform(Conform);
+        return Spec;
+    }
+
     void AssertRejected(FCk_Handle_ProceduralBodyPose InBodyPose, FCk_Handle InBody, int32 InEnsuresBefore,
         bool InExpectBodyPose, const FString& InCase)
     {
@@ -151,6 +162,22 @@ class UCk_AutoTest_ProceduralAnimation_BodyPoseAdmissionRejects : UCk_AutoTest_B
         EnsuresBefore = utils_ensure::Get_EnsureCount();
         AssertRejected(utils_procedural_body_pose::Add(Gait, MakeSpecWithConform(Presentation, 20.0f, 0.5f, -1.0f)), Body, EnsuresBefore,
             false, "Negative conform max height");
+
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_procedural_body_pose::Add(Gait, MakeSpecWithConformRates(Presentation, 0.0f, 60.0f)), Body, EnsuresBefore,
+            false, "Zero conform max tilt rate");
+
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_procedural_body_pose::Add(Gait, MakeSpecWithConformRates(Presentation, -120.0f, 60.0f)), Body, EnsuresBefore,
+            false, "Negative conform max tilt rate");
+
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_procedural_body_pose::Add(Gait, MakeSpecWithConformRates(Presentation, 120.0f, 0.0f)), Body, EnsuresBefore,
+            false, "Zero conform max height rate");
+
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_procedural_body_pose::Add(Gait, MakeSpecWithConformRates(Presentation, 120.0f, -60.0f)), Body, EnsuresBefore,
+            false, "Negative conform max height rate");
 
         EnsuresBefore = utils_ensure::Get_EnsureCount();
         auto BodyPose = utils_procedural_body_pose::Add(Gait, MakeSpecWithConform(Presentation, 20.0f, 0.5f, 10.0f));

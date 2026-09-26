@@ -163,28 +163,52 @@ namespace ck_test_procedural_gait_reach
         }
     };
 
+    struct FCentipedeLayout
+    {
+        TArray<FVector> Hips;
+        TArray<FVector> Rests;
+        TArray<float> PhaseOffsets;
+    };
+
     // The centipede layout: sixteen 100 cm legs in four phase groups a quarter cycle apart, each right leg half a cycle
     // behind its left.
     auto
-        InitCentipede(
-            FReachHarness& InOutHarness)
-        -> void
+        MakeCentipedeLayout()
+        -> FCentipedeLayout
     {
-        auto Hips = TArray<FVector>{};
-        auto Rests = TArray<FVector>{};
-        auto PhaseOffsets = TArray<float>{};
+        auto Layout = FCentipedeLayout{};
         for (auto Pair = 0; Pair < 8; ++Pair)
         {
             const auto HipX = 105.0 - 30.0 * Pair;
             for (auto SideIndex = 0; SideIndex < 2; ++SideIndex)
             {
                 const auto Side = SideIndex == 0 ? -1.0 : 1.0;
-                Hips.Add(FVector{HipX, Side * 24.0, 0.0});
-                Rests.Add(FVector{HipX, Side * 75.0, -45.0});
-                PhaseOffsets.Add(FMath::Frac((Pair % 4) * 0.25f + (SideIndex == 0 ? 0.0f : 0.5f)));
+                Layout.Hips.Add(FVector{HipX, Side * 24.0, 0.0});
+                Layout.Rests.Add(FVector{HipX, Side * 75.0, -45.0});
+                Layout.PhaseOffsets.Add(FMath::Frac((Pair % 4) * 0.25f + (SideIndex == 0 ? 0.0f : 0.5f)));
             }
         }
-        InOutHarness.Init(Hips, Rests, PhaseOffsets, LegReach);
+        return Layout;
+    }
+
+    auto
+        InitCentipede(
+            FReachHarness& InOutHarness)
+        -> void
+    {
+        const auto Layout = MakeCentipedeLayout();
+        InOutHarness.Init(Layout.Hips, Layout.Rests, Layout.PhaseOffsets, LegReach);
+    }
+
+    // The gym centipede's timing: a 1 s cycle at a cadence reference of 60 cm/s, 0.2 s steps and the ECS swing budget for
+    // sixteen legs.
+    auto
+        ApplyCentipedeGait(
+            ck::FProceduralGaitSolver& InOutSolver)
+        -> void
+    {
+        InOutSolver.Get_Settings().Get_Cadence().Set_CycleDuration(FCk_Time{1.0}).Set_CadenceSpeedRef(60.0f).Set_MaxSimultaneousSwings(8);
+        InOutSolver.Get_Settings().Get_Step().Set_Duration(FCk_Time{0.2});
     }
 }
 
@@ -530,8 +554,8 @@ auto
     constexpr auto MaxStanceCycles = 2.0;
 
     auto H = FReachHarness{};
-    H.Solver.Get_Settings().Get_Cadence().Set_CycleDuration(FCk_Time{1.0}).Set_CadenceSpeedRef(60.0f).Set_MaxSimultaneousSwings(8);
-    H.Solver.Get_Settings().Get_Step().Set_Duration(FCk_Time{0.2}).Set_Threshold(20.0f);
+    ApplyCentipedeGait(H.Solver);
+    H.Solver.Get_Settings().Get_Step().Set_Threshold(20.0f);
     InitCentipede(H);
     H.BodyVelocity = FVector{Speed, 0.0, 0.0};
     H.Lead = FVector{FMath::Min(Speed * H.Solver.Get_Settings().Get_Step().Get_Duration().Get_Seconds(), MaxLeadCm), 0.0, 0.0};
@@ -601,6 +625,426 @@ auto
             MaxStance[Leg] < MaxStanceCycles * Cycle);
     }
     TestEqual(TEXT("Priority never lets two phase groups swing at once"), MultiGroupFrames, 0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitYawRateIgnoresTiltStepsTest,
+    "Ck.ProceduralAnimation.Gait.YawRateIgnoresTiltSteps",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitYawRateIgnoresTiltStepsTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto TurnDegreesPerSecond = 90.0;
+    constexpr auto TiltFrames = 30;
+    constexpr auto TiltStepDegrees = 4.0;
+    constexpr auto CornerDegrees = 50.0;
+    constexpr auto TurnFrames = 60;
+    constexpr auto StillTolerance = 1.0e-3;
+    constexpr auto SettledTolerance = 0.01;
+    constexpr auto FirstFrameMaxShare = 0.2;
+
+    const auto TurnRate = FMath::DegreesToRadians(TurnDegreesPerSecond);
+    const auto TiltAxis = FVector{1.0, 1.0, 0.0}.GetSafeNormal();
+    const auto TurnStep = [&](double InDirection) { return FQuat{FVector::UpVector, InDirection * TurnRate * FrameDt.Get_Seconds()}; };
+
+    auto Tracker = ck::FProceduralGaitYawRateTracker{};
+    auto Basis = FQuat{FVector::UpVector, FMath::DegreesToRadians(30.0)};
+    auto WorstTiltRate = 0.0;
+    for (auto Frame = 0; Frame <= TiltFrames; ++Frame)
+    {
+        const auto TiltDegrees = Frame == TiltFrames ? CornerDegrees : TiltStepDegrees;
+        const auto Tilted = (Basis * FQuat{TiltAxis, FMath::DegreesToRadians(TiltDegrees)}).GetNormalized();
+        WorstTiltRate = FMath::Max(WorstTiltRate, static_cast<double>(FMath::Abs(Tracker.Update(Basis, Tilted, FrameDt))));
+        Basis = Tilted;
+    }
+    TestTrue(FString::Printf(TEXT("Tilt steps of %.0f degrees and a %.0f degree corner about a horizontal body axis read as no turn "
+        "(worst %.5f rad/s)"), TiltStepDegrees, CornerDegrees, WorstTiltRate), WorstTiltRate <= StillTolerance);
+
+    const auto FirstTurnRate = Tracker.Update(Basis, (Basis * TurnStep(1.0)).GetNormalized(), FrameDt);
+    Basis = (Basis * TurnStep(1.0)).GetNormalized();
+    TestTrue(FString::Printf(TEXT("The rate is low-passed: the first turning frame reads %.4f of %.4f rad/s"), FirstTurnRate, TurnRate),
+        FirstTurnRate > 0.0f && FirstTurnRate <= FirstFrameMaxShare * TurnRate);
+
+    for (auto Frame = 1; Frame < TurnFrames; ++Frame)
+    {
+        const auto Turned = (Basis * TurnStep(1.0)).GetNormalized();
+        Tracker.Update(Basis, Turned, FrameDt);
+        Basis = Turned;
+    }
+    TestTrue(FString::Printf(TEXT("A steady turn settles on its rate within %.0f %% after %d frames (%.4f of %.4f rad/s)"),
+        SettledTolerance * 100.0, TurnFrames, Tracker.GetYawRate(), TurnRate),
+        FMath::Abs(Tracker.GetYawRate() - TurnRate) <= SettledTolerance * TurnRate);
+
+    for (auto Frame = 0; Frame < TurnFrames; ++Frame)
+    {
+        const auto TiltedAndTurned = (Basis * (FQuat{TiltAxis, FMath::DegreesToRadians(TiltStepDegrees)} * TurnStep(1.0))).GetNormalized();
+        Tracker.Update(Basis, TiltedAndTurned, FrameDt);
+        Basis = TiltedAndTurned;
+    }
+    TestTrue(FString::Printf(TEXT("A turn that tilts every frame reads the turn alone (%.4f of %.4f rad/s)"), Tracker.GetYawRate(), TurnRate),
+        FMath::Abs(Tracker.GetYawRate() - TurnRate) <= SettledTolerance * TurnRate);
+
+    for (auto Frame = 0; Frame < 2 * TurnFrames; ++Frame)
+    {
+        const auto Turned = (Basis * TurnStep(-1.0)).GetNormalized();
+        Tracker.Update(Basis, Turned, FrameDt);
+        Basis = Turned;
+    }
+    TestTrue(FString::Printf(TEXT("A turn the other way reads a negative rate (%.4f of %.4f rad/s)"), Tracker.GetYawRate(), -TurnRate),
+        FMath::Abs(Tracker.GetYawRate() + TurnRate) <= SettledTolerance * TurnRate);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitSpinInPlaceKeepsFeetWithinReachTest,
+    "Ck.ProceduralAnimation.Gait.SpinInPlaceKeepsFeetWithinReach",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitSpinInPlaceKeepsFeetWithinReachTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto SpinDegreesPerSecond = 90.0;
+    constexpr auto SpinFrames = 360;
+    constexpr auto WarmUpFrames = 60;
+    // The gym centipede's max velocity lead, which bounds the whole lead, turn included.
+    constexpr auto MaxLead = 40.0f;
+    // The solver's worst planted reach in this spin is 1.08 chain lengths.
+    constexpr auto MaxPlantedReachOverChain = 1.2;
+    constexpr auto MaxBeyondChainFraction = 0.01;
+
+    const auto Layout = MakeCentipedeLayout();
+    const auto LegCount = Layout.Hips.Num();
+    auto MeanFootRadius = 0.0;
+    for (const auto& Rest : Layout.Rests)
+    { MeanFootRadius += FVector{Rest.X, Rest.Y, 0.0}.Size() / LegCount; }
+
+    for (const auto Direction : {1.0, -1.0})
+    {
+        auto Solver = ck::FProceduralGaitSolver{};
+        ApplyCentipedeGait(Solver);
+        Solver.Get_Settings().Get_Step().Set_Threshold(25.0f);
+        Solver.Reset(Layout.Rests);
+        const auto LeadTime = Solver.Get_Settings().Get_Step().Get_Duration();
+        const auto TargetLimit = Solver.Get_Settings().Get_Reach().Get_TargetFraction() * LegReach;
+
+        auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+        Inputs.SetNum(LegCount);
+        auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+        Outputs.SetNum(LegCount);
+        for (auto Leg = 0; Leg < LegCount; ++Leg)
+        { Inputs[Leg].Set_PhaseOffset(Layout.PhaseOffsets[Leg]).Set_Reach(LegReach); }
+
+        auto Tracker = ck::FProceduralGaitYawRateTracker{};
+        auto PreviousBasis = FQuat::Identity;
+        auto WorstReach = 0.0;
+        auto PlantedSamples = 0;
+        auto BeyondChain = 0;
+        auto BeyondForceStep = 0;
+        for (auto Frame = 1; Frame <= SpinFrames; ++Frame)
+        {
+            const auto Basis = FQuat{FVector::UpVector,
+                FMath::DegreesToRadians(Direction * SpinDegreesPerSecond) * FrameDt.Get_Seconds() * Frame};
+            const auto YawRate = Tracker.Update(PreviousBasis, Basis, FrameDt);
+            PreviousBasis = Basis;
+
+            for (auto Leg = 0; Leg < LegCount; ++Leg)
+            {
+                const auto Hip = Basis.RotateVector(Layout.Hips[Leg]);
+                const auto Query = ck::FProceduralGaitSolver::ComputeLeadQuery(Basis.RotateVector(Layout.Rests[Leg]), FVector::ZeroVector,
+                    FVector::ZeroVector, FVector::UpVector, YawRate, LeadTime, MaxLead);
+                Inputs[Leg].Set_Hip(Hip).Set_IdealTarget(ck::FProceduralGaitSolver::ClampToReach(Hip, Query, TargetLimit));
+            }
+
+            const auto CadenceSpeed = static_cast<float>(FMath::Abs(YawRate) * MeanFootRadius);
+            if (NOT Solver.Step(FrameDt, CadenceSpeed, FVector::ZeroVector, Inputs, Outputs))
+            {
+                AddError(TEXT("The solver rejected the spin"));
+                return false;
+            }
+            if (Frame <= WarmUpFrames)
+            { continue; }
+
+            for (auto Leg = 0; Leg < LegCount; ++Leg)
+            {
+                if (NOT Outputs[Leg].Get_Planted())
+                { continue; }
+
+                const auto Reach = FVector::Dist(Outputs[Leg].Get_Position(), Inputs[Leg].Get_Hip()) / LegReach;
+                WorstReach = FMath::Max(WorstReach, Reach);
+                ++PlantedSamples;
+                BeyondChain += Reach > 1.0 ? 1 : 0;
+                BeyondForceStep += Reach > Solver.Get_Settings().Get_Reach().Get_ForceStepFraction() ? 1 : 0;
+            }
+        }
+
+        const auto BeyondChainFraction = static_cast<double>(BeyondChain) / FMath::Max(PlantedSamples, 1);
+        AddInfo(FString::Printf(TEXT("Spinning at %+.0f deg/s: worst planted reach %.3f chain lengths, %.4f of planted samples beyond "
+            "the chain, %.4f beyond the force-step reach"), Direction * SpinDegreesPerSecond, WorstReach, BeyondChainFraction,
+            static_cast<double>(BeyondForceStep) / FMath::Max(PlantedSamples, 1)));
+        TestTrue(FString::Printf(TEXT("Spinning at %+.0f deg/s, every planted foot stays within %.2f chain lengths of its hip (worst %.3f)"),
+            Direction * SpinDegreesPerSecond, MaxPlantedReachOverChain, WorstReach), WorstReach <= MaxPlantedReachOverChain);
+        TestTrue(FString::Printf(TEXT("Spinning at %+.0f deg/s, fewer than %.0f %% of planted samples lie beyond the chain (%.4f)"),
+            Direction * SpinDegreesPerSecond, MaxBeyondChainFraction * 100.0, BeyondChainFraction), BeyondChainFraction < MaxBeyondChainFraction);
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitLandingLiftsOntoLandingGroundTest,
+    "Ck.ProceduralAnimation.Gait.LandingLiftsOntoGroundUnderTheLandingPoint",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitLandingLiftsOntoLandingGroundTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto LowerTreadZ = -45.0;
+    constexpr auto UpperTreadZ = -25.0;
+    constexpr auto WithinTheSafetyNetZ = LowerTreadZ + 1.5;
+    constexpr auto UnreachableGroundZ = 60.0;
+    constexpr auto BelowTheTargetZ = -60.0;
+    constexpr auto Frames = 60;
+    constexpr auto Tolerance = 0.01;
+    constexpr auto MinInFlightLift = 1.0;
+    // The default 0.25 s swing advances a fifteenth of its phase per frame, so a swing past this phase lands next frame.
+    constexpr auto LastSwingFramePhase = 0.9f;
+
+    struct FLanding
+    {
+        bool SawFreeze = false;
+        bool Landed = false;
+        FVector LandingPoint = FVector::ZeroVector;
+        FVector BeforePlant = FVector::ZeroVector;
+        FVector Plant = FVector::ZeroVector;
+        TArray<double> SwingHeights;
+        int32 MissedLifts = 0;
+        bool LiftedBeforeFreeze = false;
+    };
+
+    constexpr auto FromTheFirstSwingFrame = 0;
+    constexpr auto FromTheFreeze = 1;
+    constexpr auto OnlyBeforeTouchdown = 2;
+
+    // One leg steps from behind its hip to a target on the lower tread. From its first swing frame, from the retarget freeze
+    // or only on its last swing frame, it is told the ground under its landing point, one frame late, as the ECS probe
+    // tells it.
+    const auto DoStep = [&](TOptional<double> InLandingGroundZ, int32 InReportFrom) -> FLanding
+    {
+        auto Solver = ck::FProceduralGaitSolver{};
+        Solver.Reset({FVector{-30.0, 60.0, LowerTreadZ}});
+
+        auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+        Inputs.SetNum(1);
+        Inputs[0].Set_Hip(FVector::ZeroVector).Set_Reach(LegReach).Set_IdealTarget(FVector{30.0, 60.0, LowerTreadZ});
+        auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+        Outputs.SetNum(1);
+
+        auto Landing = FLanding{};
+        auto WasPlanted = true;
+        auto Previous = FVector::ZeroVector;
+        for (auto Frame = 0; Frame < Frames && NOT Landing.Landed; ++Frame)
+        {
+            Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+            const auto Position = Outputs[0].Get_Position();
+            if (NOT WasPlanted && Outputs[0].Get_Planted())
+            {
+                Landing.Landed = true;
+                Landing.BeforePlant = Previous;
+                Landing.Plant = Position;
+            }
+            else if (NOT Outputs[0].Get_Planted())
+            { Landing.SwingHeights.Add(Position.Z); }
+            WasPlanted = Outputs[0].Get_Planted();
+            Previous = Position;
+
+            const auto& Swing = Solver.GetLegState(0).Get_Swing();
+            if (NOT Swing.Get_Active())
+            { continue; }
+
+            Landing.LiftedBeforeFreeze |= NOT Swing.Get_TargetFrozen() && Swing.Get_LandingLiftStartAlpha() >= 0.0f;
+            if (Swing.Get_TargetFrozen())
+            {
+                Landing.SawFreeze = true;
+                Landing.LandingPoint = Swing.Get_LandingPoint();
+            }
+            const auto Reports = InReportFrom == FromTheFirstSwingFrame
+                || (InReportFrom == FromTheFreeze && Swing.Get_TargetFrozen())
+                || (InReportFrom == OnlyBeforeTouchdown && Swing.Get_Phase() > LastSwingFramePhase);
+            if (InLandingGroundZ.IsSet() && Reports)
+            { Inputs[0].Set_LandingGroundZ(static_cast<float>(InLandingGroundZ.GetValue())); }
+        }
+        Landing.MissedLifts = Solver.Get_MissedLandingLifts();
+        return Landing;
+    };
+
+    const auto Unknown = DoStep({}, FromTheFreeze);
+    if (NOT TestTrue(TEXT("Precondition: the swing freezes its target and lands"), Unknown.SawFreeze && Unknown.Landed))
+    { return false; }
+    TestTrue(FString::Printf(TEXT("The exposed landing point is where the swing lands (%s against %s)"), *Unknown.LandingPoint.ToString(),
+        *Unknown.Plant.ToString()), Unknown.LandingPoint.Equals(Unknown.Plant, Tolerance));
+    TestEqual(TEXT("With no landing ground the foot plants on the lower tread"), Unknown.Plant.Z, LowerTreadZ, Tolerance);
+
+    const auto OnUpperTread = DoStep(UpperTreadZ, FromTheFreeze);
+    TestTrue(TEXT("Precondition: the lifted swing lands"), OnUpperTread.Landed);
+    TestEqual(TEXT("Ground under the landing point lifts the plant onto the upper tread"), OnUpperTread.Plant.Z, UpperTreadZ, Tolerance);
+    TestTrue(TEXT("The lift keeps the landing point's planar position"),
+        FVector2D{OnUpperTread.Plant}.Equals(FVector2D{Unknown.LandingPoint}, Tolerance));
+    auto InFlightLift = 0.0;
+    for (auto Index = 0; Index < FMath::Min(OnUpperTread.SwingHeights.Num(), Unknown.SwingHeights.Num()); ++Index)
+    { InFlightLift = FMath::Max(InFlightLift, OnUpperTread.SwingHeights[Index] - Unknown.SwingHeights[Index]); }
+    TestTrue(FString::Printf(TEXT("The swing rises toward the upper tread before touchdown (by up to %.2f cm)"), InFlightLift),
+        InFlightLift > MinInFlightLift);
+    const auto OrdinaryTouchdownStep = FVector::Distance(Unknown.Plant, Unknown.BeforePlant);
+    const auto LiftedTouchdownRise = OnUpperTread.Plant.Z - OnUpperTread.BeforePlant.Z;
+    TestTrue(FString::Printf(TEXT("At touchdown the lifted foot rises no more than an ordinary swing moves into its plant (%.2f cm against "
+        "%.2f)"), LiftedTouchdownRise, OrdinaryTouchdownStep), LiftedTouchdownRise <= OrdinaryTouchdownStep);
+    TestEqual(TEXT("A lift that starts in flight is not a missed lift"), OnUpperTread.MissedLifts, 0);
+
+    const auto Early = DoStep(UpperTreadZ, FromTheFirstSwingFrame);
+    TestTrue(TEXT("A report that arrives before the retarget freeze starts the lift before it"), Early.LiftedBeforeFreeze);
+    TestEqual(TEXT("A lift begun before the freeze lands on the upper tread"), Early.Plant.Z, UpperTreadZ, Tolerance);
+
+    const auto LateSmall = DoStep(WithinTheSafetyNetZ, OnlyBeforeTouchdown);
+    TestEqual(TEXT("Ground reported only at touchdown, within the safety net, lifts the plant onto it"), LateSmall.Plant.Z,
+        WithinTheSafetyNetZ, Tolerance);
+    TestEqual(TEXT("A lift within the safety net is not a missed lift"), LateSmall.MissedLifts, 0);
+
+    const auto LateLarge = DoStep(UpperTreadZ, OnlyBeforeTouchdown);
+    TestEqual(TEXT("Ground reported only at touchdown, beyond the safety net, leaves the plant on the lower tread"), LateLarge.Plant.Z,
+        LowerTreadZ, Tolerance);
+    TestEqual(TEXT("That touchdown counts one missed lift"), LateLarge.MissedLifts, 1);
+
+    const auto Unreachable = DoStep(UnreachableGroundZ, FromTheFreeze);
+    TestEqual(TEXT("Ground whose lifted point is out of reach leaves the plant on the lower tread"), Unreachable.Plant.Z, LowerTreadZ, Tolerance);
+    TestEqual(TEXT("Unreachable ground is not a missed lift"), Unreachable.MissedLifts, 0);
+
+    const auto Lower = DoStep(BelowTheTargetZ, FromTheFreeze);
+    TestEqual(TEXT("Ground below the landing target never lowers the plant"), Lower.Plant.Z, LowerTreadZ, Tolerance);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitShortSwingLiftsAcrossTheFreezeSnapTest,
+    "Ck.ProceduralAnimation.Gait.ShortSwingLiftsWhenTheFreezeSnapCrossesARiser",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitShortSwingLiftsAcrossTheFreezeSnapTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto Speed = 180.0;
+    constexpr auto LowerTreadZ = -45.0;
+    constexpr auto UpperTreadZ = -25.0;
+    constexpr auto Frames = 120;
+    constexpr auto ShortSwingFrames = 4;
+    constexpr auto Tolerance = 0.01;
+    // The damped retarget trails the moving ideal by about the speed over the retarget smoothing (13 cm here); the riser sits
+    // this far before where the swing lands, behind the snap's landing point and ahead of the lagging one.
+    constexpr auto RiserBeforeTheLanding = 6.0;
+
+    struct FSwing
+    {
+        bool Landed = false;
+        int32 SwingFrames = 0;
+        FVector Plant = FVector::ZeroVector;
+        bool LiftedBeforeTouchdown = false;
+        int32 MissedLifts = 0;
+    };
+
+    // One leg walks at 180 cm/s with the gym centipede's timing, so its swings last four frames at 60 fps. Only its first
+    // swing is followed. With a riser, the ground past it is the upper tread and is reported one frame late under the
+    // swing's landing point, as the ECS probe reports it.
+    const auto DoWalk = [&](TOptional<double> InRiserX) -> FSwing
+    {
+        auto Solver = ck::FProceduralGaitSolver{};
+        ApplyCentipedeGait(Solver);
+        Solver.Get_Settings().Get_Step().Set_Threshold(25.0f);
+        const auto Hip = FVector{0.0, 30.0, 0.0};
+        const auto Rest = FVector{0.0, 60.0, LowerTreadZ};
+        const auto Velocity = FVector{Speed, 0.0, 0.0};
+        const auto Lead = Velocity * Solver.Get_Settings().Get_Step().Get_Duration().Get_Seconds();
+        Solver.Reset({Rest});
+
+        auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+        Inputs.SetNum(1);
+        Inputs[0].Set_Reach(LegReach);
+        auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+        Outputs.SetNum(1);
+
+        auto Swing = FSwing{};
+        auto Body = FVector::ZeroVector;
+        auto WasPlanted = true;
+        for (auto Frame = 0; Frame < Frames && NOT Swing.Landed; ++Frame)
+        {
+            Body += Velocity * FrameDt.Get_Seconds();
+            Inputs[0].Set_Hip(Body + Hip).Set_IdealTarget(Body + Rest + Lead);
+            Solver.Step(FrameDt, static_cast<float>(Speed), Velocity, Inputs, Outputs);
+
+            const auto Planted = Outputs[0].Get_Planted();
+            if (NOT Planted)
+            { ++Swing.SwingFrames; }
+            if (NOT WasPlanted && Planted)
+            {
+                Swing.Landed = true;
+                Swing.Plant = Outputs[0].Get_Position();
+            }
+            WasPlanted = Planted;
+
+            const auto& State = Solver.GetLegState(0).Get_Swing();
+            if (NOT State.Get_Active())
+            { continue; }
+
+            Swing.LiftedBeforeTouchdown |= State.Get_LandingLiftStartAlpha() >= 0.0f;
+            if (InRiserX.IsSet())
+            {
+                const auto PastTheRiser = State.Get_LandingPoint().X > InRiserX.GetValue();
+                Inputs[0].Set_LandingGroundZ(static_cast<float>(PastTheRiser ? UpperTreadZ : LowerTreadZ));
+            }
+        }
+        Swing.MissedLifts = Solver.Get_MissedLandingLifts();
+        return Swing;
+    };
+
+    const auto Reference = DoWalk({});
+    if (NOT TestTrue(TEXT("Precondition: the first swing lands"), Reference.Landed))
+    { return false; }
+    TestEqual(TEXT("Precondition: at 180 cm/s with the centipede's timing the swing lasts four frames"), Reference.SwingFrames,
+        ShortSwingFrames);
+    TestEqual(TEXT("Precondition: on flat ground the swing plants on the lower tread"), Reference.Plant.Z, LowerTreadZ, Tolerance);
+
+    const auto AcrossTheRiser = DoWalk(Reference.Plant.X - RiserBeforeTheLanding);
+    TestTrue(TEXT("The swing whose freeze snap crosses the riser lands"), AcrossTheRiser.Landed);
+    TestTrue(TEXT("It starts lifting before touchdown"), AcrossTheRiser.LiftedBeforeTouchdown);
+    TestEqual(TEXT("It plants on the upper tread"), AcrossTheRiser.Plant.Z, UpperTreadZ, Tolerance);
+    TestEqual(TEXT("No missed lift is counted"), AcrossTheRiser.MissedLifts, 0);
 
     return true;
 }

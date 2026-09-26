@@ -13,8 +13,9 @@ namespace ck_paviz_telemetry
     const float BuriedRayLength = 60.0;
     // A ray that hits at its very start began inside a solid: the depth is then unknown, not zero.
     const float StartInsideFraction = 0.0001;
-    // The body-pose spring steps are taken on the flat past the hump: 180 cm past its foot the offset has settled from the
-    // descent, and 1.8 s later the enable step still has 1.8 s of flat after the turnaround.
+    // The body-pose spring steps are taken where the hump's flat would be, past its foot, on a walker without conform, so the
+    // step response is the spring's alone: 180 cm past the foot, and 1.8 s later the enable step still has 1.8 s of flat
+    // before the turnaround.
     const float SpringStepsPastHump = 180.0;
     const float SpringStepSeconds = 1.8;
 
@@ -114,10 +115,11 @@ struct FCkPaViz_TelemetryRecorder
     }
 
     bool Add_Fixture(FCk_Handle InOwner, FString InName, ECkProceduralAnimationGym_Course InCourse, FVector InOrigin,
-        TArray<ECkProceduralAnimationGym_Species> InRoster)
+        TArray<ECkProceduralAnimationGym_Species> InRoster,
+        ECk_ProceduralBodyPose_ConformMode InConformMode = ECk_ProceduralBodyPose_ConformMode::PlantedFeet)
     {
         DoAddCourse(InName, InRoster.Num());
-        return Fixtures[Fixtures.Num() - 1].Create_WithRoster(InOwner, InOrigin, InCourse, InRoster, false);
+        return Fixtures[Fixtures.Num() - 1].Create_WithRoster(InOwner, InOrigin, InCourse, InRoster, false, InConformMode);
     }
 
     // The 4, 6 and 8-leg crawlers of the fixture's default Create.

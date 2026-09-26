@@ -1,7 +1,7 @@
 // Language=angelscript
 
-// PaViz telemetry on the hump, stairs, uneven and rubble courses, with body-pose spring steps on the hump beast's rear
-// legs. The recorder (CkPaViz_TelemetryRecorder.as) traces the [PAVIZ] lines; the data is the product, so the test passes
+// PaViz telemetry on the hump, stairs, uneven and rubble courses, and body-pose spring steps on the rear legs of a beast
+// that walks a flat course without conform. The recorder (CkPaViz_TelemetryRecorder.as) traces the [PAVIZ] lines; the data is the product, so the test passes
 // once the sequence completes.
 class UCk_AutoTest_PaViz_Telemetry : UCk_AutoTest_Base
 {
@@ -24,13 +24,17 @@ class UCk_AutoTest_PaViz_Telemetry : UCk_AutoTest_Base
         Created = _Recorder.Add_Fixture(InHandle, "Rubble", ECkProceduralAnimationGym_Course::Rubble, FVector(120000.0, 140000.0, 600.0),
             ck_paviz_telemetry::MakeRoster(ECkProceduralAnimationGym_Species::Centipede, ECkProceduralAnimationGym_Species::Tentacled,
                 ECkProceduralAnimationGym_Species::Beast)) && Created;
-        _Recorder.Enable_SpringSteps(0, 2);
+        auto SpringRoster = TArray<ECkProceduralAnimationGym_Species>();
+        SpringRoster.Add(ECkProceduralAnimationGym_Species::Beast);
+        Created = _Recorder.Add_Fixture(InHandle, "Flat", ECkProceduralAnimationGym_Course::Flat, FVector(120000.0, 145000.0, 600.0),
+            SpringRoster, ECk_ProceduralBodyPose_ConformMode::None) && Created;
+        _Recorder.Enable_SpringSteps(4, 0);
         if (Created == false)
         {
-            FinishFailure("The isolated hump, stairs, uneven and rubble fixtures could not be created");
+            FinishFailure("The isolated hump, stairs, uneven, rubble and flat fixtures could not be created");
             return;
         }
-        Add_Step_WaitUntil("every walker on the four courses is composed and evaluated", n"Check_Ready", 1200, 20.0f);
+        Add_Step_WaitUntil("every walker on the five courses is composed and evaluated", n"Check_Ready", 1200, 20.0f);
         Add_Step_WaitUntil("every walker passes the turnaround and 34 s pass, or 45 s pass, while each frame is traced", n"Check_Sampled", 0, 48.0f);
         Add_Step("trace the run summary and retire the fixtures", n"Step_Finish");
         Add_Step_WaitUntil("every fixture lifetime subtree is gone", n"Check_Destroyed", 0, 10.0f);
