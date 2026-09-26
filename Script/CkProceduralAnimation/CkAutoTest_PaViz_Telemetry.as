@@ -13,9 +13,13 @@ class UCk_AutoTest_PaViz_Telemetry : UCk_AutoTest_Base
     private TArray<bool> _Passed;
     private int32 _SpringFixture = 0;
     private int32 _SpringWalker = 2;
-    private float _DisableSeconds = 20.0;
-    private float _EnableSeconds = 26.0;
-    // Sampling runs past the crossings so both body-pose spring responses settle inside the samples.
+    // The body pose carries the body's attitude changes into its offset, so the spring steps are taken on the flat past the
+    // hump: 180 cm past its foot the offset has settled from the descent, and 1.8 s later the enable step still has 1.8 s
+    // of flat after the turnaround.
+    private float _SpringFlatX = ck_procedural_gym::HumpHalfWidth + 180.0;
+    private float _SpringStepSeconds = 1.8;
+    private float _DisabledAt = -1.0;
+    // Sampling covers every walker's turnaround and most of its return.
     private float _MinSampleSeconds = 34.0;
     private float _MaxSampleSeconds = 45.0;
     private float _PhaseStart = 0.0;
@@ -147,12 +151,15 @@ class UCk_AutoTest_PaViz_Telemetry : UCk_AutoTest_Base
             _Fixtures[Index].Update();
         }
         auto Elapsed = Get_Elapsed();
-        if (_RearDisabled == false && Elapsed >= _DisableSeconds)
+        auto SpringCrawler = _Fixtures[_SpringFixture].Crawlers[_SpringWalker];
+        auto SpringX = utils_transform::Get_EntityCurrentLocation(SpringCrawler.Handles.Root).X - SpringCrawler.Layout.Origin.X;
+        if (_RearDisabled == false && SpringCrawler.Progress.RouteStage == 0 && SpringX > _SpringFlatX)
         {
             _RearDisabled = true;
+            _DisabledAt = Elapsed;
             DoRequest_RearLegs(ECk_EnableDisable::Disable, "disable", Elapsed);
         }
-        if (_RearEnabled == false && Elapsed >= _EnableSeconds)
+        if (_RearDisabled && _RearEnabled == false && Elapsed >= _DisabledAt + _SpringStepSeconds)
         {
             _RearEnabled = true;
             DoRequest_RearLegs(ECk_EnableDisable::Enable, "enable", Elapsed);

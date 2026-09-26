@@ -43,6 +43,19 @@ class UCk_AutoTest_ProceduralAnimation_BodyPoseAdmissionRejects : UCk_AutoTest_B
         return Spec;
     }
 
+    FCk_ProceduralBodyPose_Spec MakeSpecWithConform(FCk_Handle_Transform InPresentation, float32 InMaxTilt, float32 InHeightWeight,
+        float32 InMaxHeight)
+    {
+        auto Conform = FCk_ProceduralBodyPose_Conform();
+        Conform.Set_Mode(ECk_ProceduralBodyPose_ConformMode::PlantedFeet);
+        Conform.Set_MaxTilt(InMaxTilt);
+        Conform.Set_HeightWeight(InHeightWeight);
+        Conform.Set_MaxHeight(InMaxHeight);
+        auto Spec = FCk_ProceduralBodyPose_Spec(InPresentation);
+        Spec.Set_Conform(Conform);
+        return Spec;
+    }
+
     void AssertRejected(FCk_Handle_ProceduralBodyPose InBodyPose, FCk_Handle InBody, int32 InEnsuresBefore,
         bool InExpectBodyPose, const FString& InCase)
     {
@@ -115,8 +128,20 @@ class UCk_AutoTest_ProceduralAnimation_BodyPoseAdmissionRejects : UCk_AutoTest_B
             "Max tilt of 90 degrees");
 
         EnsuresBefore = utils_ensure::Get_EnsureCount();
-        auto BodyPose = utils_procedural_body_pose::Add(Gait, FCk_ProceduralBodyPose_Spec(Presentation));
-        Assert_True(ck::IsValid(BodyPose) && HasBodyPose(Body), "Positive control: a valid presentation admits a body pose");
+        AssertRejected(utils_procedural_body_pose::Add(Gait, MakeSpecWithConform(Presentation, 90.0f, 0.5f, 10.0f)), Body, EnsuresBefore,
+            false, "Conform max tilt of 90 degrees");
+
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_procedural_body_pose::Add(Gait, MakeSpecWithConform(Presentation, 20.0f, 1.5f, 10.0f)), Body, EnsuresBefore,
+            false, "Conform height weight above 1");
+
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_procedural_body_pose::Add(Gait, MakeSpecWithConform(Presentation, 20.0f, 0.5f, -1.0f)), Body, EnsuresBefore,
+            false, "Negative conform max height");
+
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        auto BodyPose = utils_procedural_body_pose::Add(Gait, MakeSpecWithConform(Presentation, 20.0f, 0.5f, 10.0f));
+        Assert_True(ck::IsValid(BodyPose) && HasBodyPose(Body), "Positive control: a valid presentation admits a conforming body pose");
         Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 0, "Positive control: no ensure fires");
 
         auto SecondPresentation = CreateTransform(Body, _Origin);

@@ -7761,6 +7761,19 @@ class ACk_AutoTest_ProceduralAnimation_TraversesRampAndWall_Actor : ACk_AutoTest
     }
 }
 
+class ACk_AutoTest_ProceduralAnimation_WalkQualityOnHump_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 50.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_ProceduralAnimation_WalkQualityOnHump");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_ProceduralAnimation_WalksOnNonOriginFloor_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 12.0f;
