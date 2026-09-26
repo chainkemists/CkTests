@@ -494,6 +494,147 @@ auto
     return true;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_test_procedural_body_conform_slew
+{
+    constexpr auto FrameDt = FCk_Time{1.0 / 60.0};
+    constexpr auto MaxTiltRateDegrees = 120.0f;
+    constexpr auto MaxHeightRate = 60.0f;
+    constexpr auto JumpDegrees = 30.0;
+    constexpr auto JumpHeight = 10.0;
+    constexpr auto AngleToleranceDegrees = 1.0e-3;
+    constexpr auto DistanceTolerance = 1.0e-3;
+
+    auto
+        MakeSettings()
+        -> ck::FProceduralBodyConformSlewSettings
+    {
+        return ck::FProceduralBodyConformSlewSettings{}
+            .Set_MaxTiltRateDegrees(MaxTiltRateDegrees)
+            .Set_MaxHeightRate(MaxHeightRate);
+    }
+
+    auto
+        Get_AngleDegrees(
+            const FTransform& InA,
+            const FTransform& InB)
+        -> double
+    {
+        return FMath::RadiansToDegrees(InA.GetRotation().AngularDistance(InB.GetRotation()));
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralBodyConformSlewRateTest,
+    "Ck.ProceduralAnimation.BodyConform.SlewAdvancesAtMostTheRatePerFrame",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralBodyConformSlewRateTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_body_conform_slew;
+
+    const auto MaxStepDegrees = MaxTiltRateDegrees * FrameDt.Get_Seconds();
+    const auto MaxStepHeight = MaxHeightRate * FrameDt.Get_Seconds();
+    const auto Target = FTransform{FQuat{FVector{1.0, 1.0, 0.0}.GetSafeNormal(), FMath::DegreesToRadians(JumpDegrees)},
+        FVector{0.0, 0.0, JumpHeight}};
+    const auto RotationFrames = static_cast<int32>(FMath::CeilToInt(JumpDegrees / MaxStepDegrees - AngleToleranceDegrees));
+    const auto HeightFrames = static_cast<int32>(FMath::CeilToInt(JumpHeight / MaxStepHeight - DistanceTolerance));
+
+    auto Applied = FTransform::Identity;
+    auto WorstStepDegrees = 0.0;
+    auto WorstStepHeight = 0.0;
+    auto ReachedRotationFrame = int32{INDEX_NONE};
+    auto ReachedHeightFrame = int32{INDEX_NONE};
+    for (auto Frame = 1; Frame <= RotationFrames + 5; ++Frame)
+    {
+        const auto Slewed = ck::SlewProceduralBodyConformPose(Applied, Target, MakeSettings(), FrameDt);
+        if (NOT TestTrue(FString::Printf(TEXT("Frame %d: a well-formed slew is set"), Frame), Slewed.IsSet()))
+        { return false; }
+
+        const auto StepDegrees = Get_AngleDegrees(*Slewed, Applied);
+        const auto StepHeight = FVector::Distance(Slewed->GetLocation(), Applied.GetLocation());
+        TestTrue(FString::Printf(TEXT("Frame %d: the applied target never moves away from the fit (%.4f -> %.4f degrees)"), Frame,
+            Get_AngleDegrees(Applied, Target), Get_AngleDegrees(*Slewed, Target)),
+            Get_AngleDegrees(*Slewed, Target) <= Get_AngleDegrees(Applied, Target) + AngleToleranceDegrees);
+        WorstStepDegrees = FMath::Max(WorstStepDegrees, StepDegrees);
+        WorstStepHeight = FMath::Max(WorstStepHeight, StepHeight);
+        Applied = *Slewed;
+
+        if (ReachedRotationFrame == INDEX_NONE && Get_AngleDegrees(Applied, Target) <= AngleToleranceDegrees)
+        { ReachedRotationFrame = Frame; }
+        if (ReachedHeightFrame == INDEX_NONE && FVector::Distance(Applied.GetLocation(), Target.GetLocation()) <= DistanceTolerance)
+        { ReachedHeightFrame = Frame; }
+    }
+
+    TestTrue(FString::Printf(TEXT("A %.0f degree conform jump advances at most %.2f degrees per frame at 60 fps (worst %.4f)"),
+        JumpDegrees, MaxStepDegrees, WorstStepDegrees), WorstStepDegrees <= MaxStepDegrees + AngleToleranceDegrees);
+    TestTrue(FString::Printf(TEXT("A %.0f cm height jump advances at most %.2f cm per frame (worst %.4f)"), JumpHeight, MaxStepHeight,
+        WorstStepHeight), WorstStepHeight <= MaxStepHeight + DistanceTolerance);
+    TestEqual(TEXT("The rotation reaches the fit on the frame the rate allows"), ReachedRotationFrame, RotationFrames);
+    TestEqual(TEXT("The height reaches the fit on the frame the rate allows"), ReachedHeightFrame, HeightFrames);
+
+    const auto Near = FTransform{FQuat{FVector::ForwardVector, FMath::DegreesToRadians(MaxStepDegrees * 0.5)}, FVector{0.0, 0.0, 0.2}};
+    const auto OneStep = ck::SlewProceduralBodyConformPose(FTransform::Identity, Near, MakeSettings(), FrameDt);
+    TestTrue(TEXT("A fit within one frame's rate is reached in that frame"), OneStep.IsSet()
+        && Get_AngleDegrees(*OneStep, Near) <= AngleToleranceDegrees
+        && FVector::Distance(OneStep->GetLocation(), Near.GetLocation()) <= DistanceTolerance);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralBodyConformSlewMalformedTest,
+    "Ck.ProceduralAnimation.BodyConform.SlewRejectsMalformedInput",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralBodyConformSlewMalformedTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_body_conform_slew;
+
+    const auto Target = FTransform{FQuat{FVector::RightVector, FMath::DegreesToRadians(JumpDegrees)}, FVector{0.0, 0.0, JumpHeight}};
+    TestTrue(TEXT("Positive control: a well-formed slew is set"),
+        ck::SlewProceduralBodyConformPose(FTransform::Identity, Target, MakeSettings(), FrameDt).IsSet());
+
+    const auto Still = ck::SlewProceduralBodyConformPose(FTransform::Identity, Target, MakeSettings(), FCk_Time{});
+    TestTrue(TEXT("A zero delta time leaves the applied target where it was"), Still.IsSet()
+        && Get_AngleDegrees(*Still, FTransform::Identity) <= AngleToleranceDegrees
+        && Still->GetLocation().IsNearlyZero(DistanceTolerance));
+
+    const auto NaN = std::numeric_limits<float>::quiet_NaN();
+    const auto DoExpectUnset = [&](const FTransform& InApplied, const FTransform& InTarget,
+        const ck::FProceduralBodyConformSlewSettings& InSettings, FCk_Time InDeltaTime, const TCHAR* InCase)
+    {
+        TestFalse(FString::Printf(TEXT("%s is rejected"), InCase),
+            ck::SlewProceduralBodyConformPose(InApplied, InTarget, InSettings, InDeltaTime).IsSet());
+    };
+
+    DoExpectUnset(FTransform::Identity, Target, MakeSettings().Set_MaxTiltRateDegrees(0.0f), FrameDt, TEXT("A zero tilt rate"));
+    DoExpectUnset(FTransform::Identity, Target, MakeSettings().Set_MaxTiltRateDegrees(-10.0f), FrameDt, TEXT("A negative tilt rate"));
+    DoExpectUnset(FTransform::Identity, Target, MakeSettings().Set_MaxTiltRateDegrees(NaN), FrameDt, TEXT("A NaN tilt rate"));
+    DoExpectUnset(FTransform::Identity, Target, MakeSettings().Set_MaxHeightRate(0.0f), FrameDt, TEXT("A zero height rate"));
+    DoExpectUnset(FTransform::Identity, Target, MakeSettings().Set_MaxHeightRate(-10.0f), FrameDt, TEXT("A negative height rate"));
+    DoExpectUnset(FTransform::Identity, Target, MakeSettings(), FCk_Time{-1.0 / 60.0}, TEXT("A negative delta time"));
+    DoExpectUnset(FTransform::Identity, Target, MakeSettings(), FCk_Time{std::numeric_limits<double>::quiet_NaN()},
+        TEXT("A NaN delta time"));
+    DoExpectUnset(FTransform{FVector{0.0, 0.0, std::numeric_limits<double>::quiet_NaN()}}, Target, MakeSettings(), FrameDt,
+        TEXT("A NaN applied target"));
+    DoExpectUnset(FTransform::Identity, FTransform{FVector{std::numeric_limits<double>::infinity(), 0.0, 0.0}}, MakeSettings(), FrameDt,
+        TEXT("An infinite fitted target"));
+
+    return true;
+}
+
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------

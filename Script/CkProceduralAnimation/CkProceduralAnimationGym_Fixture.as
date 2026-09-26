@@ -48,6 +48,8 @@ struct FCkProceduralAnimationGym_SpeciesProfile
     float CollapseDrop = 45.0;
     UPROPERTY()
     FVector BodyHalfExtents;
+    UPROPERTY()
+    float SurfaceTurnRate = 240.0;
 }
 
 namespace ck_procedural_gym
@@ -116,6 +118,8 @@ namespace ck_procedural_gym
     const float SpinDegreesPerSecond = 120.0;
 
     const float TravelSpeed = 180.0;
+    // A 2.6 m body cannot pivot at the other species' rate on four phase groups that step one after another.
+    const float CentipedeSurfaceTurnRate = 90.0;
     const FVector BodyHalfExtents = FVector(42.0, 30.0, 18.0);
     // Crawler hips sit on a 30 cm radius; these boxes put every hip on a side face instead of inside the body.
     const FVector Crawler4BodyHalfExtents = FVector(21.2, 21.2, 14.0);
@@ -182,6 +186,7 @@ namespace ck_procedural_gym
             Profile.Gait = ck::ProceduralGym_GaitCentipede;
             Profile.Clearance = ck_procedural_gym_assets::CentipedeRestDrop;
             Profile.BodyHalfExtents = ck_procedural_gym_assets::CentipedeBodyHalfExtents;
+            Profile.SurfaceTurnRate = CentipedeSurfaceTurnRate;
         }
         else if (InSpecies == ECkProceduralAnimationGym_Species::Tentacled)
         {
@@ -482,7 +487,7 @@ namespace ck_procedural_gym
         return FVector(InLengths[InSegmentIndex] * 0.5, Thickness, Thickness);
     }
 
-    FCk_SurfaceMotion_Spec MakeMotionParams(float InClearance)
+    FCk_SurfaceMotion_Spec MakeMotionParams(float InClearance, float InSurfaceTurnRate)
     {
         auto Contact = FCk_SurfaceMotion_Contact();
         Contact.Set_Clearance(InClearance);
@@ -490,7 +495,7 @@ namespace ck_procedural_gym
 
         auto Movement = FCk_SurfaceMotion_Movement();
         Movement.Set_MaxSpeed(180.0f);
-        Movement.Set_SurfaceTurnRate(240.0f);
+        Movement.Set_SurfaceTurnRate(InSurfaceTurnRate);
 
         auto Params = FCk_SurfaceMotion_Spec();
         Params.Set_Contact(Contact);
@@ -887,6 +892,8 @@ struct FCkProceduralAnimationGym_SpawnRequest
     bool Pending = false;
     UPROPERTY()
     TArray<ECkProceduralAnimationGym_Species> Roster;
+    UPROPERTY()
+    ECk_ProceduralBodyPose_ConformMode ConformMode = ECk_ProceduralBodyPose_ConformMode::PlantedFeet;
 }
 
 struct FCkProceduralAnimationGym_Fixture
@@ -926,7 +933,8 @@ struct FCkProceduralAnimationGym_Fixture
     // Caller first retires the previous fixture and waits for Get_IsDestroyed(). No overlapping
     // old/new collision bodies are hidden under a reset, even when destruction is deferred.
     bool Create_WithRoster(FCk_Handle InOwner, FVector InOrigin, ECkProceduralAnimationGym_Course InCourse,
-        TArray<ECkProceduralAnimationGym_Species> InRoster, bool InRender = true)
+        TArray<ECkProceduralAnimationGym_Species> InRoster, bool InRender = true,
+        ECk_ProceduralBodyPose_ConformMode InConformMode = ECk_ProceduralBodyPose_ConformMode::PlantedFeet)
     {
         if (Get_IsDestroyed() == false || ck::Is_NOT_Valid(InOwner) || InRoster.Num() < 1 || InRoster.Num() > 3)
         {
@@ -950,6 +958,7 @@ struct FCkProceduralAnimationGym_Fixture
         Rendering.RenderFailed = false;
         Spawn.Course = InCourse;
         Spawn.Roster = InRoster;
+        Spawn.ConformMode = InConformMode;
         Spawn.Pending = true;
 
         auto GroundColor = FLinearColor(0.12, 0.18, 0.24, 1.0);
@@ -1328,7 +1337,7 @@ struct FCkProceduralAnimationGym_Fixture
         Crawler.Handles.Presentation = AddVisual(RootEntity, FTransform(Crawler.Layout.Start), Profile.BodyHalfExtents,
             Crawler.Layout.Color);
 
-        Crawler.Handles.Motion = utils_surface_motion::Add(Crawler.Handles.Root, ck_procedural_gym::MakeMotionParams(Profile.Clearance));
+        Crawler.Handles.Motion = utils_surface_motion::Add(Crawler.Handles.Root, ck_procedural_gym::MakeMotionParams(Profile.Clearance, Profile.SurfaceTurnRate));
 
         Crawler.Layout.GaitPreset = Profile.Gait;
         auto Chains = TArray<FCk_ProceduralWalker_LegChain>();
@@ -1348,7 +1357,7 @@ struct FCkProceduralAnimationGym_Fixture
             Support.Set_CollapseDrop(Profile.CollapseDrop);
             Support.Set_MaxTilt(ck_procedural_gym::BodyMaxTilt);
             auto Conform = FCk_ProceduralBodyPose_Conform();
-            Conform.Set_Mode(ECk_ProceduralBodyPose_ConformMode::PlantedFeet);
+            Conform.Set_Mode(Spawn.ConformMode);
             auto PoseSpec = FCk_ProceduralBodyPose_Spec(Crawler.Handles.Presentation);
             PoseSpec.Set_Support(Support);
             PoseSpec.Set_Conform(Conform);
