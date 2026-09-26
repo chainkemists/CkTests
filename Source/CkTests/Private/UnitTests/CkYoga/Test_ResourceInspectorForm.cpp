@@ -70,7 +70,7 @@ namespace ck_tests_resource_inspector_form
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkResourceInspector_Form,
     "Ck.ResourceInspector.Form.SessionNote",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkResourceInspector_Form::RunTest(const FString&) -> bool
 {

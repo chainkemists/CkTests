@@ -33,7 +33,7 @@ namespace
 {
     constexpr auto kUsfRtTestFlags =
         EAutomationTestFlags::EditorContext |
-        EAutomationTestFlags::ProductFilter;
+        EAutomationTestFlags::ProductFilter | EAutomationTestFlags::NonNullRHI;
 
     constexpr auto kMultiPassRtSize = 64;
 
@@ -95,8 +95,12 @@ bool FCkTest_Usf_MultiPassRendersToTexture::RunTest(const FString& Parameters)
 {
     if (FApp::CanEverRender() == false)
     {
-        AddInfo(TEXT("Skipped: this process cannot render (e.g. -nullrhi) — canvas draw + RT readback need a live RHI."));
-        return true;
+        // Flagged EAutomationTestFlags::NonNullRHI, so a -nullrhi editor never lists this test and the
+        // toolbox runs it in its real-renderer pass. Reaching here headless would test nothing, which
+        // must never read as a pass (it used to: AddInfo("Skipped") + return true).
+        AddError(TEXT("Requires a real renderer (this test is flagged NonNullRHI); run it through the "
+                      "toolbox gate or with --no-nullrhi."));
+        return false;
     }
 
     auto* World = Get_TestWorld();

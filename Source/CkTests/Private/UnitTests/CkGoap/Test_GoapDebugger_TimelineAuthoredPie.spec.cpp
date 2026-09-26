@@ -279,7 +279,7 @@ namespace ck_tests_goap_debugger_timeline_authored_pie
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkGoapDebugger_TimelineAuthoredPie,
     "Ck.GoapDebugger.Timeline.Authored.PIE",
-    ck_tests_goap_debugger_timeline_authored_pie::TestFlags)
+    ck_tests_goap_debugger_timeline_authored_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkGoapDebugger_TimelineAuthoredPie::RunTest(const FString&)
 {

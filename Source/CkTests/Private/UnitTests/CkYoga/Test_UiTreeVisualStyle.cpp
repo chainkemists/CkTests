@@ -22,7 +22,7 @@ namespace ck_tests_ui_tree_visual_style
     auto Styles() -> FString { return TEXT(".fill { flex-grow: 1; -ck-tree-row-background: #101820; -ck-tree-row-hover-background: #182838; -ck-tree-row-selected-background: #203850; -ck-tree-row-selected-accent-color: #20d8f0; -ck-tree-row-selected-accent-width: 3px; }"); }
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTreeVisualStyleTest, "Ck.UiAuthoring.Tree.VisualStyle", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTreeVisualStyleTest, "Ck.UiAuthoring.Tree.VisualStyle", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 auto FCkUiTreeVisualStyleTest::RunTest(const FString&) -> bool
 {
     using namespace ck_tests_ui_tree_visual_style;

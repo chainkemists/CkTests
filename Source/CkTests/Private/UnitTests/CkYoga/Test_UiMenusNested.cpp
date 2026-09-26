@@ -226,7 +226,7 @@ namespace ck_tests_ui_menus_nested
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiMenus_NestedRuntime,
     "Ck.UiAuthoring.Menus.NestedNativeRuntime",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiMenus_NestedRuntime::RunTest(const FString&) -> bool
 {
@@ -278,7 +278,7 @@ auto FCkUiMenus_NestedRuntime::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiMenus_NestedCallbackRelease,
     "Ck.UiAuthoring.Menus.NestedCallbackRelease",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiMenus_NestedCallbackRelease::RunTest(const FString&) -> bool
 {

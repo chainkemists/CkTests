@@ -250,7 +250,7 @@ namespace ck_tests_aggro_debugger_authored_pie
     }
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkAggroDebugger_AuthoredPie, "Ck.AggroDebugger.Authored.PIE", ck_tests_aggro_debugger_authored_pie::TestFlags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkAggroDebugger_AuthoredPie, "Ck.AggroDebugger.Authored.PIE", ck_tests_aggro_debugger_authored_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkAggroDebugger_AuthoredPie::RunTest(const FString&)
 {

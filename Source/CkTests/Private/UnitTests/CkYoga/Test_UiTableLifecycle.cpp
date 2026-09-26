@@ -100,7 +100,7 @@ namespace ck_tests_ui_table_lifecycle
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTableLifecycle_Runtime,
     "Ck.UiAuthoring.Table.LifecycleAndStructuralReload",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTableLifecycle_Runtime::RunTest(const FString&) -> bool
 {

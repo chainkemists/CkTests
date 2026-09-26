@@ -192,7 +192,7 @@ namespace ck_tests_save_debugger_authored_pie
     }
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkSaveDebugger_AuthoredPie, "Ck.UiAuthoring.DebuggerMigration.SaveEntityNavigation", ck_tests_save_debugger_authored_pie::TestFlags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkSaveDebugger_AuthoredPie, "Ck.UiAuthoring.DebuggerMigration.SaveEntityNavigation", ck_tests_save_debugger_authored_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkSaveDebugger_AuthoredPie::RunTest(const FString&)
 {

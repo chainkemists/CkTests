@@ -233,7 +233,7 @@ namespace ck_test_usf_cross_hatch
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_Usf_CrossHatchGeneration,
     "CkTests.UnitTests.CkUsf.CrossHatchGeneration",
-    ck::tests::kCkUnitTestFlags)
+    ck::tests::kCkUnitTestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkTest_Usf_CrossHatchGeneration::RunTest(const FString& Parameters)
 {
@@ -241,9 +241,12 @@ bool FCkTest_Usf_CrossHatchGeneration::RunTest(const FString& Parameters)
 
     if (FApp::CanEverRender() == false)
     {
-        AddInfo(TEXT("Skipped: this process cannot render (e.g. -nullrhi) — generation force-compiles shaders "
-                     "and would report the look as failed, which is environmental."));
-        return true;
+        // Flagged EAutomationTestFlags::NonNullRHI, so a -nullrhi editor never lists this test and the
+        // toolbox runs it in its real-renderer pass. Reaching here headless would test nothing, which
+        // must never read as a pass (it used to: AddInfo("Skipped") + return true).
+        AddError(TEXT("Requires a real renderer (this test is flagged NonNullRHI); run it through the "
+                      "toolbox gate or with --no-nullrhi."));
+        return false;
     }
 
     const auto Probe = TStrongObjectPtr<UCkUsf_LookDefinition>{Make_ProbeLookDefinition()};

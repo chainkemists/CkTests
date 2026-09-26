@@ -46,7 +46,7 @@ namespace ck_tests_ui_text_metadata
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTextMetadata_Runtime,
     "Ck.UiAuthoring.TextMetadata.GlobalAndTableBindings",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTextMetadata_Runtime::RunTest(const FString&) -> bool
 {

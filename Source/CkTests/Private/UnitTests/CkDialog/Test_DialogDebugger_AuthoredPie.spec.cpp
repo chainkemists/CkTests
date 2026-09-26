@@ -259,7 +259,7 @@ namespace ck_tests_dialog_debugger_authored_pie
     }
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkDialogDebugger_AuthoredPie, "Ck.DialogDebugger.Authored.PIE", ck_tests_dialog_debugger_authored_pie::TestFlags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkDialogDebugger_AuthoredPie, "Ck.DialogDebugger.Authored.PIE", ck_tests_dialog_debugger_authored_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkDialogDebugger_AuthoredPie::RunTest(const FString&)
 {

@@ -27,7 +27,7 @@ namespace ck_tests_ui_button_wrapping
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiButton_Wrapping, "Ck.UiAuthoring.Button.WrappingGeometryAndLifetime",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 auto FCkUiButton_Wrapping::RunTest(const FString&) -> bool
 {
     using namespace ck_tests_ui_button_wrapping;
