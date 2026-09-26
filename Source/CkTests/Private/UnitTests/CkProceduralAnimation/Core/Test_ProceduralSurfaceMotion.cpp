@@ -833,4 +833,89 @@ auto
 
 // --------------------------------------------------------------------------------------------------------------------
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionStoppedPastACrestTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.StoppedBodyPastACrestKeepsTheTop",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionStoppedPastACrestTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // Where the fan leaves a body that climbed a ledge, one clearance behind its edge, and where the steering stops it. Over
+    // the 150 cm ledge the down ray reaches the floor below; over the 250 cm one it reaches nothing. Stopped, the body still
+    // looks ahead to the top it stands at.
+    constexpr auto StoppedSpeed = 0.0f;
+    constexpr double TopHeights[] = {150.0, 250.0};
+    for (const auto TopZ : TopHeights)
+    {
+        const auto World = TArray<FSolid>{
+            MakeHalfSpace(FVector::UpVector, FVector::ZeroVector),
+            MakeBox(FVector{0.0, -500.0, -10.0}, FVector{300.0, 500.0, TopZ})};
+        const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+        auto Body = MakeBody(FVector{-Clearance, 0.0, TopZ + 2.0}, FVector::UpVector, FVector::ForwardVector);
+        auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+        constexpr auto Substeps = 120;
+        for (auto Index = 0; Index < Substeps; ++Index)
+        {
+            ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, StoppedSpeed, Step, Cast, Body, State);
+            if (NOT TestTrue(FString::Printf(TEXT("Ledge %.0f cm, substep %d: the stopped body keeps the top, neither sinking toward the "
+                    "floor nor falling (normal %s, z %.3f, grounded %d, source %d)"), TopZ, Index, *State.Get_SupportNormal().ToString(),
+                    Body.GetLocation().Z, State.Get_Grounded(), static_cast<int32>(State.Get_ContactSource())),
+                    State.Get_Grounded() && State.Get_SupportNormal().Equals(FVector::UpVector, DistanceTolerance)
+                    && Body.GetLocation().Z >= TopZ))
+            { return false; }
+        }
+
+        TestTrue(FString::Printf(TEXT("Ledge %.0f cm: the stopped body stays where it stopped (x %.3f)"), TopZ, Body.GetLocation().X),
+            FMath::IsNearlyEqual(Body.GetLocation().X, -Clearance, DistanceTolerance));
+        TestTrue(FString::Printf(TEXT("Ledge %.0f cm: the stopped body rose toward its clearance over the top (z %.2f)"), TopZ,
+            Body.GetLocation().Z), Body.GetLocation().Z > TopZ + 2.0);
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionCoastKeepsSourceTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.CoastKeepsTheLastAcceptedSource",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionCoastKeepsSourceTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // A body whose last substep adopted the fan's contact, now over a 45 degree ramp: the down ray proposes the ramp, a turn
+    // beyond the confirm angle, and the body coasts along its support plane while the ramp waits for confirmation. A coasting
+    // substep adopts nothing, so the source is still the fan's.
+    const auto RampNormal = FVector{-1.0, 0.0, 1.0}.GetSafeNormal();
+    const auto World = TArray<FSolid>{MakeHalfSpace(RampNormal, FVector::ZeroVector)};
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+    auto Body = MakeBody(FVector{-100.0, 0.0, -30.0}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+    State.Set_ContactSource(ck::EProceduralSurfaceContactSource::Fan);
+
+    ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Body, State);
+    if (NOT TestTrue(FString::Printf(TEXT("Precondition: the ramp is pending and the support unchanged (seen %.4f s, normal %s)"),
+            State.Get_CandidateSeen().Get_Seconds(), *State.Get_SupportNormal().ToString()),
+            State.Get_CandidateSeen() > FCk_Time{} && State.Get_CandidateNormal().Equals(RampNormal, DistanceTolerance)
+            && State.Get_SupportNormal().Equals(FVector::UpVector, DistanceTolerance)))
+    { return false; }
+
+    TestEqual(TEXT("The coasting substep keeps the last accepted source"), State.Get_ContactSource(), ck::EProceduralSurfaceContactSource::Fan);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
 #endif

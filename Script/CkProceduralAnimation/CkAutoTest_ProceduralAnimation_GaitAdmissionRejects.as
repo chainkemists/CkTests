@@ -137,15 +137,16 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
         AssertPresetRejected(Gait, MakeReachRequest(0.95f), "Preset whose target reach exceeds its force-step reach");
         AssertPresetRejected(Gait, MakeReachRequest(0.8f, 0.92f, 0.99f), "Preset whose hard-overstretch reach is below the chain");
         AssertPresetRejected(Gait, MakeReachRequest(0.8f, 0.92f, 1.51f), "Preset whose hard-overstretch reach exceeds 1.5 chains");
-        AssertPresetRejected(Gait, MakeReachRequest(0.8f, 1.0f, 1.0f), "Preset whose hard-overstretch reach does not exceed its force-step reach");
 
         _AcceptedPresetResultsBefore = _ApplyPresetResults.Num();
         EnsuresBefore = utils_ensure::Get_EnsureCount();
+        utils_procedural_gait::Request_ApplyPreset(Gait, MakeReachRequest(0.8f, 1.0f, 1.0f),
+            FCk_Delegate_Request_OnCompleted(this, n"OnApplyPresetCompleted"));
         utils_procedural_gait::Request_ApplyPreset(Gait, MakeReachRequest(0.8f, 1.0f, 1.25f),
             FCk_Delegate_Request_OnCompleted(this, n"OnApplyPresetCompleted"));
         Assert_Equals_Int(_ApplyPresetResults.Num(), _AcceptedPresetResultsBefore,
-            "Positive control: a preset with a hard-overstretch reach above its force-step reach is enqueued");
-        Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 0, "Positive control: the accepted preset fires no ensure");
+            "Positive controls: presets whose force-step reach is the whole chain, with a hard-overstretch reach equal to it or above it, are enqueued");
+        Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 0, "Positive controls: the accepted presets fire no ensure");
 
         // Three frames let the gait, leg and rig processors run over the surviving and rejected bodies.
         Add_Step_WaitFrames("the world keeps ticking over the rejected compositions", 3);
@@ -158,11 +159,11 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
     private void Step_Destroy(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_True(ck::IsValid(_Body) && ck::IsValid(_OneLegBody) && ck::IsValid(_ShortLegBody), "Every body survived the rejections");
-        Assert_Equals_Int(_ApplyPresetResults.Num() - _AcceptedPresetResultsBefore, 1, "Positive control: the accepted preset completes once");
-        if (_ApplyPresetResults.Num() > _AcceptedPresetResultsBefore)
+        Assert_Equals_Int(_ApplyPresetResults.Num() - _AcceptedPresetResultsBefore, 2, "Positive controls: each accepted preset completes once");
+        for (auto Index = _AcceptedPresetResultsBefore; Index < _ApplyPresetResults.Num(); Index++)
         {
-            Assert_True(_ApplyPresetResults.Last() == ECk_Request_OperationResult::Succeeded,
-                "Positive control: the accepted preset completes Succeeded");
+            Assert_True(_ApplyPresetResults[Index] == ECk_Request_OperationResult::Succeeded,
+                "Positive controls: every accepted preset completes Succeeded");
         }
         utils_entity_lifetime::Request_DestroyEntity(_Body);
         utils_entity_lifetime::Request_DestroyEntity(_OneLegBody);

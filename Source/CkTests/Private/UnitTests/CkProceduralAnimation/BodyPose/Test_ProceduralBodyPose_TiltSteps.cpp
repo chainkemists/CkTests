@@ -165,17 +165,6 @@ namespace ck_test_procedural_body_pose_tilt_steps
         return UCk_Utils_ProceduralBodyPose_UE::Get_TargetOffset(InWalker.BodyPose).GetRotation();
     }
 
-    // Every leg supports, so the support-loss target is the identity and the target the springs follow is the applied conform
-    // target alone (the held fit, slewed), or the identity without conform.
-    auto
-        Get_ExpectedTargetOffset(
-            const FWalker& InWalker)
-        -> FTransform
-    {
-        const auto BodyPose = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(InWalker.Root).Get_BodyPose();
-        return BodyPose.Get_Conforms() ? BodyPose.Get_AppliedConformTarget() : FTransform::Identity;
-    }
-
     // How far the drawn body trails the pose its springs follow: the angle between the presentation and the body carrying
     // the target offset.
     auto
@@ -188,15 +177,15 @@ namespace ck_test_procedural_body_pose_tilt_steps
         return FMath::RadiansToDegrees(PresentationRotation.AngularDistance(BodyRotation * Get_TargetRotation(InWalker)));
     }
 
+    // How far the reported target offset lies from the identity, which a walker without conform whose legs all support must
+    // report: the expectation comes from the walker's setup, not from the fragment the report reads.
     auto
         Get_TargetOffsetError(
             const FWalker& InWalker)
         -> double
     {
         const auto Reported = UCk_Utils_ProceduralBodyPose_UE::Get_TargetOffset(InWalker.BodyPose);
-        const auto Expected = Get_ExpectedTargetOffset(InWalker);
-        return FMath::Max(FMath::RadiansToDegrees(Reported.GetRotation().AngularDistance(Expected.GetRotation())),
-            FVector::Distance(Reported.GetLocation(), Expected.GetLocation()));
+        return FMath::Max(FMath::RadiansToDegrees(Reported.GetRotation().AngularDistance(FQuat::Identity)), Reported.GetLocation().Size());
     }
 
     auto
@@ -267,7 +256,9 @@ namespace ck_test_procedural_body_pose_tilt_steps
     }
 
     // Composes InState's walkers high above an empty map, without ground and without surface motion, so their bodies move
-    // only when a test turns them, and waits until their gaits have solved.
+    // only when a test turns them, and waits until their gaits have solved. With no ground every foot probe is lost and the
+    // gait is airborne, and airborne feet weigh nothing in the conform fit: a walker with conform holds its first fit, the
+    // identity, and behaves as one without. Conform under a turning body is measured by the PaViz harness (M8, M5) only.
     auto
         DoEnqueue_Walkers(
             FAutomationTestBase* InTest,
@@ -441,7 +432,8 @@ namespace ck_test_procedural_body_pose_tilt_steps
                 Walker.WorstTrail = Walker.LastTrail;
                 Walker.WorstTrailFrame = Sample;
             }
-            Walker.WorstTargetOffsetError = FMath::Max(Walker.WorstTargetOffsetError, Get_TargetOffsetError(Walker));
+            if (Walker.Mode == ECk_ProceduralBodyPose_ConformMode::None)
+            { Walker.WorstTargetOffsetError = FMath::Max(Walker.WorstTargetOffsetError, Get_TargetOffsetError(Walker)); }
             const auto TargetRate = FMath::RadiansToDegrees(TargetRotation.AngularDistance(Walker.LastTargetRotation)) / Elapsed;
             if (TargetRate > Walker.WorstTargetRate)
             {
@@ -610,9 +602,14 @@ auto
                     "while the body turns steadily (worst %.2f at sample %d)"), *Walker.Name, MaxPresentationRateChangeDegreesPerSecond,
                     Walker.WorstPresentationRateChange, Walker.WorstPresentationRateChangeSample),
                     Walker.WorstPresentationRateChange <= MaxPresentationRateChangeDegreesPerSecond);
-                TestTrue(FString::Printf(TEXT("The walker %s's reported target offset is its applied conform target times the identity "
-                    "support pose (worst error %.5f degrees or cm)"), *Walker.Name, Walker.WorstTargetOffsetError),
-                    Walker.WorstTargetOffsetError < TargetOffsetTolerance);
+                // With conform, the reported target is the applied conform fit, and the only other record of that fit is
+                // the same fragment field the report reads, so the walker without conform alone carries this check.
+                if (Walker.Mode == ECk_ProceduralBodyPose_ConformMode::None)
+                {
+                    TestTrue(FString::Printf(TEXT("The walker %s's reported target offset is the identity: no conform and every leg "
+                        "supporting (worst error %.5f degrees or cm)"), *Walker.Name, Walker.WorstTargetOffsetError),
+                        Walker.WorstTargetOffsetError < TargetOffsetTolerance);
+                }
                 TestTrue(FString::Printf(TEXT("The walker %s's target offset turns at most the conform's %.0f degrees per second (worst %.2f "
                     "at sample %d)"), *Walker.Name, Get_DefaultMaxConformTiltRate(), Walker.WorstTargetRate, Walker.WorstTargetRateSample),
                     Walker.WorstTargetRate <= MaxTargetRate);
