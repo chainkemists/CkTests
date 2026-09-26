@@ -210,6 +210,54 @@ namespace ck_test_procedural_gait_reach
         InOutSolver.Get_Settings().Get_Cadence().Set_CycleDuration(FCk_Time{1.0}).Set_CadenceSpeedRef(60.0f).Set_MaxSimultaneousSwings(8);
         InOutSolver.Get_Settings().Get_Step().Set_Duration(FCk_Time{0.2});
     }
+
+    // The tentacled walker's layout: six 144 cm legs on a 34.6 cm hip ring, resting 100.7 cm out and 55 cm down, in two
+    // alternating phase groups.
+    auto
+        MakeTentacledLayout()
+        -> FCentipedeLayout
+    {
+        auto Layout = FCentipedeLayout{};
+        for (auto Leg = 0; Leg < 6; ++Leg)
+        {
+            const auto Angle = FMath::DegreesToRadians(30.0 + 60.0 * Leg);
+            const auto Radial = FVector{FMath::Cos(Angle), FMath::Sin(Angle), 0.0};
+            Layout.Hips.Add(Radial * 34.64);
+            Layout.Rests.Add(Radial * 100.7 + FVector{0.0, 0.0, -55.0});
+            Layout.PhaseOffsets.Add(Leg % 2 == 0 ? 0.0f : 0.5f);
+        }
+        return Layout;
+    }
+
+    // The gym tentacled walker's timing: a 1.1 s cycle at the default cadence reference, 0.35 s steps, a 35 cm threshold and
+    // the ECS swing budget for six legs.
+    auto
+        ApplyTentacledGait(
+            ck::FProceduralGaitSolver& InOutSolver)
+        -> void
+    {
+        InOutSolver.Get_Settings().Get_Cadence().Set_CycleDuration(FCk_Time{1.1}).Set_CadenceSpeedRef(120.0f).Set_MaxSimultaneousSwings(3);
+        InOutSolver.Get_Settings().Get_Step().Set_Duration(FCk_Time{0.35}).Set_Threshold(35.0f);
+    }
+
+    auto
+        Get_SwingingGroups(
+            const ck::FProceduralGaitSolver& InSolver,
+            TArrayView<const ck::FProceduralGaitLegInput> InInputs)
+        -> int32
+    {
+        auto Groups = TArray<float, TInlineAllocator<8>>{};
+        for (auto Leg = 0; Leg < InInputs.Num(); ++Leg)
+        {
+            if (NOT InSolver.GetLegState(Leg).Get_Swing().Get_Active())
+            { continue; }
+
+            const auto Offset = InInputs[Leg].Get_PhaseOffset();
+            if (NOT Groups.ContainsByPredicate([Offset](float InOffset) { return FMath::IsNearlyEqual(InOffset, Offset, 1.0e-3f); }))
+            { Groups.Add(Offset); }
+        }
+        return Groups.Num();
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -1045,6 +1093,273 @@ auto
     TestTrue(TEXT("It starts lifting before touchdown"), AcrossTheRiser.LiftedBeforeTouchdown);
     TestEqual(TEXT("It plants on the upper tread"), AcrossTheRiser.Plant.Z, UpperTreadZ, Tolerance);
     TestEqual(TEXT("No missed lift is counted"), AcrossTheRiser.MissedLifts, 0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitHardOverstretchStepsBeyondTheScheduleTest,
+    "Ck.ProceduralAnimation.Gait.HardOverstretchStepsBeyondThePhaseSchedule",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitHardOverstretchStepsBeyondTheScheduleTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto Speed = 180.0;
+    constexpr auto ClimbStart = 1.0;
+    constexpr auto ClimbHeight = 60.0;
+    constexpr auto ClimbDuration = 0.3;
+    constexpr auto Clearance = 45.0;
+    constexpr auto MaxLead = 40.0;
+    constexpr auto ContactGrace = 0.12;
+    constexpr auto Frames = 180;
+    constexpr auto MaxOverstretchSwings = 2.0;
+    constexpr auto MaxSwingingGroups = 2;
+    // No planted foot of this climb reaches this fraction (the worst reaches about 1.24 chains), so it runs the schedule alone.
+    constexpr auto UnreachedFraction = 1.5f;
+
+    struct FClimb
+    {
+        double LongestValidOverstretch = 0.0;
+        int32 OverChainSamples = 0;
+        int32 MostSwingingGroups = 0;
+        int32 BeyondScheduleSwings = 0;
+        double SwingDuration = 0.0;
+        bool Solved = true;
+    };
+
+    // The centipede walks at 180 cm/s, then its body rises 60 cm in 0.3 s onto a face whose edge lies one clearance ahead,
+    // as at the beam end. The ECS probe is emulated: ground under the clamped query point, re-probed within the target
+    // reach, untrusted beyond the force-step reach, and withheld for the contact grace before the leg gathers toward its rest
+    // pose. The floor behind the edge lies beyond the force-step reach of the raised hips, so every floor foot's target is
+    // withheld for the grace at once, and the gait holds those plants by design; no take-off rule can step them then. Only
+    // the time a foot spends beyond its chain with a valid target is the schedule's, so only that time is bounded.
+    const auto DoClimb = [&](float InHardOverstretchFraction) -> FClimb
+    {
+        const auto Layout = MakeCentipedeLayout();
+        const auto LegCount = Layout.Hips.Num();
+        auto Solver = ck::FProceduralGaitSolver{};
+        ApplyCentipedeGait(Solver);
+        Solver.Get_Settings().Get_Reach().Set_HardOverstretchFraction(InHardOverstretchFraction);
+        Solver.Reset(Layout.Rests);
+        const auto TargetLimit = Solver.Get_Settings().Get_Reach().Get_TargetFraction() * LegReach;
+        const auto ForceLimit = Solver.Get_Settings().Get_Reach().Get_ForceStepFraction() * LegReach;
+        const auto RestDrop = Layout.Rests[0].Z;
+        const auto Velocity = FVector{Speed, 0.0, 0.0};
+        const auto Lead = FVector{FMath::Min(Speed * Solver.Get_Settings().Get_Step().Get_Duration().Get_Seconds(), MaxLead), 0.0, 0.0};
+
+        auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+        Inputs.SetNum(LegCount);
+        auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+        Outputs.SetNum(LegCount);
+        for (auto Leg = 0; Leg < LegCount; ++Leg)
+        { Inputs[Leg].Set_PhaseOffset(Layout.PhaseOffsets[Leg]).Set_Reach(LegReach); }
+
+        auto Climb = FClimb{};
+        auto Missing = TArray<double>{};
+        Missing.Init(0.0, LegCount);
+        auto ValidOverstretch = TArray<double>{};
+        ValidOverstretch.Init(0.0, LegCount);
+        auto Body = FVector::ZeroVector;
+        auto Edge = TOptional<double>{};
+        auto Time = 0.0;
+        const auto GroundAt = [&](double InX) -> double
+        { return Edge.IsSet() && InX >= Edge.GetValue() ? ClimbHeight + RestDrop : RestDrop; };
+
+        for (auto Frame = 0; Frame < Frames; ++Frame)
+        {
+            const auto Dt = FrameDt.Get_Seconds();
+            Time += Dt;
+            Body.X += Speed * Dt;
+            if (Time >= ClimbStart && NOT Edge.IsSet())
+            { Edge = Body.X + Clearance; }
+            if (Time >= ClimbStart)
+            { Body.Z = FMath::Min(ClimbHeight, ClimbHeight * (Time - ClimbStart) / ClimbDuration); }
+
+            for (auto Leg = 0; Leg < LegCount; ++Leg)
+            {
+                const auto Hip = Body + Layout.Hips[Leg];
+                const auto Query = ck::FProceduralGaitSolver::ClampToReach(Hip, Body + Layout.Rests[Leg] + Lead, TargetLimit);
+                auto Hit = FVector{Query.X, Query.Y, GroundAt(Query.X)};
+                if (FVector::Dist(Hit, Hip) > TargetLimit)
+                {
+                    const auto Clamped = ck::FProceduralGaitSolver::ClampToReach(Hip, Hit, TargetLimit);
+                    Hit = FVector{Clamped.X, Clamped.Y, GroundAt(Clamped.X)};
+                }
+                const auto Trusted = FVector::Dist(Hit, Hip) <= ForceLimit;
+                Missing[Leg] = Trusted ? 0.0 : FMath::Min(Missing[Leg] + Dt, ContactGrace);
+
+                auto LandingGroundZ = -FLT_MAX;
+                const auto& Swing = Solver.GetLegState(Leg).Get_Swing();
+                if (Swing.Get_Active())
+                {
+                    const auto& LandingPoint = Swing.Get_LandingPoint();
+                    const auto Landing = FVector{LandingPoint.X, LandingPoint.Y, GroundAt(LandingPoint.X)};
+                    if (FVector::Dist(Landing, Hip) <= ForceLimit)
+                    { LandingGroundZ = static_cast<float>(Landing.Z); }
+                }
+
+                Inputs[Leg].Set_Hip(Hip)
+                    .Set_IdealTarget(Trusted ? Hit : Query)
+                    .Set_TargetValid(Trusted || Missing[Leg] >= ContactGrace)
+                    .Set_LandingGroundZ(LandingGroundZ);
+            }
+
+            if (NOT Solver.Step(FrameDt, static_cast<float>(Speed), Velocity, Inputs, Outputs))
+            {
+                Climb.Solved = false;
+                return Climb;
+            }
+
+            Climb.MostSwingingGroups = FMath::Max(Climb.MostSwingingGroups, Get_SwingingGroups(Solver, Inputs));
+            for (auto Leg = 0; Leg < LegCount; ++Leg)
+            {
+                const auto& State = Solver.GetLegState(Leg);
+                const auto TookOff = NOT Outputs[Leg].Get_Planted() && Outputs[Leg].Get_SwingAlpha() == 0.0f;
+                Climb.BeyondScheduleSwings += TookOff && State.Get_Swing().Get_BeyondSchedule() ? 1 : 0;
+
+                const auto OverChain = Outputs[Leg].Get_Planted()
+                    && FVector::Dist(State.Get_Plant().Get_Position(), Inputs[Leg].Get_Hip()) > LegReach;
+                if (NOT OverChain)
+                {
+                    ValidOverstretch[Leg] = 0.0;
+                    continue;
+                }
+                ++Climb.OverChainSamples;
+                if (Inputs[Leg].Get_TargetValid())
+                { ValidOverstretch[Leg] += Dt; }
+                Climb.LongestValidOverstretch = FMath::Max(Climb.LongestValidOverstretch, ValidOverstretch[Leg]);
+            }
+        }
+        Climb.SwingDuration = Solver.Get_Settings().Get_Step().Get_Duration().Get_Seconds() / Solver.Get_LastCadenceScale();
+        return Climb;
+    };
+
+    const auto Control = DoClimb(UnreachedFraction);
+    const auto WithRule = DoClimb(ck::FProceduralGaitReachSettings{}.Get_HardOverstretchFraction());
+    if (NOT TestTrue(TEXT("The solver accepts both climbs"), Control.Solved && WithRule.Solved))
+    { return false; }
+
+    const auto Bound = MaxOverstretchSwings * WithRule.SwingDuration + FrameDt.Get_Seconds() * 0.5;
+    AddInfo(FString::Printf(TEXT("Climb at the unreached fraction: %d over-chain samples, longest valid-target overstretch %.3f s; at the "
+        "default fraction: %d samples, %.3f s, %d swings beyond the schedule"), Control.OverChainSamples, Control.LongestValidOverstretch,
+        WithRule.OverChainSamples, WithRule.LongestValidOverstretch, WithRule.BeyondScheduleSwings));
+
+    TestTrue(FString::Printf(TEXT("Control: on the schedule alone a floor foot stays beyond its chain with a valid target for more than "
+        "%.0f swing durations (%.3f s against %.3f s)"), MaxOverstretchSwings, Control.LongestValidOverstretch, Bound),
+        Control.LongestValidOverstretch > Bound);
+    TestEqual(TEXT("Control: no swing begins beyond the schedule at the unreached fraction"), Control.BeyondScheduleSwings, 0);
+    TestTrue(FString::Printf(TEXT("Hard-overstretched feet step beyond the phase schedule (%d swings)"), WithRule.BeyondScheduleSwings),
+        WithRule.BeyondScheduleSwings > 0);
+    TestTrue(FString::Printf(TEXT("No planted foot stays beyond its chain with a valid target for more than %.0f swing durations (%.3f s "
+        "against %.3f s)"), MaxOverstretchSwings, WithRule.LongestValidOverstretch, Bound), WithRule.LongestValidOverstretch <= Bound);
+    TestTrue(FString::Printf(TEXT("The bypass at least halves the over-chain samples (%d against %d)"), WithRule.OverChainSamples,
+        Control.OverChainSamples), 2 * WithRule.OverChainSamples <= Control.OverChainSamples);
+    TestTrue(FString::Printf(TEXT("At most %d phase groups ever swing at once (%d)"), MaxSwingingGroups, WithRule.MostSwingingGroups),
+        WithRule.MostSwingingGroups <= MaxSwingingGroups);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitStraightWalkStaysOnTheScheduleTest,
+    "Ck.ProceduralAnimation.Gait.StraightWalkNeverStepsBeyondTheSchedule",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitStraightWalkStaysOnTheScheduleTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto Frames = 600;
+    constexpr double Speeds[] = {120.0, 150.0, 180.0, 220.0, 260.0};
+    constexpr auto TentacledReach = 144.0f;
+    constexpr auto CentipedeMaxLead = 40.0;
+    constexpr auto TentacledMaxLead = 35.0;
+
+    struct FSpecies
+    {
+        const TCHAR* Name = nullptr;
+        FCentipedeLayout Layout;
+        float Reach = 0.0f;
+        double MaxLead = 0.0;
+        bool Tentacled = false;
+    };
+    const FSpecies Species[] =
+    {
+        FSpecies{TEXT("Centipede"), MakeCentipedeLayout(), LegReach, CentipedeMaxLead, false},
+        FSpecies{TEXT("Tentacled"), MakeTentacledLayout(), TentacledReach, TentacledMaxLead, true},
+    };
+
+    for (const auto& Walker : Species)
+    {
+        for (const auto Speed : Speeds)
+        {
+            const auto LegCount = Walker.Layout.Hips.Num();
+            auto Solver = ck::FProceduralGaitSolver{};
+            if (Walker.Tentacled)
+            { ApplyTentacledGait(Solver); }
+            else
+            { ApplyCentipedeGait(Solver); }
+            Solver.Reset(Walker.Layout.Rests);
+            const auto HardLimit = Solver.Get_Settings().Get_Reach().Get_HardOverstretchFraction() * Walker.Reach;
+            const auto Velocity = FVector{Speed, 0.0, 0.0};
+            const auto Lead = FVector{FMath::Min(Speed * Solver.Get_Settings().Get_Step().Get_Duration().Get_Seconds(), Walker.MaxLead), 0.0, 0.0};
+
+            auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+            Inputs.SetNum(LegCount);
+            auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+            Outputs.SetNum(LegCount);
+            for (auto Leg = 0; Leg < LegCount; ++Leg)
+            { Inputs[Leg].Set_PhaseOffset(Walker.Layout.PhaseOffsets[Leg]).Set_Reach(Walker.Reach); }
+
+            auto Body = FVector::ZeroVector;
+            auto BeyondScheduleFrames = 0;
+            auto MultiGroupFrames = 0;
+            auto Lifts = 0;
+            auto WorstReach = 0.0;
+            for (auto Frame = 0; Frame < Frames; ++Frame)
+            {
+                Body += Velocity * FrameDt.Get_Seconds();
+                for (auto Leg = 0; Leg < LegCount; ++Leg)
+                { Inputs[Leg].Set_Hip(Body + Walker.Layout.Hips[Leg]).Set_IdealTarget(Body + Walker.Layout.Rests[Leg] + Lead); }
+
+                if (NOT Solver.Step(FrameDt, static_cast<float>(Speed), Velocity, Inputs, Outputs))
+                {
+                    AddError(FString::Printf(TEXT("%s at %.0f cm/s: the solver rejected the walk"), Walker.Name, Speed));
+                    return false;
+                }
+
+                MultiGroupFrames += Get_SwingingGroups(Solver, Inputs) >= 2 ? 1 : 0;
+                for (auto Leg = 0; Leg < LegCount; ++Leg)
+                {
+                    const auto& State = Solver.GetLegState(Leg);
+                    BeyondScheduleFrames += State.Get_Swing().Get_Active() && State.Get_Swing().Get_BeyondSchedule() ? 1 : 0;
+                    Lifts += NOT Outputs[Leg].Get_Planted() && Outputs[Leg].Get_SwingAlpha() == 0.0f ? 1 : 0;
+                    if (Outputs[Leg].Get_Planted())
+                    { WorstReach = FMath::Max(WorstReach, FVector::Dist(State.Get_Plant().Get_Position(), Inputs[Leg].Get_Hip())); }
+                }
+            }
+
+            TestTrue(FString::Printf(TEXT("%s at %.0f cm/s: the walk steps (%d lifts)"), Walker.Name, Speed, Lifts), Lifts > LegCount);
+            TestTrue(FString::Printf(TEXT("%s at %.0f cm/s: no planted foot reaches the hard-overstretch reach (worst %.1f of %.1f cm)"),
+                Walker.Name, Speed, WorstReach, HardLimit), WorstReach < HardLimit);
+            TestEqual(FString::Printf(TEXT("%s at %.0f cm/s: no swing begins beyond the phase schedule"), Walker.Name, Speed),
+                BeyondScheduleFrames, 0);
+            TestEqual(FString::Printf(TEXT("%s at %.0f cm/s: no frame has two phase groups swinging"), Walker.Name, Speed),
+                MultiGroupFrames, 0);
+        }
+    }
 
     return true;
 }

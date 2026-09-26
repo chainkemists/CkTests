@@ -9,6 +9,7 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
     private FCk_Handle _OneLegBody;
     private FCk_Handle _ShortLegBody;
     private TArray<ECk_Request_OperationResult> _ApplyPresetResults;
+    private int32 _AcceptedPresetResultsBefore = 0;
 
     FCk_Handle_Transform CreateBody(FCk_Handle InOwner, FVector InLocation)
     {
@@ -43,20 +44,23 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
         return FCk_ProceduralLeg_Spec(InTemplate.Get_Id(), InTemplate.Get_Placement(), Chain);
     }
 
-    FCk_Request_ProceduralGait_ApplyPreset MakeReachRequest(float32 InTargetReachFraction)
+    FCk_Request_ProceduralGait_ApplyPreset MakeReachRequest(float32 InTargetReachFraction, float32 InForceStepReachFraction = 0.92f,
+        float32 InHardOverstretchReachFraction = 1.0f)
     {
         UCk_ProceduralGait_Data Preset = ck::ProceduralGym_Gait;
         auto Step = Preset.Get_Step();
         Step.Set_TargetReachFraction(InTargetReachFraction);
+        Step.Set_ForceStepReachFraction(InForceStepReachFraction);
+        Step.Set_HardOverstretchReachFraction(InHardOverstretchReachFraction);
         return FCk_Request_ProceduralGait_ApplyPreset(Preset.Get_Timing(), Step, Preset.Get_Probe());
     }
 
-    void AssertPresetRejected(FCk_Handle_ProceduralGait InGait, float32 InTargetReachFraction, const FString& InCase)
+    void AssertPresetRejected(FCk_Handle_ProceduralGait InGait, FCk_Request_ProceduralGait_ApplyPreset InRequest, const FString& InCase)
     {
         auto Gait = InGait;
         auto ResultsBefore = _ApplyPresetResults.Num();
         auto EnsuresBefore = utils_ensure::Get_EnsureCount();
-        utils_procedural_gait::Request_ApplyPreset(Gait, MakeReachRequest(InTargetReachFraction),
+        utils_procedural_gait::Request_ApplyPreset(Gait, InRequest,
             FCk_Delegate_Request_OnCompleted(this, n"OnApplyPresetCompleted"));
         Assert_Equals_Int(_ApplyPresetResults.Num() - ResultsBefore, 1, f"{InCase}: the completion delegate fires once");
         if (_ApplyPresetResults.Num() > ResultsBefore)
@@ -129,8 +133,19 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
         EnsuresBefore = utils_ensure::Get_EnsureCount();
         AssertRejected(utils_procedural_gait::Add(Body, ck::ProceduralGym_Gait), Body, EnsuresBefore, true, "Existing gait");
 
-        AssertPresetRejected(Gait, 0.6f, "Preset whose target reach excludes a rest foot");
-        AssertPresetRejected(Gait, 0.95f, "Preset whose target reach exceeds its force-step reach");
+        AssertPresetRejected(Gait, MakeReachRequest(0.6f), "Preset whose target reach excludes a rest foot");
+        AssertPresetRejected(Gait, MakeReachRequest(0.95f), "Preset whose target reach exceeds its force-step reach");
+        AssertPresetRejected(Gait, MakeReachRequest(0.8f, 0.92f, 0.99f), "Preset whose hard-overstretch reach is below the chain");
+        AssertPresetRejected(Gait, MakeReachRequest(0.8f, 0.92f, 1.51f), "Preset whose hard-overstretch reach exceeds 1.5 chains");
+        AssertPresetRejected(Gait, MakeReachRequest(0.8f, 1.0f, 1.0f), "Preset whose hard-overstretch reach does not exceed its force-step reach");
+
+        _AcceptedPresetResultsBefore = _ApplyPresetResults.Num();
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        utils_procedural_gait::Request_ApplyPreset(Gait, MakeReachRequest(0.8f, 1.0f, 1.25f),
+            FCk_Delegate_Request_OnCompleted(this, n"OnApplyPresetCompleted"));
+        Assert_Equals_Int(_ApplyPresetResults.Num(), _AcceptedPresetResultsBefore,
+            "Positive control: a preset with a hard-overstretch reach above its force-step reach is enqueued");
+        Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 0, "Positive control: the accepted preset fires no ensure");
 
         // Three frames let the gait, leg and rig processors run over the surviving and rejected bodies.
         Add_Step_WaitFrames("the world keeps ticking over the rejected compositions", 3);
@@ -143,6 +158,12 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
     private void Step_Destroy(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_True(ck::IsValid(_Body) && ck::IsValid(_OneLegBody) && ck::IsValid(_ShortLegBody), "Every body survived the rejections");
+        Assert_Equals_Int(_ApplyPresetResults.Num() - _AcceptedPresetResultsBefore, 1, "Positive control: the accepted preset completes once");
+        if (_ApplyPresetResults.Num() > _AcceptedPresetResultsBefore)
+        {
+            Assert_True(_ApplyPresetResults.Last() == ECk_Request_OperationResult::Succeeded,
+                "Positive control: the accepted preset completes Succeeded");
+        }
         utils_entity_lifetime::Request_DestroyEntity(_Body);
         utils_entity_lifetime::Request_DestroyEntity(_OneLegBody);
         utils_entity_lifetime::Request_DestroyEntity(_ShortLegBody);

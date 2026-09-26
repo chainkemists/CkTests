@@ -293,6 +293,9 @@ auto
         SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_TargetFraction(0.0f)),
         SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_TargetFraction(0.95f)),
         SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_ForceStepFraction(1.1f)),
+        SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_HardOverstretchFraction(0.99f)),
+        SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_HardOverstretchFraction(1.51f)),
+        SettingsType{}.Set_Reach(ck::FProceduralGaitReachSettings{}.Set_ForceStepFraction(1.0f).Set_HardOverstretchFraction(1.0f)),
     };
     auto Solver = ck::FProceduralGaitSolver{};
     const auto Plants = TArray<FVector>{FVector{}};
