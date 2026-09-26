@@ -7117,6 +7117,45 @@ class ACk_AutoTest_PathNetworkFollower_TuningReplansSameGoal_Actor : ACk_AutoTes
     }
 }
 
+class ACk_AutoTest_PaViz_StressTelemetryA_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 90.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_PaViz_StressTelemetryA");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_PaViz_StressTelemetryB_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 90.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_PaViz_StressTelemetryB");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_PaViz_StressVisual_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 75.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_PaViz_StressVisual");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_PaViz_Telemetry_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 75.0f;
