@@ -199,6 +199,20 @@ subject is pressing arbitrary keys or holding one down.
   `FCkAutoTest_GroundNavFixture` themselves and the `RecastBudgets_*` tests all do.
 - **Don't rename test classes casually** - a rename orphans the placed wrapper actor in the .umap
   (git history: revert `604a2d4`). Let the populator sync, and prefer stable names.
+- **Shipped scripts are plain ASCII, string literals included.** `Script/` ships as loose source
+  in a BusterBlock VM package. This repo has no CI of its own for it: BusterBlock's compile check
+  rejects any other character when it bumps its CkTests pin, so run `python
+  CkAuto/Sanitize-ShippedScripts.py --check` (from the BusterBlock root) before merging here.
+  `--apply` folds mapped characters in comments only, never a literal. The usual offenders are the
+  arrow, em dash, ellipsis and times sign in failure messages and log patterns - write `->`, `-`,
+  `...`, `x`. A literal that MATCHES text produced elsewhere (a `Get_ExpectedLogErrors()` pattern, a
+  breadcrumb) must not be folded on its own - it stops matching. Either make the emitter ASCII too,
+  or match an ASCII-only part of the text (patterns are substring matches). A dead pattern is never
+  reported as dead; the warning it was meant to cover fails the test under that warning's name
+  (AutoTest spec GOTCHA 1; recipe: `ck-tests-authoring-and-running` references, authoring-recipes
+  step 5). Case: CkCrowd's `PathPending -> Idle` warning logs U+2192 from C++; BusterBlock's
+  patterns folded to `->` match nothing, and a BusterBlock VM package failed on the unfolded
+  pattern in `CkAutoTest_Crowd_Grounding_StationaryAgentReGrounds` (navigation branch).
 
 ### Choosing a wait - the five rules
 
