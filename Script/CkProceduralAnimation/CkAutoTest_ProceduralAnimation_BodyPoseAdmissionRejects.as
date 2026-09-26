@@ -6,6 +6,9 @@ class UCk_AutoTest_ProceduralAnimation_BodyPoseAdmissionRejects : UCk_AutoTest_B
     default _AutoStageOriginField = false;
     private FVector _Origin = FVector(120000.0, 88000.0, 1000.0);
     private TArray<FCk_Handle> _Roots;
+    private FCk_Handle_ProceduralLeg _LostLeg;
+    private FCk_Handle_ProceduralGait _LossGait;
+    private FCk_Handle_Transform _LossPresentation;
 
     FCk_Handle_Transform CreateTransform(FCk_Handle InOwner, FVector InLocation)
     {
@@ -123,11 +126,41 @@ class UCk_AutoTest_ProceduralAnimation_BodyPoseAdmissionRejects : UCk_AutoTest_B
         Assert_True(utils_procedural_body_pose::Get_Presentation(BodyPose) == Presentation,
             "Second body pose on one gait: the first presentation stays bound");
 
+        auto LossBody = CreateTransform(InHandle, _Origin + FVector(0.0, 400.0, 0.0));
+        _Roots.Add(LossBody);
+        FCk_Handle_ProceduralLeg KeptLeg = utils_procedural_leg::Create(LossBody, ck::ProceduralTest_SideRig.Get_Legs()[0]);
+        _LostLeg = utils_procedural_leg::Create(LossBody, ck::ProceduralTest_SideRig.Get_Legs()[1]);
+        _LossGait = utils_procedural_gait::Add(LossBody, ck::ProceduralGym_Gait);
+        _LossPresentation = CreateTransform(LossBody, _Origin + FVector(0.0, 400.0, 0.0));
+        Assert_True(ck::IsValid(KeptLeg) && ck::IsValid(_LostLeg) && ck::IsValid(_LossGait),
+            "Precondition: the second body walks on two legs");
+        auto LostLeg = _LostLeg;
+        utils_procedural_leg::Request_Detach(LostLeg,
+            FCk_Request_ProceduralLeg_Detach(ECk_ProceduralLeg_ReleasedPartsOwnership::KeepBodyOwned));
+
+        Add_Step_WaitUntil("the detached leg's handle reads invalid", n"Check_LegLost");
+        Add_Step("a gait that lost a captured leg rejects a body pose", n"Step_RejectLostLeg");
         // Three frames let the gait, body pose and rig processors run over the admitted and rejected compositions.
         Add_Step_WaitFrames("the world ticks over the admitted and rejected body poses", 3);
         Add_Step("retire the bodies", n"Step_Destroy");
         Add_Step_WaitUntil("every body is gone", n"Check_Destroyed");
         Run_Steps(InHandle);
+    }
+
+    UFUNCTION()
+    private void Check_LegLost(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Result = OutResult;
+        Result.Set(ck::Is_NOT_Valid(_LostLeg));
+    }
+
+    UFUNCTION()
+    private void Step_RejectLostLeg(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        auto LossGait = _LossGait;
+        auto EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_procedural_body_pose::Add(LossGait, FCk_ProceduralBodyPose_Spec(_LossPresentation)), LossGait,
+            EnsuresBefore, false, "A captured leg was detached");
     }
 
     UFUNCTION()
