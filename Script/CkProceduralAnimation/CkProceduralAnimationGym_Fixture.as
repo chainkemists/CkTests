@@ -271,6 +271,21 @@ namespace ck_procedural_gym
         return S - Math::FloorToFloat(S);
     }
 
+    // The 6-leg crawler keeps FABRIK so the gym shows both chain solvers; the tentacled walker names the curve that Auto
+    // would pick for its eight-link chains.
+    ECk_ProceduralRig_ChainSolver Get_ChainSolver(ECkProceduralAnimationGym_Species InSpecies)
+    {
+        if (InSpecies == ECkProceduralAnimationGym_Species::Crawler6)
+        {
+            return ECk_ProceduralRig_ChainSolver::Fabrik;
+        }
+        if (InSpecies == ECkProceduralAnimationGym_Species::Tentacled)
+        {
+            return ECk_ProceduralRig_ChainSolver::Curve;
+        }
+        return ECk_ProceduralRig_ChainSolver::Auto;
+    }
+
     FVector Get_SegmentHalfExtents(TArray<float32> InLengths, int32 InSegmentIndex)
     {
         auto Alpha = InLengths.Num() > 1 ? float(InSegmentIndex) / float(InLengths.Num() - 1) : 0.0;
@@ -985,6 +1000,7 @@ struct FCkProceduralAnimationGym_Fixture
         auto RigParams = FCk_ProceduralRig_Spec();
         RigParams.Set_Segments(Segments);
         RigParams.Set_Foot(Foot);
+        RigParams.Set_Solver(ck_procedural_gym::Get_ChainSolver(InOutCrawler.Layout.Species));
         return FCk_ProceduralWalker_LegChain(InLeg.Get_Id(), RigParams);
     }
 
@@ -1036,8 +1052,11 @@ struct FCkProceduralAnimationGym_Fixture
             auto Support = FCk_ProceduralBodyPose_Support();
             Support.Set_CollapseDrop(Profile.CollapseDrop);
             Support.Set_MaxTilt(ck_procedural_gym::BodyMaxTilt);
+            auto Conform = FCk_ProceduralBodyPose_Conform();
+            Conform.Set_Mode(ECk_ProceduralBodyPose_ConformMode::PlantedFeet);
             auto PoseSpec = FCk_ProceduralBodyPose_Spec(Crawler.Handles.Presentation);
             PoseSpec.Set_Support(Support);
+            PoseSpec.Set_Conform(Conform);
             Crawler.Handles.BodyPose = utils_procedural_body_pose::Add(Crawler.Handles.Gait, PoseSpec);
         }
         if (ck::Is_NOT_Valid(Crawler.Handles.Motion) || ck::Is_NOT_Valid(Crawler.Handles.Gait) || Crawler.Handles.Legs.Num() != Crawler.Layout.LegCount ||

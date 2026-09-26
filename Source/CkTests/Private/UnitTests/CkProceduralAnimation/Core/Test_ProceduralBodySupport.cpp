@@ -181,6 +181,319 @@ auto
     return true;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_test_procedural_body_conform
+{
+    constexpr auto FootX = 60.0;
+    constexpr auto FootY = 50.0;
+    constexpr auto RestZ = -60.0;
+    constexpr auto MaxTilt = 20.0f;
+    constexpr auto HeightWeight = 0.5f;
+    constexpr auto MaxHeight = 10.0f;
+    constexpr auto AngleToleranceDegrees = 0.05;
+    constexpr auto DistanceTolerance = 1.0e-3;
+    const auto Sentinel = FTransform{FQuat{FVector::ForwardVector, 0.3}, FVector{1.0, 2.0, 3.0}};
+
+    auto
+        MakeSettings()
+        -> ck::FProceduralBodyConformSettings
+    {
+        return ck::FProceduralBodyConformSettings{}
+            .Set_MaxTiltDegrees(MaxTilt)
+            .Set_HeightWeight(HeightWeight)
+            .Set_MaxHeight(MaxHeight);
+    }
+
+    // Four feet at the corners of the body; each sits InLift(x, y) above its rest height.
+    template <typename T_Lift>
+    auto
+        MakeFeet(
+            T_Lift InLift,
+            TArrayView<const float> InWeights = {})
+        -> TArray<ck::FProceduralBodyConformFoot>
+    {
+        auto Feet = TArray<ck::FProceduralBodyConformFoot>{};
+        const auto Corners = TArray<FVector2D>{{FootX, FootY}, {FootX, -FootY}, {-FootX, FootY}, {-FootX, -FootY}};
+        for (auto Index = 0; Index < Corners.Num(); ++Index)
+        {
+            const auto& Corner = Corners[Index];
+            const auto Rest = FVector{Corner.X, Corner.Y, RestZ};
+            const auto Weight = InWeights.IsValidIndex(Index) ? InWeights[Index] : 1.0f;
+            Feet.Emplace(Rest + FVector{0.0, 0.0, InLift(Corner.X, Corner.Y)}, Rest, Weight);
+        }
+        return Feet;
+    }
+
+    auto
+        Get_Up(
+            const FTransform& InTarget)
+        -> FVector
+    {
+        return InTarget.GetRotation().RotateVector(FVector::UpVector);
+    }
+
+    auto
+        Get_AngleDegrees(
+            const FVector& InA,
+            const FVector& InB)
+        -> double
+    {
+        return FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(InA.GetSafeNormal(), InB.GetSafeNormal()), -1.0, 1.0)));
+    }
+
+    auto
+        Get_IsSentinel(
+            const FTransform& InTarget)
+        -> bool
+    {
+        return InTarget.Equals(Sentinel, 0.0);
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralBodyConformFlatTest,
+    "Ck.ProceduralAnimation.BodyConform.FlatFeetGiveIdentity",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralBodyConformFlatTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_body_conform;
+
+    auto Target = Sentinel;
+    const auto Result = ck::ComputeProceduralBodyConformPose(MakeFeet([](double, double) { return 0.0; }), MakeSettings(), Target);
+    if (NOT TestTrue(TEXT("Four feet at rest are fitted"), Result == ck::EProceduralBodyConformResult::Fitted))
+    { return false; }
+
+    const auto Tilt = Target.GetRotation().AngularDistance(FQuat::Identity);
+    TestTrue(FString::Printf(TEXT("Feet at rest leave the body level (%.6f rad)"), Tilt), Tilt < 1.0e-6);
+    TestTrue(FString::Printf(TEXT("Feet at rest leave the body at its height (%s)"), *Target.GetLocation().ToString()),
+        Target.GetLocation().IsNearlyZero(DistanceTolerance));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralBodyConformSlopeTest,
+    "Ck.ProceduralAnimation.BodyConform.SlopedFeetTiltToThePlane",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralBodyConformSlopeTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_body_conform;
+
+    const auto SlopeX = FMath::Tan(FMath::DegreesToRadians(10.0));
+    const auto SlopeY = FMath::Tan(FMath::DegreesToRadians(-6.0));
+    auto Target = Sentinel;
+    const auto Result = ck::ComputeProceduralBodyConformPose(
+        MakeFeet([&](double InX, double InY) { return SlopeX * InX + SlopeY * InY; }), MakeSettings(), Target);
+    if (NOT TestTrue(TEXT("Four feet on a slope are fitted"), Result == ck::EProceduralBodyConformResult::Fitted))
+    { return false; }
+
+    const auto PlaneNormal = FVector{-SlopeX, -SlopeY, 1.0}.GetSafeNormal();
+    const auto Error = Get_AngleDegrees(Get_Up(Target), PlaneNormal);
+    TestTrue(FString::Printf(TEXT("The body's up turns onto the feet's plane normal (off by %.4f degrees)"), Error),
+        Error < AngleToleranceDegrees);
+
+    const auto Nose = Target.GetRotation().RotateVector(FVector::ForwardVector);
+    TestTrue(FString::Printf(TEXT("Higher front feet raise the nose (forward Z %.4f)"), Nose.Z), Nose.Z > 0.0);
+
+    const auto Twist = Target.GetRotation().GetTwistAngle(FVector::UpVector);
+    TestTrue(FString::Printf(TEXT("The tilt has no turn about the body's up (%.6f rad)"), Twist), FMath::Abs(Twist) < 1.0e-6);
+    TestTrue(FString::Printf(TEXT("A plane through the rest height under the body keeps the height (%.4f)"), Target.GetLocation().Z),
+        FMath::IsNearlyZero(Target.GetLocation().Z, DistanceTolerance));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralBodyConformClampTest,
+    "Ck.ProceduralAnimation.BodyConform.TiltIsClamped",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralBodyConformClampTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_body_conform;
+
+    const auto Slope = FMath::Tan(FMath::DegreesToRadians(35.0));
+    auto Target = Sentinel;
+    const auto Result = ck::ComputeProceduralBodyConformPose(
+        MakeFeet([&](double InX, double) { return Slope * InX; }), MakeSettings(), Target);
+    if (NOT TestTrue(TEXT("Feet on a 35 degree slope are fitted"), Result == ck::EProceduralBodyConformResult::Fitted))
+    { return false; }
+
+    const auto Up = Get_Up(Target);
+    const auto Tilt = Get_AngleDegrees(Up, FVector::UpVector);
+    TestTrue(FString::Printf(TEXT("The tilt stops at MaxTilt (expected %.2f, got %.4f degrees)"), MaxTilt, Tilt),
+        FMath::IsNearlyEqual(Tilt, static_cast<double>(MaxTilt), AngleToleranceDegrees));
+    TestTrue(FString::Printf(TEXT("The clamped tilt leans toward the plane (up %s)"), *Up.ToString()), Up.X < 0.0 && FMath::IsNearlyZero(Up.Y, 1.0e-6));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralBodyConformHeightTest,
+    "Ck.ProceduralAnimation.BodyConform.HeightFollowsTheFeetAndIsClamped",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralBodyConformHeightTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_body_conform;
+
+    auto Lowered = Sentinel;
+    TestTrue(TEXT("Feet 8 cm below rest are fitted"), ck::ComputeProceduralBodyConformPose(
+        MakeFeet([](double, double) { return -8.0; }), MakeSettings(), Lowered) == ck::EProceduralBodyConformResult::Fitted);
+    TestTrue(FString::Printf(TEXT("The body follows HeightWeight of the drop (expected %.2f, got %.4f)"), -8.0 * HeightWeight,
+        Lowered.GetLocation().Z), FMath::IsNearlyEqual(Lowered.GetLocation().Z, -8.0 * HeightWeight, DistanceTolerance));
+    TestTrue(TEXT("Level feet leave the body level"), Lowered.GetRotation().AngularDistance(FQuat::Identity) < 1.0e-6);
+
+    auto Deep = Sentinel;
+    TestTrue(TEXT("Feet 40 cm below rest are fitted"), ck::ComputeProceduralBodyConformPose(
+        MakeFeet([](double, double) { return -40.0; }), MakeSettings(), Deep) == ck::EProceduralBodyConformResult::Fitted);
+    TestTrue(FString::Printf(TEXT("The height stops at MaxHeight (expected %.2f, got %.4f)"), -MaxHeight, Deep.GetLocation().Z),
+        FMath::IsNearlyEqual(Deep.GetLocation().Z, static_cast<double>(-MaxHeight), DistanceTolerance));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralBodyConformFewFeetTest,
+    "Ck.ProceduralAnimation.BodyConform.FewerThanThreeFeetUnderdetermined",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralBodyConformFewFeetTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_body_conform;
+
+    const auto Lift = [](double InX, double) { return 0.1 * InX; };
+    auto Target = Sentinel;
+    TestTrue(TEXT("Positive control: three weighted feet are fitted"), ck::ComputeProceduralBodyConformPose(
+        MakeFeet(Lift, TArray<float>{1.0f, 1.0f, 1.0f, 0.0f}), MakeSettings(), Target) == ck::EProceduralBodyConformResult::Fitted);
+
+    auto Held = Sentinel;
+    TestTrue(TEXT("Two weighted feet are underdetermined"), ck::ComputeProceduralBodyConformPose(
+        MakeFeet(Lift, TArray<float>{1.0f, 0.0f, 0.0f, 1.0f}), MakeSettings(), Held) == ck::EProceduralBodyConformResult::Underdetermined);
+    TestTrue(TEXT("An underdetermined fit leaves the target untouched"), Get_IsSentinel(Held));
+
+    TestTrue(TEXT("No feet are underdetermined"), ck::ComputeProceduralBodyConformPose(
+        TArrayView<const ck::FProceduralBodyConformFoot>{}, MakeSettings(), Held) == ck::EProceduralBodyConformResult::Underdetermined);
+    TestTrue(TEXT("No feet leave the target untouched"), Get_IsSentinel(Held));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralBodyConformCollinearTest,
+    "Ck.ProceduralAnimation.BodyConform.CollinearFeetUnderdetermined",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralBodyConformCollinearTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_body_conform;
+
+    const auto MakeRow = [](double InSpreadY)
+    {
+        auto Feet = TArray<ck::FProceduralBodyConformFoot>{};
+        for (auto Index = 0; Index < 4; ++Index)
+        {
+            const auto Rest = FVector{-90.0 + 60.0 * Index, Index % 2 == 0 ? InSpreadY : -InSpreadY, RestZ};
+            Feet.Emplace(Rest + FVector{0.0, 0.0, 0.05 * Rest.X}, Rest, 1.0f);
+        }
+        return Feet;
+    };
+
+    auto Target = Sentinel;
+    TestTrue(TEXT("Positive control: a row with sideways spread is fitted"),
+        ck::ComputeProceduralBodyConformPose(MakeRow(40.0), MakeSettings(), Target) == ck::EProceduralBodyConformResult::Fitted);
+
+    auto Held = Sentinel;
+    TestTrue(TEXT("Feet on one line are underdetermined"),
+        ck::ComputeProceduralBodyConformPose(MakeRow(0.0), MakeSettings(), Held) == ck::EProceduralBodyConformResult::Underdetermined);
+    TestTrue(TEXT("Feet within half a centimetre of one line are underdetermined"),
+        ck::ComputeProceduralBodyConformPose(MakeRow(0.5), MakeSettings(), Held) == ck::EProceduralBodyConformResult::Underdetermined);
+    TestTrue(TEXT("Collinear feet leave the target untouched"), Get_IsSentinel(Held));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralBodyConformMalformedTest,
+    "Ck.ProceduralAnimation.BodyConform.MalformedFeetMalformed",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralBodyConformMalformedTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_body_conform;
+
+    const auto Level = [](double, double) { return 0.0; };
+    auto Target = Sentinel;
+    TestTrue(TEXT("Positive control: well-formed feet are fitted"),
+        ck::ComputeProceduralBodyConformPose(MakeFeet(Level), MakeSettings(), Target) == ck::EProceduralBodyConformResult::Fitted);
+
+    const auto DoExpectMalformed = [&](const TArray<ck::FProceduralBodyConformFoot>& InFeet,
+        const ck::FProceduralBodyConformSettings& InSettings, const TCHAR* InCase)
+    {
+        auto Held = Sentinel;
+        TestTrue(FString::Printf(TEXT("%s is malformed"), InCase),
+            ck::ComputeProceduralBodyConformPose(InFeet, InSettings, Held) == ck::EProceduralBodyConformResult::Malformed);
+        TestTrue(FString::Printf(TEXT("%s leaves the target untouched"), InCase), Get_IsSentinel(Held));
+    };
+
+    const auto NaN = std::numeric_limits<double>::quiet_NaN();
+    auto NanPosition = MakeFeet(Level);
+    NanPosition[1].Set_PositionLocal(FVector{NaN, 0.0, 0.0});
+    DoExpectMalformed(NanPosition, MakeSettings(), TEXT("A NaN foot position"));
+
+    auto InfiniteRest = MakeFeet(Level);
+    InfiniteRest[2].Set_RestLocal(FVector{0.0, std::numeric_limits<double>::infinity(), 0.0});
+    DoExpectMalformed(InfiniteRest, MakeSettings(), TEXT("An infinite rest foot"));
+
+    DoExpectMalformed(MakeFeet(Level, TArray<float>{1.0f, -0.5f, 1.0f, 1.0f}), MakeSettings(), TEXT("A negative weight"));
+    DoExpectMalformed(MakeFeet(Level, TArray<float>{1.0f, 1.0f, std::numeric_limits<float>::quiet_NaN(), 1.0f}), MakeSettings(),
+        TEXT("A NaN weight"));
+    DoExpectMalformed(MakeFeet(Level), MakeSettings().Set_MaxTiltDegrees(95.0f), TEXT("A max tilt past 89 degrees"));
+    DoExpectMalformed(MakeFeet(Level), MakeSettings().Set_HeightWeight(1.5f), TEXT("A height weight above 1"));
+    DoExpectMalformed(MakeFeet(Level), MakeSettings().Set_MaxHeight(-1.0f), TEXT("A negative max height"));
+    DoExpectMalformed(MakeFeet(Level), MakeSettings().Set_MaxHeight(std::numeric_limits<float>::quiet_NaN()), TEXT("A NaN max height"));
+
+    return true;
+}
+
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------

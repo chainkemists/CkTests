@@ -129,6 +129,32 @@ class UCk_AutoTest_ProceduralAnimation_LegAndRigAdmissionRejects : UCk_AutoTest_
         AssertRigRejected(utils_procedural_rig::Add(OpenLeg, MakeChain(BodySegments)), OpenLeg, EnsuresBefore,
             "Segment is the body");
 
+        // A single segment only aims, so only Auto may pose it.
+        auto OneSegmentSpec = MakeLegWithSegmentCount(LegB, 1);
+        FCk_Handle_ProceduralLeg OneSegmentLeg = utils_procedural_leg::Create(RigBody,
+            FCk_ProceduralLeg_Spec(n"OneSegment", OneSegmentSpec.Get_Placement(), OneSegmentSpec.Get_Chain()));
+        Assert_True(ck::IsValid(OneSegmentLeg), "Precondition: the rig body has a one-segment leg");
+        auto Single = CreatePart(RigBody, RigLocation + FVector(60.0, 0.0, 0.0));
+        auto SingleSegment = TArray<FCk_Handle_Transform>();
+        SingleSegment.Add(Single);
+
+        auto FabrikOnOne = MakeChain(SingleSegment);
+        FabrikOnOne.Set_Solver(ECk_ProceduralRig_ChainSolver::Fabrik);
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRigRejected(utils_procedural_rig::Add(OneSegmentLeg, FabrikOnOne), OneSegmentLeg, EnsuresBefore,
+            "Explicit Fabrik on a one-segment chain");
+
+        auto CurveOnOne = MakeChain(SingleSegment);
+        CurveOnOne.Set_Solver(ECk_ProceduralRig_ChainSolver::Curve);
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRigRejected(utils_procedural_rig::Add(OneSegmentLeg, CurveOnOne), OneSegmentLeg, EnsuresBefore,
+            "Explicit Curve on a one-segment chain");
+
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        Assert_True(ck::IsValid(utils_procedural_rig::Add(OneSegmentLeg, MakeChain(SingleSegment))),
+            "Positive control: Auto binds the one-segment chain");
+        Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 0, "Positive control: Auto on one segment fires no ensure");
+
         auto RiggedSegments = TArray<FCk_Handle_Transform>();
         RiggedSegments.Add(Upper);
         RiggedSegments.Add(Lower);

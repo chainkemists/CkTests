@@ -15,6 +15,13 @@ class UCk_AutoTest_PaViz_Visual : UCk_AutoTest_Base
     // Uneven lanes are 280 cm apart, so the centre crawler is shot over its neighbour from higher up.
     private float _UnevenSideHeight = 220.0;
     private float _TopDownHeight = 600.0;
+    // The camera narrows its field of view until the walker fills this share of the frame height. HighResShot captures
+    // 16:9, so the horizontal field of view the camera takes is widened from the vertical one by that aspect.
+    private float _FrameHeightFraction = 0.4;
+    private float _CaptureAspect = 16.0 / 9.0;
+    // Walker height from its clearance: the body and the knees arching above the hips add about 80 % on top.
+    private float _WalkerHeightPerClearance = 1.8;
+    private float _OriginalFieldOfView = -1.0;
     // The step tick polls twice per engine frame. The camera holds on its walker for a few frames before and after
     // each capture: the move must reach a rendered frame before HighResShot is issued, and the capture lands later.
     private int32 _SettlePolls = 6;
@@ -122,7 +129,8 @@ class UCk_AutoTest_PaViz_Visual : UCk_AutoTest_Base
         Snapshot_CVarForTest(n"r.ForceLOD");
         Snapshot_CVarForTest(n"r.SceneColorFormat");
         Snapshot_CVarForTest(n"r.PostProcessingColorFormat");
-        // The AutoTests level has no lighting. `viewmode` is a command, not a variable, so Step_Finish puts it back by hand.
+        // The AutoTests level has no lighting. `viewmode` is a command, not a variable, so Step_Finish puts it back by hand,
+        // as it does the camera's field of view.
         System::ExecuteConsoleCommand("viewmode unlit");
 
         Add_Step_WaitUntil("the hump and uneven walkers are composed and evaluated", n"Check_Ready", 1200);
@@ -222,12 +230,25 @@ class UCk_AutoTest_PaViz_Visual : UCk_AutoTest_Base
         return -1;
     }
 
+    // Side shots frame the walker's height; top-down shots frame its length along the course.
+    float Get_FieldOfView(int32 InShot, float InEyeDistance) const
+    {
+        auto Crawler = _Fixtures[_PlanFixture[InShot]].Crawlers[_PlanWalker[InShot]];
+        auto Profile = ck_procedural_gym::Get_SpeciesProfile(Crawler.Layout.Species);
+        auto Extent = _PlanTopDown[InShot] ? 2.0 * (Profile.BodyHalfExtents.X + Profile.Clearance) :
+            Profile.Clearance * _WalkerHeightPerClearance;
+        auto HalfVertical = Math::Atan(Extent / (2.0 * _FrameHeightFraction * InEyeDistance));
+        return Math::RadiansToDegrees(2.0 * Math::Atan(Math::Tan(HalfVertical) * _CaptureAspect));
+    }
+
     private void DoArm(int32 InShot)
     {
         _Tracked = InShot;
         _Armed = true;
         _PollsInState = 0;
-        DoPlaceCamera(InShot);
+        auto EyeDistance = DoPlaceCamera(InShot);
+        auto FieldOfView = Get_FieldOfView(InShot, EyeDistance);
+        DoSet_FieldOfView(FieldOfView);
         auto FixtureIndex = _PlanFixture[InShot];
         auto Walker = _PlanWalker[InShot];
         auto Crawler = _Fixtures[FixtureIndex].Crawlers[Walker];
@@ -237,17 +258,33 @@ class UCk_AutoTest_PaViz_Visual : UCk_AutoTest_Base
         auto Local = Get_RootLocal(FixtureIndex, Walker);
         auto Elapsed = Get_Elapsed();
         FString View = _PlanTopDown[InShot] ? "top" : "side";
-        ck::Trace(f"[PAVIZ-SHOT] {_Open}\"index\":{_Taken},\"plan\":{InShot},\"course\":\"{Course}\",\"species\":\"{WalkerName}\",\"walker\":{Walker},\"phase\":\"{Phase}\",\"view\":\"{View}\",\"x\":{Local.X :.1},\"z\":{Local.Z :.1},\"t\":{Elapsed :.3}{_Close}",
+        ck::Trace(f"[PAVIZ-SHOT] {_Open}\"index\":{_Taken},\"plan\":{InShot},\"course\":\"{Course}\",\"species\":\"{WalkerName}\",\"walker\":{Walker},\"phase\":\"{Phase}\",\"view\":\"{View}\",\"x\":{Local.X :.1},\"z\":{Local.Z :.1},\"t\":{Elapsed :.3},\"fov\":{FieldOfView :.1}{_Close}",
             n"PAVIZ.Shot", 0.0f);
     }
 
-    private void DoPlaceCamera(int32 InShot)
+    // The AutoTests pawn has no camera component, so the camera manager's default field of view is the one it renders with.
+    private void DoSet_FieldOfView(float InFieldOfView)
+    {
+        auto Controller = Gameplay::GetPlayerController(0);
+        if (ck::Is_NOT_Valid(Controller) || ck::Is_NOT_Valid(Controller.PlayerCameraManager))
+        {
+            return;
+        }
+        if (_OriginalFieldOfView < 0.0)
+        {
+            _OriginalFieldOfView = Controller.PlayerCameraManager.DefaultFOV;
+        }
+        Controller.PlayerCameraManager.DefaultFOV = InFieldOfView;
+    }
+
+    // Returns the eye's distance from the walker.
+    private float DoPlaceCamera(int32 InShot)
     {
         auto Pawn = Gameplay::GetPlayerPawn(0);
         auto Controller = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(Pawn) || ck::Is_NOT_Valid(Controller))
         {
-            return;
+            return _SideDistance;
         }
         auto Crawler = _Fixtures[_PlanFixture[InShot]].Crawlers[_PlanWalker[InShot]];
         auto Target = utils_transform::Get_EntityCurrentLocation(Crawler.Handles.Root);
@@ -257,12 +294,17 @@ class UCk_AutoTest_PaViz_Visual : UCk_AutoTest_Base
             Target + FVector(0.0, Side * _SideDistance, _PlanFixture[InShot] == 1 ? _UnevenSideHeight : _SideHeight);
         Pawn.SetActorLocation(Eye);
         Controller.SetControlRotation(FRotator::MakeFromX(Target - Eye));
+        return (Target - Eye).Size();
     }
 
     UFUNCTION()
     private void Step_Finish(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         System::ExecuteConsoleCommand("viewmode lit");
+        if (_OriginalFieldOfView > 0.0)
+        {
+            DoSet_FieldOfView(_OriginalFieldOfView);
+        }
         auto Planned = _PlanTaken.Num();
         auto Elapsed = Get_Elapsed();
         ck::Trace(f"[PAVIZ-SHOT-END] {_Taken} of {Planned} captures taken after {Elapsed :.2} s");
