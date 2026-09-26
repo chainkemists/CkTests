@@ -73,13 +73,20 @@ namespace ck_procedural_gym
     const float RubbleHalfSpanX = 1000.0;
     const float RubbleEdgeMargin = 80.0;
     const float RubbleMaxTilt = 8.0;
-    const float HumpRadius = 600.0;
+    // A raised-cosine profile leaves and rejoins the floor tangentially, so the only thing the walkers negotiate is
+    // curvature: no corner at the foot of the hump and no slope step larger than the facet resolution.
     const float HumpTopZ = 300.0;
-    const float HumpHalfArcDegrees = 60.0;
-    const int32 HumpSlabCount = 12;
+    const float HumpHalfWidth = 700.0;
+    const float HumpFacetLength = 25.0;
+    // Solid enough that no probe can start under a facet's top face and fall through to the floor below.
+    const float HumpSlabHalfThickness = 60.0;
 
     const float TravelSpeed = 180.0;
     const FVector BodyHalfExtents = FVector(42.0, 30.0, 18.0);
+    // Crawler hips sit on a 30 cm radius; these boxes put every hip on a side face instead of inside the body.
+    const FVector Crawler4BodyHalfExtents = FVector(21.2, 21.2, 14.0);
+    const FVector Crawler6BodyHalfExtents = FVector(26.0, 30.0, 14.0);
+    const FVector Crawler8BodyHalfExtents = FVector(27.7, 27.7, 14.0);
     // Below BodyClearance: a body that has lost a leg or two must not sink into the floor.
     const float BodyCollapseDrop = 45.0;
     // The same bound for the other species, scaled to their clearance.
@@ -106,28 +113,28 @@ namespace ck_procedural_gym
             Profile.Rig = ck::ProceduralGym_RigSpider;
             Profile.Gait = ck::ProceduralGym_GaitSpider;
             Profile.Clearance = ck_procedural_gym_assets::SpiderRestDrop;
-            Profile.BodyHalfExtents = FVector(34.0, 30.0, 20.0);
+            Profile.BodyHalfExtents = ck_procedural_gym_assets::SpiderBodyHalfExtents;
         }
         else if (InSpecies == ECkProceduralAnimationGym_Species::Centipede)
         {
             Profile.Rig = ck::ProceduralGym_RigCentipede;
             Profile.Gait = ck::ProceduralGym_GaitCentipede;
             Profile.Clearance = ck_procedural_gym_assets::CentipedeRestDrop;
-            Profile.BodyHalfExtents = FVector(130.0, 24.0, 12.0);
+            Profile.BodyHalfExtents = ck_procedural_gym_assets::CentipedeBodyHalfExtents;
         }
         else if (InSpecies == ECkProceduralAnimationGym_Species::Tentacled)
         {
             Profile.Rig = ck::ProceduralGym_RigTentacled;
             Profile.Gait = ck::ProceduralGym_GaitTentacled;
             Profile.Clearance = ck_procedural_gym_assets::TentacledRestDrop;
-            Profile.BodyHalfExtents = FVector(38.0, 38.0, 24.0);
+            Profile.BodyHalfExtents = ck_procedural_gym_assets::TentacledBodyHalfExtents;
         }
         else if (InSpecies == ECkProceduralAnimationGym_Species::Beast)
         {
             Profile.Rig = ck::ProceduralGym_RigBeast;
             Profile.Gait = ck::ProceduralGym_GaitBeast;
             Profile.Clearance = ck_procedural_gym_assets::BeastRestDrop;
-            Profile.BodyHalfExtents = FVector(62.0, 28.0, 22.0);
+            Profile.BodyHalfExtents = ck_procedural_gym_assets::BeastBodyHalfExtents;
         }
         else
         {
@@ -136,7 +143,8 @@ namespace ck_procedural_gym
             Profile.Gait = InSpecies == ECkProceduralAnimationGym_Species::Crawler4 ? ck::ProceduralGym_GaitRedistribute : ck::ProceduralGym_Gait;
             Profile.Clearance = BodyClearance;
             Profile.CollapseDrop = BodyCollapseDrop;
-            Profile.BodyHalfExtents = BodyHalfExtents;
+            Profile.BodyHalfExtents = InSpecies == ECkProceduralAnimationGym_Species::Crawler4 ? Crawler4BodyHalfExtents :
+                (InSpecies == ECkProceduralAnimationGym_Species::Crawler6 ? Crawler6BodyHalfExtents : Crawler8BodyHalfExtents);
             return Profile;
         }
         Profile.CollapseDrop = CollapseDropPerClearance * Profile.Clearance;
@@ -804,29 +812,42 @@ struct FCkProceduralAnimationGym_Fixture
         }
     }
 
+    float Get_HumpHeight(float InX) const
+    {
+        if (Math::Abs(InX) >= ck_procedural_gym::HumpHalfWidth)
+        {
+            return 0.0;
+        }
+        return ck_procedural_gym::HumpTopZ * 0.5 * (1.0 + Math::Cos(Math::PI * InX / ck_procedural_gym::HumpHalfWidth));
+    }
+
     void AddHump(FLinearColor InColor, FLinearColor InAlternateColor)
     {
-        auto Centre = FVector(0.0, 0.0, ck_procedural_gym::HumpTopZ - ck_procedural_gym::HumpRadius);
-        auto StepDegrees = 2.0 * ck_procedural_gym::HumpHalfArcDegrees / ck_procedural_gym::HumpSlabCount;
-        for (auto Index = 0; Index < ck_procedural_gym::HumpSlabCount; Index++)
+        auto FacetCount = Math::RoundToInt(2.0 * ck_procedural_gym::HumpHalfWidth / ck_procedural_gym::HumpFacetLength);
+        for (auto Index = 0; Index < FacetCount; Index++)
         {
-            auto From = Math::DegreesToRadians(-ck_procedural_gym::HumpHalfArcDegrees + StepDegrees * Index);
-            auto To = Math::DegreesToRadians(-ck_procedural_gym::HumpHalfArcDegrees + StepDegrees * (Index + 1));
-            AddSlab(Centre + FVector(Math::Sin(From), 0.0, Math::Cos(From)) * ck_procedural_gym::HumpRadius,
-                Centre + FVector(Math::Sin(To), 0.0, Math::Cos(To)) * ck_procedural_gym::HumpRadius,
-                Index % 2 == 0 ? InColor : InAlternateColor);
+            auto FromX = -ck_procedural_gym::HumpHalfWidth + ck_procedural_gym::HumpFacetLength * Index;
+            auto ToX = FromX + ck_procedural_gym::HumpFacetLength;
+            AddSlabWithShape(FVector(FromX, 0.0, Get_HumpHeight(FromX)), FVector(ToX, 0.0, Get_HumpHeight(ToX)),
+                (Index / 4) % 2 == 0 ? InColor : InAlternateColor, ck_procedural_gym::HumpSlabHalfThickness);
         }
     }
 
     void AddSlab(FVector InStart, FVector InEnd, FLinearColor InColor)
     {
+        AddSlabWithShape(InStart, InEnd, InColor, ck_procedural_gym::SlabHalfThickness);
+    }
+
+    // Slab top faces run exactly from InStart to InEnd, so neighbouring slabs meet at shared points on the profile: an
+    // overlap would leave a lip at every convex seam that a forward contact ray reads as a wall.
+    void AddSlabWithShape(FVector InStart, FVector InEnd, FLinearColor InColor, float InHalfThickness)
+    {
         auto Delta = InEnd - InStart;
         auto Pitch = Math::RadiansToDegrees(Math::Atan2(Delta.Z, Delta.X));
         auto Angle = Math::DegreesToRadians(Pitch);
         auto Normal = FVector(-Math::Sin(Angle), 0.0, Math::Cos(Angle));
-        auto Thickness = ck_procedural_gym::SlabHalfThickness;
-        AddSurface((InStart + InEnd) * 0.5 - Normal * Thickness, FRotator(Pitch, 0.0, 0.0),
-            FVector(Delta.Size() * 0.5 + 4.0, ck_procedural_gym::Get_CourseHalfWidth(Spawn.Course), Thickness), InColor);
+        AddSurface((InStart + InEnd) * 0.5 - Normal * InHalfThickness, FRotator(Pitch, 0.0, 0.0),
+            FVector(Delta.Size() * 0.5, ck_procedural_gym::Get_CourseHalfWidth(Spawn.Course), InHalfThickness), InColor);
     }
 
     UCk_IsmRenderer_Data GetOrCreate_Renderer(FLinearColor InColor)

@@ -10,7 +10,12 @@ namespace ck_procedural_gym_assets
     const float SpiderRestDrop = 90.0;
     const float CentipedeRestDrop = 45.0;
     const float TentacledRestDrop = 55.0;
-    const float BeastRestDrop = 80.0;
+    const float BeastRestDrop = 64.0;
+    // Hips sit on these boxes' side faces, so every chain starts at the body surface instead of inside the body.
+    const FVector SpiderBodyHalfExtents = FVector(34.0, 30.0, 20.0);
+    const FVector CentipedeBodyHalfExtents = FVector(130.0, 24.0, 12.0);
+    const FVector TentacledBodyHalfExtents = FVector(30.0, 30.0, 20.0);
+    const FVector BeastBodyHalfExtents = FVector(62.0, 28.0, 22.0);
 
     TArray<float32> MakeSegmentLengths(int32 InSegmentCount)
     {
@@ -88,15 +93,24 @@ namespace ck_procedural_gym_assets
         return Legs;
     }
 
-    TArray<FCk_ProceduralLeg_Spec> MakeRadialLegsWithLengths(int32 InLegCount, float InHipRadius, float InRestRadius,
-        float InRestDrop, float InPoleRadius, float InPoleHeight, TArray<float32> InLengths)
+    float Get_BoxBoundaryDistance(FVector InDirection, FVector InHalfExtents)
+    {
+        auto ToFaceX = Math::Abs(InDirection.X) > 0.0001 ? InHalfExtents.X / Math::Abs(InDirection.X) : 1000000.0;
+        auto ToFaceY = Math::Abs(InDirection.Y) > 0.0001 ? InHalfExtents.Y / Math::Abs(InDirection.Y) : 1000000.0;
+        return Math::Min(ToFaceX, ToFaceY);
+    }
+
+    // The rest foot sits InRestReach beyond the hip and InRestDrop below it; the pole bends the knees outward and up.
+    TArray<FCk_ProceduralLeg_Spec> MakeRadialLegsOnBody(int32 InLegCount, FVector InBodyHalfExtents, float InRestReach,
+        float InRestDrop, float InPoleOut, float InPoleUp, TArray<float32> InLengths)
     {
         auto Legs = TArray<FCk_ProceduralLeg_Spec>();
         for (auto LegIndex = 0; LegIndex < InLegCount; LegIndex++)
         {
             auto Radial = Get_RadialDirection(LegIndex, InLegCount);
-            Legs.Add(MakeLegWithLengths(FName(f"Leg{LegIndex}"), Radial * InHipRadius,
-                Radial * InRestRadius - FVector(0.0, 0.0, InRestDrop), Radial * InPoleRadius + FVector(0.0, 0.0, InPoleHeight),
+            auto Hip = Radial * Get_BoxBoundaryDistance(Radial, InBodyHalfExtents);
+            Legs.Add(MakeLegWithLengths(FName(f"Leg{LegIndex}"), Hip,
+                Hip + Radial * InRestReach - FVector(0.0, 0.0, InRestDrop), Hip + Radial * InPoleOut + FVector(0.0, 0.0, InPoleUp),
                 LegIndex % 2 == 0 ? 0.0f : 0.5f, InLengths));
         }
         return Legs;
@@ -109,7 +123,7 @@ namespace ck_procedural_gym_assets
         Lengths.Add(60.0f);
         Lengths.Add(60.0f);
         Lengths.Add(50.0f);
-        return MakeRadialLegsWithLengths(8, 35.0, 170.0, SpiderRestDrop, 85.0, 225.0, Lengths);
+        return MakeRadialLegsOnBody(8, SpiderBodyHalfExtents, 97.0, SpiderRestDrop, 70.0, 150.0, Lengths);
     }
 
     TArray<FCk_ProceduralLeg_Spec> MakeTentacledLegs()
@@ -119,7 +133,7 @@ namespace ck_procedural_gym_assets
         {
             Lengths.Add(18.0f);
         }
-        return MakeRadialLegsWithLengths(6, 32.0, 110.0, TentacledRestDrop, 50.0, 140.0, Lengths);
+        return MakeRadialLegsOnBody(6, TentacledBodyHalfExtents, 66.0, TentacledRestDrop, 60.0, 60.0, Lengths);
     }
 
     // Four phase groups of four legs, a quarter cycle apart: the gait only overlaps swings of legs that share an offset,
@@ -137,18 +151,21 @@ namespace ck_procedural_gym_assets
             {
                 auto Side = SideIndex == 0 ? -1.0 : 1.0;
                 auto PhaseOffset = Math::Frac((Pair % 4) * 0.25 + (SideIndex == 0 ? 0.0 : 0.5));
-                Legs.Add(MakeLegWithLengths(FName(SideIndex == 0 ? f"L{Pair}" : f"R{Pair}"), FVector(HipX, Side * 22.0, 0.0),
-                    FVector(HipX, Side * 90.0, -CentipedeRestDrop), FVector(HipX, Side * 60.0, 80.0), float32(PhaseOffset), Lengths));
+                auto HipY = CentipedeBodyHalfExtents.Y;
+                Legs.Add(MakeLegWithLengths(FName(SideIndex == 0 ? f"L{Pair}" : f"R{Pair}"), FVector(HipX, Side * HipY, 0.0),
+                    FVector(HipX, Side * (HipY + 51.0), -CentipedeRestDrop), FVector(HipX, Side * (HipY + 40.0), 70.0),
+                    float32(PhaseOffset), Lengths));
             }
         }
         return Legs;
     }
 
+    // The poles sit outboard and slightly toward the body's end, so the knees point out instead of crossing under the belly.
     FCk_ProceduralLeg_Spec MakeBeastLeg(FName InId, float InFore, float InSide, float32 InPhaseOffset, TArray<float32> InLengths)
     {
         auto HipX = InFore * 45.0;
-        return MakeLegWithLengths(InId, FVector(HipX, InSide * 26.0, 0.0), FVector(InFore * 52.0, InSide * 60.0, -BeastRestDrop),
-            FVector(HipX - InFore * 80.0, InSide * 40.0, -20.0), InPhaseOffset, InLengths);
+        return MakeLegWithLengths(InId, FVector(HipX, InSide * BeastBodyHalfExtents.Y, 0.0), FVector(InFore * 50.0, InSide * 55.0, -BeastRestDrop),
+            FVector(HipX + InFore * 20.0, InSide * 80.0, 20.0), InPhaseOffset, InLengths);
     }
 
     TArray<FCk_ProceduralLeg_Spec> MakeBeastLegs()
@@ -205,6 +222,7 @@ namespace ck
         _Timing.Set_StepDuration(FCk_Time(0.3));
         _Step.Set_Height(40.0f);
         _Step.Set_Threshold(50.0f);
+        _Step.Set_MaxVelocityLead(45.0f);
     }
 
     asset ProceduralGym_GaitCentipede of UCk_ProceduralGait_Data
@@ -214,6 +232,7 @@ namespace ck
         _Timing.Set_CadenceSpeedRef(60.0f);
         _Step.Set_Height(16.0f);
         _Step.Set_Threshold(25.0f);
+        _Step.Set_MaxVelocityLead(25.0f);
     }
 
     asset ProceduralGym_GaitTentacled of UCk_ProceduralGait_Data
@@ -223,6 +242,7 @@ namespace ck
         _Timing.Set_LegLossPolicy(ECk_ProceduralGait_LegLossPolicy::RedistributeOffsets);
         _Step.Set_Height(30.0f);
         _Step.Set_Threshold(35.0f);
+        _Step.Set_MaxVelocityLead(35.0f);
     }
 
     asset ProceduralGym_GaitBeast of UCk_ProceduralGait_Data
@@ -232,6 +252,7 @@ namespace ck
         _Timing.Set_LegLossPolicy(ECk_ProceduralGait_LegLossPolicy::RedistributeOffsets);
         _Step.Set_Height(26.0f);
         _Step.Set_Threshold(35.0f);
+        _Step.Set_MaxVelocityLead(25.0f);
     }
 
     asset ProceduralGym_Rig4 of UCk_ProceduralRig_Data
@@ -289,5 +310,14 @@ namespace ck
     asset ProceduralTest_ZeroStepDurationGait of UCk_ProceduralGait_Data
     {
         _Timing.Set_StepDuration(FCk_Time(0.0));
+    }
+
+    // The side legs' rest feet sit at 0.68 of their chain length, outside this preset's target reach.
+    asset ProceduralTest_TightReachGait of UCk_ProceduralGait_Data
+    {
+        _Timing.Set_CycleDuration(FCk_Time(0.8));
+        _Timing.Set_StepDuration(FCk_Time(0.22));
+        _Step.Set_Threshold(30.0f);
+        _Step.Set_TargetReachFraction(0.6f);
     }
 }

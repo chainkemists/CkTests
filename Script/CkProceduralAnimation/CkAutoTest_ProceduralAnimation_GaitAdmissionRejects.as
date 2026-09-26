@@ -7,6 +7,8 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
     private FVector _Origin = FVector(120000.0, 60000.0, 1000.0);
     private FCk_Handle _Body;
     private FCk_Handle _OneLegBody;
+    private FCk_Handle _ShortLegBody;
+    private TArray<ECk_Request_OperationResult> _ApplyPresetResults;
 
     FCk_Handle_Transform CreateBody(FCk_Handle InOwner, FVector InLocation)
     {
@@ -27,6 +29,48 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
         Assert_True(ck::Is_NOT_Valid(InGait), f"{InCase}: Add returns an invalid gait handle");
         Assert_True(HasGait(InBody) == InExpectGait, f"{InCase}: the body's gait presence is unchanged");
         Assert_Equals_Int(utils_ensure::Get_EnsureCount() - InEnsuresBefore, 1, f"{InCase}: exactly one ensure fires");
+    }
+
+    // The side legs' rest feet sit 95.5 cm from their hips: within 0.8 of the authored 140 cm chains, beyond 0.8 of a
+    // 100 cm chain and beyond 0.6 of the authored one.
+    FCk_ProceduralLeg_Spec MakeShortLeg(FCk_ProceduralLeg_Spec InTemplate)
+    {
+        auto Lengths = TArray<float32>();
+        Lengths.Add(50.0f);
+        Lengths.Add(50.0f);
+        auto Chain = InTemplate.Get_Chain();
+        Chain.Set_SegmentLengths(Lengths);
+        return FCk_ProceduralLeg_Spec(InTemplate.Get_Id(), InTemplate.Get_Placement(), Chain);
+    }
+
+    FCk_Request_ProceduralGait_ApplyPreset MakeReachRequest(float32 InTargetReachFraction)
+    {
+        UCk_ProceduralGait_Data Preset = ck::ProceduralGym_Gait;
+        auto Step = Preset.Get_Step();
+        Step.Set_TargetReachFraction(InTargetReachFraction);
+        return FCk_Request_ProceduralGait_ApplyPreset(Preset.Get_Timing(), Step, Preset.Get_Probe());
+    }
+
+    void AssertPresetRejected(FCk_Handle_ProceduralGait InGait, float32 InTargetReachFraction, const FString& InCase)
+    {
+        auto Gait = InGait;
+        auto ResultsBefore = _ApplyPresetResults.Num();
+        auto EnsuresBefore = utils_ensure::Get_EnsureCount();
+        utils_procedural_gait::Request_ApplyPreset(Gait, MakeReachRequest(InTargetReachFraction),
+            FCk_Delegate_Request_OnCompleted(this, n"OnApplyPresetCompleted"));
+        Assert_Equals_Int(_ApplyPresetResults.Num() - ResultsBefore, 1, f"{InCase}: the completion delegate fires once");
+        if (_ApplyPresetResults.Num() > ResultsBefore)
+        {
+            Assert_True(_ApplyPresetResults.Last() == ECk_Request_OperationResult::Failed_NotEnqueued,
+                f"{InCase}: the request completes Failed_NotEnqueued");
+        }
+        Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 1, f"{InCase}: exactly one ensure fires");
+    }
+
+    UFUNCTION()
+    private void OnApplyPresetCompleted(FCk_Handle InRequestOwner, ECk_Request_OperationResult InResult)
+    {
+        _ApplyPresetResults.Add(InResult);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -66,6 +110,17 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
         AssertRejected(utils_procedural_gait::Add(DyingBody, ck::ProceduralGym_Gait), DyingBody, EnsuresBefore,
             false, "Body pending destruction");
 
+        auto ShortLegBody = CreateBody(InHandle, _Origin + FVector(0.0, 1000.0, 0.0));
+        _ShortLegBody = ShortLegBody;
+        for (auto LegParams : ck::ProceduralTest_SideRig.Get_Legs())
+        {
+            Assert_True(ck::IsValid(utils_procedural_leg::Create(ShortLegBody, MakeShortLeg(LegParams))),
+                "Precondition: the short-leg body gets its two legs");
+        }
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_procedural_gait::Add(ShortLegBody, ck::ProceduralGym_Gait), ShortLegBody, EnsuresBefore,
+            false, "Rest foot beyond the target reach");
+
         EnsuresBefore = utils_ensure::Get_EnsureCount();
         auto Gait = utils_procedural_gait::Add(Body, ck::ProceduralGym_Gait);
         Assert_True(ck::IsValid(Gait) && HasGait(Body), "Positive control: the corrected composition admits a gait");
@@ -73,6 +128,9 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
 
         EnsuresBefore = utils_ensure::Get_EnsureCount();
         AssertRejected(utils_procedural_gait::Add(Body, ck::ProceduralGym_Gait), Body, EnsuresBefore, true, "Existing gait");
+
+        AssertPresetRejected(Gait, 0.6f, "Preset whose target reach excludes a rest foot");
+        AssertPresetRejected(Gait, 0.95f, "Preset whose target reach exceeds its force-step reach");
 
         // Three frames let the gait, leg and rig processors run over the surviving and rejected bodies.
         Add_Step_WaitFrames("the world keeps ticking over the rejected compositions", 3);
@@ -84,16 +142,17 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
     UFUNCTION()
     private void Step_Destroy(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        Assert_True(ck::IsValid(_Body) && ck::IsValid(_OneLegBody), "Both bodies survived the rejections");
+        Assert_True(ck::IsValid(_Body) && ck::IsValid(_OneLegBody) && ck::IsValid(_ShortLegBody), "Every body survived the rejections");
         utils_entity_lifetime::Request_DestroyEntity(_Body);
         utils_entity_lifetime::Request_DestroyEntity(_OneLegBody);
+        utils_entity_lifetime::Request_DestroyEntity(_ShortLegBody);
     }
 
     UFUNCTION()
     private void Check_Destroyed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         auto Result = OutResult;
-        Result.Set(ck::Is_NOT_Valid(_Body) && ck::Is_NOT_Valid(_OneLegBody));
+        Result.Set(ck::Is_NOT_Valid(_Body) && ck::Is_NOT_Valid(_OneLegBody) && ck::Is_NOT_Valid(_ShortLegBody));
     }
 }
 
@@ -117,6 +176,8 @@ class ACk_AutoTest_ProceduralAnimation_GaitAdmissionRejects_Actor : ACk_AutoTest
         Errors.Add("the gait data asset is missing or its timing, step or probe settings are malformed.");
         Errors.Add("create 2..64 legs before the gait and keep MaxSimultaneousSwings within the leg count.");
         Errors.Add("it must be a live transform entity with no existing gait.");
+        Errors.Add("lies farther from its hip than TargetReachFraction of its chain length.");
+        Errors.Add("the gait must be live and the preset well-formed and within the leg count.");
         return Errors;
     }
 }
