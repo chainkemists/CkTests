@@ -340,7 +340,7 @@ namespace ck_tests_visual_lod_arbiter_tuners_pie
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkVisualLod_ArbiterTunersPie,
     "Ck.VisualLodDebugger.ArbiterTuners.PIE",
-    ck_tests_visual_lod_arbiter_tuners_pie::TestFlags)
+    ck_tests_visual_lod_arbiter_tuners_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkVisualLod_ArbiterTunersPie::RunTest(const FString&)
 {

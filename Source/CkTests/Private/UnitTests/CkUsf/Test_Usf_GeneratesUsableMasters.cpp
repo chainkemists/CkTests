@@ -30,7 +30,7 @@ namespace
 {
     constexpr auto kUsfTestFlags =
         EAutomationTestFlags::EditorContext |
-        EAutomationTestFlags::ProductFilter;
+        EAutomationTestFlags::ProductFilter | EAutomationTestFlags::NonNullRHI;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -46,8 +46,12 @@ bool FCkTest_Usf_GeneratesUsableMasters::RunTest(const FString& Parameters)
     // shader-compile gate reads every look as failed — environmental, not a shader bug.
     if (FApp::CanEverRender() == false)
     {
-        AddInfo(TEXT("Skipped: this process cannot render (e.g. -nullrhi) — shader maps never build, the compile gate would be meaningless."));
-        return true;
+        // Flagged EAutomationTestFlags::NonNullRHI, so a -nullrhi editor never lists this test and the
+        // toolbox runs it in its real-renderer pass. Reaching here headless would test nothing, which
+        // must never read as a pass (it used to: AddInfo("Skipped") + return true).
+        AddError(TEXT("Requires a real renderer (this test is flagged NonNullRHI); run it through the "
+                      "toolbox gate or with --no-nullrhi."));
+        return false;
     }
 
     // 1. Generate masters for every declared look. Generation now also force-compiles each

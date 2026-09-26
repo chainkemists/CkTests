@@ -171,7 +171,7 @@ namespace ck_tests_ui_select_popup
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSelectPopup_Reload,
     "Ck.UiAuthoring.Select.PopupSurvivesCompatibleReload",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiSelectPopup_Reload::RunTest(const FString&) -> bool
 {

@@ -129,7 +129,7 @@ namespace ck_tests_goap_debugger_catalog_authored_pie
     }
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkGoapDebugger_CatalogAuthoredPie, "Ck.GoapDebugger.Catalog.Authored.PIE", ck_tests_goap_debugger_catalog_authored_pie::TestFlags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkGoapDebugger_CatalogAuthoredPie, "Ck.GoapDebugger.Catalog.Authored.PIE", ck_tests_goap_debugger_catalog_authored_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkGoapDebugger_CatalogAuthoredPie::RunTest(const FString&)
 {

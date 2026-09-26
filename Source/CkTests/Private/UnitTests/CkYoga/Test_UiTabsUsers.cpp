@@ -58,7 +58,7 @@ namespace ck_tests_ui_tabs_users
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTabsUsers,
     "Ck.UiAuthoring.Tabs.MultiUserFocus",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTabsUsers::RunTest(const FString&) -> bool
 {

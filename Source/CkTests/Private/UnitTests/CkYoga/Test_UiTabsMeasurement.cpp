@@ -9,7 +9,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTabs_Measurement, "Ck.UiAuthoring.Tabs.ConstrainedScrollContent",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 auto FCkUiTabs_Measurement::RunTest(const FString&) -> bool
 {
     if (!FSlateApplication::IsInitialized()) { AddError(TEXT("Tabs measurement requires Slate.")); return false; }

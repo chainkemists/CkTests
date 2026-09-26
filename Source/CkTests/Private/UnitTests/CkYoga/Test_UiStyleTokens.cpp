@@ -95,7 +95,7 @@ namespace ck_tests_ui_style_tokens
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiAuthoring_StyleTokens,
-    "Ck.UiAuthoring.StyleTokens.AcceptedRejectedPoll", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    "Ck.UiAuthoring.StyleTokens.AcceptedRejectedPoll", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiAuthoring_StyleTokens::RunTest(const FString&) -> bool
 {

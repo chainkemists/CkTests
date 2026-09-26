@@ -123,7 +123,7 @@ namespace ck_tests_ui_table_visual_style
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkUiTable_VisualStyle,
     "Ck.UiAuthoring.Table.VisualStyle",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTable_VisualStyle::RunTest(const FString&) -> bool
 {
