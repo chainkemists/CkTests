@@ -19,6 +19,32 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
         Assert_Equals_Int(utils_ensure::Get_EnsureCount() - InEnsuresBefore, 1, f"{InCase}: exactly one ensure fires");
     }
 
+    FCk_SurfaceMotion_Spec MakeSpecWithConfirm(float32 InConfirmAngle, FCk_Time InConfirmTime)
+    {
+        auto Contact = FCk_SurfaceMotion_Contact();
+        Contact.Set_ConfirmAngle(InConfirmAngle);
+        Contact.Set_ConfirmTime(InConfirmTime);
+        auto Spec = FCk_SurfaceMotion_Spec();
+        Spec.Set_Contact(Contact);
+        return Spec;
+    }
+
+    FCk_SurfaceMotion_Spec MakeSpecWithSteerFloor(float32 InSteerFloor)
+    {
+        auto Movement = FCk_SurfaceMotion_Movement();
+        Movement.Set_SteerFloor(InSteerFloor);
+        auto Spec = FCk_SurfaceMotion_Spec();
+        Spec.Set_Movement(Movement);
+        return Spec;
+    }
+
+    void AssertSpecRejected(FCk_Handle_Transform InBody, FCk_SurfaceMotion_Spec InSpec, const FString& InCase)
+    {
+        auto Body = InBody;
+        auto EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_surface_motion::Add(Body, InSpec), EnsuresBefore, false, InCase);
+    }
+
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
@@ -51,6 +77,16 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
         Assert_True(BrokenMovement.Get_Gravity().ContainsNaN(), "Precondition: the gravity carries a NaN");
         EnsuresBefore = utils_ensure::Get_EnsureCount();
         AssertRejected(utils_surface_motion::Add(Body, BrokenGravity), EnsuresBefore, false, "NaN gravity");
+
+        auto DefaultConfirmTime = FCk_SurfaceMotion_Contact().Get_ConfirmTime();
+        AssertSpecRejected(Body, MakeSpecWithConfirm(-1.0f, DefaultConfirmTime), "Negative confirm angle");
+        AssertSpecRejected(Body, MakeSpecWithConfirm(181.0f, DefaultConfirmTime), "Confirm angle above 180 degrees");
+        AssertSpecRejected(Body, MakeSpecWithConfirm(float32(NaN), DefaultConfirmTime), "NaN confirm angle");
+        AssertSpecRejected(Body, MakeSpecWithConfirm(30.0f, FCk_Time(-0.01)), "Negative confirm time");
+        AssertSpecRejected(Body, MakeSpecWithConfirm(30.0f, FCk_Time(NaN)), "NaN confirm time");
+        AssertSpecRejected(Body, MakeSpecWithSteerFloor(-0.1f), "Negative steer floor");
+        AssertSpecRejected(Body, MakeSpecWithSteerFloor(1.1f), "Steer floor above 1");
+        AssertSpecRejected(Body, MakeSpecWithSteerFloor(float32(NaN)), "NaN steer floor");
 
         auto DyingEntity = utils_entity_lifetime::Request_CreateEntity(Owner);
         DyingEntity.Request_OverrideToSelf();
@@ -112,7 +148,7 @@ class ACk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects_Actor : ACk
     TArray<FString> Get_ExpectedLogErrors() const
     {
         auto Errors = TArray<FString>();
-        Errors.Add("invalid clearance, probe reach, contact grace, speed, turn rate or gravity.");
+        Errors.Add("invalid clearance, probe reach, contact grace, confirm angle, confirm time, speed, turn rate, gravity or steer floor.");
         Errors.Add("it must be a live transform entity with no existing surface motion.");
         return Errors;
     }

@@ -116,6 +116,10 @@ namespace ck_procedural_gym
     const float PillarHalfSpanX = 900.0;
     const float SpinSeconds = 6.0;
     const float SpinDegreesPerSecond = 120.0;
+    // The traversal tests' support evidence: a turn of the accepted support normal counts as a flip above this angle, and
+    // a root ray that hits within this fraction of its length began inside a solid.
+    const float SupportFlipDegrees = 30.0;
+    const float RootRayStartInsideFraction = 0.0001;
 
     const float TravelSpeed = 180.0;
     // A 2.6 m body cannot pivot at the other species' rate on four phase groups that step one after another.
@@ -580,6 +584,15 @@ struct FCkProceduralAnimationGym_CrawlerEvidence
     TArray<bool> SawSwing;
     UPROPERTY()
     TArray<bool> Replanted;
+    // How deep the root sat inside the surface under it, as a fraction of its clearance, at worst: a ray from the root down
+    // the support normal for one clearance finds the surface closer than the clearance (1 when it starts inside a solid).
+    UPROPERTY()
+    float WorstRootDepthFraction = 0.0;
+    // Updates on which the accepted support normal turned more than 30 degrees, counted until the first traversal.
+    UPROPERTY()
+    int32 SupportFlips = 0;
+    UPROPERTY()
+    FVector LastSupportNormal = FVector::ZeroVector;
 }
 
 // Scene authoring is shared by the gym and runtime tests. Only production surface-motion
@@ -688,6 +701,24 @@ struct FCkProceduralAnimationGym_Crawler
         return true;
     }
 
+    void DoUpdate_SupportEvidence(FVector InPosition)
+    {
+        auto SupportNormal = utils_surface_motion::Get_SupportNormal(Handles.Motion);
+        auto Clearance = ck_procedural_gym::Get_SpeciesProfile(Layout.Species).Clearance;
+        auto Hit = utils_jolt_query::Get_RayCast(InPosition, InPosition - SupportNormal * Clearance, FCk_Jolt_QueryFilter());
+        if (Hit.Get_HasHit())
+        {
+            auto Depth = Hit.Get_Fraction() <= ck_procedural_gym::RootRayStartInsideFraction ? 1.0 : 1.0 - Hit.Get_Fraction();
+            Evidence.WorstRootDepthFraction = Math::Max(Evidence.WorstRootDepthFraction, Depth);
+        }
+        if (Progress.Traversals == 0 && Evidence.LastSupportNormal.IsNearlyZero() == false &&
+            SupportNormal.GetSafeNormal().DotProduct(Evidence.LastSupportNormal) < Math::Cos(Math::DegreesToRadians(ck_procedural_gym::SupportFlipDegrees)))
+        {
+            Evidence.SupportFlips++;
+        }
+        Evidence.LastSupportNormal = SupportNormal.GetSafeNormal();
+    }
+
     void Update(bool InRun, bool InDraw, bool InLabels)
     {
         if (ck::IsValid(Handles.Gait) && utils_procedural_gait::Get_Status(Handles.Gait) == ECk_ProceduralAnimation_Status::Failed)
@@ -713,6 +744,7 @@ struct FCkProceduralAnimationGym_Crawler
         auto Local = Position - Layout.Origin;
         Progress.FurthestDistance = Math::Max(Progress.FurthestDistance, (Position - Layout.Start).Size());
         Evidence.InvalidOutput = Evidence.InvalidOutput || Position.ContainsNaN();
+        DoUpdate_SupportEvidence(Position);
         // A band sample catches contact-frame flip-flop that a single 'saw a wall' sample would miss.
         if (Layout.Course == ECkProceduralAnimationGym_Course::RampWall && Local.Z > ck_procedural_gym::WallBandMinZ &&
             Local.Z < ck_procedural_gym::WallBandMaxZ)

@@ -340,6 +340,8 @@ struct FCkPaViz_TelemetryRecorder
         auto TargetRotation = Get_Quat(Target.GetRotation());
         auto SupportNormalValue = utils_surface_motion::Get_SupportNormal(Handles.Motion);
         auto SupportNormal = Get_Direction(SupportNormalValue);
+        // ECk_SurfaceMotion_ContactSource by value: None, Forward, Down, LookAhead, Fan, Fall.
+        auto ContactSource = int32(utils_surface_motion::Get_ContactSource(Handles.Motion));
 
         FString Legs = "";
         for (auto Leg : Handles.Legs)
@@ -384,7 +386,7 @@ struct FCkPaViz_TelemetryRecorder
             FString Separator = Legs.IsEmpty() ? "" : ",";
             Legs = f"{Legs}{Separator}{Open}\"id\":\"{LegId}\",\"en\":{Enabled},\"ph\":\"{Phase}\",\"f\":{FootLocation},\"h\":{Hip},\"len\":{Lengths},\"j\":[{Joints}]{Buried}{Close}";
         }
-        ck::Trace(f"[PAVIZ] {Open}\"k\":\"f\",\"c\":\"{Course}\",\"s\":\"{WalkerName}\",\"w\":{InWalker},\"n\":{Frame},\"t\":{InElapsed :.4},\"stage\":{RouteStage},\"sp\":{Spinning},\"b\":{BodyLocation},\"bq\":{BodyRotation},\"p\":{PresentationLocation},\"pq\":{PresentationRotation},\"off\":{OffsetLocation},\"oq\":{OffsetRotation},\"tq\":{TargetRotation},\"sn\":{SupportNormal},\"legs\":[{Legs}]{Close}",
+        ck::Trace(f"[PAVIZ] {Open}\"k\":\"f\",\"c\":\"{Course}\",\"s\":\"{WalkerName}\",\"w\":{InWalker},\"n\":{Frame},\"t\":{InElapsed :.4},\"stage\":{RouteStage},\"sp\":{Spinning},\"b\":{BodyLocation},\"bq\":{BodyRotation},\"p\":{PresentationLocation},\"pq\":{PresentationRotation},\"off\":{OffsetLocation},\"oq\":{OffsetRotation},\"tq\":{TargetRotation},\"sn\":{SupportNormal},\"src\":{ContactSource},\"legs\":[{Legs}]{Close}",
             FName(f"PAVIZ.{Course}.{InWalker}"), 0.0f);
     }
 

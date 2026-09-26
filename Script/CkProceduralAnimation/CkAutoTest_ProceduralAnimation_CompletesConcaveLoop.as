@@ -1,5 +1,13 @@
 // Language=angelscript
 
+namespace ck_test_completes_concave_loop
+{
+    // The loop turns 15 degrees at every slab, below any flip.
+    const int32 MaxSupportFlipsPerLap = 0;
+    // The loop keeps the root within 0.02 of its clearance of every slab; the bound allows 0.1 more.
+    const float MaxRootDepthFraction = 0.12;
+}
+
 class UCk_AutoTest_ProceduralAnimation_CompletesConcaveLoop : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 60.0f;
@@ -40,6 +48,13 @@ class UCk_AutoTest_ProceduralAnimation_CompletesConcaveLoop : UCk_AutoTest_Base
     {
         for (auto Crawler : _Fixture.Crawlers)
         {
+            auto Legs = Crawler.Layout.LegCount;
+            auto Flips = Crawler.Evidence.SupportFlips;
+            auto Depth = Crawler.Evidence.WorstRootDepthFraction;
+            ck::Trace(f"[SupportEvidence] {Legs} legs: support flips over 30 degrees in the first lap {Flips}, worst root depth {Depth :.3} of the clearance",
+                n"SupportEvidence", 0.0f);
+            Assert_True(Flips <= ck_test_completes_concave_loop::MaxSupportFlipsPerLap, f"The accepted support turns more than 30 degrees at most at the course's corners in a lap (got {Flips})");
+            Assert_True(Depth <= ck_test_completes_concave_loop::MaxRootDepthFraction, f"The root never sits deeper than the bound inside its clearance (got {Depth :.3} of it)");
             Assert_True(Crawler.Evidence.SawCeiling, "At least one trusted foot contact normal faced down on the ceiling");
             Assert_True(Crawler.Evidence.SawWall && Crawler.Progress.Traversals > 0, "Ordered location milestones prove a complete loop");
             Assert_True(Crawler.Evidence.InvalidOutput == false, "Body and foot outputs remained finite through inversion");
