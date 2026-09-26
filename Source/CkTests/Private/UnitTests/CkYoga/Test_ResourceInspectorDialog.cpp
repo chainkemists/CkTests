@@ -85,7 +85,7 @@ namespace ck_tests_resource_inspector_dialog
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkResourceInspector_Dialog,
     "Ck.ResourceInspector.Dialog.NativeScenarios",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkResourceInspector_Dialog::RunTest(const FString&) -> bool
 {

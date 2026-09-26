@@ -32,7 +32,7 @@ namespace ck_tests_ui_tree_view
     auto Key(const FKey InKey) -> FKeyEvent { return FKeyEvent(InKey, FModifierKeysState{}, 0, false, 0, 0); }
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTreeView_Runtime, "Ck.UiAuthoring.Tree.ViewRuntime", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTreeView_Runtime, "Ck.UiAuthoring.Tree.ViewRuntime", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 auto FCkUiTreeView_Runtime::RunTest(const FString&) -> bool
 {
     using namespace ck_tests_ui_tree_view;

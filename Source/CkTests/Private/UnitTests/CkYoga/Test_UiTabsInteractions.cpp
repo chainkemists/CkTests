@@ -131,7 +131,7 @@ namespace ck_tests_ui_tabs_interactions
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTabs_HiddenInteractions,
     "Ck.UiAuthoring.Tabs.HiddenPanelReleasesTransientInteraction",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTabs_HiddenInteractions::RunTest(const FString&) -> bool
 {
@@ -243,7 +243,7 @@ namespace ck_tests_ui_tabs_slider_interactions
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTabs_HiddenSliderCapture,
     "Ck.UiAuthoring.Tabs.HiddenPanelReleasesSliderCapture",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTabs_HiddenSliderCapture::RunTest(const FString&) -> bool
 {

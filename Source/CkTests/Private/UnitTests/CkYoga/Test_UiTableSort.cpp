@@ -72,7 +72,7 @@ namespace ck_tests_ui_table_sort
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTableSort_Runtime, "Ck.UiAuthoring.Table.HeaderSort",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTableSort_Runtime::RunTest(const FString&) -> bool
 {

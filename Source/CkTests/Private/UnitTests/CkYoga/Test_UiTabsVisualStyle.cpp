@@ -110,7 +110,7 @@ namespace ck_tests_ui_tabs_visual_style
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkUiTabs_VisualStyle,
     "Ck.UiAuthoring.Tabs.VisualStyle",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTabs_VisualStyle::RunTest(const FString&) -> bool
 {

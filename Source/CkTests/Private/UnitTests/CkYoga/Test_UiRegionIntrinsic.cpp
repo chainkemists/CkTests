@@ -31,7 +31,7 @@ namespace ck_tests_ui_region_intrinsic
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiRegionIntrinsic,
-    "Ck.UiAuthoring.RegionIntrinsic", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    "Ck.UiAuthoring.RegionIntrinsic", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiRegionIntrinsic::RunTest(const FString&) -> bool
 {

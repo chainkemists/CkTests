@@ -132,7 +132,7 @@ namespace ck_tests_ui_dialog
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiDialog_Runtime,
     "Ck.UiAuthoring.Dialog.NativeRuntime",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiDialog_Runtime::RunTest(const FString&) -> bool
 {

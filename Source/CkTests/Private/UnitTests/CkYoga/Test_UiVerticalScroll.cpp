@@ -137,7 +137,7 @@ namespace ck_tests_ui_vertical_scroll
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiVerticalScroll_NestedContent,
     "Ck.UiAuthoring.VerticalScroll.NestedContentRetention",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiVerticalScroll_NestedContent::RunTest(const FString&) -> bool
 {
@@ -239,7 +239,7 @@ auto FCkUiVerticalScroll_NestedContent::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiVerticalScroll_OverflowWrapRuntime,
     "Ck.UiAuthoring.VerticalScroll.OverflowWrapRuntime",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiVerticalScroll_OverflowWrapRuntime::RunTest(const FString&) -> bool
 {
@@ -323,7 +323,7 @@ auto FCkUiVerticalScroll_OverflowWrapValidation::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiVerticalScroll_NestedTable,
     "Ck.UiAuthoring.VerticalScroll.NestedTableVirtualization",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiVerticalScroll_NestedTable::RunTest(const FString&) -> bool
 {
