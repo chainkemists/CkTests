@@ -996,6 +996,47 @@ auto
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionFeetSteepToSupportTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.FeetSupportIsIgnoredWhenThePlaneIsSteepToTheSupport",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionFeetSteepToSupportTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // A body on a wall (its support normal along -X) with a level feet plane under it: the plane lies 90 degrees from the
+    // support, so it is no ground the body can ride from here, and with every ray missing the contact grace runs instead.
+    constexpr auto BodyZ = 100.0;
+    const auto Feet = MakeFeetSupport(FVector{0.0, 0.0, BodyZ - Clearance}, FVector::UpVector, FVector{0.0, 0.0, BodyZ}, 200.0);
+    auto Body = MakeBody(FVector{0.0, 0.0, BodyZ}, FVector::BackwardVector, FVector::UpVector);
+    auto State = MakeState(FVector::BackwardVector, FVector::UpVector, true);
+
+    constexpr auto Substeps = 10;
+    for (auto Index = 0; Index < Substeps; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::UpVector, Speed, Step, &MissEverything, Feet, Body, State);
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: a plane steep to the support never becomes the contact (source %d, missing %.4f s)"),
+                Index, Get_SourceValue(State), State.Get_MissingContact().Get_Seconds()),
+                State.Get_ContactSource() != ck::EProceduralSurfaceContactSource::Feet && State.Get_MissingContact() > FCk_Time{}))
+        { return false; }
+    }
+
+    // The control: the same plane under a body whose support is up rides it.
+    auto LevelBody = MakeBody(FVector{0.0, 0.0, BodyZ}, FVector::UpVector, FVector::ForwardVector);
+    auto LevelState = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+    ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, &MissEverything, Feet, LevelBody, LevelState);
+    TestTrue(TEXT("Control: with the support up the same plane holds the body"),
+        LevelState.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Feet && LevelState.Get_MissingContact() == FCk_Time{});
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkProceduralSurfaceMotionFeetLiftTest,
     "Ck.ProceduralAnimation.SurfaceMotion.FeetSupportLiftsTheBodyAboveALowerHit",
     ck::tests::kCkUnitTestFlags)
