@@ -42,6 +42,14 @@ enum ECkProceduralAnimationGym_Patrol
     Helix
 }
 
+// Which surface-motion height source a fixture composes its walkers with: each species' own, or one for every walker.
+enum ECkProceduralAnimationGym_HeightSource
+{
+    Species,
+    Rays,
+    PlantedFeet
+}
+
 struct FCkProceduralAnimationGym_SpeciesProfile
 {
     UPROPERTY()
@@ -56,6 +64,9 @@ struct FCkProceduralAnimationGym_SpeciesProfile
     FVector BodyHalfExtents;
     UPROPERTY()
     float SurfaceTurnRate = 240.0;
+    // Two feet never fit a plane, so the biped keeps to its rays.
+    UPROPERTY()
+    ECk_SurfaceMotion_HeightSource HeightSource = ECk_SurfaceMotion_HeightSource::PlantedFeet;
 }
 
 namespace ck_procedural_gym
@@ -251,6 +262,7 @@ namespace ck_procedural_gym
             Profile.Gait = ck::ProceduralGym_GaitBiped;
             Profile.Clearance = ck_procedural_gym_assets::BipedRestDrop;
             Profile.BodyHalfExtents = ck_procedural_gym_assets::BipedBodyHalfExtents;
+            Profile.HeightSource = ECk_SurfaceMotion_HeightSource::Rays;
         }
         else
         {
@@ -609,11 +621,26 @@ namespace ck_procedural_gym
         return FVector(InLengths[InSegmentIndex] * 0.5, Thickness, Thickness);
     }
 
-    FCk_SurfaceMotion_Spec MakeMotionParams(float InClearance, float InSurfaceTurnRate)
+    ECk_SurfaceMotion_HeightSource Get_HeightSource(ECkProceduralAnimationGym_HeightSource InOverride,
+        ECk_SurfaceMotion_HeightSource InSpecies)
+    {
+        if (InOverride == ECkProceduralAnimationGym_HeightSource::Rays)
+        {
+            return ECk_SurfaceMotion_HeightSource::Rays;
+        }
+        if (InOverride == ECkProceduralAnimationGym_HeightSource::PlantedFeet)
+        {
+            return ECk_SurfaceMotion_HeightSource::PlantedFeet;
+        }
+        return InSpecies;
+    }
+
+    FCk_SurfaceMotion_Spec MakeMotionParams(float InClearance, float InSurfaceTurnRate, ECk_SurfaceMotion_HeightSource InHeightSource)
     {
         auto Contact = FCk_SurfaceMotion_Contact();
         Contact.Set_Clearance(InClearance);
         Contact.Set_ProbeReach(InClearance + ProbeReachBeyondClearance);
+        Contact.Set_HeightSource(InHeightSource);
 
         auto Movement = FCk_SurfaceMotion_Movement();
         Movement.Set_MaxSpeed(180.0f);
@@ -1131,6 +1158,11 @@ struct FCkProceduralAnimationGym_SpawnRequest
     TArray<ECkProceduralAnimationGym_Species> Roster;
     UPROPERTY()
     ECk_ProceduralBodyPose_ConformMode ConformMode = ECk_ProceduralBodyPose_ConformMode::PlantedFeet;
+    UPROPERTY()
+    ECkProceduralAnimationGym_HeightSource HeightSource = ECkProceduralAnimationGym_HeightSource::Species;
+    // How far above the fixture origin the walkers' start stands: a test that builds its own start above the floor.
+    UPROPERTY()
+    float StartHeight = 0.0;
 }
 
 struct FCkProceduralAnimationGym_Fixture
@@ -1171,7 +1203,9 @@ struct FCkProceduralAnimationGym_Fixture
     // old/new collision bodies are hidden under a reset, even when destruction is deferred.
     bool Create_WithRoster(FCk_Handle InOwner, FVector InOrigin, ECkProceduralAnimationGym_Course InCourse,
         TArray<ECkProceduralAnimationGym_Species> InRoster, bool InRender = true,
-        ECk_ProceduralBodyPose_ConformMode InConformMode = ECk_ProceduralBodyPose_ConformMode::PlantedFeet)
+        ECk_ProceduralBodyPose_ConformMode InConformMode = ECk_ProceduralBodyPose_ConformMode::PlantedFeet,
+        ECkProceduralAnimationGym_HeightSource InHeightSource = ECkProceduralAnimationGym_HeightSource::Species,
+        float InStartHeight = 0.0)
     {
         if (Get_IsDestroyed() == false || ck::Is_NOT_Valid(InOwner) || InRoster.Num() < 1 || InRoster.Num() > 3)
         {
@@ -1196,6 +1230,8 @@ struct FCkProceduralAnimationGym_Fixture
         Spawn.Course = InCourse;
         Spawn.Roster = InRoster;
         Spawn.ConformMode = InConformMode;
+        Spawn.HeightSource = InHeightSource;
+        Spawn.StartHeight = InStartHeight;
         Spawn.Pending = true;
 
         auto GroundColor = FLinearColor(0.12, 0.18, 0.24, 1.0);
@@ -1654,7 +1690,7 @@ struct FCkProceduralAnimationGym_Fixture
             (InIndex == 1 ? FLinearColor(1.0, 0.58, 0.12, 1.0) : FLinearColor(0.65, 0.35, 1.0, 1.0));
         Crawler.Layout.Start = Spawn.Origin + (Spawn.Course == ECkProceduralAnimationGym_Course::Ring ?
             FVector(0.0, Crawler.Layout.LaneY, ck_procedural_gym::RingStartZ) :
-            FVector(ck_procedural_gym::StartX, Crawler.Layout.LaneY, Profile.Clearance));
+            FVector(ck_procedural_gym::StartX, Crawler.Layout.LaneY, Spawn.StartHeight + Profile.Clearance));
 
         // The root is the simulation body; its visual lives on the presentation entity, which the body pose sags.
         auto Owner = SceneRoot;
@@ -1668,7 +1704,8 @@ struct FCkProceduralAnimationGym_Fixture
         Crawler.Handles.Presentation = AddVisual(RootEntity, FTransform(Crawler.Layout.Start), Profile.BodyHalfExtents,
             Crawler.Layout.Color);
 
-        Crawler.Handles.Motion = utils_surface_motion::Add(Crawler.Handles.Root, ck_procedural_gym::MakeMotionParams(Profile.Clearance, Profile.SurfaceTurnRate));
+        Crawler.Handles.Motion = utils_surface_motion::Add(Crawler.Handles.Root, ck_procedural_gym::MakeMotionParams(Profile.Clearance,
+            Profile.SurfaceTurnRate, ck_procedural_gym::Get_HeightSource(Spawn.HeightSource, Profile.HeightSource)));
 
         Crawler.Layout.GaitPreset = Profile.Gait;
         auto Chains = TArray<FCk_ProceduralWalker_LegChain>();

@@ -1,3 +1,4 @@
+#include "CkProceduralAnimation/Core/CkProceduralFootProbe.h"
 #include "CkProceduralAnimation/Core/CkProceduralGaitSolver.h"
 
 #include "../../CkUnitTest_Common.h"
@@ -956,6 +957,355 @@ auto
             SawSwing = SawSwing || NOT Outputs[0].Get_Planted() || NOT Outputs[1].Get_Planted();
         }
         TestTrue(TEXT("At least one leg swung, so the inhibition check was exercised"), SawSwing);
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitPlantTrustTest,
+    "Ck.ProceduralAnimation.Gait.PlantRecordsTrustAtTouchdown",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitPlantTrustTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_solver;
+
+    auto Solver = ck::FProceduralGaitSolver{};
+    constexpr auto Untrusted = false;
+    const auto Plant = FVector::ZeroVector;
+    const auto Get_Trusted = [&]() { return Solver.GetLegState(0).Get_Plant().Get_Trusted(); };
+
+    TestTrue(TEXT("A reset without trust flags trusts every foot"), Solver.Reset({Plant}) && Get_Trusted());
+    TestTrue(TEXT("A reset records the caller's trust flag"), Solver.Reset({Plant}, {Untrusted}) && NOT Get_Trusted());
+    TestFalse(TEXT("A reset with a trust flag per foot missing is rejected"), Solver.Reset({Plant, Plant}, {Untrusted}));
+    TestTrue(TEXT("The rejected reset left the solver as it was"), Solver.NumLegs() == 1 && NOT Get_Trusted());
+    Solver.SetPlantedPose(0, Plant, FVector::UpVector);
+    TestTrue(TEXT("A planted pose set without a flag is trusted"), Get_Trusted());
+    Solver.SetPlantedPose(0, Plant, FVector::UpVector, Untrusted);
+    TestFalse(TEXT("A planted pose records the caller's trust flag"), Get_Trusted());
+
+    auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+    Inputs.SetNum(1);
+    auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+    Outputs.SetNum(1);
+
+    // An error beyond the Emergency steps at once, window or not.
+    const auto EmergencyStride = Solver.Get_Settings().Get_Step().Get_Threshold() * Solver.Get_Settings().Get_Step().Get_EmergencyFactor() * 1.25;
+    const auto StepToTouchdown = [&]() -> bool
+    {
+        auto Swung = false;
+        for (auto Frame = 0; Frame < 120; ++Frame)
+        {
+            Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+            if (NOT Outputs[0].Get_Planted())
+            {
+                Swung = true;
+                continue;
+            }
+            if (Swung)
+            { return true; }
+        }
+        return false;
+    };
+
+    const auto TrustedTarget = FVector{EmergencyStride, 0.0, 0.0};
+    Inputs[0].Set_IdealTarget(TrustedTarget).Set_TargetTrusted(true);
+    if (NOT TestTrue(TEXT("The leg steps onto a trusted target"), StepToTouchdown()))
+    { return false; }
+    TestTrue(FString::Printf(TEXT("A swing landing on a trusted target records a trusted plant (plant %s)"),
+        *Solver.GetLegState(0).Get_Plant().Get_Position().ToString()), Get_Trusted());
+
+    // Past its contact grace a leg gathers toward its rest target, a valid target on ground nobody probed.
+    const auto GatherTarget = FVector{2.0 * EmergencyStride, 0.0, 0.0};
+    Inputs[0].Set_IdealTarget(GatherTarget).Set_TargetTrusted(false);
+    if (NOT TestTrue(TEXT("The leg gathers toward an untrusted target"), StepToTouchdown()))
+    { return false; }
+    TestFalse(TEXT("A gather landing on an untrusted target records an untrusted plant"), Get_Trusted());
+
+    // The plant keeps its trust whatever later solves report, until the foot touches down again.
+    Inputs[0].Set_IdealTarget(Solver.GetLegState(0).Get_Plant().Get_Position()).Set_TargetTrusted(true);
+    constexpr auto HeldFrames = 30;
+    for (auto Frame = 0; Frame < HeldFrames; ++Frame)
+    {
+        Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+        if (NOT TestTrue(FString::Printf(TEXT("Frame %d: the foot stays planted and untrusted while its target reads trusted"), Frame),
+                Outputs[0].Get_Planted() && NOT Get_Trusted()))
+        { return false; }
+    }
+
+    Inputs[0].Set_IdealTarget(FVector{3.0 * EmergencyStride, 0.0, 0.0});
+    if (NOT TestTrue(TEXT("The leg steps again"), StepToTouchdown()))
+    { return false; }
+    TestTrue(TEXT("The next touchdown on a trusted target records a trusted plant again"), Get_Trusted());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitPlantTrustFollowsTheLandingGroundTest,
+    "Ck.ProceduralAnimation.Gait.PlantTrustFollowsTheLandingGround",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitPlantTrustFollowsTheLandingGroundTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_solver;
+
+    auto Solver = ck::FProceduralGaitSolver{};
+    Solver.Reset({FVector::ZeroVector});
+    auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+    Inputs.SetNum(1);
+    auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+    Outputs.SetNum(1);
+
+    // An error beyond the Emergency steps at once, window or not; each step is told the same report on every swing frame.
+    const auto EmergencyStride = Solver.Get_Settings().Get_Step().Get_Threshold() * Solver.Get_Settings().Get_Step().Get_EmergencyFactor() * 1.25;
+    auto Steps = 0;
+    const auto TrustAfterStep = [&](ck::EProceduralGaitLandingGround InReport, bool InTargetTrusted) -> TOptional<bool>
+    {
+        ++Steps;
+        const auto Target = FVector{Steps * EmergencyStride, 0.0, 0.0};
+        Inputs[0].Set_IdealTarget(Target).Set_TargetTrusted(InTargetTrusted)
+            .Set_LandingGround(InReport).Set_LandingGroundZ(static_cast<float>(Target.Z));
+
+        auto Swung = false;
+        for (auto Frame = 0; Frame < 120; ++Frame)
+        {
+            Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+            if (NOT Outputs[0].Get_Planted())
+            {
+                Swung = true;
+                continue;
+            }
+            if (Swung)
+            { return Solver.GetLegState(0).Get_Plant().Get_Trusted(); }
+        }
+        return {};
+    };
+
+    constexpr auto TargetTrusted = true;
+    constexpr auto TargetUntrusted = false;
+    const auto FoundUntrustedTarget = TrustAfterStep(ck::EProceduralGaitLandingGround::Found, TargetUntrusted);
+    const auto NoneTrustedTarget = TrustAfterStep(ck::EProceduralGaitLandingGround::None, TargetTrusted);
+    const auto UnknownTrustedTarget = TrustAfterStep(ck::EProceduralGaitLandingGround::Unknown, TargetTrusted);
+    const auto UnknownUntrustedTarget = TrustAfterStep(ck::EProceduralGaitLandingGround::Unknown, TargetUntrusted);
+    if (NOT TestTrue(TEXT("Every step touches down"), FoundUntrustedTarget.IsSet() && NoneTrustedTarget.IsSet()
+            && UnknownTrustedTarget.IsSet() && UnknownUntrustedTarget.IsSet()))
+    { return false; }
+
+    TestTrue(TEXT("Ground Found under the landing point makes a trusted plant, whatever the target's trust"), FoundUntrustedTarget.GetValue());
+    TestFalse(TEXT("No ground under the landing point makes an untrusted plant, whatever the target's trust"), NoneTrustedTarget.GetValue());
+    TestTrue(TEXT("With no probe cast, a trusted target makes a trusted plant"), UnknownTrustedTarget.GetValue());
+    TestFalse(TEXT("With no probe cast, an untrusted target makes an untrusted plant"), UnknownUntrustedTarget.GetValue());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitSwingKeepsItsTargetsTrustTest,
+    "Ck.ProceduralAnimation.Gait.SwingKeepsItsTargetsTrust",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitSwingKeepsItsTargetsTrustTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_solver;
+
+    constexpr auto Tolerance = 1.0e-3;
+    auto Solver = ck::FProceduralGaitSolver{};
+    Solver.Reset({FVector::ZeroVector});
+    auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+    Inputs.SetNum(1);
+    auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+    Outputs.SetNum(1);
+
+    // An error beyond the Emergency steps at once toward a trusted target on a slope; from its first swing frame on the input
+    // has no valid target, names another point, an up normal and no trust.
+    const auto EmergencyStride = Solver.Get_Settings().Get_Step().Get_Threshold() * Solver.Get_Settings().Get_Step().Get_EmergencyFactor() * 1.25;
+    const auto Target = FVector{EmergencyStride, 0.0, 0.0};
+    const auto SlopeNormal = FVector{0.2, 0.0, 1.0}.GetSafeNormal();
+    Inputs[0].Set_IdealTarget(Target).Set_GroundNormal(SlopeNormal).Set_TargetTrusted(true);
+
+    auto SwingFrames = 0;
+    auto Landed = false;
+    for (auto Frame = 0; Frame < 120 && NOT Landed; ++Frame)
+    {
+        Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+        if (Outputs[0].Get_Planted())
+        {
+            Landed = SwingFrames > 0;
+            continue;
+        }
+
+        const auto& Swing = Solver.GetLegState(0).Get_Swing();
+        if (NOT TestTrue(FString::Printf(TEXT("Swing frame %d: the swing keeps the target, trust and normal it was given (target %s, trusted %d, normal %s)"),
+                SwingFrames, *Swing.Get_Target().ToString(), Swing.Get_TargetTrusted() ? 1 : 0, *Swing.Get_TargetNormal().ToString()),
+                Swing.Get_Target().Equals(Target, Tolerance) && Swing.Get_TargetTrusted()
+                && Swing.Get_TargetNormal().Equals(SlopeNormal, Tolerance)))
+        { return false; }
+
+        ++SwingFrames;
+        Inputs[0].Set_TargetValid(false).Set_IdealTarget(FVector{0.0, 3.0 * EmergencyStride, 0.0}).Set_GroundNormal(FVector::UpVector)
+            .Set_TargetTrusted(false);
+    }
+
+    TestTrue(TEXT("The swing lands"), Landed);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitPlantTrustPersistsThroughTheStanceTest,
+    "Ck.ProceduralAnimation.Gait.PlantTrustPersistsThroughTheStance",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitPlantTrustPersistsThroughTheStanceTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_solver;
+
+    constexpr auto StanceFrames = 60;
+    constexpr auto SwingFrames = 120;
+    constexpr auto SettleAtRest = false;
+    auto Solver = ck::FProceduralGaitSolver{};
+    Solver.Get_Settings().Get_Settle().Set_AtRest(SettleAtRest);
+    Solver.Reset({FVector::ZeroVector});
+    auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+    Inputs.SetNum(1);
+    auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+    Outputs.SetNum(1);
+
+    // An error beyond the Emergency steps at once. At touchdown the gait's own verdict (SetPlantedPose) disagrees with the
+    // input; through the stance that follows the input keeps saying the opposite, and the plant's trust must not follow it.
+    const auto EmergencyStride = Solver.Get_Settings().Get_Step().Get_Threshold() * Solver.Get_Settings().Get_Step().Get_EmergencyFactor() * 1.25;
+    auto Steps = 0;
+    const auto StanceKeepsTrust = [&](bool InTouchdownTrusted) -> bool
+    {
+        ++Steps;
+        const auto Target = FVector{Steps * EmergencyStride, 0.0, 0.0};
+        const auto InputTrusted = NOT InTouchdownTrusted;
+        Inputs[0].Set_IdealTarget(Target).Set_TargetTrusted(InputTrusted)
+            .Set_LandingGround(InputTrusted ? ck::EProceduralGaitLandingGround::Found : ck::EProceduralGaitLandingGround::None)
+            .Set_LandingGroundZ(static_cast<float>(Target.Z));
+
+        auto Swung = false;
+        auto TouchedDown = false;
+        for (auto Frame = 0; Frame < SwingFrames && NOT TouchedDown; ++Frame)
+        {
+            Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+            if (NOT Outputs[0].Get_Planted())
+            {
+                Swung = true;
+                continue;
+            }
+            TouchedDown = Swung;
+        }
+        if (NOT TestTrue(FString::Printf(TEXT("Step %d touches down"), Steps), TouchedDown))
+        { return false; }
+
+        Solver.SetPlantedPose(0, Outputs[0].Get_Position(), FVector::UpVector, InTouchdownTrusted);
+        auto Planted = 0;
+        auto Kept = 0;
+        for (auto Frame = 0; Frame < StanceFrames; ++Frame)
+        {
+            Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+            if (NOT Outputs[0].Get_Planted())
+            { break; }
+            ++Planted;
+            if (Solver.GetLegState(0).Get_Plant().Get_Trusted() == InTouchdownTrusted)
+            { ++Kept; }
+        }
+        TestTrue(FString::Printf(TEXT("Precondition: step %d's foot stays planted through the watched stance (%d of %d frames)"), Steps,
+            Planted, StanceFrames), Planted == StanceFrames);
+        return Planted > 0 && Kept == Planted;
+    };
+
+    constexpr auto Trusted = true;
+    constexpr auto Untrusted = false;
+    TestTrue(TEXT("A plant set untrusted at touchdown stays untrusted through its stance while the input reports trusted ground"),
+        StanceKeepsTrust(Untrusted));
+    TestTrue(TEXT("A plant set trusted at touchdown stays trusted through its stance while the input reports no ground"),
+        StanceKeepsTrust(Trusted));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitTouchdownSettlesOntoTheHitTest,
+    "Ck.ProceduralAnimation.Gait.TouchdownSettlesOntoTheHit",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitTouchdownSettlesOntoTheHitTest::
+    RunTest(const FString&)
+    -> bool
+{
+    constexpr auto Tolerance = 0.01;
+    constexpr auto HalfSpan = 10.0f;
+    // A wall filling x <= 0, its face at x = 0 facing +X. A ray that starts inside it reports a hit at its origin, as Jolt does.
+    const auto FaceNormal = FVector::ForwardVector;
+    const auto RayCast = [](const FVector& InStart, const FVector& InEnd) -> ck::FProceduralSurfaceHit
+    {
+        if (InStart.X <= 0.0)
+        { return ck::FProceduralSurfaceHit{}.Set_Hit(true).Set_Position(InStart).Set_Normal(FVector::ForwardVector).Set_Fraction(0.0f); }
+        if (InEnd.X > 0.0)
+        { return ck::FProceduralSurfaceHit{}; }
+        const auto Fraction = InStart.X / (InStart.X - InEnd.X);
+        return ck::FProceduralSurfaceHit{}.Set_Hit(true).Set_Position(FMath::Lerp(InStart, InEnd, Fraction))
+            .Set_Normal(FVector::ForwardVector).Set_Fraction(static_cast<float>(Fraction));
+    };
+
+    // A plant 4 cm in front of the face along its normal, where the swing's validated target also lies.
+    {
+        const auto Plant = FVector{4.0, 20.0, 150.0};
+        const auto Touchdown = ck::ResolveProceduralTouchdown(Plant, Plant, FaceNormal, FVector::UpVector, HalfSpan, RayCast);
+        TestTrue(FString::Printf(TEXT("A plant 4 cm in front of a face ends on the face, trusted, with its normal (at %s, normal %s, "
+                "trusted %d, rays %d)"), *Touchdown.Get_Position().ToString(), *Touchdown.Get_Normal().ToString(),
+                Touchdown.Get_Trusted() ? 1 : 0, Touchdown.Get_Rays()),
+            Touchdown.Get_Position().Equals(FVector{0.0, 20.0, 150.0}, Tolerance) && Touchdown.Get_Normal().Equals(FaceNormal, Tolerance)
+            && Touchdown.Get_Trusted() && Touchdown.Get_Rays() == 1);
+    }
+
+    // The plant lies beyond the ray's reach of the face; the validated target 3 cm in front of it: the second ray settles the
+    // foot on the face there.
+    {
+        const auto Plant = FVector{15.0, 20.0, 150.0};
+        const auto Validated = FVector{3.0, 20.0, 140.0};
+        const auto Touchdown = ck::ResolveProceduralTouchdown(Plant, Validated, FaceNormal, FVector::UpVector, HalfSpan, RayCast);
+        TestTrue(FString::Printf(TEXT("A plant the ray misses settles onto the face at the validated target (at %s, trusted %d, rays %d)"),
+                *Touchdown.Get_Position().ToString(), Touchdown.Get_Trusted() ? 1 : 0, Touchdown.Get_Rays()),
+            Touchdown.Get_Position().Equals(FVector{0.0, 20.0, 140.0}, Tolerance) && Touchdown.Get_Trusted() && Touchdown.Get_Rays() == 2);
+    }
+
+    // Both lie beyond the ray's reach: the plant stays where it landed, untrusted, with the support up.
+    {
+        const auto Plant = FVector{15.0, 20.0, 150.0};
+        const auto Validated = FVector{12.0, 20.0, 140.0};
+        const auto Touchdown = ck::ResolveProceduralTouchdown(Plant, Validated, FaceNormal, FVector::UpVector, HalfSpan, RayCast);
+        TestTrue(FString::Printf(TEXT("A plant no ray confirms stays where it landed, untrusted, with the support up (at %s, normal %s, "
+                "trusted %d, rays %d)"), *Touchdown.Get_Position().ToString(), *Touchdown.Get_Normal().ToString(),
+                Touchdown.Get_Trusted() ? 1 : 0, Touchdown.Get_Rays()),
+            Touchdown.Get_Position().Equals(Plant, Tolerance) && Touchdown.Get_Normal().Equals(FVector::UpVector, Tolerance)
+            && NOT Touchdown.Get_Trusted() && Touchdown.Get_Rays() == 2);
     }
 
     return true;
