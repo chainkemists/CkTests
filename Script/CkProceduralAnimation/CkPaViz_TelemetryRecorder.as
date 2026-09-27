@@ -368,6 +368,23 @@ struct FCkPaViz_TelemetryRecorder
         return Occluded ? ",\"hf\":1" : "";
     }
 
+    // The rig's chain clearance: ",\"sw\":<degrees>" while its knee swivels off the authored pole and ",\"cs\":1" while its
+    // posed chain keeps a link through a solid, or nothing.
+    FString Get_RigFields(FCk_Handle_ProceduralRig InRig) const
+    {
+        FString Fields = "";
+        auto Swivel = utils_procedural_rig::Get_SwivelDegrees(InRig);
+        if (Swivel != 0.0)
+        {
+            Fields = f",\"sw\":{Swivel :.0}";
+        }
+        if (utils_procedural_rig::Get_ChainState(InRig) == ECk_ProceduralRig_ChainState::Crossing)
+        {
+            Fields = f"{Fields},\"cs\":1";
+        }
+        return Fields;
+    }
+
     void DoEmitFrame(int32 InFixture, int32 InWalker, float InElapsed)
     {
         auto Crawler = Fixtures[InFixture].Crawlers[InWalker];
@@ -447,12 +464,15 @@ struct FCkPaViz_TelemetryRecorder
             auto Contact = Foot.Get_Contact() == ECk_ProceduralLeg_FootContact::Trusted ? 1 : 0;
             // ECk_ProceduralLeg_Foothold by value: None, Ideal, Held, Front, Inward, Outward, Ring.
             auto FootholdSource = int32(Foot.Get_Foothold());
+            // ECk_ProceduralLeg_FootholdVerdict by value: Usable, Miss, Unreachable, TooSteep, Occluded, Inboard, UnderBody.
+            auto IdealVerdict = int32(utils_procedural_leg::Get_IdealVerdict(Leg));
             auto Crossings = Get_CrossingFields(ChainPoints);
+            auto RigState = Get_RigFields(Rig.GetValue());
             auto FootLocation = Get_Vector(Foot.Get_Position() - Origin);
             auto Hip = Get_Vector(HipLocation - Origin);
             auto Lengths = Get_Lengths(SegmentLengths);
             FString Separator = Legs.IsEmpty() ? "" : ",";
-            Legs = f"{Legs}{Separator}{Open}\"id\":\"{LegId}\",\"en\":{Enabled},\"ph\":\"{Phase}\",\"f\":{FootLocation},\"h\":{Hip},\"len\":{Lengths},\"j\":[{Joints}]{Buried},\"ct\":{Contact},\"fh\":{FootholdSource}{HipFoot}{Crossings}{Close}";
+            Legs = f"{Legs}{Separator}{Open}\"id\":\"{LegId}\",\"en\":{Enabled},\"ph\":\"{Phase}\",\"f\":{FootLocation},\"h\":{Hip},\"len\":{Lengths},\"j\":[{Joints}]{Buried},\"ct\":{Contact},\"fh\":{FootholdSource},\"iv\":{IdealVerdict}{HipFoot}{Crossings}{RigState}{Close}";
         }
         auto Rays = UCk_Utils_ProceduralAnimation_Debug_UE::Get_RaysLastSolve(Handles.Gait);
         ck::Trace(f"[PAVIZ] {Open}\"k\":\"f\",\"c\":\"{Course}\",\"s\":\"{WalkerName}\",\"w\":{InWalker},\"n\":{Frame},\"t\":{InElapsed :.4},\"stage\":{RouteStage},\"sp\":{Spinning},\"b\":{BodyLocation},\"bq\":{BodyRotation},\"p\":{PresentationLocation},\"pq\":{PresentationRotation},\"off\":{OffsetLocation},\"oq\":{OffsetRotation},\"tq\":{TargetRotation},\"sn\":{SupportNormal},\"src\":{ContactSource},\"rays\":{Rays},\"legs\":[{Legs}]{Close}",
