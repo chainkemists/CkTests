@@ -7943,6 +7943,32 @@ class ACk_AutoTest_ProceduralAnimation_RigSwivelsTheKneeAroundAPillar_Actor : AC
     }
 }
 
+class ACk_AutoTest_ProceduralAnimation_SlidePolicyStopsAtLedge_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 20.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_ProceduralAnimation_SlidePolicyStopsAtLedge");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_ProceduralAnimation_StepUpOntoABlockAboveClearance_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 20.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_ProceduralAnimation_StepUpOntoABlockAboveClearance");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_ProceduralAnimation_TrailingHoldDoesNotStopTheSearch_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 15.0f;

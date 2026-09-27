@@ -288,11 +288,26 @@ struct FCkPaViz_TelemetryRecorder
             auto CylinderRadius = Crawler.Layout.CylinderRadius;
             CourseFields = f",\"cyl\":{CylinderRadius :.1}";
         }
+        else if (Crawler.Layout.Course == ECkProceduralAnimationGym_Course::Posts)
+        {
+            // The in-lane posts' two heights, alternating from the first, and their pitch.
+            auto FirstHeight = 2.0 * ck_procedural_gym::PostStepHalfHeight;
+            auto SecondHeight = 2.0 * ck_procedural_gym::PostLowHalfHeight;
+            auto Pitch = ck_procedural_gym::PostPitch;
+            CourseFields = f",\"posts\":[{FirstHeight :.1},{SecondHeight :.1}],\"postPitch\":{Pitch :.1}";
+        }
         // ",\"hs\":1" when the walker's surface motion also rides the plane through its planted feet.
         if (utils_surface_motion::Get_HeightSource(Crawler.Handles.Motion) == ECk_SurfaceMotion_HeightSource::PlantedFeet)
         {
             CourseFields = f"{CourseFields},\"hs\":1";
         }
+        // ",\"wp\":1" when the walker slides along the faces it cannot step onto; "msh" its max step height (0: no stepping).
+        if (utils_surface_motion::Get_WallPolicy(Crawler.Handles.Motion) == ECk_SurfaceMotion_WallPolicy::Slide)
+        {
+            CourseFields = f"{CourseFields},\"wp\":1";
+        }
+        auto MaxStepHeight = utils_surface_motion::Get_MaxStepHeight(Crawler.Handles.Motion);
+        CourseFields = f"{CourseFields},\"msh\":{MaxStepHeight :.1}";
         FString Legs = "";
         for (auto Leg : Crawler.Handles.Legs)
         {
@@ -418,8 +433,15 @@ struct FCkPaViz_TelemetryRecorder
         auto TargetRotation = Get_Quat(Target.GetRotation());
         auto SupportNormalValue = utils_surface_motion::Get_SupportNormal(Handles.Motion);
         auto SupportNormal = Get_Direction(SupportNormalValue);
-        // ECk_SurfaceMotion_ContactSource by value: None, Forward, Down, LookAhead, Fan, Fall, Feet.
+        // ECk_SurfaceMotion_ContactSource by value: None, Forward, Down, LookAhead, Fan, Fall, Feet, Step.
         auto ContactSource = int32(utils_surface_motion::Get_ContactSource(Handles.Motion));
+        // ",\"ob\":[x,y,z]" (the face's normal) while the last substep slid the body along a face, or nothing.
+        FString Obstruction = "";
+        if (utils_surface_motion::Get_Obstruction(Handles.Motion) == ECk_SurfaceMotion_Obstruction::Wall)
+        {
+            auto ObstructionNormal = Get_Direction(utils_surface_motion::Get_ObstructionNormal(Handles.Motion));
+            Obstruction = f",\"ob\":{ObstructionNormal}";
+        }
 
         FString Legs = "";
         for (auto Leg : Handles.Legs)
@@ -487,7 +509,7 @@ struct FCkPaViz_TelemetryRecorder
             auto FeetPlaneState = int32(utils_procedural_gait::Get_FeetPlane(Handles.Gait).Get_State());
             FeetPlane = f",\"fp\":{FeetPlaneState}";
         }
-        ck::Trace(f"[PAVIZ] {Open}\"k\":\"f\",\"c\":\"{Course}\",\"s\":\"{WalkerName}\",\"w\":{InWalker},\"n\":{Frame},\"t\":{InElapsed :.4},\"stage\":{RouteStage},\"sp\":{Spinning},\"b\":{BodyLocation},\"bq\":{BodyRotation},\"p\":{PresentationLocation},\"pq\":{PresentationRotation},\"off\":{OffsetLocation},\"oq\":{OffsetRotation},\"tq\":{TargetRotation},\"sn\":{SupportNormal},\"src\":{ContactSource}{FeetPlane},\"rays\":{Rays},\"legs\":[{Legs}]{Close}",
+        ck::Trace(f"[PAVIZ] {Open}\"k\":\"f\",\"c\":\"{Course}\",\"s\":\"{WalkerName}\",\"w\":{InWalker},\"n\":{Frame},\"t\":{InElapsed :.4},\"stage\":{RouteStage},\"sp\":{Spinning},\"b\":{BodyLocation},\"bq\":{BodyRotation},\"p\":{PresentationLocation},\"pq\":{PresentationRotation},\"off\":{OffsetLocation},\"oq\":{OffsetRotation},\"tq\":{TargetRotation},\"sn\":{SupportNormal},\"src\":{ContactSource}{Obstruction}{FeetPlane},\"rays\":{Rays},\"legs\":[{Legs}]{Close}",
             FName(f"PAVIZ.{Course}.{InWalker}"), 0.0f);
     }
 
