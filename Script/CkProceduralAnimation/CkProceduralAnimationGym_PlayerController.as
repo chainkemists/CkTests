@@ -11,7 +11,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
     private bool _DetachIssued = false;
     private FString _CreateError;
     private int32 _Set = 0;
-    private int32 _SetCount = 4;
+    private int32 _SetCount = 5;
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
@@ -22,7 +22,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         Station.Description.Add(FText::FromString("4 / 6 / 8 legs on uneven ground, a wall and a closed loop."));
         Station.Description.Add(FText::FromString("Authored routes steer real surface motion. Planted feet and joint poses are solved by CkFoundation."));
         Station.Description.Add(FText::FromString("N switches to a spider, a centipede, a tentacled walker and a mixed-chain beast on stairs, rubble and a convex hump."));
-        Station.Description.Add(FText::FromString("Two stress sets follow: a step field, a ledge and a sharp ridge; a log, narrow beams and a pillar field."));
+        Station.Description.Add(FText::FromString("Three stress sets follow: a step field, a ledge and a sharp ridge; a log, narrow beams, and a ramp onto a field of pillar tops and down again; posts, a cylinder a biped also climbs, and a pillar field walked between its rows."));
         Station.AutoSize = true;
         Stations.Add(Station);
         return Stations;
@@ -46,7 +46,12 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         if (_Set == 3)
         {
             return InSlot == 0 ? ECkProceduralAnimationGym_Course::Log :
-                (InSlot == 1 ? ECkProceduralAnimationGym_Course::Beam : ECkProceduralAnimationGym_Course::Pillars);
+                (InSlot == 1 ? ECkProceduralAnimationGym_Course::Beam : ECkProceduralAnimationGym_Course::PillarCrossing);
+        }
+        if (_Set == 4)
+        {
+            return InSlot == 0 ? ECkProceduralAnimationGym_Course::Posts :
+                (InSlot == 1 ? ECkProceduralAnimationGym_Course::Cylinder : ECkProceduralAnimationGym_Course::Pillars);
         }
         if (_Set == 1)
         {
@@ -139,7 +144,19 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         }
         if (InCourse == ECkProceduralAnimationGym_Course::Pillars)
         {
-            return "PILLAR FIELD";
+            return "PILLAR FIELD (LANES BETWEEN ROWS)";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::PillarCrossing)
+        {
+            return "RAMP -> PILLAR TOPS -> RAMP";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Posts)
+        {
+            return "POSTS: 30 CM STEPS, 90 CM FLANKS";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Cylinder)
+        {
+            return "CYLINDER: UP AND AROUND";
         }
         return "FLAT";
     }
@@ -256,7 +273,8 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         auto Gait = InGait;
         UCk_ProceduralGait_Data SlowPreset = ck::ProceduralGym_GaitSlow;
         utils_procedural_gait::Request_ApplyPreset(Gait,
-            FCk_Request_ProceduralGait_ApplyPreset(SlowPreset.Get_Timing(), SlowPreset.Get_Step(), SlowPreset.Get_Probe()));
+            FCk_Request_ProceduralGait_ApplyPreset(SlowPreset.Get_Timing(), SlowPreset.Get_Step(), SlowPreset.Get_Probe(),
+                SlowPreset.Get_Foothold()));
     }
 
     TArray<FCkGym_ControlRow> Get_ControlRows() override
@@ -271,7 +289,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         }
         Rows.Add(CkGym_Control::Toggle(EKeys::P, "P", "Travel", _Run));
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Reset all courses"));
-        Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Switch walker set (original / menagerie / stress A / stress B)"));
+        Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Switch walker set (original / menagerie / stress A / stress B / stress C)"));
         Rows.Add(CkGym_Control::Toggle(EKeys::V, "V", "Contact diagnostics", _DrawContacts));
         Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Disable / enable leg 0 of every crawler"));
         Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Detach leg 1 of the first crawler; its parts ragdoll", _DetachIssued == false));
@@ -377,7 +395,11 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         {
             return "Stress A: a step field with 10-40 cm risers, a 150 cm ledge and a sharp 90 degree ridge.";
         }
-        return "Stress B: a log of radius 80 cm, a 30 cm beam per walker and a field of 40 cm pillars.";
+        if (_Set == 3)
+        {
+            return "Stress B: a log of radius 80 cm, a 30 cm beam per walker, and a ramp onto a field of 50 cm pillar tops 150 cm high, 50 cm apart, and down again.";
+        }
+        return "Stress C: 30 cm posts in every lane between 90 cm flanks, a cylinder to climb and circle (radius 90 cm, 45 cm in the middle lane), and a field of 40 cm pillars walked between its rows.";
     }
 
     FString Get_CourseVerdict(int32 InIndex)

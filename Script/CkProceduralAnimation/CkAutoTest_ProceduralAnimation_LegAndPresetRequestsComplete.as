@@ -27,7 +27,8 @@ class UCk_AutoTest_ProceduralAnimation_LegAndPresetRequestsComplete : UCk_AutoTe
     FCk_Request_ProceduralGait_ApplyPreset MakeSlowPresetRequest()
     {
         UCk_ProceduralGait_Data SlowPreset = ck::ProceduralGym_GaitSlow;
-        return FCk_Request_ProceduralGait_ApplyPreset(SlowPreset.Get_Timing(), SlowPreset.Get_Step(), SlowPreset.Get_Probe());
+        return FCk_Request_ProceduralGait_ApplyPreset(SlowPreset.Get_Timing(), SlowPreset.Get_Step(), SlowPreset.Get_Probe(),
+            SlowPreset.Get_Foothold());
     }
 
     int32 CountResults(const TArray<ECk_Request_OperationResult>& InResults, ECk_Request_OperationResult InResult) const

@@ -1427,6 +1427,233 @@ auto
     return true;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitOccludedPlantIsAnEmergencyTest,
+    "Ck.ProceduralAnimation.Gait.OccludedPlantIsAnEmergency",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitOccludedPlantIsAnEmergencyTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto SettleAtRest = false;
+    constexpr auto ClosedPhaseOffset = 0.25f;
+    constexpr auto Occluded = true;
+    constexpr auto Clear = false;
+    constexpr auto ValidTarget = true;
+    constexpr auto NoTarget = false;
+    constexpr auto Frames = 90;
+    const auto Plant = FVector{0.0, 60.0, -40.0};
+    const auto NearbyIdeal = FVector{0.0, 65.0, -40.0};
+
+    const auto PlantedAfterOneStep = [&](bool InPlantOccluded, bool InTargetValid) -> bool
+    {
+        auto Solver = ck::FProceduralGaitSolver{};
+        Solver.Get_Settings().Get_Settle().Set_AtRest(SettleAtRest);
+        Solver.Reset({Plant});
+
+        auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+        Inputs.SetNum(1);
+        Inputs[0].Set_PhaseOffset(ClosedPhaseOffset).Set_Hip(FVector::ZeroVector).Set_Reach(LegReach).Set_IdealTarget(NearbyIdeal)
+            .Set_TargetValid(InTargetValid).Set_PlantOccluded(InPlantOccluded);
+        auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+        Outputs.SetNum(1);
+        Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+        return Outputs[0].Get_Planted();
+    };
+
+    {
+        auto Solver = ck::FProceduralGaitSolver{};
+        Solver.Reset({Plant});
+        TestFalse(TEXT("Precondition: the leg's window is closed"), Solver.IsWindowOpen(ClosedPhaseOffset));
+        TestTrue(TEXT("Precondition: the plant is within ForceStepFraction of the reach"),
+            Plant.Size() < Solver.Get_Settings().Get_Reach().Get_ForceStepFraction() * LegReach);
+        TestTrue(TEXT("Precondition: the plant is within a step threshold of its ideal target"),
+            FVector::Dist(Plant, NearbyIdeal) < Solver.Get_Settings().Get_Step().Get_Threshold());
+    }
+    TestTrue(TEXT("Control: an unoccluded plant holds through its closed window"), PlantedAfterOneStep(Clear, ValidTarget));
+    TestFalse(TEXT("An occluded plant with a valid target steps through its closed window"), PlantedAfterOneStep(Occluded, ValidTarget));
+    TestTrue(TEXT("An occluded plant without a valid target holds"), PlantedAfterOneStep(Occluded, NoTarget));
+
+    const auto SwingingLegPlant = FVector{0.0, -60.0, -40.0};
+    const auto MakeTwoGroupSolver = [&](int32 InMaxSimultaneousSwings, TArray<ck::FProceduralGaitLegInput>& OutInputs)
+        -> ck::FProceduralGaitSolver
+    {
+        auto Solver = ck::FProceduralGaitSolver{};
+        Solver.Get_Settings().Get_Settle().Set_AtRest(SettleAtRest);
+        Solver.Get_Settings().Get_Cadence().Set_MaxSimultaneousSwings(InMaxSimultaneousSwings);
+        Solver.Reset({SwingingLegPlant, Plant});
+
+        OutInputs.SetNum(2);
+        OutInputs[0].Set_PhaseOffset(0.0f).Set_Hip(FVector::ZeroVector).Set_Reach(LegReach).Set_IdealTarget(FVector{30.0, -60.0, -40.0});
+        OutInputs[1].Set_PhaseOffset(0.5f).Set_Hip(FVector::ZeroVector).Set_Reach(LegReach).Set_IdealTarget(NearbyIdeal);
+        return Solver;
+    };
+
+    // The occluded leg of the second group steps beyond the schedule while the first group's swing is in flight.
+    {
+        constexpr auto UnlimitedSwings = 0;
+        auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+        auto Solver = MakeTwoGroupSolver(UnlimitedSwings, Inputs);
+        auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+        Outputs.SetNum(2);
+
+        Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+        if (NOT TestTrue(TEXT("Precondition: the first group's leg lifts in its open window"), NOT Outputs[0].Get_Planted() && Outputs[1].Get_Planted()))
+        { return false; }
+
+        Inputs[1].Set_PlantOccluded(Occluded);
+        Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+        TestTrue(TEXT("Precondition: the first group's swing is still in flight"), Solver.GetLegState(0).Get_Swing().Get_Active());
+        TestFalse(TEXT("The occluded leg steps while the other group swings"), Outputs[1].Get_Planted());
+        TestTrue(TEXT("Its swing runs beyond the schedule"), Solver.GetLegState(1).Get_Swing().Get_BeyondSchedule());
+    }
+
+    // A take-off beyond the schedule needs the swing budget: with none left, the occluded leg waits for the first group's
+    // swing, then steps.
+    {
+        constexpr auto OneSwing = 1;
+        auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+        auto Solver = MakeTwoGroupSolver(OneSwing, Inputs);
+        auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+        Outputs.SetNum(2);
+
+        Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+        if (NOT TestTrue(TEXT("Precondition: the first group's leg lifts in its open window"), NOT Outputs[0].Get_Planted() && Outputs[1].Get_Planted()))
+        { return false; }
+
+        Inputs[1].Set_PlantOccluded(Occluded);
+        auto FirstLegLanding = int32{INDEX_NONE};
+        auto OccludedLegLift = int32{INDEX_NONE};
+        for (auto Frame = 0; Frame < Frames && OccludedLegLift == INDEX_NONE; ++Frame)
+        {
+            const auto FirstWasSwinging = Solver.GetLegState(0).Get_Swing().Get_Active();
+            Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+            if (NOT Outputs[0].Get_Planted() && NOT Outputs[1].Get_Planted())
+            {
+                AddError(FString::Printf(TEXT("Both phase groups swung at frame %d with a budget of one swing"), Frame));
+                return false;
+            }
+            if (FirstWasSwinging && Outputs[0].Get_Planted() && FirstLegLanding == INDEX_NONE)
+            { FirstLegLanding = Frame; }
+            if (NOT Outputs[1].Get_Planted())
+            { OccludedLegLift = Frame; }
+        }
+
+        if (NOT TestTrue(TEXT("The first group's swing lands"), FirstLegLanding != INDEX_NONE)
+            || NOT TestTrue(TEXT("The occluded leg steps once that swing ends"), OccludedLegLift != INDEX_NONE))
+        { return false; }
+
+        TestTrue(FString::Printf(TEXT("The occluded leg steps at the first solve with budget free (landing frame %d, lift frame %d)"),
+                FirstLegLanding, OccludedLegLift),
+            OccludedLegLift > FirstLegLanding && OccludedLegLift <= FirstLegLanding + 2);
+    }
+
+    // An occluded plant counts as ratio 1, so a reach Emergency of another group, whose ratio exceeds 1, keeps priority and
+    // steps on the schedule; the occluded plant steps beside it, beyond the schedule.
+    {
+        auto Solver = ck::FProceduralGaitSolver{};
+        Solver.Get_Settings().Get_Settle().Set_AtRest(SettleAtRest);
+        const auto OccludedLegHip = FVector{0.0, -20.0, 0.0};
+        const auto OccludedLegPlant = FVector{0.0, -80.0, -40.0};
+        const auto StretchedLegHip = FVector{0.0, 20.0, 0.0};
+        const auto StretchedDistance = 95.0;
+        const auto StretchedLegPlant = StretchedLegHip + FVector{0.0, FMath::Sqrt(FMath::Square(StretchedDistance) - FMath::Square(40.0)), -40.0};
+        Solver.Reset({OccludedLegPlant, StretchedLegPlant});
+
+        const auto ForceStepLimit = Solver.Get_Settings().Get_Reach().Get_ForceStepFraction() * LegReach;
+        const auto HardLimit = Solver.Get_Settings().Get_Reach().Get_HardOverstretchFraction() * LegReach;
+        TestTrue(TEXT("Precondition: the stretched plant is a reach Emergency below the hard overstretch"),
+            StretchedDistance > ForceStepLimit && StretchedDistance < HardLimit);
+
+        auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+        Inputs.SetNum(2);
+        Inputs[0].Set_PhaseOffset(0.0f).Set_Hip(OccludedLegHip).Set_Reach(LegReach)
+            .Set_IdealTarget(OccludedLegPlant + FVector{0.0, -2.0, 0.0}).Set_PlantOccluded(Occluded);
+        Inputs[1].Set_PhaseOffset(0.5f).Set_Hip(StretchedLegHip).Set_Reach(LegReach)
+            .Set_IdealTarget(StretchedLegPlant + FVector{0.0, -2.0, 0.0});
+        auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+        Outputs.SetNum(2);
+
+        Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+        TestTrue(TEXT("The reach Emergency of the other group keeps priority and steps on the schedule"),
+            NOT Outputs[1].Get_Planted() && NOT Solver.GetLegState(1).Get_Swing().Get_BeyondSchedule());
+        TestTrue(TEXT("The occluded plant steps beside it, beyond the schedule"),
+            NOT Outputs[0].Get_Planted() && Solver.GetLegState(0).Get_Swing().Get_BeyondSchedule());
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitFootholdTargetLandsWithoutOvershootTest,
+    "Ck.ProceduralAnimation.Gait.FootholdTargetLandsWithoutOvershoot",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitFootholdTargetLandsWithoutOvershootTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto SettleAtRest = false;
+    constexpr auto Frames = 120;
+    constexpr auto LandingTolerance = 0.01;
+    constexpr auto MinControlOvershoot = 5.0;
+    constexpr auto OnFoothold = true;
+    constexpr auto OnIdeal = false;
+    const auto Plant = FVector{0.0, 60.0, -40.0};
+    const auto Target = FVector{40.0, 60.0, -40.0};
+    const auto BodyVelocity = FVector{100.0, 0.0, 0.0};
+
+    const auto LandingOf = [&](bool InTargetIsFoothold) -> TOptional<FVector>
+    {
+        auto Solver = ck::FProceduralGaitSolver{};
+        Solver.Get_Settings().Get_Settle().Set_AtRest(SettleAtRest);
+        Solver.Reset({Plant});
+
+        auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+        Inputs.SetNum(1);
+        Inputs[0].Set_PhaseOffset(0.0f).Set_IdealTarget(Target).Set_TargetIsFoothold(InTargetIsFoothold);
+        auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+        Outputs.SetNum(1);
+
+        auto Lifted = false;
+        for (auto Frame = 0; Frame < Frames; ++Frame)
+        {
+            Solver.Step(FrameDt, BodyVelocity.Size2D(), BodyVelocity, Inputs, Outputs);
+            if (NOT Outputs[0].Get_Planted())
+            { Lifted = true; }
+            else if (Lifted)
+            { return Outputs[0].Get_Position(); }
+        }
+        return {};
+    };
+
+    const auto ControlLanding = LandingOf(OnIdeal);
+    const auto FootholdLanding = LandingOf(OnFoothold);
+    if (NOT TestTrue(TEXT("Both swings land"), ControlLanding.IsSet() && FootholdLanding.IsSet()))
+    { return false; }
+
+    const auto ControlOvershoot = FVector::Dist(ControlLanding.GetValue(), Target);
+    TestTrue(FString::Printf(TEXT("Control: a swing toward an ideal target lands beyond it by the overshoot and the freeze push (%.2f cm)"),
+            ControlOvershoot),
+        ControlOvershoot > MinControlOvershoot);
+
+    const auto FootholdMiss = FVector::Dist(FootholdLanding.GetValue(), Target);
+    TestTrue(FString::Printf(TEXT("A swing toward a foothold lands on it (%.3f cm off)"), FootholdMiss), FootholdMiss <= LandingTolerance);
+
+    return true;
+}
+
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------
