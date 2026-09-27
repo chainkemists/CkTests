@@ -150,18 +150,26 @@ class UCk_AutoTest_ProceduralAnimation_LegAndRigAdmissionRejects : UCk_AutoTest_
         AssertRigRejected(utils_procedural_rig::Add(OneSegmentLeg, CurveOnOne), OneSegmentLeg, EnsuresBefore,
             "Explicit Curve on a one-segment chain");
 
+        auto NoClearance = MakeChain(SingleSegment);
+        NoClearance.Set_Clearance(ECk_ProceduralRig_Clearance::None);
         EnsuresBefore = utils_ensure::Get_EnsureCount();
-        Assert_True(ck::IsValid(utils_procedural_rig::Add(OneSegmentLeg, MakeChain(SingleSegment))),
-            "Positive control: Auto binds the one-segment chain");
+        auto OneSegmentRig = utils_procedural_rig::Add(OneSegmentLeg, NoClearance);
+        Assert_True(ck::IsValid(OneSegmentRig), "Positive control: Auto binds the one-segment chain");
         Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 0, "Positive control: Auto on one segment fires no ensure");
+        Assert_True(utils_procedural_rig::Get_Clearance(OneSegmentRig) == ECk_ProceduralRig_Clearance::None,
+            "The None clearance is accepted and read back");
 
         auto RiggedSegments = TArray<FCk_Handle_Transform>();
         RiggedSegments.Add(Upper);
         RiggedSegments.Add(Lower);
+        auto SwivelChain = MakeChain(RiggedSegments);
+        SwivelChain.Set_Clearance(ECk_ProceduralRig_Clearance::Swivel);
         EnsuresBefore = utils_ensure::Get_EnsureCount();
-        Assert_True(ck::IsValid(utils_procedural_rig::Add(RiggedLeg, MakeChain(RiggedSegments))),
-            "Positive control: the first leg binds its own chain");
+        auto SwivelRig = utils_procedural_rig::Add(RiggedLeg, SwivelChain);
+        Assert_True(ck::IsValid(SwivelRig), "Positive control: the first leg binds its own chain");
         Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 0, "Positive control: no ensure fires");
+        Assert_True(utils_procedural_rig::Get_Clearance(SwivelRig) == ECk_ProceduralRig_Clearance::Swivel,
+            "The Swivel clearance is accepted and read back");
 
         auto ReusedSegments = TArray<FCk_Handle_Transform>();
         ReusedSegments.Add(Lower);

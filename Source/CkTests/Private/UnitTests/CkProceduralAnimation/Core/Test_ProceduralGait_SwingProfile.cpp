@@ -76,6 +76,49 @@ auto
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitSwingPointTest,
+    "Ck.ProceduralAnimation.Gait.SwingPointFollowsTheSolverArc",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitSwingPointTest::
+    RunTest(const FString&)
+    -> bool
+{
+    const auto Start = FVector{10.0, -20.0, 5.0};
+    const auto Target = FVector{70.0, 10.0, 25.0};
+    const auto Swing = ck::FProceduralGaitSwingSettings{};
+    constexpr auto Height = 24.0f;
+    constexpr auto Apex = 0.5f;
+
+    TestTrue(TEXT("Alpha 0 is the start"),
+        ck::ComputeProceduralSwingPoint(Start, Target, FVector::UpVector, Swing, Height, 0.0f).Equals(Start, 1.0e-3));
+    TestTrue(TEXT("Alpha 1 is the target"),
+        ck::ComputeProceduralSwingPoint(Start, Target, FVector::UpVector, Swing, Height, 1.0f).Equals(Target, 1.0e-3));
+
+    TestEqual(TEXT("The default arc peaks mid-swing"), Swing.Get_ApexPhase(), Apex);
+    const auto ChordMidpoint = (Start + Target) * 0.5;
+    TestTrue(TEXT("The apex lies above the chord by the height"),
+        ck::ComputeProceduralSwingPoint(Start, Target, FVector::UpVector, Swing, Height, Apex)
+            .Equals(ChordMidpoint + FVector::UpVector * Height, 1.0e-3));
+
+    const auto WallUp = FVector{1.0, 0.0, 0.0};
+    TestTrue(TEXT("The lift follows the given up"),
+        ck::ComputeProceduralSwingPoint(Start, Target, WallUp, Swing, Height, Apex)
+            .Equals(ChordMidpoint + WallUp * Height, 1.0e-3));
+
+    const auto Early = ck::ComputeProceduralSwingPoint(Start, Target, FVector::UpVector, Swing, Height, 0.2f);
+    const auto EarlyChord = FMath::Lerp(Start, Target, FMath::SmoothStep(0.0f, 1.0f, 0.2f));
+    TestTrue(TEXT("An early point lies on the eased chord, lifted less than the apex"),
+        FMath::IsNearlyEqual(Early.X, EarlyChord.X, 1.0e-3) && FMath::IsNearlyEqual(Early.Y, EarlyChord.Y, 1.0e-3)
+            && Early.Z > EarlyChord.Z && Early.Z < EarlyChord.Z + Height);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkProceduralGaitTraceAxisTest,
     "Ck.ProceduralAnimation.Gait.TraceAxisLeansOutward",
     ck::tests::kCkUnitTestFlags)

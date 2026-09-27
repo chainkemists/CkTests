@@ -596,6 +596,12 @@ namespace ck_procedural_gym
         return ECk_ProceduralRig_ChainSolver::Auto;
     }
 
+    // Every species swivels its knees clear of the pillars and edges its legs pass, the rigid centipede included.
+    ECk_ProceduralRig_Clearance Get_Clearance()
+    {
+        return ECk_ProceduralRig_Clearance::Swivel;
+    }
+
     FVector Get_SegmentHalfExtents(TArray<float32> InLengths, int32 InSegmentIndex)
     {
         auto Alpha = InLengths.Num() > 1 ? float(InSegmentIndex) / float(InLengths.Num() - 1) : 0.0;
@@ -1625,6 +1631,7 @@ struct FCkProceduralAnimationGym_Fixture
         RigParams.Set_Segments(Segments);
         RigParams.Set_Foot(Foot);
         RigParams.Set_Solver(ck_procedural_gym::Get_ChainSolver(InOutCrawler.Layout.Species));
+        RigParams.Set_Clearance(ck_procedural_gym::Get_Clearance());
         return FCk_ProceduralWalker_LegChain(InLeg.Get_Id(), RigParams);
     }
 
