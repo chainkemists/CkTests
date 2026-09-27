@@ -152,7 +152,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         }
         if (InCourse == ECkProceduralAnimationGym_Course::Posts)
         {
-            return "POSTS: 30 CM STEPS, 90 CM FLANKS";
+            return "POSTS: 75 AND 30 CM STEPS, 90 CM FLANKS";
         }
         if (InCourse == ECkProceduralAnimationGym_Course::Cylinder)
         {

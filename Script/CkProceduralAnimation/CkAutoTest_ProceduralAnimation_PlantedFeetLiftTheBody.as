@@ -8,11 +8,12 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
     private FCkProceduralAnimationGym_Fixture _Rays;
     private FVector _FeetOrigin = FVector(120000.0, 315000.0, 600.0);
     private FVector _RaysOrigin = FVector(120000.0, 317500.0, 600.0);
-    // The pillar crossing's field: 150 cm pillars with 50 x 50 cm tops on a 100 cm pitch, 25 cm from each landing. Six
-    // columns along +X, five rows across the lane so every foot of the walker has tops within reach.
+    // 150 cm pillars with 50 x 50 cm tops on a 120 cm pitch, 25 cm from each landing. Six columns along +X, five rows across
+    // the lane so every foot of the walker has tops within reach. The 70 cm gaps are wider than the crawler's clearance,
+    // so the control walker's rays can turn it onto a pillar's side and it dips into a gap.
     private float _TopZ = 150.0;
     private float _PillarHalfSize = 25.0;
-    private float _Pitch = 100.0;
+    private float _Pitch = 120.0;
     private int32 _Columns = 6;
     private int32 _RowsPerSide = 2;
     private float _FirstColumnX = -950.0;
@@ -29,10 +30,16 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
     private FString _FeetMinAt;
     private int32 _SampledFrames = 0;
     private int32 _FeetSourceFrames = 0;
-    // A trusted plant between the landings must stand on a top: its XY within a top, give or take this much.
+    // A trusted plant of the PlantedFeet walker between the landings must stand on a top: its XY within a top, give or take
+    // this much. The control dips into the gaps as it must, onto their floor and the pillars' sides: only its trusted plants
+    // in the air at the tops' height, off every top, are wrong.
     private float _TopTolerance = 1.0;
+    private float _AirPlantMinZ = 145.0;
     private int32 _OffTopPlantFrames = 0;
     private FString _FirstOffTopPlant;
+    private int32 _RaysAirPlantFrames = 0;
+    private int32 _RaysGroundOffTopPlantFrames = 0;
+    private FString _FirstRaysAirPlant;
     // Untrusted plants off a top (a leg tucked over a gap with nothing in reach) are counted and reported, not asserted.
     private int32 _UntrustedOffTopPlantFrames = 0;
     // Each trusted plant off a top is reported as it lands, up to this many, with where its target came from.
@@ -97,6 +104,20 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
             if (Foot.Get_Contact() != ECk_ProceduralLeg_FootContact::Trusted)
             {
                 _UntrustedOffTopPlantFrames++;
+                continue;
+            }
+            if (InWalker == "Rays")
+            {
+                if (Local.Z < _AirPlantMinZ)
+                {
+                    _RaysGroundOffTopPlantFrames++;
+                    continue;
+                }
+                _RaysAirPlantFrames++;
+                if (_FirstRaysAirPlant.IsEmpty())
+                {
+                    _FirstRaysAirPlant = f"{LegId} at ({Local.X :.1}, {Local.Y :.1}, {Local.Z :.1})";
+                }
                 continue;
             }
             _OffTopPlantFrames++;
@@ -239,10 +260,12 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
         Assert_True(_RaysMinZ < RaysDip,
             f"Control: the Rays walker's body fell below the tops plus half a clearance (lowest z {_RaysMinZ :.1}, threshold {RaysDip :.1})");
         Assert_True(_OffTopPlantFrames == 0,
-            f"No trusted plant of either walker stands off a top between the landings ({_OffTopPlantFrames} leg-frames; first: {_FirstOffTopPlant})");
+            f"No trusted plant of the PlantedFeet walker stands off a top between the landings ({_OffTopPlantFrames} leg-frames; first: {_FirstOffTopPlant})");
+        Assert_True(_RaysAirPlantFrames == 0,
+            f"No trusted plant of the Rays walker stands in the air off a top between the landings ({_RaysAirPlantFrames} leg-frames; first: {_FirstRaysAirPlant})");
         auto FeetRaysPerSolve = _FeetRaysSum / Math::Max(_SampledFrames, 1);
         auto RaysRaysPerSolve = _RaysRaysSum / Math::Max(_SampledFrames, 1);
-        ck::Trace(f"[PLANTED-FEET] rays per solve: PlantedFeet {FeetRaysPerSolve :.1}, Rays {RaysRaysPerSolve :.1}; off-top plant leg-frames: trusted {_OffTopPlantFrames}, untrusted {_UntrustedOffTopPlantFrames}");
+        ck::Trace(f"[PLANTED-FEET] rays per solve: PlantedFeet {FeetRaysPerSolve :.1}, Rays {RaysRaysPerSolve :.1}; off-top plant leg-frames: PlantedFeet trusted {_OffTopPlantFrames}, Rays trusted in the air {_RaysAirPlantFrames} and on the gaps' floor or the pillars' sides {_RaysGroundOffTopPlantFrames}, untrusted {_UntrustedOffTopPlantFrames}");
         Assert_True(FeetRaysPerSolve <= RaysRaysPerSolve + _RaysPerSolveMargin,
             f"The PlantedFeet walker's rays per solve stay within {_RaysPerSolveMargin :.0} of the Rays walker's ({FeetRaysPerSolve :.1} against {RaysRaysPerSolve :.1})");
         _Feet.Request_Destroy();

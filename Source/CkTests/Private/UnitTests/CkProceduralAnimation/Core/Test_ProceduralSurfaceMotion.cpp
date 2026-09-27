@@ -1333,4 +1333,927 @@ auto
 
 // --------------------------------------------------------------------------------------------------------------------
 
+namespace ck_test_procedural_surface_motion
+{
+    constexpr auto BlockX = 50.0;
+    constexpr auto HalfSecondOfSubsteps = 60;
+
+    auto
+        MakeWallSettings(
+            float InClearance,
+            float InMaxStepHeight,
+            ck::EProceduralSurfaceWallPolicy InWallPolicy)
+        -> ck::FProceduralSurfaceMotionSettings
+    {
+        return MakeSettings()
+            .Set_Clearance(InClearance)
+            .Set_MaxStepHeight(InMaxStepHeight)
+            .Set_WallPolicy(InWallPolicy);
+    }
+
+    // A floor and a block across the path from x = BlockX, InTop high.
+    auto
+        MakeFloorAndBlock(
+            double InTop)
+        -> TArray<FSolid>
+    {
+        return TArray<FSolid>{
+            MakeHalfSpace(FVector::UpVector, FVector::ZeroVector),
+            MakeBox(FVector{BlockX, -500.0, -10.0}, FVector{2000.0, 500.0, InTop})};
+    }
+
+    auto
+        Get_DegreesFrom(
+            const FVector& InA,
+            const FVector& InB)
+        -> double
+    {
+        return FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(InA.GetSafeNormal(), InB.GetSafeNormal()), -1.0, 1.0)));
+    }
+
+    auto
+        Get_IsOnBlockFace(
+            const ck::FProceduralSurfaceHit& InHit)
+        -> bool
+    {
+        return InHit.Get_Hit() && InHit.Get_Normal().Equals(FVector::BackwardVector, DistanceTolerance)
+            && FMath::IsNearlyEqual(InHit.Get_Position().X, BlockX, DistanceTolerance);
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionStepsOntoAFaceTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.StepsOntoAFaceAboveClearanceWithinStepHeight",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionStepsOntoAFaceTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // A 40 cm block ahead of a body 30 cm over the floor: the forward ray, at the body's height, meets the block's face,
+    // whose top lies within the 45 cm step height of the floor under the body. The body rises onto the top without turning.
+    constexpr auto StepClearance = 30.0f;
+    constexpr auto StepHeight = 45.0f;
+    constexpr auto BlockTop = 40.0;
+    constexpr auto HeightTolerance = 1.0;
+    constexpr auto MaxTiltDegrees = 10.0;
+    const auto World = MakeFloorAndBlock(BlockTop);
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+    const auto Settings = MakeWallSettings(StepClearance, StepHeight, ck::EProceduralSurfaceWallPolicy::Climb);
+    auto Body = MakeBody(FVector{0.0, 0.0, StepClearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    auto StepSubsteps = 0;
+    auto WorstTilt = 0.0;
+    for (auto Index = 0; Index < HalfSecondOfSubsteps; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
+        StepSubsteps += State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Step ? 1 : 0;
+        WorstTilt = FMath::Max(WorstTilt, Get_DegreesFrom(State.Get_SupportNormal(), FVector::UpVector));
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the face is never adopted (source %d, normal %s)"), Index,
+                static_cast<int32>(State.Get_ContactSource()), *State.Get_SupportNormal().ToString()),
+                State.Get_ContactSource() != ck::EProceduralSurfaceContactSource::Forward))
+        { return false; }
+    }
+
+    TestTrue(FString::Printf(TEXT("The step's contact carried the body onto the top (%d substeps with source Step)"), StepSubsteps),
+        StepSubsteps > 0);
+    TestTrue(FString::Printf(TEXT("No substep's support normal turned more than %.0f degrees from up (worst %.3f)"), MaxTiltDegrees,
+        WorstTilt), WorstTilt <= MaxTiltDegrees);
+    const auto Height = Body.GetLocation().Z - BlockTop;
+    TestTrue(FString::Printf(TEXT("Within 0.5 s the body stands one clearance over the block's top (%.3f cm over it, x %.1f)"), Height,
+        Body.GetLocation().X), FMath::IsNearlyEqual(Height, static_cast<double>(StepClearance), HeightTolerance));
+    TestTrue(FString::Printf(TEXT("The support normal is still up (%s)"), *State.Get_SupportNormal().ToString()),
+        State.Get_SupportNormal().Equals(FVector::UpVector, DistanceTolerance));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionClimbsAboveStepHeightTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.ClimbsAFaceAboveStepHeight",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionClimbsAboveStepHeightTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // A 100 cm face against a 45 cm step height: not a step, so the climbing body confirms and adopts it as before.
+    constexpr auto StepClearance = 30.0f;
+    constexpr auto StepHeight = 45.0f;
+    constexpr auto FaceTop = 100.0;
+    const auto World = MakeFloorAndBlock(FaceTop);
+    auto SawFace = false;
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd)
+    {
+        const auto Hit = RayCast(World, InStart, InEnd);
+        SawFace = SawFace || Get_IsOnBlockFace(Hit);
+        return Hit;
+    };
+    const auto Settings = MakeWallSettings(StepClearance, StepHeight, ck::EProceduralSurfaceWallPolicy::Climb);
+    auto Body = MakeBody(FVector{0.0, 0.0, StepClearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    auto FirstSighting = int32{INDEX_NONE};
+    auto Adopted = int32{INDEX_NONE};
+    for (auto Index = 0; Index < MaxSubsteps && Adopted == INDEX_NONE; ++Index)
+    {
+        SawFace = false;
+        ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
+        if (SawFace && FirstSighting == INDEX_NONE)
+        { FirstSighting = Index; }
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: a face above the step height is never a step"), Index),
+                State.Get_ContactSource() != ck::EProceduralSurfaceContactSource::Step))
+        { return false; }
+        if (State.Get_SupportNormal().Equals(FVector::BackwardVector, DistanceTolerance))
+        { Adopted = Index; }
+    }
+    if (NOT TestTrue(TEXT("The forward ray sees the face and the body adopts it"), FirstSighting != INDEX_NONE && Adopted != INDEX_NONE))
+    { return false; }
+
+    const auto Seen = Step * (Adopted - FirstSighting + 1);
+    TestTrue(FString::Printf(TEXT("The face is adopted after it is seen for the confirm time, not before (seen %.4f s, confirm %.4f s)"),
+        Seen.Get_Seconds(), ConfirmTime.Get_Seconds()),
+        Seen.Get_Seconds() >= ConfirmTime.Get_Seconds() - TimeTolerance
+        && Seen.Get_Seconds() <= (ConfirmTime + Step).Get_Seconds() + TimeTolerance);
+    TestEqual(TEXT("The face is adopted from the forward ray"), State.Get_ContactSource(), ck::EProceduralSurfaceContactSource::Forward);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionStepHeightZeroTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.StepHeightZeroClimbsEveryFace",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionStepHeightZeroTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // The 40 cm block a 45 cm step height steps onto, with the default step height of 0: the body climbs its face.
+    constexpr auto StepClearance = 30.0f;
+    constexpr auto BlockTop = 40.0;
+    const auto World = MakeFloorAndBlock(BlockTop);
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+    const auto Settings = MakeSettings().Set_Clearance(StepClearance);
+    auto Body = MakeBody(FVector{0.0, 0.0, StepClearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    auto Adopted = false;
+    for (auto Index = 0; Index < MaxSubsteps && NOT Adopted; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: no step without a step height (source %d)"), Index,
+                static_cast<int32>(State.Get_ContactSource())), State.Get_ContactSource() != ck::EProceduralSurfaceContactSource::Step))
+        { return false; }
+        Adopted = State.Get_SupportNormal().Equals(FVector::BackwardVector, DistanceTolerance);
+    }
+    TestTrue(TEXT("The block's face is adopted as a wall"), Adopted);
+    TestEqual(TEXT("The wall is adopted from the forward ray"), State.Get_ContactSource(), ck::EProceduralSurfaceContactSource::Forward);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionLowFaceUnseenTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.LowFaceIsNeverSeenByTheForwardRay",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionLowFaceUnseenTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // A 40 cm riser under a body 65 cm over the floor: the forward ray passes over its top, and the down ray lifts the body
+    // onto the tread once it is over it. With a step height of 0 and of 85 every substep is the same, bit for bit.
+    constexpr auto RiserTop = 40.0;
+    constexpr auto HighStepHeight = 85.0f;
+    constexpr auto HeightTolerance = 1.0;
+    constexpr auto Substeps = 150;
+    const auto World = MakeFloorAndBlock(RiserTop);
+    auto RiserHits = 0;
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd)
+    {
+        const auto Hit = RayCast(World, InStart, InEnd);
+        RiserHits += Get_IsOnBlockFace(Hit) ? 1 : 0;
+        return Hit;
+    };
+    const auto NoStepSettings = MakeSettings();
+    const auto StepSettings = MakeWallSettings(Clearance, HighStepHeight, ck::EProceduralSurfaceWallPolicy::Climb);
+    auto Body = MakeBody(FVector{-50.0, 0.0, Clearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+    auto StepBody = Body;
+    auto StepState = State;
+
+    for (auto Index = 0; Index < Substeps; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(NoStepSettings, FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
+        ck::StepProceduralSurfaceMotion(StepSettings, FVector::ForwardVector, Speed, Step, Cast, NoFeet, StepBody, StepState);
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the down ray holds the body (source %d)"), Index,
+                static_cast<int32>(State.Get_ContactSource())), State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Down))
+        { return false; }
+
+        const auto Same = Body.GetLocation() == StepBody.GetLocation() && Body.GetRotation() == StepBody.GetRotation()
+            && State.Get_SupportNormal() == StepState.Get_SupportNormal() && State.Get_TravelTangent() == StepState.Get_TravelTangent()
+            && State.Get_Velocity() == StepState.Get_Velocity() && State.Get_ContactSource() == StepState.Get_ContactSource()
+            && State.Get_CandidateSeen() == StepState.Get_CandidateSeen();
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the step height changes nothing (%s vs %s)"), Index,
+                *Body.GetLocation().ToString(), *StepBody.GetLocation().ToString()), Same))
+        { return false; }
+    }
+
+    TestEqual(TEXT("No ray ever met the riser's face"), RiserHits, 0);
+    TestTrue(FString::Printf(TEXT("The body rose onto the tread (z %.3f, x %.1f)"), Body.GetLocation().Z, Body.GetLocation().X),
+        FMath::IsNearlyEqual(Body.GetLocation().Z, RiserTop + Clearance, HeightTolerance));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_test_procedural_surface_motion
+{
+    // A wall at 30 degrees to the travel, facing a body that walks +X toward it on a floor.
+    constexpr auto ObliqueWallDegrees = 30.0;
+    const auto ObliqueWallPoint = FVector{100.0, 0.0, 0.0};
+
+    auto
+        Get_ObliqueWallNormal()
+        -> FVector
+    {
+        return FVector{-FMath::Sin(FMath::DegreesToRadians(ObliqueWallDegrees)), FMath::Cos(FMath::DegreesToRadians(ObliqueWallDegrees)), 0.0};
+    }
+
+    auto
+        Get_AlongObliqueWall()
+        -> FVector
+    {
+        return FVector{FMath::Cos(FMath::DegreesToRadians(ObliqueWallDegrees)), FMath::Sin(FMath::DegreesToRadians(ObliqueWallDegrees)), 0.0};
+    }
+
+    auto
+        MakeFloorAndObliqueWall()
+        -> TArray<FSolid>
+    {
+        return TArray<FSolid>{MakeHalfSpace(FVector::UpVector, FVector::ZeroVector), MakeHalfSpace(Get_ObliqueWallNormal(), ObliqueWallPoint)};
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionSlidesAlongObliqueWallTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.SlidesAlongAnObliqueWall",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionSlidesAlongObliqueWallTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // The forward ray first meets a wall at 30 degrees to the travel when the body is a clearance x sin 30 from it. From
+    // then on the body follows the wall: it slides along it at the travel's share along it, speed x cos 30, and eases out
+    // to its clearance at the clearance speed, never jumping.
+    constexpr auto SpeedTolerance = 0.05;
+    constexpr auto NearestTolerance = 1.0;
+    constexpr auto SettledShareOfClearance = 0.95;
+    constexpr auto SettleSeconds = 0.3;
+    constexpr auto Substeps = 240;
+    constexpr auto ClearanceSpeed = 200.0;
+    const auto WallNormal = Get_ObliqueWallNormal();
+    const auto AlongWall = Get_AlongObliqueWall();
+    const auto World = MakeFloorAndObliqueWall();
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+    const auto Settings = MakeWallSettings(Clearance, 0.0f, ck::EProceduralSurfaceWallPolicy::Slide);
+    auto Body = MakeBody(FVector{-100.0, 0.0, Clearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+    const auto MaxStepAlongNormal = ClearanceSpeed * Step.Get_Seconds() + DistanceTolerance;
+
+    auto FirstSighting = int32{INDEX_NONE};
+    auto NearestToWall = TNumericLimits<double>::Max();
+    auto NearestAt = int32{INDEX_NONE};
+    auto FirstSightingToWall = 0.0;
+    auto LargestAlongNormal = 0.0;
+    auto NearestOnceSettled = TNumericLimits<double>::Max();
+    auto HalfwayAlong = 0.0;
+    for (auto Index = 0; Index < Substeps; ++Index)
+    {
+        const auto Before = Body.GetLocation();
+        ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
+        const auto ToWall = FVector::DotProduct(Body.GetLocation() - ObliqueWallPoint, WallNormal);
+        const auto AlongNormal = FVector::DotProduct(Body.GetLocation() - Before, WallNormal);
+        LargestAlongNormal = FMath::Max(LargestAlongNormal, FMath::Abs(AlongNormal));
+        if (ToWall < NearestToWall)
+        {
+            NearestToWall = ToWall;
+            NearestAt = Index;
+        }
+        if (Index == Substeps / 2 - 1)
+        { HalfwayAlong = FVector::DotProduct(Body.GetLocation(), AlongWall); }
+        if (FirstSighting == INDEX_NONE && State.Get_Obstruction() == ck::EProceduralSurfaceObstruction::Wall)
+        {
+            FirstSighting = Index;
+            FirstSightingToWall = ToWall;
+        }
+
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the body moves along the wall's normal by at most the clearance speed's step (%.4f cm)"),
+                Index, AlongNormal), FMath::Abs(AlongNormal) <= MaxStepAlongNormal))
+        { return false; }
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the support normal stays up and the body grounded (%s)"), Index,
+                *State.Get_SupportNormal().ToString()), State.Get_SupportNormal().Equals(FVector::UpVector, DistanceTolerance) && State.Get_Grounded()))
+        { return false; }
+        if (FirstSighting == INDEX_NONE)
+        { continue; }
+
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d, after the first sighting on %d: the obstruction reads Wall with the wall's normal (%d, %s)"),
+                Index, FirstSighting, static_cast<int32>(State.Get_Obstruction()), *State.Get_ObstructionNormal().ToString()),
+                State.Get_Obstruction() == ck::EProceduralSurfaceObstruction::Wall && State.Get_ObstructionNormal().Equals(WallNormal, DistanceTolerance)))
+        { return false; }
+        const auto Settled = (Step * (Index - FirstSighting)).Get_Seconds() >= SettleSeconds;
+        if (Settled)
+        { NearestOnceSettled = FMath::Min(NearestOnceSettled, ToWall); }
+        if (Settled && NOT TestTrue(FString::Printf(TEXT("Substep %d, %.3f s after the first sighting: the body stands at least 0.95 clearance "
+                "off the wall (%.3f cm)"), Index, (Step * (Index - FirstSighting)).Get_Seconds(), ToWall),
+                ToWall >= SettledShareOfClearance * Clearance))
+        { return false; }
+    }
+
+    if (NOT TestTrue(TEXT("The forward ray met the wall"), FirstSighting != INDEX_NONE))
+    { return false; }
+    const auto FirstSightingDistance = Clearance * FMath::Sin(FMath::DegreesToRadians(ObliqueWallDegrees));
+    TestTrue(FString::Printf(TEXT("The nearest approach is the first sighting's, a clearance x sin 30 off the wall (nearest %.3f cm on substep %d, "
+        "bound %.3f)"), NearestToWall, NearestAt, FirstSightingDistance - NearestTolerance), NearestToWall >= FirstSightingDistance - NearestTolerance);
+    const auto AlongSpeed = (FVector::DotProduct(Body.GetLocation(), AlongWall) - HalfwayAlong) / (Step * (Substeps / 2)).Get_Seconds();
+    const auto Expected = Speed * FMath::Cos(FMath::DegreesToRadians(ObliqueWallDegrees));
+    TestTrue(FString::Printf(TEXT("Over the last second the body moves along the wall at speed x cos 30 (%.2f cm/s against %.2f)"), AlongSpeed,
+        Expected), FMath::Abs(AlongSpeed - Expected) <= SpeedTolerance * Expected);
+    AddInfo(FString::Printf(TEXT("Oblique wall: first sighting on substep %d at %.3f cm, nearest %.3f cm on substep %d, largest move along the "
+        "normal %.4f cm (bound %.4f), nearest from %.1f s after the sighting on %.3f cm, speed along the wall %.2f cm/s (expected %.2f)"),
+        FirstSighting, FirstSightingToWall, NearestToWall, NearestAt, LargestAlongNormal, MaxStepAlongNormal, SettleSeconds, NearestOnceSettled,
+        AlongSpeed, Expected));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionWallFollowingEndsTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.WallFollowingEndsWhenTheSteeringTurnsAway",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionWallFollowingEndsTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // The oblique wall: once the body follows it, the steering turns parallel to it. The obstruction ends on the next
+    // substep and the body walks on at its full speed.
+    constexpr auto SpeedTolerance = 0.05;
+    constexpr auto FollowSubsteps = 2 * HalfSecondOfSubsteps;
+    const auto AlongWall = Get_AlongObliqueWall();
+    const auto World = MakeFloorAndObliqueWall();
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+    const auto Settings = MakeWallSettings(Clearance, 0.0f, ck::EProceduralSurfaceWallPolicy::Slide);
+    auto Body = MakeBody(FVector{-100.0, 0.0, Clearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    auto FirstSighting = int32{INDEX_NONE};
+    for (auto Index = 0; Index < MaxSubsteps && (FirstSighting == INDEX_NONE || Index < FirstSighting + FollowSubsteps); ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
+        if (FirstSighting == INDEX_NONE && State.Get_Obstruction() == ck::EProceduralSurfaceObstruction::Wall)
+        { FirstSighting = Index; }
+    }
+    if (NOT TestTrue(FString::Printf(TEXT("Precondition: the body follows the wall (first sighting %d, obstruction %d)"), FirstSighting,
+            static_cast<int32>(State.Get_Obstruction())), FirstSighting != INDEX_NONE && State.Get_Obstruction() == ck::EProceduralSurfaceObstruction::Wall))
+    { return false; }
+
+    ck::StepProceduralSurfaceMotion(Settings, AlongWall, Speed, Step, Cast, NoFeet, Body, State);
+    TestTrue(FString::Printf(TEXT("On the first substep steered along the wall the obstruction ends (%d)"), static_cast<int32>(State.Get_Obstruction())),
+        State.Get_Obstruction() == ck::EProceduralSurfaceObstruction::None);
+
+    const auto Start = Body.GetLocation();
+    for (auto Index = 0; Index < HalfSecondOfSubsteps; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(Settings, AlongWall, Speed, Step, Cast, NoFeet, Body, State);
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d steered along the wall: no obstruction (%d)"), Index, static_cast<int32>(State.Get_Obstruction())),
+                State.Get_Obstruction() == ck::EProceduralSurfaceObstruction::None))
+        { return false; }
+    }
+    const auto WalkedSpeed = FVector::DotProduct(Body.GetLocation() - Start, AlongWall) / (Step * HalfSecondOfSubsteps).Get_Seconds();
+    TestTrue(FString::Printf(TEXT("The body walks along the wall at its full speed (%.2f cm/s against %.2f)"), WalkedSpeed, static_cast<double>(Speed)),
+        FMath::Abs(WalkedSpeed - Speed) <= SpeedTolerance * Speed);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionSlideStopsHeadOnTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.StopsAgainstAHeadOnWallWithSlide",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionSlideStopsHeadOnTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // A wall across the path: sliding takes the whole travel away, so the body stops in front of it and stays grounded.
+    constexpr auto StillTolerance = 1.0;
+    const auto World = MakeFloorAndWall();
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+    const auto Settings = MakeWallSettings(Clearance, 0.0f, ck::EProceduralSurfaceWallPolicy::Slide);
+    auto Body = MakeBody(FVector{-50.0, 0.0, Clearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    auto Obstructed = false;
+    for (auto Index = 0; Index < MaxSubsteps && NOT Obstructed; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
+        Obstructed = State.Get_Obstruction() == ck::EProceduralSurfaceObstruction::Wall;
+    }
+    if (NOT TestTrue(TEXT("The body reaches the wall"), Obstructed))
+    { return false; }
+
+    const auto Stopped = Body.GetLocation();
+    constexpr auto OneSecond = 2 * HalfSecondOfSubsteps;
+    for (auto Index = 0; Index < OneSecond; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d after reaching it: grounded against the wall (obstruction %d, normal %s)"), Index,
+                static_cast<int32>(State.Get_Obstruction()), *State.Get_ObstructionNormal().ToString()),
+                State.Get_Grounded() && State.Get_Obstruction() == ck::EProceduralSurfaceObstruction::Wall
+                && State.Get_ObstructionNormal().Equals(FVector::BackwardVector, DistanceTolerance)
+                && State.Get_SupportNormal().Equals(FVector::UpVector, DistanceTolerance)))
+        { return false; }
+    }
+
+    const auto Moved = FVector::Distance(Body.GetLocation(), Stopped);
+    TestTrue(FString::Printf(TEXT("Over 1 s against the wall the body moves %.4f cm, under %.0f"), Moved, StillTolerance), Moved < StillTolerance);
+    TestTrue(FString::Printf(TEXT("The body stands at least one clearance from the wall (x %.3f)"), Body.GetLocation().X),
+        Body.GetLocation().X <= WallX - Clearance + DistanceTolerance);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionSlideNeverProposesTheFaceTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.SlideNeverProposesTheFace",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionSlideNeverProposesTheFaceTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // The floor and the wall the confirmation test climbs: with Slide the wall is never the body's contact.
+    constexpr auto Substeps = 240;
+    const auto World = MakeFloorAndWall();
+    auto SawWall = false;
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd)
+    {
+        const auto Hit = RayCast(World, InStart, InEnd);
+        SawWall = SawWall || Get_IsOnWall(Hit);
+        return Hit;
+    };
+    const auto Settings = MakeWallSettings(Clearance, 0.0f, ck::EProceduralSurfaceWallPolicy::Slide);
+    auto Body = MakeBody(FVector{-50.0, 0.0, Clearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    for (auto Index = 0; Index < Substeps; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the contact is never the forward ray's (source %d, normal %s)"), Index,
+                static_cast<int32>(State.Get_ContactSource()), *State.Get_SupportNormal().ToString()),
+                State.Get_ContactSource() != ck::EProceduralSurfaceContactSource::Forward))
+        { return false; }
+    }
+    TestTrue(TEXT("Precondition: the forward ray met the wall"), SawWall);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionStepBeatsSlideTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.StepBeatsSlide",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionStepBeatsSlideTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // The 40 cm block and the 45 cm step height with Slide: a step is not a wall, so the body steps up and nothing slides.
+    constexpr auto StepClearance = 30.0f;
+    constexpr auto StepHeight = 45.0f;
+    constexpr auto BlockTop = 40.0;
+    constexpr auto HeightTolerance = 1.0;
+    const auto World = MakeFloorAndBlock(BlockTop);
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+    const auto Settings = MakeWallSettings(StepClearance, StepHeight, ck::EProceduralSurfaceWallPolicy::Slide);
+    auto Body = MakeBody(FVector{0.0, 0.0, StepClearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    auto StepSubsteps = 0;
+    for (auto Index = 0; Index < HalfSecondOfSubsteps; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
+        StepSubsteps += State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Step ? 1 : 0;
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: no obstruction (%d)"), Index, static_cast<int32>(State.Get_Obstruction())),
+                State.Get_Obstruction() == ck::EProceduralSurfaceObstruction::None))
+        { return false; }
+    }
+
+    TestTrue(FString::Printf(TEXT("The body stepped up (%d substeps with source Step)"), StepSubsteps), StepSubsteps > 0);
+    const auto Height = Body.GetLocation().Z - BlockTop;
+    TestTrue(FString::Printf(TEXT("The body stands one clearance over the block's top (%.3f cm over it, x %.1f)"), Height,
+        Body.GetLocation().X), FMath::IsNearlyEqual(Height, static_cast<double>(StepClearance), HeightTolerance));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_test_procedural_surface_motion
+{
+    // A first block whose top and face end at InFirstFaceX, 150 cm high, and a 50 cm wide, 150 cm pillar whose near face
+    // stands at x = 50, both on a floor.
+    constexpr auto FaceTop = 150.0;
+    constexpr auto SecondFaceX = 50.0;
+    constexpr auto PillarWidth = 50.0;
+
+    auto
+        MakeFacesAcrossAGap(
+            double InFirstFaceX)
+        -> TArray<FSolid>
+    {
+        return TArray<FSolid>{
+            MakeHalfSpace(FVector::UpVector, FVector::ZeroVector),
+            MakeBox(FVector{-1000.0, -500.0, -10.0}, FVector{InFirstFaceX, 500.0, FaceTop}),
+            MakeBox(FVector{SecondFaceX, -500.0, -10.0}, FVector{SecondFaceX + PillarWidth, 500.0, FaceTop})};
+    }
+
+    auto
+        Get_IsInside(
+            const FVector& InPosition,
+            double InFirstFaceX)
+        -> bool
+    {
+        const auto BelowTops = InPosition.Z < FaceTop;
+        return BelowTops && (InPosition.X < InFirstFaceX
+            || (InPosition.X > SecondFaceX && InPosition.X < SecondFaceX + PillarWidth));
+    }
+
+    // A body that left the first top's edge 5 cm behind it, falling with no steering at 80 cm/s along +X. The probe reach
+    // is just over the clearance, so the down ray cannot catch the body before the swept fall lands it.
+    constexpr auto FallStartX = 5.0;
+    constexpr auto FallSpeed = 80.0;
+    constexpr auto ShortProbeReach = 66.0f;
+
+    auto
+        MakeFallingState()
+        -> ck::FProceduralSurfaceMotionState
+    {
+        return MakeState(FVector::UpVector, FVector::ForwardVector, false).Set_Velocity(FVector{FallSpeed, 0.0, 0.0});
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionFallRefusesTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.FallRefusesAFaceWithoutRoom",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionFallRefusesTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // The gap between the faces is 50 cm, less than the 65 cm clearance: the fall meets the second face, but a body one
+    // clearance off it would stand inside the first. The landing is refused and the body falls on to the gap's floor.
+    constexpr auto FirstFaceX = 0.0;
+    const auto World = MakeFacesAcrossAGap(FirstFaceX);
+    auto SawSecondFace = false;
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd)
+    {
+        const auto Hit = RayCast(World, InStart, InEnd);
+        SawSecondFace = SawSecondFace || (Hit.Get_Hit() && Hit.Get_Normal().Equals(FVector::BackwardVector, DistanceTolerance)
+            && FMath::IsNearlyEqual(Hit.Get_Position().X, SecondFaceX, DistanceTolerance));
+        return Hit;
+    };
+    const auto Settings = MakeSettings().Set_ProbeReach(ShortProbeReach);
+    auto Body = MakeBody(FVector{FallStartX, 0.0, FaceTop + Clearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeFallingState();
+    constexpr auto Coasting = 0.0f;
+
+    auto Landed = false;
+    for (auto Index = 0; Index < MaxSubsteps && NOT Landed; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, Coasting, Step, Cast, NoFeet, Body, State);
+        const auto Position = Body.GetLocation();
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the body stays inside the gap, above the floor (%s)"), Index, *Position.ToString()),
+                Position.X > FirstFaceX && Position.X < SecondFaceX && Position.Z >= 0.0 && NOT Get_IsInside(Position, FirstFaceX)))
+        { return false; }
+        Landed = State.Get_Grounded();
+    }
+
+    TestTrue(TEXT("Precondition: the fall met the second face"), SawSecondFace);
+    if (NOT TestTrue(TEXT("The body lands"), Landed))
+    { return false; }
+    TestTrue(FString::Printf(TEXT("It lands on the gap's floor from the fall, facing up (source %d, normal %s, z %.3f)"),
+        static_cast<int32>(State.Get_ContactSource()), *State.Get_SupportNormal().ToString(), Body.GetLocation().Z),
+        State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Fall
+        && State.Get_SupportNormal().Equals(FVector::UpVector, DistanceTolerance)
+        && FMath::IsNearlyEqual(Body.GetLocation().Z, static_cast<double>(Clearance), DistanceTolerance));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionFallLandsWithRoomTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.FallLandsOnAFaceWithRoom",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionFallLandsWithRoomTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // The same fall with the first face 200 cm back from the second: a clearance of free space lies off the second face,
+    // and the body grabs it as a wall.
+    constexpr auto FirstFaceX = SecondFaceX - 200.0;
+    const auto World = MakeFacesAcrossAGap(FirstFaceX);
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+    const auto Settings = MakeSettings().Set_ProbeReach(ShortProbeReach);
+    auto Body = MakeBody(FVector{FallStartX, 0.0, FaceTop + Clearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeFallingState();
+    constexpr auto Coasting = 0.0f;
+
+    auto Landed = false;
+    for (auto Index = 0; Index < MaxSubsteps && NOT Landed; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, Coasting, Step, Cast, NoFeet, Body, State);
+        Landed = State.Get_Grounded();
+    }
+
+    if (NOT TestTrue(TEXT("The body lands"), Landed))
+    { return false; }
+    const auto OffFace = SecondFaceX - Body.GetLocation().X;
+    TestTrue(FString::Printf(TEXT("It lands on the second face from the fall, one clearance off it (source %d, normal %s, %.3f cm off)"),
+        static_cast<int32>(State.Get_ContactSource()), *State.Get_SupportNormal().ToString(), OffFace),
+        State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Fall
+        && State.Get_SupportNormal().Equals(FVector::BackwardVector, DistanceTolerance)
+        && FMath::IsNearlyEqual(OffFace, static_cast<double>(Clearance), DistanceTolerance));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionFanRefusesTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.FanRefusesAFaceWithoutRoom",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionFanRefusesTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // A body walking slowly off the first top toward a pillar 50 cm past its edge, less than its 65 cm clearance. Past the
+    // edge the look-ahead lands beyond the pillar and misses, and the fan finds the first top's far face: a body one clearance
+    // off it would stand inside the pillar, so the fan's contact is refused. The body coasts, falls and lands on the gap's
+    // floor, where the pillar's near face, without room either, keeps it from walking on.
+    constexpr auto FirstFaceX = 0.0;
+    constexpr auto WalkSpeed = 30.0f;
+    constexpr auto RefusedFaceDegrees = 30.0;
+    constexpr auto HeightTolerance = 1.0;
+    constexpr auto MaxWalkSubsteps = 600;
+    constexpr auto StandSubsteps = 2 * HalfSecondOfSubsteps;
+    const auto World = MakeFacesAcrossAGap(FirstFaceX);
+    auto SawFarFace = false;
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd)
+    {
+        const auto Hit = RayCast(World, InStart, InEnd);
+        SawFarFace = SawFarFace || (Hit.Get_Hit() && Hit.Get_Normal().Equals(FVector::ForwardVector, DistanceTolerance)
+            && FMath::IsNearlyEqual(Hit.Get_Position().X, FirstFaceX, DistanceTolerance));
+        return Hit;
+    };
+    const auto Settings = MakeSettings();
+    auto Body = MakeBody(FVector{-10.0, 0.0, FaceTop + Clearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    const auto Check = [&](int32 InIndex) -> bool
+    {
+        const auto Position = Body.GetLocation();
+        return TestTrue(FString::Printf(TEXT("Substep %d: the first top's far face is never the support and the body never stands inside a "
+                "solid (%s, normal %s)"), InIndex, *Position.ToString(), *State.Get_SupportNormal().ToString()),
+            Get_DegreesFrom(State.Get_SupportNormal(), FVector::ForwardVector) > RefusedFaceDegrees && NOT Get_IsInside(Position, FirstFaceX));
+    };
+
+    auto OnTheGapFloor = false;
+    for (auto Index = 0; Index < MaxWalkSubsteps && NOT OnTheGapFloor; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, WalkSpeed, Step, Cast, NoFeet, Body, State);
+        if (NOT Check(Index))
+        { return false; }
+        OnTheGapFloor = Body.GetLocation().X > FirstFaceX && State.Get_Grounded()
+            && State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Down;
+    }
+    TestTrue(TEXT("Precondition: the fan met the first top's far face"), SawFarFace);
+    if (NOT TestTrue(TEXT("The body comes down on the gap's floor"), OnTheGapFloor))
+    { return false; }
+
+    for (auto Index = 0; Index < StandSubsteps; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, WalkSpeed, Step, Cast, NoFeet, Body, State);
+        if (NOT Check(Index))
+        { return false; }
+    }
+    const auto Position = Body.GetLocation();
+    TestTrue(FString::Printf(TEXT("The body stands one clearance over the gap's floor, between the faces (%s, normal %s)"),
+        *Position.ToString(), *State.Get_SupportNormal().ToString()),
+        Position.X > FirstFaceX && Position.X < SecondFaceX && FMath::IsNearlyEqual(Position.Z, static_cast<double>(Clearance), HeightTolerance)
+        && State.Get_SupportNormal().Equals(FVector::UpVector, DistanceTolerance));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionConcaveCornerTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.ConcaveCornerStillAdopts",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionConcaveCornerTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // A floor meeting a wall at 90 degrees: the wall has a clearance of free space off it, so the climbing body confirms and
+    // adopts it as before.
+    const auto World = MakeFloorAndWall();
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+    auto Body = MakeBody(FVector{-50.0, 0.0, Clearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    auto Adopted = false;
+    for (auto Index = 0; Index < MaxSubsteps && NOT Adopted; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
+        Adopted = State.Get_SupportNormal().Equals(FVector::BackwardVector, DistanceTolerance);
+    }
+    TestTrue(TEXT("The wall at the corner is adopted"), Adopted);
+    TestEqual(TEXT("It is adopted from the forward ray"), State.Get_ContactSource(), ck::EProceduralSurfaceContactSource::Forward);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionRefusedFaceSlidTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.RefusedFaceIsSlidAlongUnderClimb",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionRefusedFaceSlidTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // A climbing body on the floor of a 50 cm corridor between two tall faces, walking into the one ahead. A body one
+    // clearance off that face would stand inside the one behind, so it cannot be climbed: it is slid along instead.
+    constexpr auto CorridorWidth = 50.0;
+    constexpr auto FaceHeight = 300.0;
+    constexpr auto Substeps = 2 * HalfSecondOfSubsteps;
+    const auto World = TArray<FSolid>{
+        MakeHalfSpace(FVector::UpVector, FVector::ZeroVector),
+        MakeBox(FVector{-1000.0, -500.0, -10.0}, FVector{0.0, 500.0, FaceHeight}),
+        MakeBox(FVector{CorridorWidth, -500.0, -10.0}, FVector{1000.0, 500.0, FaceHeight})};
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+    auto Body = MakeBody(FVector{0.5 * CorridorWidth - 5.0, 0.0, Clearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    auto FirstSighting = int32{INDEX_NONE};
+    for (auto Index = 0; Index < Substeps; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
+        const auto X = Body.GetLocation().X;
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the face ahead is never the contact and the body stays in the corridor (source %d, x %.3f)"),
+                Index, static_cast<int32>(State.Get_ContactSource()), X),
+                State.Get_ContactSource() != ck::EProceduralSurfaceContactSource::Forward && X > 0.0 && X < CorridorWidth))
+        { return false; }
+        if (FirstSighting == INDEX_NONE && State.Get_Obstruction() == ck::EProceduralSurfaceObstruction::Wall)
+        { FirstSighting = Index; }
+        if (FirstSighting != INDEX_NONE && NOT TestTrue(FString::Printf(TEXT("Substep %d: the face ahead obstructs the body (%d, %s)"), Index,
+                static_cast<int32>(State.Get_Obstruction()), *State.Get_ObstructionNormal().ToString()),
+                State.Get_Obstruction() == ck::EProceduralSurfaceObstruction::Wall
+                && State.Get_ObstructionNormal().Equals(FVector::BackwardVector, DistanceTolerance)))
+        { return false; }
+    }
+    TestTrue(TEXT("The face ahead became an obstruction"), FirstSighting != INDEX_NONE);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionNarrowGapStopsMidGapTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.NarrowGapSlideStopsMidGap",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionNarrowGapStopsMidGapTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // The fan's scene, climbing and sliding: the body walks off the first top into the 50 cm gap, narrower than its
+    // clearance, and on toward the pillar. Whatever its wall policy it ends standing in the middle of the gap.
+    constexpr auto FirstFaceX = 0.0;
+    constexpr auto WalkSpeed = 30.0f;
+    constexpr auto MiddleTolerance = 5.0;
+    constexpr auto Substeps = 1200;
+    const auto Middle = 0.5 * (FirstFaceX + SecondFaceX);
+    const auto World = MakeFacesAcrossAGap(FirstFaceX);
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+
+    for (const auto WallPolicy : {ck::EProceduralSurfaceWallPolicy::Climb, ck::EProceduralSurfaceWallPolicy::Slide})
+    {
+        const auto PolicyName = WallPolicy == ck::EProceduralSurfaceWallPolicy::Slide ? TEXT("Slide") : TEXT("Climb");
+        const auto Settings = MakeSettings().Set_WallPolicy(WallPolicy);
+        auto Body = MakeBody(FVector{-10.0, 0.0, FaceTop + Clearance}, FVector::UpVector, FVector::ForwardVector);
+        auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+        for (auto Index = 0; Index < Substeps; ++Index)
+        {
+            ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, WalkSpeed, Step, Cast, NoFeet, Body, State);
+            if (NOT TestTrue(FString::Printf(TEXT("%s, substep %d: the body never stands inside a solid (%s)"), PolicyName, Index,
+                    *Body.GetLocation().ToString()), NOT Get_IsInside(Body.GetLocation(), FirstFaceX)))
+            { return false; }
+        }
+        const auto Position = Body.GetLocation();
+        AddInfo(FString::Printf(TEXT("%s: the body ends at %s, obstruction %d"), PolicyName, *Position.ToString(),
+            static_cast<int32>(State.Get_Obstruction())));
+        TestTrue(FString::Printf(TEXT("%s: the body ends on the gap's floor within %.0f cm of its middle (%s, normal %s)"), PolicyName,
+            MiddleTolerance, *Position.ToString(), *State.Get_SupportNormal().ToString()),
+            FMath::Abs(Position.X - Middle) <= MiddleTolerance && Position.Z < FaceTop && State.Get_Grounded()
+            && State.Get_SupportNormal().Equals(FVector::UpVector, DistanceTolerance));
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
 #endif

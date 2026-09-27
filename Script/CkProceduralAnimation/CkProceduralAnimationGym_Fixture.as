@@ -50,6 +50,24 @@ enum ECkProceduralAnimationGym_HeightSource
     PlantedFeet
 }
 
+// Which wall policy and max step height a fixture composes its walkers with: each species' own, or the override's pair for
+// every walker.
+enum ECkProceduralAnimationGym_WallSource
+{
+    Species,
+    Override
+}
+
+struct FCkProceduralAnimationGym_WallOverride
+{
+    UPROPERTY()
+    ECkProceduralAnimationGym_WallSource Source = ECkProceduralAnimationGym_WallSource::Species;
+    UPROPERTY()
+    ECk_SurfaceMotion_WallPolicy WallPolicy = ECk_SurfaceMotion_WallPolicy::Climb;
+    UPROPERTY()
+    float MaxStepHeight = 0.0;
+}
+
 struct FCkProceduralAnimationGym_SpeciesProfile
 {
     UPROPERTY()
@@ -67,6 +85,11 @@ struct FCkProceduralAnimationGym_SpeciesProfile
     // Two feet never fit a plane, so the biped keeps to its rays.
     UPROPERTY()
     ECk_SurfaceMotion_HeightSource HeightSource = ECk_SurfaceMotion_HeightSource::PlantedFeet;
+    // The beast slides along what it cannot step onto; every other species climbs it.
+    UPROPERTY()
+    ECk_SurfaceMotion_WallPolicy WallPolicy = ECk_SurfaceMotion_WallPolicy::Climb;
+    UPROPERTY()
+    float MaxStepHeight = 0.0;
 }
 
 namespace ck_procedural_gym
@@ -143,10 +166,18 @@ namespace ck_procedural_gym
     const float CrossingRampSlabHalfThickness = 60.0;
     const int32 PostLowCount = 9;
     const float PostLowHalfHeight = 15.0;
+    // Every other in-lane post, from the first, is 75 cm tall, above every species' clearance but the spider's and the
+    // biped's, so the forward ray sees it: a step for the crawlers and the beast, a wall the tentacled and the centipede
+    // climb.
+    const float PostStepHalfHeight = 37.5;
     const float PostLowHalfSize = 30.0;
+    // Two clearances of the tallest stepping species of floor between neighbouring posts: a walker comes down to its floor
+    // clearance before every 75 cm post, so its forward ray meets the face instead of its look-ahead lifting it onto the top
+    // as it comes off the post before.
+    const float PostStepApproachLength = 130.0;
     const float PostTallHalfHeight = 45.0;
     const float PostTallHalfSize = 20.0;
-    const float PostPitch = 150.0;
+    const float PostPitch = 2.0 * PostLowHalfSize + PostStepApproachLength;
     const float PostFlankOffset = 100.0;
     const float CylinderRadiusWide = 90.0;
     const float CylinderRadiusNarrow = 45.0;
@@ -185,6 +216,7 @@ namespace ck_procedural_gym
     const float CollapseDropPerClearance = 0.7;
     const float BodyMaxTilt = 22.0;
     const float ProbeReachBeyondClearance = 115.0;
+    const float MaxStepHeightPerClearance = 1.3;
     const FVector FootHalfExtents = FVector(10.0, 9.0, 5.0);
     const float SegmentRootThickness = 8.0;
     const float SegmentTipThickness = 5.5;
@@ -255,6 +287,7 @@ namespace ck_procedural_gym
             Profile.Gait = ck::ProceduralGym_GaitBeast;
             Profile.Clearance = ck_procedural_gym_assets::BeastRestDrop;
             Profile.BodyHalfExtents = ck_procedural_gym_assets::BeastBodyHalfExtents;
+            Profile.WallPolicy = ECk_SurfaceMotion_WallPolicy::Slide;
         }
         else if (InSpecies == ECkProceduralAnimationGym_Species::Biped)
         {
@@ -273,9 +306,11 @@ namespace ck_procedural_gym
             Profile.CollapseDrop = BodyCollapseDrop;
             Profile.BodyHalfExtents = InSpecies == ECkProceduralAnimationGym_Species::Crawler4 ? Crawler4BodyHalfExtents :
                 (InSpecies == ECkProceduralAnimationGym_Species::Crawler6 ? Crawler6BodyHalfExtents : Crawler8BodyHalfExtents);
+            Profile.MaxStepHeight = MaxStepHeightPerClearance * Profile.Clearance;
             return Profile;
         }
         Profile.CollapseDrop = CollapseDropPerClearance * Profile.Clearance;
+        Profile.MaxStepHeight = MaxStepHeightPerClearance * Profile.Clearance;
         return Profile;
     }
 
@@ -460,7 +495,8 @@ namespace ck_procedural_gym
     }
 
     // Three walkers per stress course; every species but the biped, which only climbs the cylinder, crosses at least two of
-    // them. The gym and the PaViz harness share it.
+    // them. The gym and the PaViz harness share it. The beast, which slides along the faces it cannot step onto, stays off
+    // the courses whose only way on is a climb: the ledge and the log.
     TArray<ECkProceduralAnimationGym_Species> Get_StressRoster(ECkProceduralAnimationGym_Course InCourse)
     {
         auto Roster = TArray<ECkProceduralAnimationGym_Species>();
@@ -474,7 +510,7 @@ namespace ck_procedural_gym
         {
             Roster.Add(ECkProceduralAnimationGym_Species::Crawler6);
             Roster.Add(ECkProceduralAnimationGym_Species::Tentacled);
-            Roster.Add(ECkProceduralAnimationGym_Species::Beast);
+            Roster.Add(ECkProceduralAnimationGym_Species::Spider);
         }
         else if (InCourse == ECkProceduralAnimationGym_Course::Ridge)
         {
@@ -485,14 +521,14 @@ namespace ck_procedural_gym
         else if (InCourse == ECkProceduralAnimationGym_Course::Log)
         {
             Roster.Add(ECkProceduralAnimationGym_Species::Tentacled);
-            Roster.Add(ECkProceduralAnimationGym_Species::Beast);
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler6);
             Roster.Add(ECkProceduralAnimationGym_Species::Crawler4);
         }
         else if (InCourse == ECkProceduralAnimationGym_Course::Beam)
         {
             Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
             Roster.Add(ECkProceduralAnimationGym_Species::Spider);
-            Roster.Add(ECkProceduralAnimationGym_Species::Crawler6);
+            Roster.Add(ECkProceduralAnimationGym_Species::Beast);
         }
         else if (InCourse == ECkProceduralAnimationGym_Course::Pillars)
         {
@@ -635,12 +671,15 @@ namespace ck_procedural_gym
         return InSpecies;
     }
 
-    FCk_SurfaceMotion_Spec MakeMotionParams(float InClearance, float InSurfaceTurnRate, ECk_SurfaceMotion_HeightSource InHeightSource)
+    FCk_SurfaceMotion_Spec MakeMotionParams(float InClearance, float InSurfaceTurnRate, ECk_SurfaceMotion_HeightSource InHeightSource,
+        ECk_SurfaceMotion_WallPolicy InWallPolicy, float InMaxStepHeight)
     {
         auto Contact = FCk_SurfaceMotion_Contact();
         Contact.Set_Clearance(InClearance);
         Contact.Set_ProbeReach(InClearance + ProbeReachBeyondClearance);
         Contact.Set_HeightSource(InHeightSource);
+        Contact.Set_WallPolicy(InWallPolicy);
+        Contact.Set_MaxStepHeight(InMaxStepHeight);
 
         auto Movement = FCk_SurfaceMotion_Movement();
         Movement.Set_MaxSpeed(180.0f);
@@ -1163,6 +1202,8 @@ struct FCkProceduralAnimationGym_SpawnRequest
     // How far above the fixture origin the walkers' start stands: a test that builds its own start above the floor.
     UPROPERTY()
     float StartHeight = 0.0;
+    UPROPERTY()
+    FCkProceduralAnimationGym_WallOverride WallOverride;
 }
 
 struct FCkProceduralAnimationGym_Fixture
@@ -1205,7 +1246,8 @@ struct FCkProceduralAnimationGym_Fixture
         TArray<ECkProceduralAnimationGym_Species> InRoster, bool InRender = true,
         ECk_ProceduralBodyPose_ConformMode InConformMode = ECk_ProceduralBodyPose_ConformMode::PlantedFeet,
         ECkProceduralAnimationGym_HeightSource InHeightSource = ECkProceduralAnimationGym_HeightSource::Species,
-        float InStartHeight = 0.0)
+        float InStartHeight = 0.0,
+        FCkProceduralAnimationGym_WallOverride InWallOverride = FCkProceduralAnimationGym_WallOverride())
     {
         if (Get_IsDestroyed() == false || ck::Is_NOT_Valid(InOwner) || InRoster.Num() < 1 || InRoster.Num() > 3)
         {
@@ -1232,6 +1274,7 @@ struct FCkProceduralAnimationGym_Fixture
         Spawn.ConformMode = InConformMode;
         Spawn.HeightSource = InHeightSource;
         Spawn.StartHeight = InStartHeight;
+        Spawn.WallOverride = InWallOverride;
         Spawn.Pending = true;
 
         auto GroundColor = FLinearColor(0.12, 0.18, 0.24, 1.0);
@@ -1411,10 +1454,9 @@ struct FCkProceduralAnimationGym_Fixture
             ck_procedural_gym::CrossingRampSlabHalfThickness);
     }
 
-    // Per lane, low posts on the lane's line and tall posts flanking it halfway between them.
+    // Per lane, posts on the lane's line, 75 and 30 cm tall in turn, and tall posts flanking it halfway between them.
     void AddPosts(FLinearColor InColor)
     {
-        auto LowHalfExtents = FVector(ck_procedural_gym::PostLowHalfSize, ck_procedural_gym::PostLowHalfSize, ck_procedural_gym::PostLowHalfHeight);
         auto TallHalfExtents = FVector(ck_procedural_gym::PostTallHalfSize, ck_procedural_gym::PostTallHalfSize, ck_procedural_gym::PostTallHalfHeight);
         auto FirstX = -0.5 * (ck_procedural_gym::PostLowCount - 1) * ck_procedural_gym::PostPitch;
         for (auto Lane = 0; Lane < Spawn.Roster.Num(); Lane++)
@@ -1422,8 +1464,9 @@ struct FCkProceduralAnimationGym_Fixture
             auto LaneY = ck_procedural_gym::Get_LaneY(Lane, Spawn.Roster.Num(), Spawn.Course);
             for (auto Index = 0; Index < ck_procedural_gym::PostLowCount; Index++)
             {
-                AddSurface(FVector(FirstX + ck_procedural_gym::PostPitch * Index, LaneY, ck_procedural_gym::PostLowHalfHeight),
-                    FRotator::ZeroRotator, LowHalfExtents, InColor);
+                auto HalfHeight = Index % 2 == 0 ? ck_procedural_gym::PostStepHalfHeight : ck_procedural_gym::PostLowHalfHeight;
+                AddSurface(FVector(FirstX + ck_procedural_gym::PostPitch * Index, LaneY, HalfHeight), FRotator::ZeroRotator,
+                    FVector(ck_procedural_gym::PostLowHalfSize, ck_procedural_gym::PostLowHalfSize, HalfHeight), InColor);
             }
             for (auto Index = 0; Index < ck_procedural_gym::PostLowCount - 1; Index++)
             {
@@ -1704,8 +1747,11 @@ struct FCkProceduralAnimationGym_Fixture
         Crawler.Handles.Presentation = AddVisual(RootEntity, FTransform(Crawler.Layout.Start), Profile.BodyHalfExtents,
             Crawler.Layout.Color);
 
+        auto WallsOverridden = Spawn.WallOverride.Source == ECkProceduralAnimationGym_WallSource::Override;
+        auto WallPolicy = WallsOverridden ? Spawn.WallOverride.WallPolicy : Profile.WallPolicy;
+        auto MaxStepHeight = WallsOverridden ? Spawn.WallOverride.MaxStepHeight : Profile.MaxStepHeight;
         Crawler.Handles.Motion = utils_surface_motion::Add(Crawler.Handles.Root, ck_procedural_gym::MakeMotionParams(Profile.Clearance,
-            Profile.SurfaceTurnRate, ck_procedural_gym::Get_HeightSource(Spawn.HeightSource, Profile.HeightSource)));
+            Profile.SurfaceTurnRate, ck_procedural_gym::Get_HeightSource(Spawn.HeightSource, Profile.HeightSource), WallPolicy, MaxStepHeight));
 
         Crawler.Layout.GaitPreset = Profile.Gait;
         auto Chains = TArray<FCk_ProceduralWalker_LegChain>();

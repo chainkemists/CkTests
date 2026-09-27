@@ -7,6 +7,8 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
     private FVector _Origin = FVector(120000.0, 62000.0, 1000.0);
     private FCk_Handle _Body;
     private FCk_Handle _FeetBody;
+    // Above the default 65 cm clearance and within the default 200 cm probe reach.
+    private float32 _ValidStepHeight = 85.0f;
 
     bool HasMotion(FCk_Handle InBody)
     {
@@ -25,6 +27,15 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
         auto Contact = FCk_SurfaceMotion_Contact();
         Contact.Set_ConfirmAngle(InConfirmAngle);
         Contact.Set_ConfirmTime(InConfirmTime);
+        auto Spec = FCk_SurfaceMotion_Spec();
+        Spec.Set_Contact(Contact);
+        return Spec;
+    }
+
+    FCk_SurfaceMotion_Spec MakeSpecWithStepHeight(float32 InMaxStepHeight)
+    {
+        auto Contact = FCk_SurfaceMotion_Contact();
+        Contact.Set_MaxStepHeight(InMaxStepHeight);
         auto Spec = FCk_SurfaceMotion_Spec();
         Spec.Set_Contact(Contact);
         return Spec;
@@ -88,6 +99,11 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
         AssertSpecRejected(Body, MakeSpecWithSteerFloor(-0.1f), "Negative steer floor");
         AssertSpecRejected(Body, MakeSpecWithSteerFloor(1.1f), "Steer floor above 1");
         AssertSpecRejected(Body, MakeSpecWithSteerFloor(float32(NaN)), "NaN steer floor");
+        auto DefaultContact = FCk_SurfaceMotion_Contact();
+        AssertSpecRejected(Body, MakeSpecWithStepHeight(-1.0f), "Negative max step height");
+        AssertSpecRejected(Body, MakeSpecWithStepHeight(DefaultContact.Get_Clearance()), "Max step height at the clearance");
+        AssertSpecRejected(Body, MakeSpecWithStepHeight(DefaultContact.Get_ProbeReach() + 1.0f), "Max step height beyond the probe reach");
+        AssertSpecRejected(Body, MakeSpecWithStepHeight(float32(NaN)), "NaN max step height");
 
         auto DyingEntity = utils_entity_lifetime::Request_CreateEntity(Owner);
         DyingEntity.Request_OverrideToSelf();
@@ -107,6 +123,9 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
         Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 0, "Positive control: no ensure fires");
         Assert_True(utils_surface_motion::Get_HeightSource(Motion) == ECk_SurfaceMotion_HeightSource::Rays,
             "The default height source reads back as Rays");
+        Assert_True(utils_surface_motion::Get_WallPolicy(Motion) == ECk_SurfaceMotion_WallPolicy::Climb,
+            "The default wall policy reads back as Climb");
+        Assert_Equals_Float(utils_surface_motion::Get_MaxStepHeight(Motion), 0.0, 0.0, "The default max step height reads back as 0");
 
         auto FeetEntity = utils_entity_lifetime::Request_CreateEntity(Owner);
         FeetEntity.Request_OverrideToSelf();
@@ -114,6 +133,8 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
         _FeetBody = FeetBody;
         auto FeetContact = FCk_SurfaceMotion_Contact();
         FeetContact.Set_HeightSource(ECk_SurfaceMotion_HeightSource::PlantedFeet);
+        FeetContact.Set_WallPolicy(ECk_SurfaceMotion_WallPolicy::Slide);
+        FeetContact.Set_MaxStepHeight(_ValidStepHeight);
         auto FeetSpec = FCk_SurfaceMotion_Spec();
         FeetSpec.Set_Contact(FeetContact);
         EnsuresBefore = utils_ensure::Get_EnsureCount();
@@ -122,6 +143,10 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
         Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 0, "A PlantedFeet height source fires no ensure");
         Assert_True(utils_surface_motion::Get_HeightSource(FeetMotion) == ECk_SurfaceMotion_HeightSource::PlantedFeet,
             "The PlantedFeet height source reads back as PlantedFeet");
+        Assert_True(utils_surface_motion::Get_WallPolicy(FeetMotion) == ECk_SurfaceMotion_WallPolicy::Slide,
+            "The Slide wall policy reads back as Slide");
+        Assert_Equals_Float(utils_surface_motion::Get_MaxStepHeight(FeetMotion), _ValidStepHeight, 0.0,
+            "A max step height above the clearance and within the probe reach reads back as set");
 
         EnsuresBefore = utils_ensure::Get_EnsureCount();
         AssertRejected(utils_surface_motion::Add(Body, FCk_SurfaceMotion_Spec()), EnsuresBefore, true,
