@@ -148,7 +148,8 @@ namespace ck_test_procedural_gait_cadence_floor
     {
         InState->SequenceAtChange = Get_Sequence(InState);
         UCk_Utils_ProceduralGait_UE::Request_ApplyPreset(InState->Gait,
-            FCk_Request_ProceduralGait_ApplyPreset{MakeTiming(InCycle, InStep, InCadenceSpeedRef), MakeStep(), FCk_ProceduralGait_Probe{}}, {});
+            FCk_Request_ProceduralGait_ApplyPreset{MakeTiming(InCycle, InStep, InCadenceSpeedRef), MakeStep(), FCk_ProceduralGait_Probe{},
+                FCk_ProceduralGait_Foothold{}}, {});
     }
 }
 

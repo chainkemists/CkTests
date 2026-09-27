@@ -8,6 +8,7 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
     private FCk_Handle _Body;
     private FCk_Handle _OneLegBody;
     private FCk_Handle _ShortLegBody;
+    private FCk_Handle _WalkerBody;
     private TArray<ECk_Request_OperationResult> _ApplyPresetResults;
     private int32 _AcceptedPresetResultsBefore = 0;
 
@@ -52,7 +53,15 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
         Step.Set_TargetReachFraction(InTargetReachFraction);
         Step.Set_ForceStepReachFraction(InForceStepReachFraction);
         Step.Set_HardOverstretchReachFraction(InHardOverstretchReachFraction);
-        return FCk_Request_ProceduralGait_ApplyPreset(Preset.Get_Timing(), Step, Preset.Get_Probe());
+        return FCk_Request_ProceduralGait_ApplyPreset(Preset.Get_Timing(), Step, Preset.Get_Probe(), Preset.Get_Foothold());
+    }
+
+    FCk_Request_ProceduralGait_ApplyPreset MakeNegativeSlopeWeightRequest()
+    {
+        UCk_ProceduralGait_Data Preset = ck::ProceduralGym_Gait;
+        auto Foothold = Preset.Get_Foothold();
+        Foothold.Set_SlopeWeight(-1.0f);
+        return FCk_Request_ProceduralGait_ApplyPreset(Preset.Get_Timing(), Preset.Get_Step(), Preset.Get_Probe(), Foothold);
     }
 
     void AssertPresetRejected(FCk_Handle_ProceduralGait InGait, FCk_Request_ProceduralGait_ApplyPreset InRequest, const FString& InCase)
@@ -93,6 +102,21 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
         EnsuresBefore = utils_ensure::Get_EnsureCount();
         AssertRejected(utils_procedural_gait::Add(Body, ck::ProceduralTest_ZeroStepDurationGait), Body, EnsuresBefore,
             false, "Zero step duration");
+
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        AssertRejected(utils_procedural_gait::Add(Body, ck::ProceduralTest_NegativeSlopeWeightGait), Body, EnsuresBefore,
+            false, "Negative foothold slope weight");
+
+        auto WalkerBody = CreateBody(InHandle, _Origin + FVector(0.0, 1500.0, 0.0));
+        _WalkerBody = WalkerBody;
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        auto Walker = utils_procedural_animation::Add_Walker(WalkerBody, ck::ProceduralTest_SideRig,
+            ck::ProceduralTest_NegativeSlopeWeightGait, TArray<FCk_ProceduralWalker_LegChain>());
+        Assert_True(ck::Is_NOT_Valid(Walker.Get_Gait()) && Walker.Get_Legs().Num() == 0,
+            "Negative foothold slope weight: Add_Walker returns an empty walker");
+        Assert_Equals_Int(utils_procedural_leg::Get_Legs(WalkerBody).Num(), 0, "Negative foothold slope weight: Add_Walker creates no leg");
+        Assert_False(HasGait(WalkerBody), "Negative foothold slope weight: Add_Walker adds no gait");
+        Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 1, "Negative foothold slope weight: Add_Walker fires exactly one ensure");
 
         auto OneLegBody = CreateBody(InHandle, _Origin + FVector(0.0, 500.0, 0.0));
         _OneLegBody = OneLegBody;
@@ -137,6 +161,7 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
         AssertPresetRejected(Gait, MakeReachRequest(0.95f), "Preset whose target reach exceeds its force-step reach");
         AssertPresetRejected(Gait, MakeReachRequest(0.8f, 0.92f, 0.99f), "Preset whose hard-overstretch reach is below the chain");
         AssertPresetRejected(Gait, MakeReachRequest(0.8f, 0.92f, 1.51f), "Preset whose hard-overstretch reach exceeds 1.5 chains");
+        AssertPresetRejected(Gait, MakeNegativeSlopeWeightRequest(), "Preset whose foothold slope weight is negative");
 
         _AcceptedPresetResultsBefore = _ApplyPresetResults.Num();
         EnsuresBefore = utils_ensure::Get_EnsureCount();
@@ -158,7 +183,8 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
     UFUNCTION()
     private void Step_Destroy(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        Assert_True(ck::IsValid(_Body) && ck::IsValid(_OneLegBody) && ck::IsValid(_ShortLegBody), "Every body survived the rejections");
+        Assert_True(ck::IsValid(_Body) && ck::IsValid(_OneLegBody) && ck::IsValid(_ShortLegBody) && ck::IsValid(_WalkerBody),
+            "Every body survived the rejections");
         Assert_Equals_Int(_ApplyPresetResults.Num() - _AcceptedPresetResultsBefore, 2, "Positive controls: each accepted preset completes once");
         for (auto Index = _AcceptedPresetResultsBefore; Index < _ApplyPresetResults.Num(); Index++)
         {
@@ -168,13 +194,15 @@ class UCk_AutoTest_ProceduralAnimation_GaitAdmissionRejects : UCk_AutoTest_Base
         utils_entity_lifetime::Request_DestroyEntity(_Body);
         utils_entity_lifetime::Request_DestroyEntity(_OneLegBody);
         utils_entity_lifetime::Request_DestroyEntity(_ShortLegBody);
+        utils_entity_lifetime::Request_DestroyEntity(_WalkerBody);
     }
 
     UFUNCTION()
     private void Check_Destroyed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         auto Result = OutResult;
-        Result.Set(ck::Is_NOT_Valid(_Body) && ck::Is_NOT_Valid(_OneLegBody) && ck::Is_NOT_Valid(_ShortLegBody));
+        Result.Set(ck::Is_NOT_Valid(_Body) && ck::Is_NOT_Valid(_OneLegBody) && ck::Is_NOT_Valid(_ShortLegBody)
+            && ck::Is_NOT_Valid(_WalkerBody));
     }
 }
 
@@ -195,7 +223,8 @@ class ACk_AutoTest_ProceduralAnimation_GaitAdmissionRejects_Actor : ACk_AutoTest
     TArray<FString> Get_ExpectedLogErrors() const
     {
         auto Errors = TArray<FString>();
-        Errors.Add("the gait data asset is missing or its timing, step or probe settings are malformed.");
+        Errors.Add("the gait data asset is missing or its timing, step, probe or foothold settings are malformed.");
+        Errors.Add("It needs a live transform body that can own children with no gait and no legs");
         Errors.Add("create 2..64 legs before the gait and keep MaxSimultaneousSwings within the leg count.");
         Errors.Add("it must be a live transform entity with no existing gait.");
         Errors.Add("lies farther from its hip than TargetReachFraction of its chain length.");

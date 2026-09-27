@@ -26,6 +26,8 @@ class UCk_AutoTest_ProceduralAnimation_ApplyPresetRetunesLiveGait : UCk_AutoTest
     private float _ApplyClockDelta = 0.0;
     private float _ApplyFootShift = 0.0;
     private int32 _FeetPlantedAcrossApply = 0;
+    private int32 _WideKeepRadiusCompletions = 0;
+    private ECk_Request_OperationResult _WideKeepRadiusResult = ECk_Request_OperationResult::Failed;
 
     float Get_Elapsed() const
     {
@@ -110,6 +112,12 @@ class UCk_AutoTest_ProceduralAnimation_ApplyPresetRetunesLiveGait : UCk_AutoTest
         Add_Step_WaitUntil("the preset is applied on a live gait", n"Check_Applied");
         Add_Step_WaitUntil("the gait clock rate is measured over 2 s at the slow cadence", n"Check_AfterWindow");
         Add_Step("verify the retune kept leg state and slowed the steps", n"Step_Verify");
+        Add_Step("apply a preset whose held footholds may lie 500 cm from the ideal", n"Step_ApplyWideKeepRadius");
+        Add_Step_WaitUntil("the wide keep-radius preset completes", n"Check_WideKeepRadiusApplied");
+        // A settle, not a condition: the assertion after it is that nothing latches a failure while the gait runs on
+        // the wide keep radius; the completion above already proved the preset landed.
+        Add_Step_WaitFrames("the gait updates with the wide keep radius", 10);
+        Add_Step("verify the walker stays ready and retire the fixture", n"Step_VerifyWideKeepRadius");
         Add_Step_WaitUntil("the fixture is gone", n"Check_Destroyed");
         Run_Steps(InHandle);
     }
@@ -172,7 +180,8 @@ class UCk_AutoTest_ProceduralAnimation_ApplyPresetRetunesLiveGait : UCk_AutoTest
         auto Gait = _Fixture.Crawlers[0].Handles.Gait;
         UCk_ProceduralGait_Data SlowPreset = ck::ProceduralGym_GaitSlow;
         utils_procedural_gait::Request_ApplyPreset(Gait,
-            FCk_Request_ProceduralGait_ApplyPreset(SlowPreset.Get_Timing(), SlowPreset.Get_Step(), SlowPreset.Get_Probe()),
+            FCk_Request_ProceduralGait_ApplyPreset(SlowPreset.Get_Timing(), SlowPreset.Get_Step(), SlowPreset.Get_Probe(),
+                SlowPreset.Get_Foothold()),
             FCk_Delegate_Request_OnCompleted(this, n"OnApplied"));
     }
 
@@ -241,6 +250,42 @@ class UCk_AutoTest_ProceduralAnimation_ApplyPresetRetunesLiveGait : UCk_AutoTest
         Assert_True(_ClockRateBefore > 0.0, f"Precondition: the gait clock advanced before the retune ({_ClockRateBefore :.3} cycles per second)");
         Assert_True(_ClockRateAfter < _ClockRateBefore,
             f"The slow preset slows the gait cadence ({_ClockRateBefore :.3} -> {_ClockRateAfter :.3} cycles per second)");
+    }
+
+    UFUNCTION()
+    private void Step_ApplyWideKeepRadius(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        auto Gait = _Fixture.Crawlers[0].Handles.Gait;
+        UCk_ProceduralGait_Data SlowPreset = ck::ProceduralGym_GaitSlow;
+        auto Foothold = SlowPreset.Get_Foothold();
+        Foothold.Set_KeepRadius(500.0f);
+        utils_procedural_gait::Request_ApplyPreset(Gait,
+            FCk_Request_ProceduralGait_ApplyPreset(SlowPreset.Get_Timing(), SlowPreset.Get_Step(), SlowPreset.Get_Probe(), Foothold),
+            FCk_Delegate_Request_OnCompleted(this, n"OnWideKeepRadiusApplied"));
+    }
+
+    UFUNCTION()
+    private void OnWideKeepRadiusApplied(FCk_Handle InRequestOwner, ECk_Request_OperationResult InResult)
+    {
+        _WideKeepRadiusCompletions++;
+        _WideKeepRadiusResult = InResult;
+    }
+
+    UFUNCTION()
+    private void Check_WideKeepRadiusApplied(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        _Fixture.Update();
+        auto Result = OutResult;
+        Result.Set(_WideKeepRadiusCompletions > 0);
+    }
+
+    UFUNCTION()
+    private void Step_VerifyWideKeepRadius(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        Assert_Equals_Int(_WideKeepRadiusCompletions, 1, "The wide keep-radius preset completes exactly once");
+        Assert_True(_WideKeepRadiusResult == ECk_Request_OperationResult::Succeeded, "The wide keep-radius preset completes Succeeded");
+        Assert_True(utils_procedural_gait::Get_Status(_Fixture.Crawlers[0].Handles.Gait) == ECk_ProceduralAnimation_Status::Ready,
+            "A 500 cm keep radius leaves the walker Ready");
         _Fixture.Request_Destroy();
     }
 

@@ -11,6 +11,7 @@ namespace ck_procedural_gym_assets
     const float CentipedeRestDrop = 45.0;
     const float TentacledRestDrop = 55.0;
     const float BeastRestDrop = 64.0;
+    const float BipedRestDrop = 90.0;
     // Hips sit on these boxes' side faces, so every chain starts at the body surface instead of inside the body.
     const FVector SpiderBodyHalfExtents = FVector(34.0, 30.0, 20.0);
     const FVector CentipedeBodyHalfExtents = FVector(130.0, 24.0, 12.0);
@@ -18,6 +19,7 @@ namespace ck_procedural_gym_assets
     // Shorter than the beast's 64 cm clearance, so surface motion's confirmation window (180 cm/s for 0.075 s, 13.5 cm) cannot
     // carry its nose into a head-on wall; the hips at X +-45 stay on the side faces.
     const FVector BeastBodyHalfExtents = FVector(50.0, 28.0, 22.0);
+    const FVector BipedBodyHalfExtents = FVector(16.0, 14.0, 26.0);
 
     TArray<float32> MakeSegmentLengths(int32 InSegmentCount)
     {
@@ -187,6 +189,23 @@ namespace ck_procedural_gym_assets
         Legs.Add(MakeBeastLeg(n"RR", -1.0, 1.0, 0.0f, RearLengths));
         return Legs;
     }
+
+    // The poles sit ahead of the hips, so the knees bend forward.
+    TArray<FCk_ProceduralLeg_Spec> MakeBipedLegs()
+    {
+        auto Lengths = TArray<float32>();
+        Lengths.Add(45.0f);
+        Lengths.Add(45.0f);
+        Lengths.Add(60.0f);
+        auto Legs = TArray<FCk_ProceduralLeg_Spec>();
+        for (auto SideIndex = 0; SideIndex < 2; SideIndex++)
+        {
+            auto Side = SideIndex == 0 ? -1.0 : 1.0;
+            Legs.Add(MakeLegWithLengths(SideIndex == 0 ? n"L" : n"R", FVector(0.0, Side * BipedBodyHalfExtents.Y, 0.0), FVector(0.0, Side * 22.0, -BipedRestDrop),
+                FVector(45.0, Side * 18.0, 30.0), SideIndex == 0 ? 0.0f : 0.5f, Lengths));
+        }
+        return Legs;
+    }
 }
 
 // The data assets bind CK_PROPERTY setters, so a direct property assignment here is an ambiguous write;
@@ -258,6 +277,15 @@ namespace ck
         _Step.Set_MaxVelocityLead(25.0f);
     }
 
+    asset ProceduralGym_GaitBiped of UCk_ProceduralGait_Data
+    {
+        _Timing.Set_CycleDuration(FCk_Time(0.7));
+        _Timing.Set_StepDuration(FCk_Time(0.28));
+        _Step.Set_Height(22.0f);
+        _Step.Set_Threshold(30.0f);
+        _Step.Set_MaxVelocityLead(40.0f);
+    }
+
     asset ProceduralGym_Rig4 of UCk_ProceduralRig_Data
     {
         _Legs.Append(ck_procedural_gym_assets::MakeRadialLegs(4, 2));
@@ -293,6 +321,11 @@ namespace ck
         _Legs.Append(ck_procedural_gym_assets::MakeBeastLegs());
     }
 
+    asset ProceduralGym_RigBiped of UCk_ProceduralRig_Data
+    {
+        _Legs.Append(ck_procedural_gym_assets::MakeBipedLegs());
+    }
+
     asset ProceduralTest_SideRig of UCk_ProceduralRig_Data
     {
         _Legs.Append(ck_procedural_gym_assets::MakeSideLegs());
@@ -322,5 +355,14 @@ namespace ck
         _Timing.Set_StepDuration(FCk_Time(0.22));
         _Step.Set_Threshold(30.0f);
         _Step.Set_TargetReachFraction(0.6f);
+    }
+
+    // Foothold weights must not be negative; admission rejects this preset.
+    asset ProceduralTest_NegativeSlopeWeightGait of UCk_ProceduralGait_Data
+    {
+        _Timing.Set_CycleDuration(FCk_Time(0.8));
+        _Timing.Set_StepDuration(FCk_Time(0.22));
+        _Step.Set_Threshold(30.0f);
+        _Foothold.Set_SlopeWeight(-1.0f);
     }
 }

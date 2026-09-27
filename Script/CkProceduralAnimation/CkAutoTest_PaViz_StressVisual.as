@@ -1,17 +1,22 @@
 // Language=angelscript
 
-// One HighResShot side capture of each stress course's middle walker at the course's feature, plus a top-down one of the
-// spin, for docs/campaigns/procedural-animation/viz, through the shared shot plan (CkPaViz_ShotPlan.as). Needs a real RHI
-// (--no-nullrhi); under -nullrhi it still passes and the captures are black.
+// One HighResShot side capture of each stress course's middle walker at the course's feature, plus top-down ones of the
+// spin, the pillar crossing, the cylinder and the pillar field, for docs/campaigns/procedural-animation/viz, through the
+// shared shot plan (CkPaViz_ShotPlan.as). Needs a real RHI (--no-nullrhi); under -nullrhi it still passes and the captures
+// are black.
 class UCk_AutoTest_PaViz_StressVisual : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 75.0f;
+    default _TimeoutSeconds = 130.0f;
     default _AutoStageOriginField = false;
     private FCkPaViz_ShotPlan _Shots;
     // The middle walker is shot over the third lane and down onto the feature.
     private float _SideHeight = 200.0;
     private float _TopDownHeight = 600.0;
     private int32 _Middle = 1;
+    private int32 _FirstLane = 0;
+    // The cylinder's lane walker is shot once it is halfway up the climb, whichever way round the cylinder it faces.
+    private float _CylinderShotMinZ = 250.0;
+    private float _AnyX = 100000.0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -30,6 +35,21 @@ class UCk_AutoTest_PaViz_StressVisual : UCk_AutoTest_Base
             Created = _Shots.Add_Fixture(InHandle, Courses[Index], FVector(120000.0, 200000.0 + 5000.0 * Index, 600.0),
                 ck_procedural_gym::Get_StressRoster(Courses[Index])) && Created;
         }
+        // The third stress set sits past the telemetry C fixtures (Y 240000 to 265000).
+        auto NavigationCourses = TArray<ECkProceduralAnimationGym_Course>();
+        NavigationCourses.Add(ECkProceduralAnimationGym_Course::PillarCrossing);
+        NavigationCourses.Add(ECkProceduralAnimationGym_Course::Posts);
+        NavigationCourses.Add(ECkProceduralAnimationGym_Course::Cylinder);
+        for (auto Index = 0; Index < NavigationCourses.Num(); Index++)
+        {
+            Created = _Shots.Add_Fixture(InHandle, NavigationCourses[Index], FVector(120000.0, 270000.0 + 5000.0 * Index, 600.0),
+                ck_procedural_gym::Get_StressRoster(NavigationCourses[Index])) && Created;
+        }
+        auto PillarsFixture = 5;
+        auto SpinFixture = 6;
+        auto CrossingFixture = Courses.Num();
+        auto PostsFixture = Courses.Num() + 1;
+        auto CylinderFixture = Courses.Num() + 2;
         if (Created == false)
         {
             FinishFailure("The isolated rendered stress fixtures could not be created");
@@ -43,9 +63,17 @@ class UCk_AutoTest_PaViz_StressVisual : UCk_AutoTest_Base
         _Shots.Add_Shot(2, _Middle, "crest", -20.0, 0, false, _SideHeight);
         _Shots.Add_Shot(3, _Middle, "top", -40.0, 0, false, _SideHeight);
         _Shots.Add_Shot(4, _Middle, "along", -400.0, 0, false, _SideHeight);
-        _Shots.Add_Shot(5, _Middle, "first-pillar", -980.0, 0, false, _SideHeight);
-        _Shots.Add_Shot(6, _Middle, "spinning", -100000.0, 0, false, _SideHeight, -100000.0, 3.0);
-        _Shots.Add_Shot(6, _Middle, "spinning-topdown", -100000.0, 0, true, _TopDownHeight, -100000.0, 4.5);
+        _Shots.Add_Shot(PillarsFixture, _Middle, "first-pillar", -980.0, 0, false, _SideHeight);
+        _Shots.Add_Shot(SpinFixture, _Middle, "spinning", -100000.0, 0, false, _SideHeight, -100000.0, 3.0);
+        _Shots.Add_Shot(SpinFixture, _Middle, "spinning-topdown", -100000.0, 0, true, _TopDownHeight, -100000.0, 4.5);
+        // The middle of the pillar tops, the middle of the posts, the cylinder climb, and the pillar field's middle between
+        // its rows.
+        _Shots.Add_Shot(CrossingFixture, _Middle, "pillar-tops", 0.0, 0, false, _SideHeight);
+        _Shots.Add_Shot(CrossingFixture, _Middle, "pillar-tops-topdown", 0.0, 0, true, _TopDownHeight);
+        _Shots.Add_Shot(PostsFixture, _Middle, "posts", 0.0, 0, false, _SideHeight);
+        _Shots.Add_Shot(CylinderFixture, _FirstLane, "cylinder-side", _AnyX, 1, false, _SideHeight, _CylinderShotMinZ);
+        _Shots.Add_Shot(CylinderFixture, _FirstLane, "cylinder-topdown", _AnyX, 1, true, _TopDownHeight, _CylinderShotMinZ);
+        _Shots.Add_Shot(PillarsFixture, _Middle, "between-rows", 0.0, 0, true, _TopDownHeight);
 
         // HighResShot rewrites these three and does not always put them back; snapshot them so the base does.
         Snapshot_CVarForTest(n"r.ForceLOD");

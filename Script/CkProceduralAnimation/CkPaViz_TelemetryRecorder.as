@@ -13,6 +13,15 @@ namespace ck_paviz_telemetry
     const float BuriedRayLength = 60.0;
     // A ray that hits at its very start began inside a solid: the depth is then unknown, not zero.
     const float StartInsideFraction = 0.0001;
+    // A drawn chain segment passes through a solid when a ray along it hits strictly inside it: a hit at the start is a ray
+    // that began inside a solid, and one at the end is the foot resting on its contact surface. Shorter segments (the hip
+    // and the chain's first joint coincide) are not cast.
+    const float CrossingMinFraction = 0.02;
+    const float CrossingMaxFraction = 0.98;
+    const float CrossingMinSegmentLength = 0.5;
+    // A planted foot is occluded when the ray from its simulation hip meets a solid farther than the gait's default
+    // occlusion tolerance from the foot, the gait's own test for an occluded plant.
+    const float HipFootOcclusionTolerance = 3.0;
     // The body-pose spring steps are taken where the hump's flat would be, past its foot, on a walker without conform, so the
     // step response is the spring's alone: 180 cm past the foot, and 1.8 s later the enable step still has 1.8 s of flat
     // before the turnaround.
@@ -261,12 +270,24 @@ struct FCkPaViz_TelemetryRecorder
         auto Mass = Spring.Get_Mass();
         auto MaxAttitudeLag = Spring.Get_MaxAttitudeLag();
         auto LaneY = Crawler.Layout.LaneY;
+        auto StepDuration = Crawler.Layout.GaitPreset.Get_Timing().Get_StepDuration().Get_Seconds();
         auto Clearance = Profile.Clearance;
         auto CollapseDrop = Profile.CollapseDrop;
         auto MaxTilt = ck_procedural_gym::BodyMaxTilt;
         auto TurnaroundX = ck_procedural_gym::TurnaroundX;
         FString Open = "{";
         FString Close = "}";
+        // The renderer draws the crossing and the lane's cylinder from these instead of re-deriving the lane layout.
+        FString CourseFields = "";
+        if (Crawler.Layout.Course == ECkProceduralAnimationGym_Course::PillarCrossing)
+        {
+            CourseFields = ",\"crossing\":1";
+        }
+        else if (Crawler.Layout.Course == ECkProceduralAnimationGym_Course::Cylinder)
+        {
+            auto CylinderRadius = Crawler.Layout.CylinderRadius;
+            CourseFields = f",\"cyl\":{CylinderRadius :.1}";
+        }
         FString Legs = "";
         for (auto Leg : Crawler.Handles.Legs)
         {
@@ -285,7 +306,7 @@ struct FCkPaViz_TelemetryRecorder
             FString Separator = Legs.IsEmpty() ? "" : ",";
             Legs = f"{Legs}{Separator}{Open}\"id\":\"{LegId}\",\"hip\":{Hip},\"rest\":{Rest},\"pole\":{Pole},\"len\":{Lengths},\"po\":{PhaseOffset :.3}{Close}";
         }
-        ck::Trace(f"[PAVIZ] {Open}\"k\":\"meta\",\"c\":\"{Course}\",\"s\":\"{WalkerName}\",\"w\":{InWalker},\"frame\":\"fixture-local\",\"origin\":{Origin},\"start\":{Start},\"lane\":{LaneY :.1},\"he\":{HalfExtents},\"clearance\":{Clearance :.1},\"collapse\":{CollapseDrop :.1},\"maxTilt\":{MaxTilt :.1},\"spring\":[{Stiffness :.3},{Damping :.3},{Mass :.3}],\"maxLag\":{MaxAttitudeLag :.1},\"turnX\":{TurnaroundX :.1},\"legs\":[{Legs}]{Close}", n"PAVIZ.Meta", 0.0f);
+        ck::Trace(f"[PAVIZ] {Open}\"k\":\"meta\",\"c\":\"{Course}\",\"s\":\"{WalkerName}\",\"w\":{InWalker},\"frame\":\"fixture-local\",\"origin\":{Origin},\"start\":{Start},\"lane\":{LaneY :.1},\"he\":{HalfExtents},\"clearance\":{Clearance :.1},\"collapse\":{CollapseDrop :.1},\"maxTilt\":{MaxTilt :.1},\"spring\":[{Stiffness :.3},{Damping :.3},{Mass :.3}],\"maxLag\":{MaxAttitudeLag :.1},\"turnX\":{TurnaroundX :.1},\"stepDur\":{StepDuration :.3}{CourseFields},\"legs\":[{Legs}]{Close}", n"PAVIZ.Meta", 0.0f);
     }
 
     // How deep a planted foot sits inside a solid along its contact normal: ",\"bd\":<cm>" with ",\"bs\":1" when the ray
@@ -310,6 +331,41 @@ struct FCkPaViz_TelemetryRecorder
         }
         auto Depth = (1.0 - Hit.Get_Fraction()) * RayLength;
         return f",\"bd\":{Depth :.1}";
+    }
+
+    // Which drawn chain segments pass through a solid: ",\"oc\":<mask>" with bit i set for the segment from point i to point
+    // i + 1 of InPoints (hip, the chain's joints, foot), or nothing when none does.
+    FString Get_CrossingFields(TArray<FVector> InPoints) const
+    {
+        auto Mask = 0;
+        for (auto Index = 0; Index + 1 < InPoints.Num(); Index++)
+        {
+            if ((InPoints[Index + 1] - InPoints[Index]).Size() < ck_paviz_telemetry::CrossingMinSegmentLength)
+            {
+                continue;
+            }
+            auto Hit = utils_jolt_query::Get_RayCast(InPoints[Index], InPoints[Index + 1], FCk_Jolt_QueryFilter());
+            if (Hit.Get_HasHit() && Hit.Get_Fraction() > ck_paviz_telemetry::CrossingMinFraction &&
+                Hit.Get_Fraction() < ck_paviz_telemetry::CrossingMaxFraction)
+            {
+                Mask = Mask | (1 << Index);
+            }
+        }
+        if (Mask == 0)
+        {
+            return "";
+        }
+        return f",\"oc\":{Mask}";
+    }
+
+    // ",\"hf\":1" when a solid lies between the planted foot and its simulation hip, or nothing. A ray that starts inside a
+    // solid tells nothing, as for the gait.
+    FString Get_HipFootFields(FVector InHip, FVector InFoot) const
+    {
+        auto Hit = utils_jolt_query::Get_RayCast(InHip, InFoot, FCk_Jolt_QueryFilter());
+        auto Occluded = Hit.Get_HasHit() && Hit.Get_Fraction() > ck_paviz_telemetry::StartInsideFraction
+            && (Hit.Get_Position() - InFoot).Size() > ck_paviz_telemetry::HipFootOcclusionTolerance;
+        return Occluded ? ",\"hf\":1" : "";
     }
 
     void DoEmitFrame(int32 InFixture, int32 InWalker, float InElapsed)
@@ -357,6 +413,10 @@ struct FCkPaViz_TelemetryRecorder
             }
             auto Segments = utils_procedural_rig::Get_Chain(Rig.GetValue()).Get_Segments();
             auto SegmentLengths = utils_procedural_leg::Get_ChainGeometry(Leg).Get_SegmentLengths();
+            auto Foot = utils_procedural_leg::Get_Foot(Leg);
+            auto HipLocation = Presentation.TransformPosition(utils_procedural_leg::Get_Placement(Leg).Get_HipLocal());
+            auto ChainPoints = TArray<FVector>();
+            ChainPoints.Add(HipLocation);
             FString Joints = "";
             for (auto SegmentIndex = 0; SegmentIndex < Segments.Num() && SegmentIndex < SegmentLengths.Num(); SegmentIndex++)
             {
@@ -364,39 +424,49 @@ struct FCkPaViz_TelemetryRecorder
                 auto HalfAxis = Segment.GetRotation().GetForwardVector() * (SegmentLengths[SegmentIndex] * 0.5);
                 if (SegmentIndex == 0)
                 {
+                    ChainPoints.Add(Segment.GetLocation() - HalfAxis);
                     Joints = Get_Vector(Segment.GetLocation() - HalfAxis - Origin);
                 }
+                ChainPoints.Add(Segment.GetLocation() + HalfAxis);
                 auto FarEnd = Get_Vector(Segment.GetLocation() + HalfAxis - Origin);
                 Joints = f"{Joints},{FarEnd}";
             }
-            auto Foot = utils_procedural_leg::Get_Foot(Leg);
+            ChainPoints.Add(Foot.Get_Position());
             auto LegId = utils_procedural_leg::Get_Id(Leg);
             auto EnabledValue = utils_procedural_leg::Get_EnableDisable(Leg) == ECk_EnableDisable::Enable;
             auto Enabled = EnabledValue ? 1 : 0;
             auto Planted = Foot.Get_Phase() == ECk_ProceduralLeg_FootPhase::Planted;
             FString Phase = Planted ? "P" : "S";
             FString Buried = "";
+            FString HipFoot = "";
             if (EnabledValue && Planted)
             {
                 Buried = Get_BuriedFields(Foot, SupportNormalValue);
+                HipFoot = Get_HipFootFields(Body.TransformPosition(utils_procedural_leg::Get_Placement(Leg).Get_HipLocal()), Foot.Get_Position());
             }
+            auto Contact = Foot.Get_Contact() == ECk_ProceduralLeg_FootContact::Trusted ? 1 : 0;
+            // ECk_ProceduralLeg_Foothold by value: None, Ideal, Held, Front, Inward, Outward, Ring.
+            auto FootholdSource = int32(Foot.Get_Foothold());
+            auto Crossings = Get_CrossingFields(ChainPoints);
             auto FootLocation = Get_Vector(Foot.Get_Position() - Origin);
-            auto Hip = Get_Vector(Presentation.TransformPosition(utils_procedural_leg::Get_Placement(Leg).Get_HipLocal()) - Origin);
+            auto Hip = Get_Vector(HipLocation - Origin);
             auto Lengths = Get_Lengths(SegmentLengths);
             FString Separator = Legs.IsEmpty() ? "" : ",";
-            Legs = f"{Legs}{Separator}{Open}\"id\":\"{LegId}\",\"en\":{Enabled},\"ph\":\"{Phase}\",\"f\":{FootLocation},\"h\":{Hip},\"len\":{Lengths},\"j\":[{Joints}]{Buried}{Close}";
+            Legs = f"{Legs}{Separator}{Open}\"id\":\"{LegId}\",\"en\":{Enabled},\"ph\":\"{Phase}\",\"f\":{FootLocation},\"h\":{Hip},\"len\":{Lengths},\"j\":[{Joints}]{Buried},\"ct\":{Contact},\"fh\":{FootholdSource}{HipFoot}{Crossings}{Close}";
         }
-        ck::Trace(f"[PAVIZ] {Open}\"k\":\"f\",\"c\":\"{Course}\",\"s\":\"{WalkerName}\",\"w\":{InWalker},\"n\":{Frame},\"t\":{InElapsed :.4},\"stage\":{RouteStage},\"sp\":{Spinning},\"b\":{BodyLocation},\"bq\":{BodyRotation},\"p\":{PresentationLocation},\"pq\":{PresentationRotation},\"off\":{OffsetLocation},\"oq\":{OffsetRotation},\"tq\":{TargetRotation},\"sn\":{SupportNormal},\"src\":{ContactSource},\"legs\":[{Legs}]{Close}",
+        auto Rays = UCk_Utils_ProceduralAnimation_Debug_UE::Get_RaysLastSolve(Handles.Gait);
+        ck::Trace(f"[PAVIZ] {Open}\"k\":\"f\",\"c\":\"{Course}\",\"s\":\"{WalkerName}\",\"w\":{InWalker},\"n\":{Frame},\"t\":{InElapsed :.4},\"stage\":{RouteStage},\"sp\":{Spinning},\"b\":{BodyLocation},\"bq\":{BodyRotation},\"p\":{PresentationLocation},\"pq\":{PresentationRotation},\"off\":{OffsetLocation},\"oq\":{OffsetRotation},\"tq\":{TargetRotation},\"sn\":{SupportNormal},\"src\":{ContactSource},\"rays\":{Rays},\"legs\":[{Legs}]{Close}",
             FName(f"PAVIZ.{Course}.{InWalker}"), 0.0f);
     }
 
-    // Traces the run summary and retires every fixture.
+    // Traces the run summary, with each walker's completed traversals, and retires every fixture.
     void Finish()
     {
         auto Elapsed = Get_Elapsed();
         FString Open = "{";
         FString Close = "}";
         FString PassedText = "";
+        FString TraversalsText = "";
         for (auto FixtureIndex = 0; FixtureIndex < Fixtures.Num(); FixtureIndex++)
         {
             auto Course = CourseNames[FixtureIndex];
@@ -404,11 +474,14 @@ struct FCkPaViz_TelemetryRecorder
             {
                 FString Separator = PassedText.IsEmpty() ? "" : ",";
                 auto WalkerPassed = Passed[PassedOffsets[FixtureIndex] + Walker];
+                auto Traversals = Fixtures[FixtureIndex].Crawlers[Walker].Progress.Traversals;
                 PassedText = f"{PassedText}{Separator}\"{Course}.{Walker}\":{WalkerPassed}";
+                TraversalsText = f"{TraversalsText}{Separator}\"{Course}.{Walker}\":{Traversals}";
             }
             Fixtures[FixtureIndex].Request_Destroy();
         }
-        ck::Trace(f"[PAVIZ] {Open}\"k\":\"end\",\"n\":{Frame},\"t\":{Elapsed :.4},\"passed\":{Open}{PassedText}{Close}{Close}", n"PAVIZ.End", 0.0f);
+        ck::Trace(f"[PAVIZ] {Open}\"k\":\"end\",\"n\":{Frame},\"t\":{Elapsed :.4},\"passed\":{Open}{PassedText}{Close},\"trav\":{Open}{TraversalsText}{Close}{Close}",
+            n"PAVIZ.End", 0.0f);
     }
 
     bool Get_IsDestroyed() const

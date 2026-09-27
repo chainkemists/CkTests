@@ -196,6 +196,9 @@ namespace ck_test_procedural_gait_snapshot_pie
     constexpr auto WalkSpeed = 150.0;
     constexpr auto WalkEndX = FirstBlockX + BlockPitch * BlockCount + 150.0;
     constexpr auto WalkSeconds = 20.0;
+    // The walk usually yields a single lifting touchdown, on the last block, and its swing can still be in flight when the
+    // body stops: sampling goes on with the body still until that swing lands.
+    constexpr auto FirstLiftedTouchdownSeconds = 3.0;
     // A lifted foot is not inside the block on its last swing frame: it rises onto the top before touchdown.
     constexpr auto LiftedFootBelowTopTolerance = 2.0;
 
@@ -206,6 +209,7 @@ namespace ck_test_procedural_gait_snapshot_pie
         FDelegateHandle Drive;
         double DrivenX = 0.0;
         bool Driving = false;
+        bool Sampling = false;
         uint64 LastSequence = 0;
         double ProbeUp = 0.0;
 
@@ -501,14 +505,18 @@ auto
         [State](UWorld* InWorld)
         {
             State->Driving = true;
+            State->Sampling = true;
             const auto WeakState = TWeakPtr<FLiftState>{State};
             State->Drive = DoStart_Drive(InWorld, [WeakState](UWorld*, float InDeltaSeconds)
             {
                 const auto Pinned = WeakState.Pin();
-                if (NOT Pinned.IsValid() || NOT Pinned->Driving)
+                if (NOT Pinned.IsValid() || NOT Pinned->Sampling)
                 { return; }
 
                 DoSample_Lift(*Pinned);
+                if (NOT Pinned->Driving)
+                { return; }
+
                 Pinned->DrivenX = FMath::Min(Pinned->DrivenX + WalkSpeed * InDeltaSeconds, WalkEndX);
                 Pinned->Driving = Pinned->DrivenX < WalkEndX;
                 UCk_Utils_Transform_UE::Request_SetLocation(Pinned->Walker.Body,
@@ -518,9 +526,13 @@ auto
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
         FCk_NetAutoTest_Condition::CreateLambda([State] { return NOT State->Driving; }),
         WalkSeconds, TEXT("The body walks over the three blocks")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([State] { return State->LiftedTouchdowns > 0; }),
+        FirstLiftedTouchdownSeconds, TEXT("A swing lifting onto a block top touches down")));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
         [this, State](UWorld*)
         {
+            State->Sampling = false;
             DoStop_Drive(State->Drive);
             AddInfo(FString::Printf(TEXT("%d solves sampled: %d swinging-foot samples with a landing probe, %d with the block top under "
                 "the landing point and the target below it, %d touchdowns lifting on their last swing frame (%d on the top, worst plant "

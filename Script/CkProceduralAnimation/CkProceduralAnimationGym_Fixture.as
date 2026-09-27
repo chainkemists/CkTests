@@ -8,7 +8,8 @@ enum ECkProceduralAnimationGym_Species
     Spider,
     Centipede,
     Tentacled,
-    Beast
+    Beast,
+    Biped
 }
 
 enum ECkProceduralAnimationGym_Course
@@ -26,14 +27,19 @@ enum ECkProceduralAnimationGym_Course
     Log,
     Beam,
     Pillars,
-    Spin
+    Spin,
+    PillarCrossing,
+    Posts,
+    Cylinder
 }
 
-// SpinThenRoute turns the walker in place before it walks the course's route.
+// SpinThenRoute turns the walker in place before it walks the course's route. Helix climbs the lane's cylinder, circles
+// up and down it, climbs off and walks back.
 enum ECkProceduralAnimationGym_Patrol
 {
     Route,
-    SpinThenRoute
+    SpinThenRoute,
+    Helix
 }
 
 struct FCkProceduralAnimationGym_SpeciesProfile
@@ -114,6 +120,39 @@ namespace ck_procedural_gym
     const float PillarHeight = 200.0;
     const float PillarSpacing = 150.0;
     const float PillarHalfSpanX = 900.0;
+    // Three spacings, so with the rows half a spacing off the centre line every lane threads a corridor between two rows.
+    const float PillarsLaneSpacing = 450.0;
+    const float CrossingRampRun = 300.0;
+    const float CrossingHeight = 150.0;
+    const float CrossingPillarHalfSize = 25.0;
+    const float CrossingPillarPitch = 100.0;
+    const float CrossingFieldHalfSpanX = 450.0;
+    const float CrossingLandingHalfLength = 50.0;
+    // Solid enough that no probe can start under a ramp's top face and fall through to the floor below.
+    const float CrossingRampSlabHalfThickness = 60.0;
+    const int32 PostLowCount = 9;
+    const float PostLowHalfHeight = 15.0;
+    const float PostLowHalfSize = 30.0;
+    const float PostTallHalfHeight = 45.0;
+    const float PostTallHalfSize = 20.0;
+    const float PostPitch = 150.0;
+    const float PostFlankOffset = 100.0;
+    const float CylinderRadiusWide = 90.0;
+    const float CylinderRadiusNarrow = 45.0;
+    const float CylinderHeight = 500.0;
+    const int32 CylinderFacets = 24;
+    const float CylinderFacetHalfThickness = 40.0;
+    const float CylinderFacetSeamOverlap = 1.0;
+    const float HelixPitchDegrees = 30.0;
+    const float HelixTopZ = 400.0;
+    const float HelixBottomZ = 120.0;
+    // Above every species' clearance, so one frame of wall support at floor height does not start the climb.
+    const float HelixClimbStartAboveClearance = 30.0;
+    // A climbing or circling walker that has had no wall support for this long fell off and approaches again.
+    const float HelixLostWallSeconds = 1.0;
+    const float HelixLandedZ = 100.0;
+    // The outer lanes keep 280 cm between the cylinder's axis and the course edge.
+    const float CylinderLeaveMargin = 120.0;
     const float SpinSeconds = 6.0;
     const float SpinDegreesPerSecond = 120.0;
     // The traversal tests' support evidence: a turn of the accepted support normal counts as a flip above this angle, and
@@ -206,6 +245,13 @@ namespace ck_procedural_gym
             Profile.Clearance = ck_procedural_gym_assets::BeastRestDrop;
             Profile.BodyHalfExtents = ck_procedural_gym_assets::BeastBodyHalfExtents;
         }
+        else if (InSpecies == ECkProceduralAnimationGym_Species::Biped)
+        {
+            Profile.Rig = ck::ProceduralGym_RigBiped;
+            Profile.Gait = ck::ProceduralGym_GaitBiped;
+            Profile.Clearance = ck_procedural_gym_assets::BipedRestDrop;
+            Profile.BodyHalfExtents = ck_procedural_gym_assets::BipedBodyHalfExtents;
+        }
         else
         {
             Profile.Rig = InSpecies == ECkProceduralAnimationGym_Species::Crawler4 ? ck::ProceduralGym_Rig4 :
@@ -238,6 +284,10 @@ namespace ck_procedural_gym
         if (InSpecies == ECkProceduralAnimationGym_Species::Beast)
         {
             return "Beast";
+        }
+        if (InSpecies == ECkProceduralAnimationGym_Species::Biped)
+        {
+            return "Biped";
         }
         return "Crawler";
     }
@@ -295,6 +345,18 @@ namespace ck_procedural_gym
         if (InCourse == ECkProceduralAnimationGym_Course::Spin)
         {
             return "Spin in place";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::PillarCrossing)
+        {
+            return "Pillar crossing";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Posts)
+        {
+            return "Posts";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Cylinder)
+        {
+            return "Cylinder";
         }
         return "Convex hump";
     }
@@ -354,6 +416,18 @@ namespace ck_procedural_gym
         {
             return "Spin";
         }
+        if (InCourse == ECkProceduralAnimationGym_Course::PillarCrossing)
+        {
+            return "PillarCrossing";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Posts)
+        {
+            return "Posts";
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Cylinder)
+        {
+            return "Cylinder";
+        }
         return "Hump";
     }
 
@@ -362,7 +436,8 @@ namespace ck_procedural_gym
         return InCourse == ECkProceduralAnimationGym_Course::StepField || InCourse == ECkProceduralAnimationGym_Course::Ledge ||
             InCourse == ECkProceduralAnimationGym_Course::Ridge || InCourse == ECkProceduralAnimationGym_Course::Log ||
             InCourse == ECkProceduralAnimationGym_Course::Beam || InCourse == ECkProceduralAnimationGym_Course::Pillars ||
-            InCourse == ECkProceduralAnimationGym_Course::Spin;
+            InCourse == ECkProceduralAnimationGym_Course::Spin || InCourse == ECkProceduralAnimationGym_Course::PillarCrossing ||
+            InCourse == ECkProceduralAnimationGym_Course::Posts || InCourse == ECkProceduralAnimationGym_Course::Cylinder;
     }
 
     // The menagerie's legs span up to 2.6 m, so its courses and every stress course space their lanes wider.
@@ -372,7 +447,8 @@ namespace ck_procedural_gym
             InCourse == ECkProceduralAnimationGym_Course::Hump || Get_IsStressCourse(InCourse);
     }
 
-    // Three walkers per stress course; every species crosses at least two of them. The gym and the PaViz harness share it.
+    // Three walkers per stress course; every species but the biped, which only climbs the cylinder, crosses at least two of
+    // them. The gym and the PaViz harness share it.
     TArray<ECkProceduralAnimationGym_Species> Get_StressRoster(ECkProceduralAnimationGym_Course InCourse)
     {
         auto Roster = TArray<ECkProceduralAnimationGym_Species>();
@@ -408,15 +484,33 @@ namespace ck_procedural_gym
         }
         else if (InCourse == ECkProceduralAnimationGym_Course::Pillars)
         {
-            Roster.Add(ECkProceduralAnimationGym_Species::Crawler8);
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler6);
             Roster.Add(ECkProceduralAnimationGym_Species::Tentacled);
-            Roster.Add(ECkProceduralAnimationGym_Species::Spider);
+            Roster.Add(ECkProceduralAnimationGym_Species::Beast);
         }
         else if (InCourse == ECkProceduralAnimationGym_Course::Spin)
         {
             Roster.Add(ECkProceduralAnimationGym_Species::Beast);
             Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
             Roster.Add(ECkProceduralAnimationGym_Species::Tentacled);
+        }
+        else if (InCourse == ECkProceduralAnimationGym_Course::PillarCrossing)
+        {
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler8);
+            Roster.Add(ECkProceduralAnimationGym_Species::Tentacled);
+            Roster.Add(ECkProceduralAnimationGym_Species::Spider);
+        }
+        else if (InCourse == ECkProceduralAnimationGym_Course::Posts)
+        {
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler4);
+            Roster.Add(ECkProceduralAnimationGym_Species::Beast);
+            Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
+        }
+        else if (InCourse == ECkProceduralAnimationGym_Course::Cylinder)
+        {
+            Roster.Add(ECkProceduralAnimationGym_Species::Spider);
+            Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
+            Roster.Add(ECkProceduralAnimationGym_Species::Biped);
         }
         return Roster;
     }
@@ -428,7 +522,16 @@ namespace ck_procedural_gym
 
     float Get_LaneSpacing(ECkProceduralAnimationGym_Course InCourse)
     {
+        if (InCourse == ECkProceduralAnimationGym_Course::Pillars)
+        {
+            return PillarsLaneSpacing;
+        }
         return Get_IsWideCourse(InCourse) ? WideLaneSpacing : NarrowLaneSpacing;
+    }
+
+    float Get_CylinderRadius(int32 InLaneIndex)
+    {
+        return InLaneIndex == 1 ? CylinderRadiusNarrow : CylinderRadiusWide;
     }
 
     float Get_CourseHalfWidth(ECkProceduralAnimationGym_Course InCourse)
@@ -451,13 +554,22 @@ namespace ck_procedural_gym
             return 250.0;
         }
         if (InCourse == ECkProceduralAnimationGym_Course::StepField || InCourse == ECkProceduralAnimationGym_Course::Ledge ||
-            InCourse == ECkProceduralAnimationGym_Course::Ridge || InCourse == ECkProceduralAnimationGym_Course::Pillars)
+            InCourse == ECkProceduralAnimationGym_Course::Ridge || InCourse == ECkProceduralAnimationGym_Course::Pillars ||
+            InCourse == ECkProceduralAnimationGym_Course::PillarCrossing)
         {
             return 150.0;
         }
         if (InCourse == ECkProceduralAnimationGym_Course::Log)
         {
             return 120.0;
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Posts)
+        {
+            return 100.0;
+        }
+        if (InCourse == ECkProceduralAnimationGym_Course::Cylinder)
+        {
+            return 250.0;
         }
         return 80.0;
     }
@@ -546,6 +658,9 @@ struct FCkProceduralAnimationGym_CrawlerLayout
     float LaneY = 0.0;
     UPROPERTY()
     ECkProceduralAnimationGym_Patrol Patrol = ECkProceduralAnimationGym_Patrol::Route;
+    // The lane cylinder's radius on the cylinder course, 0 elsewhere.
+    UPROPERTY()
+    float CylinderRadius = 0.0;
 }
 
 struct FCkProceduralAnimationGym_CrawlerProgress
@@ -558,6 +673,9 @@ struct FCkProceduralAnimationGym_CrawlerProgress
     int32 RouteStage = 0;
     UPROPERTY()
     int32 Traversals = 0;
+    // Game time of the helix route's last update with wall support.
+    UPROPERTY()
+    float LastOnWallTime = -1.0;
     UPROPERTY()
     float FurthestDistance = 0.0;
     UPROPERTY()
@@ -698,6 +816,10 @@ struct FCkProceduralAnimationGym_Crawler
         {
             return Evidence.SawWall && Evidence.SawCeiling;
         }
+        if (Layout.Course == ECkProceduralAnimationGym_Course::Cylinder)
+        {
+            return Evidence.SawWall;
+        }
         return true;
     }
 
@@ -717,6 +839,79 @@ struct FCkProceduralAnimationGym_Crawler
             Evidence.SupportFlips++;
         }
         Evidence.LastSupportNormal = SupportNormal.GetSafeNormal();
+    }
+
+    // Advances the helix stage whose end condition holds, then steers for the current stage: approach the lane's cylinder,
+    // circle up it, circle down it, climb down to the floor, walk away from it, return to the start. A walker that loses
+    // the wall while on the cylinder steers back toward its axis, and approaches again after a second off it: the helix
+    // steer carried on along the floor would take it off the course.
+    FVector DoUpdate_HelixRoute(FVector InPosition, FVector InLocal)
+    {
+        auto Axis = Layout.Origin + FVector(0.0, Layout.LaneY, 0.0);
+        auto Radial = InPosition - Axis;
+        Radial.Z = 0.0;
+        auto Tangent = FVector::UpVector.CrossProduct(Radial.GetSafeNormal());
+        auto Pitch = Math::DegreesToRadians(ck_procedural_gym::HelixPitchDegrees);
+        auto SupportNormal = utils_surface_motion::Get_SupportNormal(Handles.Motion);
+        auto OnWall = Math::Abs(SupportNormal.Z) < 0.3;
+        auto Now = float(System::GetGameTimeInSeconds());
+        if (OnWall)
+        {
+            Progress.LastOnWallTime = Now;
+        }
+        auto ClimbStartZ = ck_procedural_gym::Get_SpeciesProfile(Layout.Species).Clearance + ck_procedural_gym::HelixClimbStartAboveClearance;
+        auto OnCylinderRoute = Progress.RouteStage >= 1 && Progress.RouteStage <= 3;
+        if (Progress.RouteStage == 0 && OnWall && InLocal.Z > ClimbStartZ)
+        {
+            Progress.RouteStage = 1;
+        }
+        else if (Progress.RouteStage == 3 && SupportNormal.Z > 0.7 && InLocal.Z < ck_procedural_gym::HelixLandedZ)
+        {
+            Progress.RouteStage = 4;
+        }
+        else if (OnCylinderRoute && Now - Progress.LastOnWallTime > ck_procedural_gym::HelixLostWallSeconds)
+        {
+            Progress.RouteStage = 0;
+        }
+        else if (Progress.RouteStage == 1 && InLocal.Z > ck_procedural_gym::HelixTopZ)
+        {
+            Progress.RouteStage = 2;
+        }
+        else if (Progress.RouteStage == 2 && InLocal.Z < ck_procedural_gym::HelixBottomZ)
+        {
+            Progress.RouteStage = 3;
+        }
+        else if (Progress.RouteStage == 4 && Radial.Size() > Layout.CylinderRadius + ck_procedural_gym::CylinderLeaveMargin)
+        {
+            Progress.RouteStage = 5;
+        }
+        else if (Progress.RouteStage == 5 && InLocal.X < -ck_procedural_gym::TurnaroundX)
+        {
+            Progress.Traversals++;
+            Progress.RouteStage = 0;
+        }
+
+        if (Progress.RouteStage == 0 || (Progress.RouteStage >= 1 && Progress.RouteStage <= 3 && OnWall == false))
+        {
+            return FVector(-Radial.X, -Radial.Y, 0.0);
+        }
+        if (Progress.RouteStage == 1)
+        {
+            return Tangent * Math::Cos(Pitch) + FVector::UpVector * Math::Sin(Pitch);
+        }
+        if (Progress.RouteStage == 2)
+        {
+            return Tangent * Math::Cos(Pitch) - FVector::UpVector * Math::Sin(Pitch);
+        }
+        if (Progress.RouteStage == 3)
+        {
+            return FVector(0.0, 0.0, -1.0);
+        }
+        if (Progress.RouteStage == 4)
+        {
+            return Radial.GetSafeNormal();
+        }
+        return FVector(-ck_procedural_gym::GoalX, Layout.LaneY, InLocal.Z) - InLocal;
     }
 
     void Update(bool InRun, bool InDraw, bool InLabels)
@@ -839,6 +1034,10 @@ struct FCkProceduralAnimationGym_Crawler
                 FVector(ck_procedural_gym::WallGoalX, Layout.LaneY, ck_procedural_gym::WallGoalZ) :
                 FVector(-ck_procedural_gym::GoalX, Layout.LaneY, ck_procedural_gym::BodyClearance);
             Direction = Target - Local;
+        }
+        else if (Layout.Patrol == ECkProceduralAnimationGym_Patrol::Helix)
+        {
+            Direction = DoUpdate_HelixRoute(Position, Local);
         }
         else
         {
@@ -1080,6 +1279,18 @@ struct FCkProceduralAnimationGym_Fixture
             {
                 AddPillars(HalfWidth, RaisedColor);
             }
+            else if (Spawn.Course == ECkProceduralAnimationGym_Course::PillarCrossing)
+            {
+                AddPillarCrossing(HalfWidth, GroundColor, RaisedColor);
+            }
+            else if (Spawn.Course == ECkProceduralAnimationGym_Course::Posts)
+            {
+                AddPosts(RaisedColor);
+            }
+            else if (Spawn.Course == ECkProceduralAnimationGym_Course::Cylinder)
+            {
+                AddCylinders(GroundColor, RaisedColor);
+            }
         }
         return true;
     }
@@ -1119,10 +1330,87 @@ struct FCkProceduralAnimationGym_Fixture
         auto HalfExtents = FVector(ck_procedural_gym::PillarHalfSize, ck_procedural_gym::PillarHalfSize, ck_procedural_gym::PillarHeight * 0.5);
         for (auto Column = 0; Column <= Columns; Column++)
         {
-            for (auto Row = -Rows; Row <= Rows; Row++)
+            for (auto Row = -Rows; Row < Rows; Row++)
             {
                 AddSurface(FVector(-ck_procedural_gym::PillarHalfSpanX + ck_procedural_gym::PillarSpacing * Column,
-                    ck_procedural_gym::PillarSpacing * Row, HalfExtents.Z), FRotator::ZeroRotator, HalfExtents, InColor);
+                    ck_procedural_gym::PillarSpacing * (Row + 0.5), HalfExtents.Z), FRotator::ZeroRotator, HalfExtents, InColor);
+            }
+        }
+    }
+
+    // A ramp up onto a landing, a field of pillar tops at the landing's height, a landing and a ramp down. Everything spans
+    // the course, so every lane crosses the same tops.
+    void AddPillarCrossing(float InHalfWidth, FLinearColor InColor, FLinearColor InAlternateColor)
+    {
+        auto Height = ck_procedural_gym::CrossingHeight;
+        auto LandingCenterX = ck_procedural_gym::CrossingFieldHalfSpanX + 2.0 * ck_procedural_gym::CrossingLandingHalfLength;
+        auto RampTopX = LandingCenterX + ck_procedural_gym::CrossingLandingHalfLength;
+        auto RampFootX = RampTopX + ck_procedural_gym::CrossingRampRun;
+        auto LandingHalfExtents = FVector(ck_procedural_gym::CrossingLandingHalfLength, InHalfWidth, Height * 0.5);
+        AddSlabWithShape(FVector(-RampFootX, 0.0, 0.0), FVector(-RampTopX, 0.0, Height), InAlternateColor,
+            ck_procedural_gym::CrossingRampSlabHalfThickness);
+        AddSurface(FVector(-LandingCenterX, 0.0, Height * 0.5), FRotator::ZeroRotator, LandingHalfExtents, InAlternateColor);
+
+        auto Columns = Math::RoundToInt(2.0 * ck_procedural_gym::CrossingFieldHalfSpanX / ck_procedural_gym::CrossingPillarPitch);
+        auto Rows = Math::FloorToInt((InHalfWidth - ck_procedural_gym::CrossingPillarHalfSize) / ck_procedural_gym::CrossingPillarPitch);
+        auto PillarHalfExtents = FVector(ck_procedural_gym::CrossingPillarHalfSize, ck_procedural_gym::CrossingPillarHalfSize, Height * 0.5);
+        for (auto Column = 0; Column <= Columns; Column++)
+        {
+            for (auto Row = -Rows; Row <= Rows; Row++)
+            {
+                AddSurface(FVector(-ck_procedural_gym::CrossingFieldHalfSpanX + ck_procedural_gym::CrossingPillarPitch * Column,
+                    ck_procedural_gym::CrossingPillarPitch * Row, Height * 0.5), FRotator::ZeroRotator, PillarHalfExtents,
+                    (Column + Row + Rows) % 2 == 0 ? InColor : InAlternateColor);
+            }
+        }
+
+        AddSurface(FVector(LandingCenterX, 0.0, Height * 0.5), FRotator::ZeroRotator, LandingHalfExtents, InAlternateColor);
+        AddSlabWithShape(FVector(RampTopX, 0.0, Height), FVector(RampFootX, 0.0, 0.0), InAlternateColor,
+            ck_procedural_gym::CrossingRampSlabHalfThickness);
+    }
+
+    // Per lane, low posts on the lane's line and tall posts flanking it halfway between them.
+    void AddPosts(FLinearColor InColor)
+    {
+        auto LowHalfExtents = FVector(ck_procedural_gym::PostLowHalfSize, ck_procedural_gym::PostLowHalfSize, ck_procedural_gym::PostLowHalfHeight);
+        auto TallHalfExtents = FVector(ck_procedural_gym::PostTallHalfSize, ck_procedural_gym::PostTallHalfSize, ck_procedural_gym::PostTallHalfHeight);
+        auto FirstX = -0.5 * (ck_procedural_gym::PostLowCount - 1) * ck_procedural_gym::PostPitch;
+        for (auto Lane = 0; Lane < Spawn.Roster.Num(); Lane++)
+        {
+            auto LaneY = ck_procedural_gym::Get_LaneY(Lane, Spawn.Roster.Num(), Spawn.Course);
+            for (auto Index = 0; Index < ck_procedural_gym::PostLowCount; Index++)
+            {
+                AddSurface(FVector(FirstX + ck_procedural_gym::PostPitch * Index, LaneY, ck_procedural_gym::PostLowHalfHeight),
+                    FRotator::ZeroRotator, LowHalfExtents, InColor);
+            }
+            for (auto Index = 0; Index < ck_procedural_gym::PostLowCount - 1; Index++)
+            {
+                auto FlankX = FirstX + ck_procedural_gym::PostPitch * (Index + 0.5);
+                AddSurface(FVector(FlankX, LaneY - ck_procedural_gym::PostFlankOffset, ck_procedural_gym::PostTallHalfHeight),
+                    FRotator::ZeroRotator, TallHalfExtents, InColor);
+                AddSurface(FVector(FlankX, LaneY + ck_procedural_gym::PostFlankOffset, ck_procedural_gym::PostTallHalfHeight),
+                    FRotator::ZeroRotator, TallHalfExtents, InColor);
+            }
+        }
+    }
+
+    // A vertical cylinder at the centre of every lane. A facet's local X is the radial, so its outer face sits at the
+    // radius; each facet is a little wider than the polygon's edge so no seam opens between neighbours.
+    void AddCylinders(FLinearColor InColor, FLinearColor InAlternateColor)
+    {
+        auto HalfHeight = ck_procedural_gym::CylinderHeight * 0.5;
+        for (auto Lane = 0; Lane < Spawn.Roster.Num(); Lane++)
+        {
+            auto LaneY = ck_procedural_gym::Get_LaneY(Lane, Spawn.Roster.Num(), Spawn.Course);
+            auto Radius = ck_procedural_gym::Get_CylinderRadius(Lane);
+            auto HalfExtents = FVector(ck_procedural_gym::CylinderFacetHalfThickness,
+                Radius * Math::Tan(Math::PI / ck_procedural_gym::CylinderFacets) + ck_procedural_gym::CylinderFacetSeamOverlap, HalfHeight);
+            for (auto Facet = 0; Facet < ck_procedural_gym::CylinderFacets; Facet++)
+            {
+                auto Theta = 2.0 * Math::PI * Facet / ck_procedural_gym::CylinderFacets;
+                AddSurface(FVector(Math::Cos(Theta), Math::Sin(Theta), 0.0) * (Radius - ck_procedural_gym::CylinderFacetHalfThickness) +
+                    FVector(0.0, LaneY, HalfHeight), FRotator(0.0, Math::RadiansToDegrees(Theta), 0.0), HalfExtents,
+                    Facet % 2 == 0 ? InColor : InAlternateColor);
             }
         }
     }
@@ -1349,8 +1637,12 @@ struct FCkProceduralAnimationGym_Fixture
         Crawler.Layout.LaneY = ck_procedural_gym::Get_LaneY(InIndex, Spawn.Roster.Num(), Spawn.Course);
         Crawler.Layout.Origin = Spawn.Origin;
         Crawler.Layout.Course = Spawn.Course;
-        Crawler.Layout.Patrol = Spawn.Course == ECkProceduralAnimationGym_Course::Spin ?
-            ECkProceduralAnimationGym_Patrol::SpinThenRoute : ECkProceduralAnimationGym_Patrol::Route;
+        Crawler.Layout.Patrol = Spawn.Course == ECkProceduralAnimationGym_Course::Spin ? ECkProceduralAnimationGym_Patrol::SpinThenRoute :
+            (Spawn.Course == ECkProceduralAnimationGym_Course::Cylinder ? ECkProceduralAnimationGym_Patrol::Helix : ECkProceduralAnimationGym_Patrol::Route);
+        if (Spawn.Course == ECkProceduralAnimationGym_Course::Cylinder)
+        {
+            Crawler.Layout.CylinderRadius = ck_procedural_gym::Get_CylinderRadius(InIndex);
+        }
         Crawler.Layout.Color = InIndex == 0 ? FLinearColor(0.1, 0.8, 0.85, 1.0) :
             (InIndex == 1 ? FLinearColor(1.0, 0.58, 0.12, 1.0) : FLinearColor(0.65, 0.35, 1.0, 1.0));
         Crawler.Layout.Start = Spawn.Origin + (Spawn.Course == ECkProceduralAnimationGym_Course::Ring ?
