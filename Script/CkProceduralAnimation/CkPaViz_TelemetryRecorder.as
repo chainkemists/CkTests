@@ -288,6 +288,11 @@ struct FCkPaViz_TelemetryRecorder
             auto CylinderRadius = Crawler.Layout.CylinderRadius;
             CourseFields = f",\"cyl\":{CylinderRadius :.1}";
         }
+        // ",\"hs\":1" when the walker's surface motion also rides the plane through its planted feet.
+        if (utils_surface_motion::Get_HeightSource(Crawler.Handles.Motion) == ECk_SurfaceMotion_HeightSource::PlantedFeet)
+        {
+            CourseFields = f"{CourseFields},\"hs\":1";
+        }
         FString Legs = "";
         for (auto Leg : Crawler.Handles.Legs)
         {
@@ -413,7 +418,7 @@ struct FCkPaViz_TelemetryRecorder
         auto TargetRotation = Get_Quat(Target.GetRotation());
         auto SupportNormalValue = utils_surface_motion::Get_SupportNormal(Handles.Motion);
         auto SupportNormal = Get_Direction(SupportNormalValue);
-        // ECk_SurfaceMotion_ContactSource by value: None, Forward, Down, LookAhead, Fan, Fall.
+        // ECk_SurfaceMotion_ContactSource by value: None, Forward, Down, LookAhead, Fan, Fall, Feet.
         auto ContactSource = int32(utils_surface_motion::Get_ContactSource(Handles.Motion));
 
         FString Legs = "";
@@ -475,7 +480,14 @@ struct FCkPaViz_TelemetryRecorder
             Legs = f"{Legs}{Separator}{Open}\"id\":\"{LegId}\",\"en\":{Enabled},\"ph\":\"{Phase}\",\"f\":{FootLocation},\"h\":{Hip},\"len\":{Lengths},\"j\":[{Joints}]{Buried},\"ct\":{Contact},\"fh\":{FootholdSource},\"iv\":{IdealVerdict}{HipFoot}{Crossings}{RigState}{Close}";
         }
         auto Rays = UCk_Utils_ProceduralAnimation_Debug_UE::Get_RaysLastSolve(Handles.Gait);
-        ck::Trace(f"[PAVIZ] {Open}\"k\":\"f\",\"c\":\"{Course}\",\"s\":\"{WalkerName}\",\"w\":{InWalker},\"n\":{Frame},\"t\":{InElapsed :.4},\"stage\":{RouteStage},\"sp\":{Spinning},\"b\":{BodyLocation},\"bq\":{BodyRotation},\"p\":{PresentationLocation},\"pq\":{PresentationRotation},\"off\":{OffsetLocation},\"oq\":{OffsetRotation},\"tq\":{TargetRotation},\"sn\":{SupportNormal},\"src\":{ContactSource},\"rays\":{Rays},\"legs\":[{Legs}]{Close}",
+        // ",\"fp\":<0|1|2>" (the gait's feet plane None, Fitted, Held) for a walker that rides its planted feet.
+        FString FeetPlane = "";
+        if (utils_surface_motion::Get_HeightSource(Handles.Motion) == ECk_SurfaceMotion_HeightSource::PlantedFeet)
+        {
+            auto FeetPlaneState = int32(utils_procedural_gait::Get_FeetPlane(Handles.Gait).Get_State());
+            FeetPlane = f",\"fp\":{FeetPlaneState}";
+        }
+        ck::Trace(f"[PAVIZ] {Open}\"k\":\"f\",\"c\":\"{Course}\",\"s\":\"{WalkerName}\",\"w\":{InWalker},\"n\":{Frame},\"t\":{InElapsed :.4},\"stage\":{RouteStage},\"sp\":{Spinning},\"b\":{BodyLocation},\"bq\":{BodyRotation},\"p\":{PresentationLocation},\"pq\":{PresentationRotation},\"off\":{OffsetLocation},\"oq\":{OffsetRotation},\"tq\":{TargetRotation},\"sn\":{SupportNormal},\"src\":{ContactSource}{FeetPlane},\"rays\":{Rays},\"legs\":[{Legs}]{Close}",
             FName(f"PAVIZ.{Course}.{InWalker}"), 0.0f);
     }
 

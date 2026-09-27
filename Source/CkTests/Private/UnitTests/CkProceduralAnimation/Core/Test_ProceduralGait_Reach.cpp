@@ -38,11 +38,14 @@ namespace ck_test_procedural_gait_reach
             Inputs.SetNum(Hips.Num());
             Outputs.SetNum(Hips.Num());
 
+            // The targets are geometry with no ground under them, so the solver holds them to the target reach; a trusted target
+            // within the force-step reach would be left where it is.
+            constexpr auto NoValidatedGround = false;
             auto Initial = TArray<FVector>{};
             for (auto Index = 0; Index < Hips.Num(); ++Index)
             {
                 Initial.Add(BodyPosition + Targets[Index]);
-                Inputs[Index].Set_PhaseOffset(InPhaseOffsets[Index]).Set_Reach(InReach);
+                Inputs[Index].Set_PhaseOffset(InPhaseOffsets[Index]).Set_Reach(InReach).Set_TargetTrusted(NoValidatedGround);
             }
             Solver.Reset(Initial);
             UpdateInputs();
@@ -905,7 +908,8 @@ auto
 
     // One leg steps from behind its hip to a target on the lower tread. From its first swing frame, from the retarget freeze
     // or only on its last swing frame, it is told the ground under its landing point, one frame late, as the ECS probe
-    // tells it.
+    // tells it. The target is the ideal's geometry, not ground the gait validated (the ground is what the probe reports),
+    // so the input marks it untrusted, as the gait marks such a target.
     const auto DoStep = [&](TOptional<double> InLandingGroundZ, int32 InReportFrom) -> FLanding
     {
         auto Solver = ck::FProceduralGaitSolver{};
@@ -913,7 +917,8 @@ auto
 
         auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
         Inputs.SetNum(1);
-        Inputs[0].Set_Hip(FVector::ZeroVector).Set_Reach(LegReach).Set_IdealTarget(FVector{30.0, 60.0, LowerTreadZ});
+        Inputs[0].Set_Hip(FVector::ZeroVector).Set_Reach(LegReach).Set_IdealTarget(FVector{30.0, 60.0, LowerTreadZ})
+            .Set_TargetTrusted(false);
         auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
         Outputs.SetNum(1);
 
@@ -955,7 +960,10 @@ auto
                 || (InReportFrom == FromTheFreeze && Swing.Get_TargetFrozen())
                 || (InReportFrom == OnlyBeforeTouchdown && Swing.Get_Phase() > LastSwingFramePhase);
             if (InLandingGroundZ.IsSet() && Reports)
-            { Inputs[0].Set_LandingGroundZ(static_cast<float>(InLandingGroundZ.GetValue())); }
+            {
+                Inputs[0].Set_LandingGround(ck::EProceduralGaitLandingGround::Found)
+                    .Set_LandingGroundZ(static_cast<float>(InLandingGroundZ.GetValue()));
+            }
         }
         Landing.MissedLifts = Solver.Get_MissedLandingLifts();
         return Landing;
@@ -1021,7 +1029,8 @@ auto
         Solver.Reset({FVector{-30.0, 50.0, UpperTreadZ}});
         auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
         Inputs.SetNum(1);
-        Inputs[0].Set_Hip(FVector::ZeroVector).Set_Reach(LegReach).Set_IdealTarget(FVector{25.0, 50.0, LowerTreadZ});
+        Inputs[0].Set_Hip(FVector::ZeroVector).Set_Reach(LegReach).Set_IdealTarget(FVector{25.0, 50.0, LowerTreadZ})
+            .Set_TargetTrusted(false);
         auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
         Outputs.SetNum(1);
 
@@ -1032,7 +1041,11 @@ auto
         for (auto Frame = 0; Frame < Frames && NOT Landed; ++Frame)
         {
             const auto& Before = Solver.GetLegState(0).Get_Swing();
-            Inputs[0].Set_LandingGroundZ(Before.Get_Active() ? static_cast<float>(GroundUnder(Before.Get_LandingPoint())) : -FLT_MAX);
+            if (Before.Get_Active())
+            {
+                Inputs[0].Set_LandingGround(ck::EProceduralGaitLandingGround::Found)
+                    .Set_LandingGroundZ(static_cast<float>(GroundUnder(Before.Get_LandingPoint())));
+            }
             Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
 
             const auto& After = Solver.GetLegState(0).Get_Swing();
@@ -1137,7 +1150,8 @@ auto
             if (InRiserX.IsSet())
             {
                 const auto PastTheRiser = State.Get_LandingPoint().X > InRiserX.GetValue();
-                Inputs[0].Set_LandingGroundZ(static_cast<float>(PastTheRiser ? UpperTreadZ : LowerTreadZ));
+                Inputs[0].Set_LandingGround(ck::EProceduralGaitLandingGround::Found)
+                    .Set_LandingGroundZ(static_cast<float>(PastTheRiser ? UpperTreadZ : LowerTreadZ));
             }
         }
         Swing.MissedLifts = Solver.Get_MissedLandingLifts();
@@ -1258,19 +1272,23 @@ auto
                 const auto Trusted = FVector::Dist(Hit, Hip) <= ForceLimit;
                 Missing[Leg] = Trusted ? 0.0 : FMath::Min(Missing[Leg] + Dt, ContactGrace);
 
-                auto LandingGroundZ = -FLT_MAX;
+                auto LandingGround = ck::EProceduralGaitLandingGround::Unknown;
+                auto LandingGroundZ = 0.0f;
                 const auto& Swing = Solver.GetLegState(Leg).Get_Swing();
                 if (Swing.Get_Active())
                 {
                     const auto& LandingPoint = Swing.Get_LandingPoint();
                     const auto Landing = FVector{LandingPoint.X, LandingPoint.Y, GroundAt(LandingPoint.X)};
-                    if (FVector::Dist(Landing, Hip) <= ForceLimit)
-                    { LandingGroundZ = static_cast<float>(Landing.Z); }
+                    const auto LandingWithinReach = FVector::Dist(Landing, Hip) <= ForceLimit;
+                    LandingGround = LandingWithinReach ? ck::EProceduralGaitLandingGround::Found : ck::EProceduralGaitLandingGround::None;
+                    LandingGroundZ = static_cast<float>(Landing.Z);
                 }
 
                 Inputs[Leg].Set_Hip(Hip)
                     .Set_IdealTarget(Trusted ? Hit : Query)
+                    .Set_TargetTrusted(Trusted)
                     .Set_TargetValid(Trusted || Missing[Leg] >= ContactGrace)
+                    .Set_LandingGround(LandingGround)
                     .Set_LandingGroundZ(LandingGroundZ);
             }
 
@@ -1571,12 +1589,15 @@ auto
         TestTrue(TEXT("Precondition: the stretched plant is a reach Emergency below the hard overstretch"),
             StretchedDistance > ForceStepLimit && StretchedDistance < HardLimit);
 
+        // The stretched leg's target lies beyond the force-step reach: geometry with no ground under it, since a trusted target
+        // there would count as no target.
+        constexpr auto NoValidatedGround = false;
         auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
         Inputs.SetNum(2);
         Inputs[0].Set_PhaseOffset(0.0f).Set_Hip(OccludedLegHip).Set_Reach(LegReach)
             .Set_IdealTarget(OccludedLegPlant + FVector{0.0, -2.0, 0.0}).Set_PlantOccluded(Occluded);
         Inputs[1].Set_PhaseOffset(0.5f).Set_Hip(StretchedLegHip).Set_Reach(LegReach)
-            .Set_IdealTarget(StretchedLegPlant + FVector{0.0, -2.0, 0.0});
+            .Set_IdealTarget(StretchedLegPlant + FVector{0.0, -2.0, 0.0}).Set_TargetTrusted(NoValidatedGround);
         auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
         Outputs.SetNum(2);
 
@@ -1650,6 +1671,567 @@ auto
 
     const auto FootholdMiss = FVector::Dist(FootholdLanding.GetValue(), Target);
     TestTrue(FString::Printf(TEXT("A swing toward a foothold lands on it (%.3f cm off)"), FootholdMiss), FootholdMiss <= LandingTolerance);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_test_procedural_gait_reach
+{
+    // A top whose far edge lies at InEdgeX: a probe under a point on it finds the top, past it nothing.
+    auto
+        Get_GroundBeforeEdge(
+            const FVector& InPoint,
+            double InEdgeX,
+            double InTopZ)
+        -> TPair<ck::EProceduralGaitLandingGround, float>
+    {
+        constexpr auto EdgeTolerance = 0.5;
+        if (InPoint.X <= InEdgeX + EdgeTolerance)
+        { return {ck::EProceduralGaitLandingGround::Found, static_cast<float>(InTopZ)}; }
+
+        return {ck::EProceduralGaitLandingGround::None, 0.0f};
+    }
+
+    // One swing from a plant toward an ideal target at the far edge of a top, while the body moves on at 100 cm/s, so the
+    // stroke overshoot and the freeze push carry an unreported landing past the edge.
+    struct FEdgeSwing
+    {
+        bool Landed = false;
+        FVector Plant = FVector::ZeroVector;
+        bool PlantTrusted = true;
+        TArray<double> DistancesAfterNoGround;
+    };
+
+    constexpr auto EdgeReportsNever = 0;
+    constexpr auto EdgeReportsFromTheFirstSwingFrame = 1;
+    constexpr auto EdgeReportsFromTheFreeze = 2;
+
+    auto
+        DoSwing_TowardAnEdge(
+            const FVector& InPlant,
+            const FVector& InTarget,
+            int32 InReportFrom)
+        -> FEdgeSwing
+    {
+        constexpr auto SettleAtRest = false;
+        constexpr auto Frames = 120;
+        const auto BodyVelocity = FVector{100.0, 0.0, 0.0};
+
+        auto Solver = ck::FProceduralGaitSolver{};
+        Solver.Get_Settings().Get_Settle().Set_AtRest(SettleAtRest);
+        Solver.Reset({InPlant});
+
+        auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+        Inputs.SetNum(1);
+        Inputs[0].Set_PhaseOffset(0.0f).Set_IdealTarget(InTarget);
+        auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+        Outputs.SetNum(1);
+
+        auto Swing = FEdgeSwing{};
+        auto Lifted = false;
+        auto NoGroundSeen = false;
+        for (auto Frame = 0; Frame < Frames; ++Frame)
+        {
+            Solver.Step(FrameDt, BodyVelocity.Size2D(), BodyVelocity, Inputs, Outputs);
+            const auto& State = Solver.GetLegState(0);
+            if (Outputs[0].Get_Planted())
+            {
+                if (Lifted)
+                {
+                    Swing.Landed = true;
+                    Swing.Plant = Outputs[0].Get_Position();
+                    Swing.PlantTrusted = State.Get_Plant().Get_Trusted();
+                    return Swing;
+                }
+                continue;
+            }
+            Lifted = true;
+
+            const auto& LandingPoint = State.Get_Swing().Get_LandingPoint();
+            if (NoGroundSeen)
+            { Swing.DistancesAfterNoGround.Add(FVector::Dist(LandingPoint, InTarget)); }
+
+            const auto Reports = InReportFrom == EdgeReportsFromTheFirstSwingFrame
+                || (InReportFrom == EdgeReportsFromTheFreeze && State.Get_Swing().Get_TargetFrozen());
+            if (NOT Reports)
+            { continue; }
+
+            // The ECS probes under the landing point this solve exposed and tells the next solve.
+            const auto Ground = Get_GroundBeforeEdge(LandingPoint, InTarget.X, InTarget.Z);
+            Inputs[0].Set_LandingGround(Ground.Key).Set_LandingGroundZ(Ground.Value);
+            NoGroundSeen |= Ground.Key == ck::EProceduralGaitLandingGround::None;
+        }
+        return Swing;
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitLandingWithoutGroundDropsTheOvershootTest,
+    "Ck.ProceduralAnimation.Gait.LandingWithoutGroundDropsTheOvershoot",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitLandingWithoutGroundDropsTheOvershootTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto LandingTolerance = 0.1;
+    constexpr auto MinControlOvershoot = 5.0;
+    const auto Plant = FVector{0.0, 60.0, -40.0};
+    const auto Target = FVector{40.0, 60.0, -40.0};
+
+    const auto Control = DoSwing_TowardAnEdge(Plant, Target, EdgeReportsNever);
+    const auto Told = DoSwing_TowardAnEdge(Plant, Target, EdgeReportsFromTheFirstSwingFrame);
+    if (NOT TestTrue(TEXT("Both swings land"), Control.Landed && Told.Landed))
+    { return false; }
+
+    const auto ControlOvershoot = FVector::Dist(Control.Plant, Target);
+    TestTrue(FString::Printf(TEXT("Control: told nothing, the swing lands past the target's edge by the overshoot and the freeze push "
+        "(%.2f cm)"), ControlOvershoot), ControlOvershoot > MinControlOvershoot);
+
+    const auto Miss = FVector::Dist(Told.Plant, Target);
+    TestTrue(FString::Printf(TEXT("Told before its freeze that nothing lies under its landing point, the swing lands on the validated "
+        "target (%.3f cm off)"), Miss), Miss <= LandingTolerance);
+    TestTrue(TEXT("The ground found under the target at touchdown makes a trusted plant"), Told.PlantTrusted);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitLandingWithoutGroundAfterTheFreezePullsBackTest,
+    "Ck.ProceduralAnimation.Gait.LandingWithoutGroundAfterTheFreezePullsBack",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitLandingWithoutGroundAfterTheFreezePullsBackTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto LandingTolerance = 0.1;
+    constexpr auto MonotonicTolerance = 1.0e-4;
+    constexpr auto MinOvershootAtTheFreeze = 5.0;
+    const auto Plant = FVector{0.0, 60.0, -40.0};
+    const auto Target = FVector{40.0, 60.0, -40.0};
+
+    const auto Told = DoSwing_TowardAnEdge(Plant, Target, EdgeReportsFromTheFreeze);
+    if (NOT TestTrue(TEXT("The swing lands"), Told.Landed))
+    { return false; }
+    if (NOT TestTrue(TEXT("Precondition: after the freeze the probe found nothing under the landing point"),
+            Told.DistancesAfterNoGround.Num() > 0))
+    { return false; }
+
+    TestTrue(FString::Printf(TEXT("Precondition: the frozen landing point lay past the target when nothing was found under it (%.2f cm)"),
+        Told.DistancesAfterNoGround[0]), Told.DistancesAfterNoGround[0] > MinOvershootAtTheFreeze);
+    for (auto Index = 1; Index < Told.DistancesAfterNoGround.Num(); ++Index)
+    {
+        if (NOT TestTrue(FString::Printf(TEXT("Frame %d of the pull-back: the landing point moves toward the target (%.3f cm, was %.3f)"),
+                Index, Told.DistancesAfterNoGround[Index], Told.DistancesAfterNoGround[Index - 1]),
+                Told.DistancesAfterNoGround[Index] <= Told.DistancesAfterNoGround[Index - 1] + MonotonicTolerance))
+        { return false; }
+    }
+
+    const auto Miss = FVector::Dist(Told.Plant, Target);
+    TestTrue(FString::Printf(TEXT("The swing touches down on the validated target (%.3f cm off)"), Miss), Miss <= LandingTolerance);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitFoundGroundStillLiftsTest,
+    "Ck.ProceduralAnimation.Gait.FoundGroundStillLifts",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitFoundGroundStillLiftsTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto LowerTreadZ = -45.0;
+    constexpr auto UpperTreadZ = -25.0;
+    constexpr auto Frames = 60;
+    constexpr auto Tolerance = 0.01;
+
+    // One leg steps from behind its hip to a target on the lower tread and is told, from the retarget freeze on, the upper
+    // tread's height under its landing point with the given report.
+    const auto PlantZOf = [&](ck::EProceduralGaitLandingGround InReport) -> TOptional<double>
+    {
+        auto Solver = ck::FProceduralGaitSolver{};
+        Solver.Reset({FVector{-30.0, 60.0, LowerTreadZ}});
+
+        auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+        Inputs.SetNum(1);
+        Inputs[0].Set_Hip(FVector::ZeroVector).Set_Reach(LegReach).Set_IdealTarget(FVector{30.0, 60.0, LowerTreadZ});
+        auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+        Outputs.SetNum(1);
+
+        auto Lifted = false;
+        for (auto Frame = 0; Frame < Frames; ++Frame)
+        {
+            Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+            if (Outputs[0].Get_Planted())
+            {
+                if (Lifted)
+                { return Outputs[0].Get_Position().Z; }
+                continue;
+            }
+            Lifted = true;
+            if (Solver.GetLegState(0).Get_Swing().Get_TargetFrozen())
+            { Inputs[0].Set_LandingGround(InReport).Set_LandingGroundZ(static_cast<float>(UpperTreadZ)); }
+        }
+        return {};
+    };
+
+    const auto OnFoundGround = PlantZOf(ck::EProceduralGaitLandingGround::Found);
+    const auto OnUnknownGround = PlantZOf(ck::EProceduralGaitLandingGround::Unknown);
+    const auto OnNoGround = PlantZOf(ck::EProceduralGaitLandingGround::None);
+    if (NOT TestTrue(TEXT("Every swing lands"), OnFoundGround.IsSet() && OnUnknownGround.IsSet() && OnNoGround.IsSet()))
+    { return false; }
+
+    TestEqual(TEXT("Ground Found under the landing point lifts the plant onto the upper tread"), OnFoundGround.GetValue(), UpperTreadZ,
+        Tolerance);
+    TestEqual(TEXT("The same height reported Unknown lifts nothing"), OnUnknownGround.GetValue(), LowerTreadZ, Tolerance);
+    TestEqual(TEXT("The same height reported None lifts nothing"), OnNoGround.GetValue(), LowerTreadZ, Tolerance);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitTrustedTargetIsNotClampedTest,
+    "Ck.ProceduralAnimation.Gait.TrustedTargetIsNotClamped",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitTrustedTargetIsNotClampedTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto Frames = 120;
+    constexpr auto Tolerance = 0.01;
+    constexpr auto Trusted = true;
+    constexpr auto Untrusted = false;
+    // One leg on a 100 cm reach, its hip at the origin: target reach 80 cm, force-step reach 92 cm. The plant lies 78.1 cm
+    // from the hip; the target 85 cm, beyond the target reach and within the force-step reach; the far target 95 cm.
+    const auto Plant = FVector{-30.0, 60.0, -40.0};
+    const auto Target = FVector{45.0, 60.0, -40.0};
+    const auto FarTarget = FVector{61.8, 60.0, -40.0};
+    const auto TargetLimit = static_cast<double>(ck::FProceduralGaitSolver{}.Get_Settings().Get_Reach().Get_TargetFraction() * LegReach);
+
+    // A swing toward InTarget, aimed at a spot the caller validated so neither the overshoot nor the freeze push moves it; from
+    // its first swing frame on, the input names InMidSwingTarget instead when one is given.
+    const auto LandingOf = [&](const FVector& InTarget, bool InTrusted, TOptional<FVector> InMidSwingTarget) -> TOptional<FVector>
+    {
+        auto Solver = ck::FProceduralGaitSolver{};
+        Solver.Reset({Plant});
+        auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+        Inputs.SetNum(1);
+        Inputs[0].Set_Hip(FVector::ZeroVector).Set_Reach(LegReach).Set_IdealTarget(InTarget).Set_TargetTrusted(InTrusted)
+            .Set_TargetIsFoothold(true);
+        auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+        Outputs.SetNum(1);
+
+        auto Lifted = false;
+        for (auto Frame = 0; Frame < Frames; ++Frame)
+        {
+            Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+            if (NOT Outputs[0].Get_Planted())
+            {
+                Lifted = true;
+                if (InMidSwingTarget.IsSet())
+                { Inputs[0].Set_IdealTarget(InMidSwingTarget.GetValue()); }
+                continue;
+            }
+            if (Lifted)
+            { return Outputs[0].Get_Position(); }
+        }
+        return {};
+    };
+
+    const auto TrustedLanding = LandingOf(Target, Trusted, {});
+    const auto UntrustedLanding = LandingOf(Target, Untrusted, {});
+    const auto FarLanding = LandingOf(Target, Trusted, FarTarget);
+    if (NOT TestTrue(TEXT("Every swing lands"), TrustedLanding.IsSet() && UntrustedLanding.IsSet() && FarLanding.IsSet()))
+    { return false; }
+
+    TestTrue(FString::Printf(TEXT("A trusted target beyond the target reach and within the force-step reach is landed on (%s against %s)"),
+        *TrustedLanding->ToString(), *Target.ToString()), TrustedLanding->Equals(Target, Tolerance));
+    TestEqual(TEXT("An untrusted target there is clamped to the target reach"), FVector::Dist(UntrustedLanding.GetValue(), FVector::ZeroVector),
+        TargetLimit, Tolerance);
+    TestTrue(FString::Printf(TEXT("A trusted target beyond the force-step reach counts as no target: the swing keeps its landing (%s against %s)"),
+        *FarLanding->ToString(), *Target.ToString()), FarLanding->Equals(Target, Tolerance));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitPullBackTargetIsFrozenTest,
+    "Ck.ProceduralAnimation.Gait.PullBackTargetIsFrozen",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitPullBackTargetIsFrozenTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto SettleAtRest = false;
+    constexpr auto Frames = 120;
+    constexpr auto Tolerance = 0.1;
+    constexpr auto FramesWithTheNewIdeal = 2;
+    const auto Plant = FVector{0.0, 60.0, -40.0};
+    const auto Target = FVector{40.0, 60.0, -40.0};
+    const auto NewIdeal = FVector{70.0, 60.0, -40.0};
+    const auto BodyVelocity = FVector{100.0, 0.0, 0.0};
+
+    auto Solver = ck::FProceduralGaitSolver{};
+    Solver.Get_Settings().Get_Settle().Set_AtRest(SettleAtRest);
+    Solver.Reset({Plant});
+    auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+    Inputs.SetNum(1);
+    Inputs[0].Set_PhaseOffset(0.0f).Set_IdealTarget(Target);
+    auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+    Outputs.SetNum(1);
+
+    // Once the swing has frozen its target, the ideal moves on for two frames, then the probe under the landing point finds
+    // nothing.
+    auto FrozenLanding = TOptional<FVector>{};
+    auto FramesAfterTheFreeze = 0;
+    auto Lifted = false;
+    auto Landed = TOptional<FVector>{};
+    for (auto Frame = 0; Frame < Frames && NOT Landed.IsSet(); ++Frame)
+    {
+        Solver.Step(FrameDt, BodyVelocity.Size2D(), BodyVelocity, Inputs, Outputs);
+        const auto& Swing = Solver.GetLegState(0).Get_Swing();
+        if (Outputs[0].Get_Planted())
+        {
+            if (Lifted)
+            { Landed = Outputs[0].Get_Position(); }
+            continue;
+        }
+        Lifted = true;
+        if (NOT Swing.Get_TargetFrozen())
+        { continue; }
+
+        if (NOT FrozenLanding.IsSet())
+        {
+            FrozenLanding = Swing.Get_LandingPoint();
+            TestTrue(FString::Printf(TEXT("The freeze captures the target the input named (%s against %s)"), *Swing.Get_ValidatedTarget().ToString(),
+                *Target.ToString()), Swing.Get_ValidatedTarget().Equals(Target, Tolerance));
+        }
+        else if (FramesAfterTheFreeze <= FramesWithTheNewIdeal)
+        {
+            TestTrue(FString::Printf(TEXT("After the freeze a changed ideal leaves the landing where it was (%s against %s)"),
+                *Swing.Get_LandingPoint().ToString(), *FrozenLanding->ToString()), Swing.Get_LandingPoint().Equals(FrozenLanding.GetValue(), Tolerance));
+        }
+        TestTrue(TEXT("The captured target never follows the input"), Swing.Get_ValidatedTarget().Equals(Target, Tolerance));
+
+        ++FramesAfterTheFreeze;
+        Inputs[0].Set_IdealTarget(NewIdeal);
+        if (FramesAfterTheFreeze > FramesWithTheNewIdeal)
+        { Inputs[0].Set_LandingGround(ck::EProceduralGaitLandingGround::None); }
+    }
+
+    if (NOT TestTrue(TEXT("The swing froze its target and landed"), FrozenLanding.IsSet() && Landed.IsSet()))
+    { return false; }
+    TestTrue(FString::Printf(TEXT("Precondition: the frozen landing lay past the target (%.2f cm)"), FVector::Dist(FrozenLanding.GetValue(), Target)),
+        FVector::Dist(FrozenLanding.GetValue(), Target) > 1.0);
+    TestTrue(FString::Printf(TEXT("Told nothing lies under its landing, the swing pulls back to the frozen target, not the new ideal (%s)"),
+        *Landed->ToString()), Landed->Equals(Target, Tolerance));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_test_procedural_gait_reach
+{
+    // What the probe under the landing point reports to a displaced swing: nothing, ground at the target's height on every
+    // frame, or nothing there from the frame after the freeze on.
+    enum class EDisplacedLandingReport : uint8
+    {
+        None,
+        GroundAtTheTarget,
+        NoGroundAfterTheFreeze
+    };
+
+    // One leg on a 100 cm reach, its hip at the origin (target reach 80 cm, force-step reach 92 cm), planted at InPlant and
+    // stepping to a trusted InTarget with ground normal InNormal while the body moves at InVelocity; from its first swing
+    // frame on, the input carries InMidSwingNormal when one is given, as a support frame that pitched after take-off would.
+    // The swing's first touchdown, and the push the freeze gives it, from the phase the freeze took, before any bound.
+    struct FDisplacedLanding
+    {
+        TOptional<FVector> Landing;
+        TOptional<FVector> Push;
+    };
+
+    auto
+        Get_DisplacedLanding(
+            const FVector& InPlant,
+            const FVector& InTarget,
+            const FVector& InNormal,
+            const FVector& InVelocity,
+            EDisplacedLandingReport InReport = EDisplacedLandingReport::None,
+            bool InOvershoot = true,
+            const TOptional<FVector>& InMidSwingNormal = {})
+        -> FDisplacedLanding
+    {
+        constexpr auto SettleAtRest = false;
+        constexpr auto Frames = 120;
+        auto Solver = ck::FProceduralGaitSolver{};
+        Solver.Get_Settings().Get_Settle().Set_AtRest(SettleAtRest);
+        if (NOT InOvershoot)
+        { Solver.Get_Settings().Get_Step().Set_StrokeOvershootFraction(0.0f); }
+        Solver.Reset({InPlant});
+        auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+        Inputs.SetNum(1);
+        Inputs[0].Set_Hip(FVector::ZeroVector).Set_Reach(LegReach).Set_IdealTarget(InTarget).Set_GroundNormal(InNormal)
+            .Set_TargetTrusted(true);
+        if (InReport == EDisplacedLandingReport::GroundAtTheTarget)
+        {
+            Inputs[0].Set_LandingGround(ck::EProceduralGaitLandingGround::Found)
+                .Set_LandingGroundZ(static_cast<float>(InTarget.Z));
+        }
+        auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+        Outputs.SetNum(1);
+
+        // The body speed stays 0 so the cadence does not scale the swing; the push reads the planar velocity alone.
+        auto Result = FDisplacedLanding{};
+        auto Lifted = false;
+        for (auto Frame = 0; Frame < Frames; ++Frame)
+        {
+            Solver.Step(FrameDt, 0.0f, InVelocity, Inputs, Outputs);
+            const auto& Swing = Solver.GetLegState(0).Get_Swing();
+            if (NOT Outputs[0].Get_Planted())
+            {
+                if (NOT Lifted && InMidSwingNormal.IsSet())
+                { Inputs[0].Set_GroundNormal(InMidSwingNormal.GetValue()); }
+                Lifted = true;
+                if (Swing.Get_TargetFrozen() && NOT Result.Push.IsSet())
+                {
+                    const auto Remaining = Solver.Get_Settings().Get_Step().Get_Duration().Get_Seconds() * (1.0 - Swing.Get_Phase());
+                    Result.Push = InVelocity * Remaining;
+                    if (InReport == EDisplacedLandingReport::NoGroundAfterTheFreeze)
+                    { Inputs[0].Set_LandingGround(ck::EProceduralGaitLandingGround::None); }
+                }
+                continue;
+            }
+            if (Lifted)
+            {
+                Result.Landing = Outputs[0].Get_Position();
+                return Result;
+            }
+        }
+        return Result;
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitDisplacementIsClampedThenVerifiedTest,
+    "Ck.ProceduralAnimation.Gait.DisplacementIsClampedThenVerified",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitDisplacementIsClampedThenVerifiedTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto Tolerance = 0.05;
+    constexpr auto WithoutOvershoot = false;
+    const auto TargetLimit = ck::FProceduralGaitSolver{}.Get_Settings().Get_Reach().Get_TargetFraction() * LegReach;
+    // A trusted target at 0.7 of the reach, on the plant's Y and Z, so the push runs along +X; no stroke overshoot, so the
+    // push is the only displacement.
+    const auto Plant = FVector{-30.0, 40.0, -40.0};
+    const auto Target = FVector{FMath::Sqrt(70.0 * 70.0 - 3200.0), 40.0, -40.0};
+    const auto Velocity = FVector{450.0, 0.0, 0.0};
+
+    const auto Found = Get_DisplacedLanding(Plant, Target, FVector::UpVector, Velocity, EDisplacedLandingReport::GroundAtTheTarget,
+        WithoutOvershoot);
+    const auto Missed = Get_DisplacedLanding(Plant, Target, FVector::UpVector, Velocity, EDisplacedLandingReport::NoGroundAfterTheFreeze,
+        WithoutOvershoot);
+    if (NOT TestTrue(TEXT("Both swings freeze their target and land"), Found.Landing.IsSet() && Found.Push.IsSet()
+            && Missed.Landing.IsSet() && Missed.Push.IsSet()))
+    { return false; }
+
+    const auto Pushed = Target + Found.Push.GetValue();
+    TestTrue(FString::Printf(TEXT("Precondition: the push carries the target to 0.9 of the reach (%.2f cm)"), Pushed.Size()),
+        Pushed.Size() >= 0.9 * LegReach);
+    const auto Clamped = ck::FProceduralGaitSolver::ClampToReach(FVector::ZeroVector, Pushed, TargetLimit);
+    TestTrue(FString::Printf(TEXT("With ground found under the landing point the swing lands at the clamp of the pushed target (%s against %s)"),
+        *Found.Landing->ToString(), *Clamped.ToString()), Found.Landing->Equals(Clamped, Tolerance));
+    TestTrue(FString::Printf(TEXT("With no ground there after the freeze the swing pulls back and lands on the target (%s against %s)"),
+        *Missed.Landing->ToString(), *Target.ToString()), Missed.Landing->Equals(Target, Tolerance));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitFaceTargetGetsNoDisplacementTest,
+    "Ck.ProceduralAnimation.Gait.FaceTargetGetsNoDisplacement",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitFaceTargetGetsNoDisplacementTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+
+    constexpr auto Tolerance = 0.05;
+    // A trusted target on a face whose normal lies across the stroke, within the target reach: level ground there would
+    // take the overshoot and the push along +X.
+    const auto Plant = FVector{-30.0, 40.0, -40.0};
+    const auto Target = FVector{50.0, 40.0, -40.0};
+    const auto FaceNormal = FVector{0.0, -1.0, 0.0};
+    const auto Velocity = FVector{450.0, 0.0, 0.0};
+
+    const auto Face = Get_DisplacedLanding(Plant, Target, FaceNormal, Velocity);
+    const auto Level = Get_DisplacedLanding(Plant, Target, FVector::UpVector, Velocity);
+    if (NOT TestTrue(TEXT("Both swings land"), Face.Landing.IsSet() && Level.Landing.IsSet()))
+    { return false; }
+
+    TestTrue(FString::Printf(TEXT("Precondition: on level ground the same step is displaced along +X (%s)"), *Level.Landing->ToString()),
+        Level.Landing->X > Target.X + 1.0);
+    TestTrue(FString::Printf(TEXT("A target on a face is landed on exactly (%s against %s)"), *Face.Landing->ToString(), *Target.ToString()),
+        Face.Landing->Equals(Target, Tolerance));
+
+    // The same face target, while the support frame pitches after take-off until the face's normal reads 40 degrees from the
+    // support up: the swing classified its target at take-off and keeps it a face.
+    constexpr auto PitchedDegrees = 40.0;
+    const auto PitchedNormal = FVector{0.0, -FMath::Sin(FMath::DegreesToRadians(PitchedDegrees)), FMath::Cos(FMath::DegreesToRadians(PitchedDegrees))};
+    constexpr auto NoReport = EDisplacedLandingReport::None;
+    constexpr auto WithOvershoot = true;
+    const auto Pitched = Get_DisplacedLanding(Plant, Target, FaceNormal, Velocity, NoReport, WithOvershoot, PitchedNormal);
+    if (NOT TestTrue(TEXT("The pitched swing lands"), Pitched.Landing.IsSet()))
+    { return false; }
+    TestTrue(FString::Printf(TEXT("A face target stays a face for its swing when the frame pitches it below the face angle: landed on "
+            "exactly (%s against %s)"), *Pitched.Landing->ToString(), *Target.ToString()),
+        Pitched.Landing->Equals(Target, Tolerance));
 
     return true;
 }

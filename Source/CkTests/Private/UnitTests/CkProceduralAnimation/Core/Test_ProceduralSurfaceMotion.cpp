@@ -17,6 +17,7 @@ namespace ck_test_procedural_surface_motion
     constexpr auto DistanceTolerance = 1.0e-3;
     constexpr auto TimeTolerance = 1.0e-4;
     constexpr auto MaxSubsteps = 240;
+    const auto NoFeet = TOptional<ck::FProceduralSurfaceFeetSupport>{};
 
     // A convex solid: the points where dot(Normal, X) <= Offset for every plane.
     struct FSolidFace
@@ -163,7 +164,7 @@ auto
     constexpr auto Substeps = 60;
     for (auto Index = 0; Index < Substeps; ++Index)
     {
-        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Body, State);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
         if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the down ray keeps the body grounded at its clearance (z %.4f, source %d)"),
                 Index, Body.GetLocation().Z, static_cast<int32>(State.Get_ContactSource())),
                 State.Get_Grounded() && State.Get_ContactTrusted()
@@ -213,7 +214,7 @@ auto
     for (auto Index = 0; Index < Substeps; ++Index)
     {
         const auto Before = Body.GetLocation();
-        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Body, State);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
         const auto Kept = State.Get_TravelTangent();
         if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the kept tangent still climbs the facet (tangent %s, rise %.3f)"),
                 Index, *Kept.ToString(), Body.GetLocation().Z - Before.Z),
@@ -255,7 +256,7 @@ auto
     auto Landed = false;
     for (auto Index = 0; Index < MaxSubsteps && NOT Landed; ++Index)
     {
-        ck::StepProceduralSurfaceMotion(MakeSettings(), Steer, Speed, Step, Cast, Body, State);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), Steer, Speed, Step, Cast, NoFeet, Body, State);
         Landed = State.Get_Grounded();
     }
     if (NOT TestTrue(TEXT("The body lands on the floor"), Landed))
@@ -301,7 +302,7 @@ auto
     auto Landed = false;
     for (auto Index = 0; Index < MaxSubsteps && NOT Landed; ++Index)
     {
-        ck::StepProceduralSurfaceMotion(MakeSettings(), Steer, Speed, Step, Cast, Body, State);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), Steer, Speed, Step, Cast, NoFeet, Body, State);
         Landed = State.Get_Grounded();
     }
     if (NOT TestTrue(TEXT("The body lands on the floor"), Landed))
@@ -373,7 +374,7 @@ auto
     for (auto Index = 0; Index < MaxSubsteps && Adopted == INDEX_NONE; ++Index)
     {
         SawWall = false;
-        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Body, State);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
         if (SawWall && FirstSighting == INDEX_NONE)
         { FirstSighting = Index; }
         if (State.Get_SupportNormal().Equals(FVector::BackwardVector, DistanceTolerance))
@@ -434,7 +435,7 @@ auto
         {
             SawWall = false;
             const auto Before = Body.GetLocation();
-            ck::StepProceduralSurfaceMotion(MakeSettings(), Steer, Speed, Step, Cast, Body, State);
+            ck::StepProceduralSurfaceMotion(MakeSettings(), Steer, Speed, Step, Cast, NoFeet, Body, State);
             if (SawWall && NOT SightedAt.IsSet())
             { SightedAt = Before; }
             Adopted = State.Get_SupportNormal().Equals(FVector::BackwardVector, DistanceTolerance);
@@ -494,7 +495,7 @@ auto
     constexpr auto Substeps = 60;
     for (auto Index = 0; Index < Substeps; ++Index)
     {
-        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Body, State);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
         if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the floor stays the support (normal %s, z %.3f)"),
                 Index, *State.Get_SupportNormal().ToString(), Body.GetLocation().Z),
                 State.Get_SupportNormal().Equals(FVector::UpVector, DistanceTolerance) && State.Get_Grounded()
@@ -552,7 +553,7 @@ auto
     constexpr auto Substeps = 90;
     for (auto Index = 0; Index < Substeps; ++Index)
     {
-        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Body, State);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
         if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the grazed riser never replaces the tread under the body (normal %s, x %.2f, z %.2f)"),
                 Index, *State.Get_SupportNormal().ToString(), Body.GetLocation().X, Body.GetLocation().Z),
                 State.Get_SupportNormal().Equals(FVector::UpVector, DistanceTolerance)))
@@ -608,7 +609,7 @@ auto
     for (auto Index = 0; Index < MaxSubsteps; ++Index)
     {
         const auto WasInside = StartedInside;
-        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Body, State);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
         if (StartedInside == WasInside)
         { continue; }
 
@@ -653,7 +654,7 @@ auto
     for (auto Index = 0; Index < MaxSubsteps; ++Index)
     {
         DownMissed = false;
-        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Body, State);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
         if (NOT DownMissed)
         { continue; }
 
@@ -693,7 +694,7 @@ auto
     constexpr auto Substeps = 120;
     for (auto Index = 0; Index < Substeps; ++Index)
     {
-        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Body, State);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
         if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the body stays grounded on the top (normal %s, z %.3f, source %d)"),
                 Index, *State.Get_SupportNormal().ToString(), Body.GetLocation().Z, static_cast<int32>(State.Get_ContactSource())),
                 State.Get_Grounded() && State.Get_ContactTrusted() && State.Get_SupportNormal().Equals(FVector::UpVector, DistanceTolerance)))
@@ -733,7 +734,7 @@ auto
     constexpr auto Substeps = 120;
     for (auto Index = 0; Index < Substeps; ++Index)
     {
-        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Body, State);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
         if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the body keeps the top, never sinking toward the floor (normal %s, z %.3f, source %d)"),
                 Index, *State.Get_SupportNormal().ToString(), Body.GetLocation().Z, static_cast<int32>(State.Get_ContactSource())),
                 State.Get_SupportNormal().Equals(FVector::UpVector, DistanceTolerance) && Body.GetLocation().Z >= TopZ))
@@ -773,7 +774,7 @@ auto
     constexpr auto Substeps = 150;
     for (auto Index = 0; Index < Substeps; ++Index)
     {
-        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Body, State);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
         if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the body follows the down ray (source %d, normal %s)"),
                 Index, static_cast<int32>(State.Get_ContactSource()), *State.Get_SupportNormal().ToString()),
                 State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Down
@@ -814,7 +815,7 @@ auto
     constexpr auto Substeps = 120;
     for (auto Index = 0; Index < Substeps; ++Index)
     {
-        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Body, State);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
         if (Body.GetLocation().X >= StepX)
         { continue; }
 
@@ -862,7 +863,7 @@ auto
         constexpr auto Substeps = 120;
         for (auto Index = 0; Index < Substeps; ++Index)
         {
-            ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, StoppedSpeed, Step, Cast, Body, State);
+            ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, StoppedSpeed, Step, Cast, NoFeet, Body, State);
             if (NOT TestTrue(FString::Printf(TEXT("Ledge %.0f cm, substep %d: the stopped body keeps the top, neither sinking toward the "
                     "floor nor falling (normal %s, z %.3f, grounded %d, source %d)"), TopZ, Index, *State.Get_SupportNormal().ToString(),
                     Body.GetLocation().Z, State.Get_Grounded(), static_cast<int32>(State.Get_ContactSource())),
@@ -904,7 +905,7 @@ auto
     auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
     State.Set_ContactSource(ck::EProceduralSurfaceContactSource::Fan);
 
-    ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Body, State);
+    ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
     if (NOT TestTrue(FString::Printf(TEXT("Precondition: the ramp is pending and the support unchanged (seen %.4f s, normal %s)"),
             State.Get_CandidateSeen().Get_Seconds(), *State.Get_SupportNormal().ToString()),
             State.Get_CandidateSeen() > FCk_Time{} && State.Get_CandidateNormal().Equals(RampNormal, DistanceTolerance)
@@ -912,6 +913,420 @@ auto
     { return false; }
 
     TestEqual(TEXT("The coasting substep keeps the last accepted source"), State.Get_ContactSource(), ck::EProceduralSurfaceContactSource::Fan);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_test_procedural_surface_motion
+{
+    // A plane through the planted feet, published in the identity frame at InOrigin with a square footprint of InHalfSize.
+    auto
+        MakeFeetSupport(
+            const FVector& InPoint,
+            const FVector& InNormal,
+            const FVector& InOrigin,
+            double InHalfSize)
+        -> TOptional<ck::FProceduralSurfaceFeetSupport>
+    {
+        return ck::FProceduralSurfaceFeetSupport{}
+            .Set_Point(InPoint)
+            .Set_Normal(InNormal.GetSafeNormal())
+            .Set_Basis(FQuat::Identity)
+            .Set_Origin(InOrigin)
+            .Set_FootprintMin(FVector2D{-InHalfSize, -InHalfSize})
+            .Set_FootprintMax(FVector2D{InHalfSize, InHalfSize});
+    }
+
+    auto
+        MissEverything(
+            const FVector&,
+            const FVector&)
+        -> ck::FProceduralSurfaceHit
+    {
+        return ck::FProceduralSurfaceHit{};
+    }
+
+    auto
+        Get_SourceValue(
+            const ck::FProceduralSurfaceMotionState& InState)
+        -> int32
+    {
+        return static_cast<int32>(InState.Get_ContactSource());
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionFeetHoldOverAMissTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.FeetSupportHoldsTheBodyOverAMiss",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionFeetHoldOverAMissTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // Every ray misses (a body over a gap between the pillar tops its feet stand on); the feet plane lies one clearance
+    // below it with a footprint all round.
+    constexpr auto BodyZ = 100.0;
+    const auto Feet = MakeFeetSupport(FVector{0.0, 0.0, BodyZ - Clearance}, FVector::UpVector, FVector{0.0, 0.0, BodyZ}, 200.0);
+    auto Body = MakeBody(FVector{0.0, 0.0, BodyZ}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    constexpr auto Substeps = 10;
+    for (auto Index = 0; Index < Substeps; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, &MissEverything, Feet, Body, State);
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the feet hold the body at its height, grounded on a trusted feet contact (z %.4f, "
+                "source %d, grounded %d, missing %.4f s)"), Index, Body.GetLocation().Z, Get_SourceValue(State), State.Get_Grounded(),
+                State.Get_MissingContact().Get_Seconds()),
+                FMath::IsNearlyEqual(Body.GetLocation().Z, BodyZ, DistanceTolerance) && State.Get_Grounded() && State.Get_ContactTrusted()
+                && State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Feet && State.Get_MissingContact() == FCk_Time{}))
+        { return false; }
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionFeetLiftTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.FeetSupportLiftsTheBodyAboveALowerHit",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionFeetLiftTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // The down ray reaches a floor 150 cm below the body while the feet plane lies one clearance below it: the body stays
+    // on the feet instead of sinking to the floor.
+    constexpr auto BodyZ = 150.0;
+    const auto World = TArray<FSolid>{MakeHalfSpace(FVector::UpVector, FVector::ZeroVector)};
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+    const auto Feet = MakeFeetSupport(FVector{0.0, 0.0, BodyZ - Clearance}, FVector::UpVector, FVector{0.0, 0.0, BodyZ}, 500.0);
+    auto Body = MakeBody(FVector{0.0, 0.0, BodyZ}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    constexpr auto Substeps = 30;
+    for (auto Index = 0; Index < Substeps; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Feet, Body, State);
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the body stays one clearance above the feet plane, 150 cm over the floor (z %.4f, source %d)"),
+                Index, Body.GetLocation().Z, Get_SourceValue(State)),
+                FMath::IsNearlyEqual(Body.GetLocation().Z, BodyZ, DistanceTolerance)
+                && State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Feet))
+        { return false; }
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionFeetNeverLowerTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.FeetSupportNeverLowersTheBody",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionFeetNeverLowerTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // The feet plane lies 50 cm below the floor the down ray finds (feet planted in a hole the body has not stepped into):
+    // the floor keeps the body at its clearance.
+    const auto World = TArray<FSolid>{MakeHalfSpace(FVector::UpVector, FVector::ZeroVector)};
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+    const auto Feet = MakeFeetSupport(FVector{0.0, 0.0, -50.0}, FVector::UpVector, FVector{0.0, 0.0, Clearance}, 500.0);
+    auto Body = MakeBody(FVector{0.0, 0.0, Clearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    constexpr auto Substeps = 30;
+    for (auto Index = 0; Index < Substeps; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Feet, Body, State);
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the down ray's floor keeps the body at its clearance (z %.4f, source %d)"),
+                Index, Body.GetLocation().Z, Get_SourceValue(State)),
+                FMath::IsNearlyEqual(Body.GetLocation().Z, Clearance, DistanceTolerance)
+                && State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Down))
+        { return false; }
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionFeetCarryRayNormalTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.FeetSupportCarriesTheDownRaysNormal",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionFeetCarryRayNormalTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    constexpr auto BodyZ = 150.0;
+    constexpr auto TiltDegrees = 20.0;
+    constexpr auto NormalToleranceDegrees = 0.5;
+    constexpr auto Substeps = 60;
+    constexpr auto Still = 0.0f;
+    const auto TiltedNormal = FQuat{FVector::RightVector, FMath::DegreesToRadians(TiltDegrees)}.RotateVector(FVector::UpVector);
+    const auto DegreesBetween = [](const FVector& InA, const FVector& InB)
+    {
+        return FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(InA.GetSafeNormal(), InB.GetSafeNormal()), -1.0, 1.0)));
+    };
+
+    // A floor tilted 20 degrees lies 150 cm under the body and the level feet plane one clearance under it: the feet hold the
+    // height, and the support turns onto the floor the down ray hits.
+    {
+        const auto World = TArray<FSolid>{MakeHalfSpace(TiltedNormal, FVector::ZeroVector)};
+        const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+        const auto Feet = MakeFeetSupport(FVector{0.0, 0.0, BodyZ - Clearance}, FVector::UpVector, FVector{0.0, 0.0, BodyZ}, 500.0);
+        auto Body = MakeBody(FVector{0.0, 0.0, BodyZ}, FVector::UpVector, FVector::ForwardVector);
+        auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+        for (auto Index = 0; Index < Substeps; ++Index)
+        {
+            ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Still, Step, Cast, Feet, Body, State);
+            if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the feet hold the body over the floor the down ray hits (source %d)"),
+                    Index, Get_SourceValue(State)), State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Feet))
+            { return false; }
+        }
+        TestTrue(FString::Printf(TEXT("Under the feet contact the support turns onto the down ray's normal (support %s, %.3f degrees from it)"),
+                *State.Get_SupportNormal().ToString(), DegreesBetween(State.Get_SupportNormal(), TiltedNormal)),
+            DegreesBetween(State.Get_SupportNormal(), TiltedNormal) <= NormalToleranceDegrees);
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionFeetOverAMissCarryThePlanesNormalTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.FeetContactOverAMissCarriesThePlanesNormal",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionFeetOverAMissCarryThePlanesNormalTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    constexpr auto BodyZ = 150.0;
+    constexpr auto TiltDegrees = 20.0;
+    constexpr auto NormalToleranceDegrees = 0.5;
+    constexpr auto Still = 0.0f;
+    const auto TiltedNormal = FQuat{FVector::RightVector, FMath::DegreesToRadians(TiltDegrees)}.RotateVector(FVector::UpVector);
+    const auto DegreesBetween = [](const FVector& InA, const FVector& InB)
+    {
+        return FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(InA.GetSafeNormal(), InB.GetSafeNormal()), -1.0, 1.0)));
+    };
+    // A feet plane tilted 20 degrees from the support up, one clearance under the body; the turn stays under the confirm
+    // angle, so the first substep adopts whatever normal the feet contact carries.
+    const auto Feet = MakeFeetSupport(FVector{0.0, 0.0, BodyZ - Clearance}, TiltedNormal, FVector{0.0, 0.0, BodyZ}, 200.0);
+
+    // Every ray misses: the feet contact carries the plane's normal.
+    {
+        auto Body = MakeBody(FVector{0.0, 0.0, BodyZ}, FVector::UpVector, FVector::ForwardVector);
+        auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Still, Step, &MissEverything, Feet, Body, State);
+        TestTrue(FString::Printf(TEXT("Over a miss the feet contact carries the plane's normal (source %d, support %s, %.3f degrees from it)"),
+                Get_SourceValue(State), *State.Get_SupportNormal().ToString(), DegreesBetween(State.Get_SupportNormal(), TiltedNormal)),
+            State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Feet
+            && DegreesBetween(State.Get_SupportNormal(), TiltedNormal) <= NormalToleranceDegrees);
+    }
+
+    // A level floor 150 cm under the body: the feet contact, higher, carries the down ray's normal.
+    {
+        const auto World = TArray<FSolid>{MakeHalfSpace(FVector::UpVector, FVector::ZeroVector)};
+        const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+        auto Body = MakeBody(FVector{0.0, 0.0, BodyZ}, FVector::UpVector, FVector::ForwardVector);
+        auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Still, Step, Cast, Feet, Body, State);
+        TestTrue(FString::Printf(TEXT("Over a hit the feet contact carries the ray's normal (source %d, support %s)"), Get_SourceValue(State),
+                *State.Get_SupportNormal().ToString()),
+            State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Feet
+            && DegreesBetween(State.Get_SupportNormal(), FVector::UpVector) <= NormalToleranceDegrees);
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionFeetFootprintTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.FeetSupportEndsAtTheFootprint",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionFeetFootprintTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // Every ray misses; the feet stand within 50 cm of the start, so their plane counts up to a quarter clearance beyond.
+    // Past it the body takes the rays' path: the contact grace, then the fall.
+    constexpr auto BodyZ = 100.0;
+    constexpr auto FootprintHalfSize = 50.0;
+    const auto Reach = FootprintHalfSize + 0.25 * Clearance;
+    const auto Feet = MakeFeetSupport(FVector{0.0, 0.0, BodyZ - Clearance}, FVector::UpVector, FVector{0.0, 0.0, BodyZ}, FootprintHalfSize);
+    auto Body = MakeBody(FVector{0.0, 0.0, BodyZ}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    auto InsideSubsteps = 0;
+    auto FirstOutside = int32{INDEX_NONE};
+    auto Fell = false;
+    for (auto Index = 0; Index < MaxSubsteps && NOT Fell; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, &MissEverything, Feet, Body, State);
+        const auto X = Body.GetLocation().X;
+        const auto IsFeet = State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Feet;
+        if (X <= Reach)
+        {
+            ++InsideSubsteps;
+            if (NOT TestTrue(FString::Printf(TEXT("Substep %d, inside the footprint (x %.2f): the feet support the body (source %d)"),
+                    Index, X, Get_SourceValue(State)), IsFeet && State.Get_Grounded()))
+            { return false; }
+            continue;
+        }
+
+        if (NOT TestFalse(FString::Printf(TEXT("Substep %d, outside the footprint (x %.2f): no feet contact (source %d)"),
+                Index, X, Get_SourceValue(State)), IsFeet))
+        { return false; }
+
+        if (FirstOutside == INDEX_NONE)
+        {
+            FirstOutside = Index;
+            TestTrue(FString::Printf(TEXT("The first substep outside starts the contact grace: grounded, nothing accepted (source %d, missing %.4f s)"),
+                Get_SourceValue(State), State.Get_MissingContact().Get_Seconds()),
+                State.Get_Grounded() && State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::None
+                && State.Get_MissingContact() > FCk_Time{});
+        }
+        Fell = NOT State.Get_Grounded();
+    }
+
+    TestTrue(FString::Printf(TEXT("Precondition: the body walked inside the footprint first (%d substeps)"), InsideSubsteps), InsideSubsteps > 0);
+    TestTrue(TEXT("Past the footprint the grace runs out and the body falls"), FirstOutside != INDEX_NONE && Fell);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionFeetTiltedPlaneTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.FeetSupportHeightFollowsTheTiltedPlane",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionFeetTiltedPlaneTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // A plane rising 30 degrees toward +X, published at the origin; the body stands 40 cm up the slope from that point, one
+    // clearance straight above the plane there (20 cm higher than the point). Every ray misses and the body stays put: the
+    // feet carry their plane's normal, so the body turns onto it and settles one clearance from the plane along it.
+    constexpr auto SlopeDegrees = 30.0;
+    constexpr auto AlongSlope = 40.0;
+    constexpr auto HeightTolerance = 0.5;
+    constexpr auto NormalToleranceDegrees = 0.5;
+    constexpr auto StoppedSpeed = 0.0f;
+    const auto Normal = FQuat{FVector::RightVector, -FMath::DegreesToRadians(SlopeDegrees)}.RotateVector(FVector::UpVector);
+    const auto X = AlongSlope * FMath::Cos(FMath::DegreesToRadians(SlopeDegrees));
+    const auto PlaneZ = X * FMath::Tan(FMath::DegreesToRadians(SlopeDegrees));
+    const auto BodyZ = PlaneZ + Clearance;
+    const auto Feet = MakeFeetSupport(FVector::ZeroVector, Normal, FVector::ZeroVector, 200.0);
+    auto Body = MakeBody(FVector{X, 0.0, BodyZ}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    constexpr auto Substeps = 120;
+    for (auto Index = 0; Index < Substeps; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, StoppedSpeed, Step, &MissEverything, Feet, Body, State);
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the feet hold the body (source %d)"), Index, Get_SourceValue(State)),
+                State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Feet))
+        { return false; }
+    }
+
+    const auto SupportDegrees = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(State.Get_SupportNormal(), Normal), -1.0, 1.0)));
+    const auto Height = FVector::DotProduct(Body.GetLocation(), Normal);
+    TestTrue(FString::Printf(TEXT("Over the miss the support has turned onto the plane's normal (%.3f degrees from it)"), SupportDegrees),
+        SupportDegrees <= NormalToleranceDegrees);
+    TestTrue(FString::Printf(TEXT("The body keeps its clearance from the plane under it along that normal (%.3f cm, expected %.1f)"), Height,
+        Clearance), FMath::IsNearlyEqual(Height, static_cast<double>(Clearance), HeightTolerance));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionUnsetFeetTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.UnsetFeetSupportKeepsTheRayPath",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionUnsetFeetTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // A floor, a 20 cm step, a drop back to the floor and a wall across the path: the body steps up, walks off, confirms and
+    // climbs the wall. Once with no feet support, once with a support whose footprint lies 10 m away: every substep's body
+    // and state are identical, bit for bit.
+    const auto World = TArray<FSolid>{
+        MakeHalfSpace(FVector::UpVector, FVector::ZeroVector),
+        MakeBox(FVector{50.0, -500.0, -10.0}, FVector{150.0, 500.0, 20.0}),
+        MakeBox(FVector{300.0, -500.0, -50.0}, FVector{600.0, 500.0, 300.0})};
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+    const auto FarFeet = MakeFeetSupport(FVector{0.0, 0.0, 40.0}, FVector::UpVector, FVector{0.0, 1000.0, 0.0}, 100.0);
+
+    auto Body = MakeBody(FVector{-50.0, 0.0, Clearance}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+    auto FarBody = Body;
+    auto FarState = State;
+
+    constexpr auto Substeps = 300;
+    auto SawWall = false;
+    for (auto Index = 0; Index < Substeps; ++Index)
+    {
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, NoFeet, Body, State);
+        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, FarFeet, FarBody, FarState);
+        SawWall = SawWall || State.Get_SupportNormal().Equals(FVector::BackwardVector, DistanceTolerance);
+
+        const auto Same = Body.GetLocation() == FarBody.GetLocation() && Body.GetRotation() == FarBody.GetRotation()
+            && State.Get_SupportNormal() == FarState.Get_SupportNormal() && State.Get_TravelTangent() == FarState.Get_TravelTangent()
+            && State.Get_Velocity() == FarState.Get_Velocity() && State.Get_MissingContact() == FarState.Get_MissingContact()
+            && State.Get_Grounded() == FarState.Get_Grounded() && State.Get_ContactTrusted() == FarState.Get_ContactTrusted()
+            && State.Get_ContactSource() == FarState.Get_ContactSource() && State.Get_CandidateSeen() == FarState.Get_CandidateSeen()
+            && State.Get_CandidateNormal() == FarState.Get_CandidateNormal();
+        if (NOT TestTrue(FString::Printf(TEXT("Substep %d: a support whose footprint the body never enters changes nothing (%s vs %s)"),
+                Index, *Body.GetLocation().ToString(), *FarBody.GetLocation().ToString()), Same))
+        { return false; }
+    }
+    TestTrue(TEXT("Precondition: the sequence reaches the wall"), SawWall);
 
     return true;
 }

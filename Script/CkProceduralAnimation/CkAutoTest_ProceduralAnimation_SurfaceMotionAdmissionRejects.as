@@ -6,6 +6,7 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
     default _AutoStageOriginField = false;
     private FVector _Origin = FVector(120000.0, 62000.0, 1000.0);
     private FCk_Handle _Body;
+    private FCk_Handle _FeetBody;
 
     bool HasMotion(FCk_Handle InBody)
     {
@@ -104,6 +105,23 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
         auto Motion = utils_surface_motion::Add(Body, FCk_SurfaceMotion_Spec());
         Assert_True(ck::IsValid(Motion) && HasMotion(Body), "Positive control: default parameters are admitted");
         Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 0, "Positive control: no ensure fires");
+        Assert_True(utils_surface_motion::Get_HeightSource(Motion) == ECk_SurfaceMotion_HeightSource::Rays,
+            "The default height source reads back as Rays");
+
+        auto FeetEntity = utils_entity_lifetime::Request_CreateEntity(Owner);
+        FeetEntity.Request_OverrideToSelf();
+        auto FeetBody = utils_transform::Add(FeetEntity, FTransform(_Origin + FVector(0.0, 500.0, 0.0)), ECk_Replication::DoesNotReplicate);
+        _FeetBody = FeetBody;
+        auto FeetContact = FCk_SurfaceMotion_Contact();
+        FeetContact.Set_HeightSource(ECk_SurfaceMotion_HeightSource::PlantedFeet);
+        auto FeetSpec = FCk_SurfaceMotion_Spec();
+        FeetSpec.Set_Contact(FeetContact);
+        EnsuresBefore = utils_ensure::Get_EnsureCount();
+        auto FeetMotion = utils_surface_motion::Add(FeetBody, FeetSpec);
+        Assert_True(ck::IsValid(FeetMotion) && HasMotion(FeetBody), "A PlantedFeet height source is admitted");
+        Assert_Equals_Int(utils_ensure::Get_EnsureCount() - EnsuresBefore, 0, "A PlantedFeet height source fires no ensure");
+        Assert_True(utils_surface_motion::Get_HeightSource(FeetMotion) == ECk_SurfaceMotion_HeightSource::PlantedFeet,
+            "The PlantedFeet height source reads back as PlantedFeet");
 
         EnsuresBefore = utils_ensure::Get_EnsureCount();
         AssertRejected(utils_surface_motion::Add(Body, FCk_SurfaceMotion_Spec()), EnsuresBefore, true,
@@ -121,13 +139,14 @@ class UCk_AutoTest_ProceduralAnimation_SurfaceMotionAdmissionRejects : UCk_AutoT
     {
         Assert_True(ck::IsValid(_Body), "The body survived the rejections");
         utils_entity_lifetime::Request_DestroyEntity(_Body);
+        utils_entity_lifetime::Request_DestroyEntity(_FeetBody);
     }
 
     UFUNCTION()
     private void Check_Destroyed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         auto Result = OutResult;
-        Result.Set(ck::Is_NOT_Valid(_Body));
+        Result.Set(ck::Is_NOT_Valid(_Body) && ck::Is_NOT_Valid(_FeetBody));
     }
 }
 

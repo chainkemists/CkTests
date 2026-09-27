@@ -357,6 +357,17 @@ namespace ck
         _Step.Set_TargetReachFraction(0.6f);
     }
 
+    // A 25 cm search ring inside the derived 45 cm keep radius: a ring candidate can then cost less than a hold the keep
+    // radius still keeps, so a hold inside it that serves has won against a cheaper spot, not tied with one.
+    asset ProceduralTest_NarrowRingGait of UCk_ProceduralGait_Data
+    {
+        _Timing.Set_CycleDuration(FCk_Time(0.8));
+        _Timing.Set_StepDuration(FCk_Time(0.22));
+        _Step.Set_Height(24.0f);
+        _Step.Set_Threshold(30.0f);
+        _Foothold.Set_SearchRadius(25.0f);
+    }
+
     // Foothold weights must not be negative; admission rejects this preset.
     asset ProceduralTest_NegativeSlopeWeightGait of UCk_ProceduralGait_Data
     {

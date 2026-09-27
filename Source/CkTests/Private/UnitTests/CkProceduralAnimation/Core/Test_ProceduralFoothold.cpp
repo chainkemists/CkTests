@@ -341,4 +341,33 @@ auto
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralFootholdFaceIdealCompetesOnCostTest,
+    "Ck.ProceduralAnimation.Foothold.FaceIdealCompetesOnCost",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralFootholdFaceIdealCompetesOnCostTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_foothold;
+
+    constexpr auto Swinging = false;
+    // The ideal on a vertical face, at the ideal itself: it costs the slope term alone, 0.5 with the default weight.
+    const auto FaceIdeal = ck::FProceduralFootholdCandidate{Ideal, FVector::BackwardVector, ck::EProceduralFootholdSource::Ideal,
+        ck::EProceduralFootholdVerdict::Usable};
+    const auto NearTop = MakeLevel(Ideal + FVector{0.4 * Reach, 0.0, 0.0});
+    const auto FarTop = MakeLevel(Ideal + FVector{0.6 * Reach, 0.0, 0.0});
+
+    TestEqual(TEXT("A level candidate at 0.4 of the reach beats the face ideal"),
+        Select(TArray<ck::FProceduralFootholdCandidate>{FaceIdeal, NearTop}, Swinging), 1);
+    TestEqual(TEXT("The face ideal beats a level candidate at 0.6 of the reach"),
+        Select(TArray<ck::FProceduralFootholdCandidate>{FaceIdeal, FarTop}, Swinging), 0);
+
+    return true;
+}
+
 #endif

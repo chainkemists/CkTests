@@ -152,8 +152,9 @@ class UCk_AutoTest_ProceduralAnimation_BodyPoseSagsTowardLostLegs : UCk_AutoTest
     {
         _Fixture.Update();
         Track_Overshoot();
+        // The verify step reads the presentation's transform, which follows the offset through the transform settle.
         auto Result = OutResult;
-        Result.Set(Get_OffsetZ() <= -0.9 * Get_RearDrop() || Get_Elapsed() >= 3.0);
+        Result.Set(Get_PresentationLocal().Z <= -0.9 * Get_RearDrop() || Get_Elapsed() >= 3.0);
     }
 
     UFUNCTION()
