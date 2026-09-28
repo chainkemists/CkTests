@@ -1,7 +1,7 @@
 // Language=angelscript
 
 // PaViz telemetry on the third stress courses: the pillar crossing (a ramp onto a field of pillar tops and down again)
-// with three rosters, the posts, the cylinder and the pillar field walked between its rows. The recorder
+// with two rosters, the posts, the cylinder and the mandatory stepped pillar field. The recorder
 // (CkPaViz_TelemetryRecorder.as) traces the [PAVIZ] lines; the data is the product, so the test passes once the sequence
 // completes. Course names are unique across the PaViz tests, because the renderer merges their logs by course and walker.
 class UCk_AutoTest_PaViz_StressTelemetryC : UCk_AutoTest_Base
@@ -18,14 +18,10 @@ class UCk_AutoTest_PaViz_StressTelemetryC : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto CentipedeRoster = TArray<ECkProceduralAnimationGym_Species>();
-        CentipedeRoster.Add(ECkProceduralAnimationGym_Species::Centipede);
         auto Created = DoAdd_StressFixture(InHandle, "PillarCrossing", ECkProceduralAnimationGym_Course::PillarCrossing, FVector(120000.0, 240000.0, 600.0));
         Created = _Recorder.Add_Fixture(InHandle, "PillarCrossingMixed", ECkProceduralAnimationGym_Course::PillarCrossing, FVector(120000.0, 245000.0, 600.0),
             ck_paviz_telemetry::MakeRoster(ECkProceduralAnimationGym_Species::Crawler4, ECkProceduralAnimationGym_Species::Crawler6,
                 ECkProceduralAnimationGym_Species::Beast)) && Created;
-        Created = _Recorder.Add_Fixture(InHandle, "PillarCrossingCentipede", ECkProceduralAnimationGym_Course::PillarCrossing,
-            FVector(120000.0, 250000.0, 600.0), CentipedeRoster) && Created;
         Created = DoAdd_StressFixture(InHandle, "Posts", ECkProceduralAnimationGym_Course::Posts, FVector(120000.0, 255000.0, 600.0)) && Created;
         Created = DoAdd_StressFixture(InHandle, "Cylinder", ECkProceduralAnimationGym_Course::Cylinder, FVector(120000.0, 260000.0, 600.0)) && Created;
         Created = DoAdd_StressFixture(InHandle, "PillarRows", ECkProceduralAnimationGym_Course::Pillars, FVector(120000.0, 265000.0, 600.0)) && Created;

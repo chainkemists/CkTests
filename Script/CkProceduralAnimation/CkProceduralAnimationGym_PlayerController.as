@@ -21,8 +21,8 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         Station.Title = FText::FromString("PROCEDURAL SURFACE TRAVERSAL");
         Station.Description.Add(FText::FromString("4 / 6 / 8 legs on uneven ground, a wall and a closed loop."));
         Station.Description.Add(FText::FromString("Authored routes steer real surface motion. Planted feet and joint poses are solved by CkFoundation."));
-        Station.Description.Add(FText::FromString("N switches to a spider, a centipede, a tentacled walker and a mixed-chain beast on stairs, rubble and a convex hump."));
-        Station.Description.Add(FText::FromString("Three stress sets follow: a step field, a ledge and a sharp ridge; a log, narrow beams, and a ramp onto a field of pillar tops and down again; posts, a cylinder a biped also climbs, and a pillar field walked between its rows."));
+        Station.Description.Add(FText::FromString("N switches to a spider, a tentacled walker and a mixed-chain beast on stairs, rubble and a convex hump."));
+        Station.Description.Add(FText::FromString("Three stress sets follow: a step field, a ledge and a sharp ridge; a log, narrow beams, and a ramp onto a field of pillar tops and down again; posts, three isolated cylinders for the spider, biped and small four-leg crawler, and mandatory staggered stepping pillars."));
         Station.AutoSize = true;
         Stations.Add(Station);
         return Stations;
@@ -79,11 +79,11 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         {
             Roster.Add(ECkProceduralAnimationGym_Species::Beast);
             Roster.Add(ECkProceduralAnimationGym_Species::Spider);
-            Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
+            Roster.Add(ECkProceduralAnimationGym_Species::Tentacled);
         }
         else if (InSlot == 1)
         {
-            Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
+            Roster.Add(ECkProceduralAnimationGym_Species::Spider);
             Roster.Add(ECkProceduralAnimationGym_Species::Tentacled);
             Roster.Add(ECkProceduralAnimationGym_Species::Beast);
         }
@@ -144,7 +144,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         }
         if (InCourse == ECkProceduralAnimationGym_Course::Pillars)
         {
-            return "PILLAR FIELD (LANES BETWEEN ROWS)";
+            return "STAGGERED STEPPING PILLARS";
         }
         if (InCourse == ECkProceduralAnimationGym_Course::PillarCrossing)
         {
@@ -200,9 +200,11 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
                 }
             }
             // Reuse the fixture objects so their material/renderer palettes survive reset.
-            auto Created = _Courses[0].Create_WithRoster(SceneOwner, _Origin + FVector(0.0, -1500.0, 0.0), Get_SetCourse(0), Get_SetRoster(0));
+            auto CourseOffset = _Set == 4 ? 2700.0 : 1500.0;
+            auto LastCourseOffset = _Set == 4 ? 2700.0 : 2000.0;
+            auto Created = _Courses[0].Create_WithRoster(SceneOwner, _Origin + FVector(0.0, -CourseOffset, 0.0), Get_SetCourse(0), Get_SetRoster(0));
             Created = _Courses[1].Create_WithRoster(SceneOwner, _Origin, Get_SetCourse(1), Get_SetRoster(1)) && Created;
-            Created = _Courses[2].Create_WithRoster(SceneOwner, _Origin + FVector(0.0, 2000.0, 0.0), Get_SetCourse(2), Get_SetRoster(2)) && Created;
+            Created = _Courses[2].Create_WithRoster(SceneOwner, _Origin + FVector(0.0, LastCourseOffset, 0.0), Get_SetCourse(2), Get_SetRoster(2)) && Created;
             _CreateError = Created ? "" : "a course could not be created on the retired scene";
             if (Created == false)
             {
@@ -389,7 +391,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         }
         if (_Set == 1)
         {
-            return "A spider, a centipede, a tentacled walker and a mixed-chain beast cross stairs, rubble and a convex hump with live contacts and articulated limbs.";
+            return "A spider, a tentacled walker and a mixed-chain beast cross stairs, rubble and a convex hump with live contacts and articulated limbs.";
         }
         if (_Set == 2)
         {
@@ -399,7 +401,7 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
         {
             return "Stress B: a log of radius 80 cm, a 30 cm beam per walker, and a ramp onto a field of 50 cm pillar tops 150 cm high, 50 cm apart, and down again.";
         }
-        return "Stress C: 30 cm posts in every lane between 90 cm flanks, a cylinder to climb and circle (radius 90 cm, 45 cm in the middle lane), and a field of 40 cm pillars walked between its rows.";
+        return "Stress C: 30 cm posts between 90 cm flanks, three isolated cylinders for the spider, biped and small four-leg crawler to circle up and down continuously (radius 90 cm), and staggered stepping pillars rising to 200 cm.";
     }
 
     FString Get_CourseVerdict(int32 InIndex)
@@ -462,6 +464,10 @@ class ACk_ProceduralAnimationGym_PlayerController : ACk_Gym_Base_PlayerControlle
             auto Course = _Courses[InCourse].Spawn.Course;
             Target = _Courses[InCourse].Spawn.Origin + FVector(0.0, 0.0, ck_procedural_gym::Get_FrameTargetZ(Course));
             Eye = Target + FVector(-2100.0, -2400.0, 1400.0);
+            if (Course == ECkProceduralAnimationGym_Course::Cylinder)
+            {
+                Eye = Target + FVector(-2400.0, -3100.0, 1800.0);
+            }
             if (Course == ECkProceduralAnimationGym_Course::Ring)
             {
                 Eye = Target + FVector(-600.0, -3100.0, 650.0);

@@ -232,6 +232,10 @@ namespace ck_test_procedural_gait_snapshot_pie
         double WorstBuriedDepth = 0.0;
         double WorstHover = 0.0;
         int32 MissedLandingLifts = 0;
+        int32 PublishedPlantedSamples = 0;
+        double WorstPublishedFootPositionError = 0.0;
+        double WorstPublishedFootNormalError = 0.0;
+        double WorstPublishedFootRotationError = 0.0;
     };
 
     auto
@@ -265,6 +269,7 @@ namespace ck_test_procedural_gait_snapshot_pie
         const auto CountedAMiss = InState.MissedLandingLifts > MissedBefore;
 
         const auto& Legs = Snapshot.Get_Legs();
+        const auto PublishedLegs = UCk_Utils_ProceduralGait_UE::Get_Legs(InState.Walker.Gait);
         InState.WasSwinging.SetNumZeroed(Legs.Num());
         InState.LiftPending.SetNumZeroed(Legs.Num());
         InState.LastSwingFoot.SetNumZeroed(Legs.Num());
@@ -274,6 +279,17 @@ namespace ck_test_procedural_gait_snapshot_pie
             const auto& Leg = Legs[Index];
             const auto& Foot = Leg.Get_Foot();
             const auto& Probe = Leg.Get_LandingProbe();
+            if (Foot.Get_Planted() && PublishedLegs.IsValidIndex(Index) && ck::IsValid(PublishedLegs[Index]))
+            {
+                const auto PublishedFoot = UCk_Utils_ProceduralLeg_UE::Get_Foot(PublishedLegs[Index]);
+                ++InState.PublishedPlantedSamples;
+                InState.WorstPublishedFootPositionError = FMath::Max(InState.WorstPublishedFootPositionError,
+                    FVector::Dist(Foot.Get_Position(), PublishedFoot.Get_Position()));
+                InState.WorstPublishedFootNormalError = FMath::Max(InState.WorstPublishedFootNormalError,
+                    FVector::Dist(Foot.Get_Normal(), PublishedFoot.Get_Normal()));
+                InState.WorstPublishedFootRotationError = FMath::Max(InState.WorstPublishedFootRotationError,
+                    Foot.Get_Rotation().AngularDistance(PublishedFoot.Get_Rotation()));
+            }
             const auto Probed = Probe.Get_AttemptCount() > 0;
             const auto ProbeFoundTheTop = Probed && Probe.Get_Hit() && FMath::Abs(Probe.Get_HitPosition().Z - TopZ) <= PositionTolerance;
 
@@ -551,6 +567,13 @@ auto
             TestTrue(FString::Printf(TEXT("A swing learns of the block top under its landing point while its target lies below it, and "
                 "lands lifting (%d samples, %d touchdowns)"), State->LiftSamples, State->LiftedTouchdowns),
                 State->LiftSamples > 0 && State->LiftedTouchdowns > 0);
+            TestTrue(FString::Printf(TEXT("Planted debug feet match the authoritative published foot pose (%d samples, worst "
+                "position %.4f cm, normal %.4f, rotation %.4f rad)"), State->PublishedPlantedSamples,
+                State->WorstPublishedFootPositionError, State->WorstPublishedFootNormalError,
+                State->WorstPublishedFootRotationError),
+                State->PublishedPlantedSamples > 0 && State->WorstPublishedFootPositionError <= ExactTolerance
+                && State->WorstPublishedFootNormalError <= ExactTolerance
+                && State->WorstPublishedFootRotationError <= ExactTolerance);
             TestEqual(FString::Printf(TEXT("Every swing still lifting at touchdown plants on the block top (worst error %.3f cm)"),
                 State->WorstLiftedPlantError), State->LiftedTouchdownsOnTop, State->LiftedTouchdowns);
             TestEqual(FString::Printf(TEXT("No touchdown whose landing ground is a block top plants inside the block, bar a counted missed "

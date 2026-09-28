@@ -3,6 +3,8 @@
 
 #include "../../CkUnitTest_Common.h"
 
+#include <limits>
+
 #if WITH_DEV_AUTOMATION_TESTS
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -430,6 +432,89 @@ auto
         FMath::IsNearlyEqual(ClockAfterOneStep(300.0f, 600.0f), BaseClock * 2.0f, KINDA_SMALL_NUMBER));
     TestTrue(TEXT("Clamped by MaxCadenceScale (3x)"),
         FMath::IsNearlyEqual(ClockAfterOneStep(300.0f, 3000.0f), BaseClock * 3.0f, KINDA_SMALL_NUMBER));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitPacedCadenceTest,
+    "Ck.ProceduralAnimation.Gait.PacedIntentAdvancesCadenceWithoutChangingPatternOrSettle",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitPacedCadenceTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_solver;
+
+    auto Solver = ck::FProceduralGaitSolver{};
+    Solver.Get_Settings().Get_Cadence().Set_CadenceSpeedRef(120.0f).Set_SwingWindow(0.2f);
+    Solver.Get_Settings().Get_Schedule().Set_AdvanceRate(0.0f);
+    Solver.Get_Settings().Get_Settle().Set_AtRest(false);
+    auto Walk = ck::FProceduralGaitPattern{};
+    Walk.Set_MinSpeed(0.0f).Set_PhaseOffsets({0.5f});
+    auto Fast = ck::FProceduralGaitPattern{};
+    Fast.Set_MinSpeed(200.0f).Set_PhaseOffsets({0.0f});
+    Solver.Get_Settings().Get_Pattern().Set_Patterns({Walk, Fast});
+    Solver.Reset({FVector::ZeroVector});
+
+    auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+    Inputs.SetNum(1);
+    Inputs[0].Set_IdealTarget(FVector{Solver.Get_Settings().Get_Step().Get_Threshold() * 1.2f, 0.0, 0.0});
+    auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+    Outputs.SetNum(1);
+    for (auto Frame = 0; Frame < 10; ++Frame)
+    { TestTrue(TEXT("Measured zero speed is accepted"), Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs)); }
+    TestEqual(TEXT("Without a cadence drive the phase stays closed"), Solver.GetGaitClock(), 0.0f);
+    TestTrue(TEXT("The waiting leg remains planted"), Outputs[0].Get_Planted());
+
+    const auto ClockBeforePreview = Solver.GetGaitClock();
+    TestTrue(TEXT("A zero-delta cadence preview succeeds"),
+        Solver.Step(FCk_Time{}, 0.0f, FVector::ZeroVector, Inputs, Outputs, false, 240.0f));
+    TestEqual(TEXT("A zero-delta cadence preview preserves the clock"), Solver.GetGaitClock(), ClockBeforePreview);
+    const auto OutputBeforeReject = Outputs[0];
+    TestTrue(TEXT("An invalid cadence drive is rejected"),
+        NOT Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs, false, -1.0f));
+    TestTrue(TEXT("A non-finite cadence drive is rejected"),
+        NOT Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs, false,
+            std::numeric_limits<float>::quiet_NaN()));
+    TestEqual(TEXT("Rejected cadence drive preserves the clock"), Solver.GetGaitClock(), ClockBeforePreview);
+    TestTrue(TEXT("Rejected cadence drive preserves the caller's output"),
+        Outputs[0].Get_Position().Equals(OutputBeforeReject.Get_Position())
+        && Outputs[0].Get_Planted() == OutputBeforeReject.Get_Planted()
+        && Outputs[0].Get_SwingAlpha() == OutputBeforeReject.Get_SwingAlpha());
+
+    auto SawSwing = false;
+    for (auto Frame = 0; Frame < 12; ++Frame)
+    {
+        TestTrue(TEXT("A paced cadence drive is accepted"),
+            Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs, false, 240.0f));
+        SawSwing |= NOT Outputs[0].Get_Planted();
+    }
+    TestTrue(TEXT("Intended travel opens the waiting phase and launches a step"), SawSwing);
+    TestEqual(TEXT("Pattern selection still follows measured speed"), Solver.GetCurrentPatternIndex(), 0);
+
+    auto Airborne = ck::FProceduralGaitSolver{};
+    Airborne.Reset({FVector::ZeroVector});
+    TestTrue(TEXT("Airborne cadence input is accepted"),
+        Airborne.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs, true, 240.0f));
+    TestEqual(TEXT("Airborne intent does not advance the grounded gait clock"), Airborne.GetGaitClock(), 0.0f);
+
+    auto Settling = ck::FProceduralGaitSolver{};
+    Settling.Get_Settings().Get_Settle().Set_Delay(FCk_Time{0.05});
+    Settling.Reset({FVector::ZeroVector});
+    Inputs[0].Set_IdealTarget(FVector{Settling.Get_Settings().Get_Step().Get_Threshold() * 0.5f, 0.0, 0.0});
+    auto SawSettleSwing = false;
+    for (auto Frame = 0; Frame < 12; ++Frame)
+    {
+        TestTrue(TEXT("Measured at-rest gait accepts the cadence drive"),
+            Settling.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs, false, 240.0f));
+        SawSettleSwing |= NOT Outputs[0].Get_Planted();
+    }
+    TestTrue(TEXT("Cadence intent does not suppress the measured at-rest settle step"), SawSettleSwing);
 
     return true;
 }
@@ -950,7 +1035,7 @@ auto
             if (NOT Outputs[0].Get_Planted() && NOT Outputs[1].Get_Planted())
             {
                 AddError(FString::Printf(
-                    TEXT("Opposing phase groups swung together at frame %d — inhibition was bypassed"), Frame));
+                    TEXT("Opposing phase groups swung together at frame %d â€” inhibition was bypassed"), Frame));
                 return false;
             }
 
@@ -1028,16 +1113,38 @@ auto
     { return false; }
     TestFalse(TEXT("A gather landing on an untrusted target records an untrusted plant"), Get_Trusted());
 
-    // The plant keeps its trust whatever later solves report, until the foot touches down again.
-    Inputs[0].Set_IdealTarget(Solver.GetLegState(0).Get_Plant().Get_Position()).Set_TargetTrusted(true);
+    // A trust report cannot promote the existing plant. Without an admitted target it holds; admitting the contact
+    // requests a real recovery swing, and only that swing's touchdown may change the recorded trust.
+    const auto UnsupportedPlant = Solver.GetLegState(0).Get_Plant().Get_Position();
+    Inputs[0].Set_IdealTarget(UnsupportedPlant).Set_TargetTrusted(true).Set_TargetValid(false);
     constexpr auto HeldFrames = 30;
     for (auto Frame = 0; Frame < HeldFrames; ++Frame)
     {
         Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
-        if (NOT TestTrue(FString::Printf(TEXT("Frame %d: the foot stays planted and untrusted while its target reads trusted"), Frame),
-                Outputs[0].Get_Planted() && NOT Get_Trusted()))
+        if (NOT TestTrue(FString::Printf(TEXT("Frame %d: a withheld target cannot move or promote the unsupported plant"), Frame),
+            Outputs[0].Get_Planted() && NOT Get_Trusted()
+            && Solver.GetLegState(0).Get_Plant().Get_Position() == UnsupportedPlant))
         { return false; }
     }
+    Inputs[0].Set_TargetValid(true);
+    Solver.Step(FCk_Time{}, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+    TestTrue(TEXT("Admitting a trusted contact at zero dt neither promotes trust nor starts recovery"),
+        Outputs[0].Get_Planted() && NOT Get_Trusted() && NOT Solver.GetLegState(0).Get_Swing().Get_Active());
+    auto RecoverySwung = false;
+    auto RecoveryLanded = false;
+    for (auto Frame = 0; Frame < 120 && NOT RecoveryLanded; ++Frame)
+    {
+        Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+        if (NOT Outputs[0].Get_Planted())
+        {
+            RecoverySwung = true;
+            TestFalse(TEXT("Contact recovery does not promote the old plant's trust during its swing"), Get_Trusted());
+        }
+        else if (RecoverySwung)
+        { RecoveryLanded = true; }
+    }
+    TestTrue(TEXT("An admitted contact restores trust only after a real recovery touchdown"),
+        RecoverySwung && RecoveryLanded && Get_Trusted());
 
     Inputs[0].Set_IdealTarget(FVector{3.0 * EmergencyStride, 0.0, 0.0});
     if (NOT TestTrue(TEXT("The leg steps again"), StepToTouchdown()))
@@ -1201,7 +1308,7 @@ auto
         ++Steps;
         const auto Target = FVector{Steps * EmergencyStride, 0.0, 0.0};
         const auto InputTrusted = NOT InTouchdownTrusted;
-        Inputs[0].Set_IdealTarget(Target).Set_TargetTrusted(InputTrusted)
+        Inputs[0].Set_IdealTarget(Target).Set_TargetTrusted(InputTrusted).Set_TargetValid(true)
             .Set_LandingGround(InputTrusted ? ck::EProceduralGaitLandingGround::Found : ck::EProceduralGaitLandingGround::None)
             .Set_LandingGroundZ(static_cast<float>(Target.Z));
 
@@ -1221,6 +1328,10 @@ auto
         { return false; }
 
         Solver.SetPlantedPose(0, Outputs[0].Get_Position(), FVector::UpVector, InTouchdownTrusted);
+        const auto StancePlant = Solver.GetLegState(0).Get_Plant().Get_Position();
+        // Withholding admission preserves the unsupported stance without withdrawing the opposite trust report.
+        // A valid trusted contact is exercised separately below as recovery, not an indefinitely unsupported stance.
+        Inputs[0].Set_TargetValid(InTouchdownTrusted);
         auto Planted = 0;
         auto Kept = 0;
         for (auto Frame = 0; Frame < StanceFrames; ++Frame)
@@ -1229,17 +1340,43 @@ auto
             if (NOT Outputs[0].Get_Planted())
             { break; }
             ++Planted;
-            if (Solver.GetLegState(0).Get_Plant().Get_Trusted() == InTouchdownTrusted)
+            if (Solver.GetLegState(0).Get_Plant().Get_Trusted() == InTouchdownTrusted
+                && Solver.GetLegState(0).Get_Plant().Get_Position() == StancePlant)
             { ++Kept; }
         }
         TestTrue(FString::Printf(TEXT("Precondition: step %d's foot stays planted through the watched stance (%d of %d frames)"), Steps,
             Planted, StanceFrames), Planted == StanceFrames);
-        return Planted > 0 && Kept == Planted;
+        const auto KeptStance = Planted == StanceFrames && Kept == Planted;
+        if (NOT InTouchdownTrusted)
+        {
+            Inputs[0].Set_TargetValid(true);
+            Solver.Step(FCk_Time{}, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+            TestTrue(TEXT("A zero-time trusted target admission cannot change the unsupported stance"),
+                Outputs[0].Get_Planted() && NOT Solver.GetLegState(0).Get_Plant().Get_Trusted()
+                && Solver.GetLegState(0).Get_Plant().Get_Position() == StancePlant);
+            auto Recovered = false;
+            auto RecoverySwung = false;
+            for (auto Frame = 0; Frame < SwingFrames && NOT Recovered; ++Frame)
+            {
+                Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+                if (NOT Outputs[0].Get_Planted())
+                {
+                    RecoverySwung = true;
+                    TestFalse(TEXT("An unsupported plant keeps its recorded trust until recovery touchdown"),
+                        Solver.GetLegState(0).Get_Plant().Get_Trusted());
+                }
+                else if (RecoverySwung)
+                { Recovered = Solver.GetLegState(0).Get_Plant().Get_Trusted(); }
+            }
+            TestTrue(TEXT("A newly admitted contact recovers through an actual swing and touchdown"), RecoverySwung && Recovered);
+            return KeptStance && Recovered;
+        }
+        return KeptStance;
     };
 
     constexpr auto Trusted = true;
     constexpr auto Untrusted = false;
-    TestTrue(TEXT("A plant set untrusted at touchdown stays untrusted through its stance while the input reports trusted ground"),
+    TestTrue(TEXT("A plant set untrusted at touchdown stays untrusted while its trusted target admission is withheld"),
         StanceKeepsTrust(Untrusted));
     TestTrue(TEXT("A plant set trusted at touchdown stays trusted through its stance while the input reports no ground"),
         StanceKeepsTrust(Trusted));
@@ -1308,6 +1445,113 @@ auto
             && NOT Touchdown.Get_Trusted() && Touchdown.Get_Rays() == 2);
     }
 
+    // The ray through the plant reaches the face, but its hit lies beyond the physical chain. Continue to the validated
+    // target instead of trusting an unreachable stance.
+    {
+        const auto Plant = FVector{4.0, 20.0, 150.0};
+        const auto Validated = FVector{3.0, 20.0, 140.0};
+        const auto Touchdown = ck::ResolveProceduralTouchdown(Plant, Validated, FaceNormal, FVector::UpVector,
+            HalfSpan, RayCast, FVector{0.0, 20.0, 120.0}, {}, 25.0f);
+        TestTrue(TEXT("An unreachable first hit yields a reachable validated-target contact"),
+            Touchdown.Get_Trusted() && Touchdown.Get_Rays() == 2
+            && Touchdown.Get_Position().Equals(FVector{0.0, 20.0, 140.0}, Tolerance));
+    }
+
+    // Reach is checked against the ready presentation hip independently of the simulation hip.
+    {
+        const auto Plant = FVector{4.0, 20.0, 150.0};
+        const auto Validated = FVector{3.0, 20.0, 140.0};
+        const auto Touchdown = ck::ResolveProceduralTouchdown(Plant, Validated, FaceNormal, FVector::UpVector,
+            HalfSpan, RayCast, FVector{0.0, 20.0, 145.0}, TOptional<FVector>{FVector{0.0, 20.0, 115.0}}, 26.0f);
+        TestTrue(TEXT("A hit beyond the presentation hip's reach yields the reachable fallback"),
+            Touchdown.Get_Trusted() && Touchdown.Get_Rays() == 2
+            && Touchdown.Get_Position().Equals(FVector{0.0, 20.0, 140.0}, Tolerance));
+    }
+
+    {
+        const auto Plant = FVector{4.0, 20.0, 150.0};
+        const auto Validated = FVector{3.0, 20.0, 140.0};
+        const auto Touchdown = ck::ResolveProceduralTouchdown(Plant, Validated, FaceNormal, FVector::UpVector,
+            HalfSpan, RayCast, FVector{0.0, 20.0, 100.0}, {}, 26.0f);
+        TestTrue(TEXT("When neither hit is in reach the original plant remains untrusted"),
+            NOT Touchdown.Get_Trusted() && Touchdown.Get_Rays() == 2
+            && Touchdown.Get_Position().Equals(Plant, Tolerance)
+            && Touchdown.Get_Normal().Equals(FVector::UpVector, Tolerance));
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitPosedHipReachEmergencyTest,
+    "Ck.ProceduralAnimation.Gait.PosedHipReachPressureReleasesAPlant",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitPosedHipReachEmergencyTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_solver;
+
+    auto Solver = ck::FProceduralGaitSolver{};
+    Solver.Reset({FVector::ZeroVector});
+    auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+    Inputs.SetNum(1);
+    Inputs[0].Set_PhaseOffset(0.25f)
+        .Set_Hip(FVector{-85.0, 0.0, 0.0})
+        .Set_Reach(100.0f)
+        .Set_IdealTarget(FVector{-5.0, 0.0, 0.0})
+        .Set_TargetIsFoothold(true);
+    auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+    Outputs.SetNum(1);
+
+    TestFalse(TEXT("The small target error is outside this leg's phase window"), Solver.IsWindowOpen(0.25f));
+    TestTrue(TEXT("Without a posed hip, the simulation hip does not demand a step"),
+        Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs) && Outputs[0].Get_Planted());
+
+    Inputs[0].Set_PosedHip(TOptional<FVector>{FVector{-95.0, 0.0, 0.0}}).Set_TargetValid(false);
+    TestTrue(TEXT("Posed reach pressure does not invent a target when none is valid"),
+        Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs) && Outputs[0].Get_Planted());
+
+    const auto ClockBefore = Solver.GetGaitClock();
+    const auto PlantBefore = Solver.GetLegState(0).Get_Plant().Get_Position();
+    const auto OutputBefore = Outputs[0].Get_Position();
+    Inputs[0].Set_TargetValid(true).Set_PosedHip(TOptional<FVector>{FVector{
+        std::numeric_limits<double>::quiet_NaN(), 0.0, 0.0}});
+    TestFalse(TEXT("A malformed optional posed hip is rejected before mutating the solve"),
+        Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs));
+    TestTrue(TEXT("Rejected posed input retains clock, plant and published output"),
+        Solver.GetGaitClock() == ClockBefore
+        && Solver.GetLegState(0).Get_Plant().Get_Position().Equals(PlantBefore, 1.0e-4)
+        && Outputs[0].Get_Position().Equals(OutputBefore, 1.0e-4));
+
+    Inputs[0].Set_PosedHip(TOptional<FVector>{FVector{-95.0, 0.0, 0.0}});
+    TestTrue(TEXT("The posed hip reaches the emergency band and releases the plant"),
+        Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs) && NOT Outputs[0].Get_Planted());
+
+    auto Replanted = false;
+    for (auto Frame = 0; Frame < 60; ++Frame)
+    {
+        if (NOT Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs))
+        { return false; }
+        if (Outputs[0].Get_Planted())
+        {
+            Replanted = true;
+            break;
+        }
+    }
+    TestTrue(TEXT("The leg replants on the closer validated foothold"), Replanted
+        && Solver.GetLegState(0).Get_Plant().Get_Position().Equals(FVector{-5.0, 0.0, 0.0}, 0.1));
+    auto StayedPlanted = Replanted;
+    for (auto Frame = 0; Frame < 60 && StayedPlanted; ++Frame)
+    {
+        StayedPlanted = Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs)
+            && Outputs[0].Get_Planted();
+    }
+    TestTrue(TEXT("A closer planted foothold does not repeatedly trigger posed-reach swings"), StayedPlanted);
     return true;
 }
 

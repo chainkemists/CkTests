@@ -82,7 +82,7 @@ class UCk_AutoTest_ProceduralAnimation_CentipedeWaveReplantsEveryLeg : UCk_AutoT
         auto Crawler = _Fixture.Crawlers[0];
         auto Replanted = Crawler.Get_ReplantedCount();
         auto LegCount = Crawler.Layout.LegCount;
-        auto Budget = Math::Max(1, LegCount / 2);
+        auto Budget = Math::Max(1, Math::IntegerDivisionTrunc(LegCount, 2));
         auto Elapsed = Get_Elapsed();
         ck::Trace(f"[CENTIPEDE-WAVE] {Replanted}/{LegCount} replanted after {Elapsed :.2} s, max {_MaxSwinging} swinging over {_SwingSamples} samples (budget {Budget})");
         Assert_Equals_Int(LegCount, 16, "The centipede walks on sixteen legs");

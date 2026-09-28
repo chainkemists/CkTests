@@ -31,10 +31,12 @@ struct FCkPaViz_ShotPlan
     TArray<int32> PlanWalker;
     TArray<FString> PlanPhase;
     TArray<float> PlanX;
+    TArray<float> PlanMaxX;
     TArray<int32> PlanStage;
     TArray<bool> PlanTopDown;
     TArray<float> PlanEyeHeight;
     TArray<float> PlanMinZ;
+    TArray<float> PlanMaxZ;
     TArray<float> PlanMinSeconds;
     TArray<bool> PlanTaken;
     int32 Taken = 0;
@@ -67,18 +69,20 @@ struct FCkPaViz_ShotPlan
     }
 
     // A shot is due once its walker is on InStage and past InX (beyond it on the return), at least InMinZ up and at least
-    // InMinSeconds into the run.
+    // InMinSeconds into the run, between InMinZ and InMaxZ, and no farther than InMaxX.
     void Add_Shot(int32 InFixture, int32 InWalker, FString InPhase, float InX, int32 InStage, bool InTopDown,
-        float InEyeHeight, float InMinZ = -100000.0, float InMinSeconds = 0.0)
+        float InEyeHeight, float InMinZ = -100000.0, float InMinSeconds = 0.0, float InMaxZ = 100000.0, float InMaxX = 100000.0)
     {
         PlanFixture.Add(InFixture);
         PlanWalker.Add(InWalker);
         PlanPhase.Add(InPhase);
         PlanX.Add(InX);
+        PlanMaxX.Add(InMaxX);
         PlanStage.Add(InStage);
         PlanTopDown.Add(InTopDown);
         PlanEyeHeight.Add(InEyeHeight);
         PlanMinZ.Add(InMinZ);
+        PlanMaxZ.Add(InMaxZ);
         PlanMinSeconds.Add(InMinSeconds);
         PlanTaken.Add(false);
     }
@@ -163,7 +167,8 @@ struct FCkPaViz_ShotPlan
             }
             auto Local = Get_RootLocal(FixtureIndex, Walker);
             auto PastX = PlanStage[Index] == 0 ? Local.X >= PlanX[Index] : Local.X <= PlanX[Index];
-            if (PastX && Local.Z >= PlanMinZ[Index] && Get_Elapsed() >= PlanMinSeconds[Index])
+            if (PastX && Local.X <= PlanMaxX[Index] && Local.Z >= PlanMinZ[Index] && Local.Z <= PlanMaxZ[Index] &&
+                Get_Elapsed() >= PlanMinSeconds[Index])
             {
                 return Index;
             }
@@ -231,10 +236,22 @@ struct FCkPaViz_ShotPlan
         }
         auto Crawler = Fixtures[PlanFixture[InShot]].Crawlers[PlanWalker[InShot]];
         auto Target = utils_transform::Get_EntityCurrentLocation(Crawler.Handles.Root);
-        // Outer lanes are shot from their own outer side; the centre walker from +Y, looking over the third lane.
-        auto Side = Crawler.Layout.LaneY < 0.0 ? -1.0 : 1.0;
-        auto Eye = PlanTopDown[InShot] ? Target + FVector(-1.0, 0.0, PlanEyeHeight[InShot]) :
-            Target + FVector(0.0, Side * SideDistance, PlanEyeHeight[InShot]);
+        auto Eye = Target + FVector(-1.0, 0.0, PlanEyeHeight[InShot]);
+        if (PlanTopDown[InShot] == false)
+        {
+            // Outer lanes are shot from their own outer side, except on the cylinder: the side camera follows the
+            // walker's radial face so the solid cannot hide it as it circles to the opposite side.
+            auto Side = Crawler.Layout.LaneY < 0.0 ? -1.0 : 1.0;
+            auto Outward = FVector(0.0, Side, 0.0);
+            if (Crawler.Layout.Course == ECkProceduralAnimationGym_Course::Cylinder)
+            {
+                auto Axis = Crawler.Layout.Origin + FVector(0.0, Crawler.Layout.LaneY, 0.0);
+                auto Radial = Target - Axis;
+                Radial.Z = 0.0;
+                Outward = Radial.GetSafeNormal();
+            }
+            Eye = Target + Outward * SideDistance + FVector::UpVector * PlanEyeHeight[InShot];
+        }
         Pawn.SetActorLocation(Eye);
         Controller.SetControlRotation(FRotator::MakeFromX(Target - Eye));
         return (Target - Eye).Size();

@@ -7,6 +7,8 @@ public class CkTests : CkModuleRules
     {
         // The matched navigation harness emits raw, provider-labelled evidence records.
         PrivateDependencyModuleNames.Add("Json");
+        // Bend-side admission tests inspect the actual two-bone and FABRIK solver joint results.
+        PrivateDependencyModuleNames.Add("AnimationCore");
 
         PrivateIncludePaths.AddRange(new string[] {
             // ... add other private include paths required here ...

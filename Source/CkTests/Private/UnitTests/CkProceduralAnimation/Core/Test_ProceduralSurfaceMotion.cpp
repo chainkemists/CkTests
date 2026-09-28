@@ -2297,4 +2297,163 @@ auto
 
 // --------------------------------------------------------------------------------------------------------------------
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionVoluntaryPacePreservesPhysicsTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.VoluntaryPacePreservesPhysics",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionVoluntaryPacePreservesPhysicsTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    const auto Floor = TArray<FSolid>{MakeHalfSpace(FVector::UpVector, FVector::ZeroVector)};
+    const auto FloorCast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(Floor, InStart, InEnd); };
+    auto Body = MakeBody(FVector{-100.0, 0.0, Clearance + 10.0}, FVector::UpVector, FVector::ForwardVector);
+    auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+    const auto Start = Body;
+    ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, FloorCast, NoFeet, Body, State, 0.0f);
+    TestTrue(TEXT("Zero voluntary scale retains translation and rotation while refreshing trusted ground"),
+        Body.Equals(Start, DistanceTolerance) && State.Get_Grounded() && State.Get_ContactTrusted()
+        && State.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Down
+        && State.Get_Velocity().IsNearlyZero());
+
+    ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, FloorCast, NoFeet, Body, State, 1.0f);
+    TestTrue(TEXT("Releasing the pace resumes travel and clearance correction"),
+        Body.GetLocation().X > Start.GetLocation().X && Body.GetLocation().Z < Start.GetLocation().Z);
+
+    const auto Wall = TArray<FSolid>{MakeHalfSpace(FVector::UpVector, FVector::ZeroVector),
+        MakeBox(FVector{0.0, -200.0, -10.0}, FVector{100.0, 200.0, 300.0})};
+    const auto WallCast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(Wall, InStart, InEnd); };
+    auto WallBody = MakeBody(FVector{-50.0, 0.0, Clearance}, FVector::UpVector, FVector::ForwardVector);
+    auto WallState = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+    const auto WallStart = WallBody;
+    for (auto Index = 0; Index < 16; ++Index)
+    { ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, WallCast, NoFeet, WallBody, WallState, 0.0f); }
+    TestTrue(TEXT("A paused walker keeps sensing and can confirm the wall without voluntary travel or turn"),
+        WallBody.Equals(WallStart, DistanceTolerance) && WallState.Get_Grounded() && WallState.Get_ContactTrusted()
+        && WallState.Get_SupportNormal().Equals(FVector::BackwardVector, DistanceTolerance));
+    ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, WallCast, NoFeet, WallBody, WallState, 1.0f);
+    TestTrue(TEXT("The body turns toward the confirmed wall when pacing releases"),
+        WallBody.GetRotation().AngularDistance(WallStart.GetRotation()) > 0.0);
+
+    const auto Slide = MakeSettings().Set_WallPolicy(ck::EProceduralSurfaceWallPolicy::Slide);
+    auto ObstructedBody = MakeBody(FVector{-2.0, 0.0, Clearance}, FVector::UpVector, FVector::ForwardVector);
+    auto ObstructedState = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+    ck::StepProceduralSurfaceMotion(Slide, FVector::ForwardVector, Speed, Step, WallCast, NoFeet, ObstructedBody, ObstructedState, 0.0f);
+    TestTrue(TEXT("Zero voluntary scale still lets a wall push the body out of its standoff"),
+        ObstructedBody.GetLocation().X < -2.0 && ObstructedState.Get_Obstruction() == ck::EProceduralSurfaceObstruction::Wall);
+
+    const auto Empty = TArray<FSolid>{};
+    const auto Miss = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(Empty, InStart, InEnd); };
+    auto FallingBody = MakeBody(FVector{0.0, 0.0, 200.0}, FVector::UpVector, FVector::ForwardVector);
+    auto FallingState = MakeState(FVector::UpVector, FVector::ForwardVector, false);
+    ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Miss, NoFeet, FallingBody, FallingState, 0.0f);
+    TestTrue(TEXT("Zero voluntary scale does not suppress gravity"), FallingBody.GetLocation().Z < 200.0);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionTurnOnlyPaceDrivesStanceTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.TurnOnlyPaceReportsAttemptedStanceMotion",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionTurnOnlyPaceDrivesStanceTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    const auto Floor = TArray<FSolid>{MakeHalfSpace(FVector::UpVector, FVector::ZeroVector)};
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(Floor, InStart, InEnd); };
+    const auto Settings = MakeSettings();
+    const auto StartBody = MakeBody(FVector{0.0, 0.0, Clearance}, FVector::UpVector, FVector::ForwardVector);
+    const auto StartState = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+    constexpr auto Reach = 65.0f;
+    const auto Anchors = TArray<ck::FProceduralSurfaceReachPaceAnchor>{
+        ck::FProceduralSurfaceReachPaceAnchor{FVector{40.0, -Reach, Clearance}, FVector{40.0, 0.0, 0.0}, Reach}};
+
+    auto FullBody = StartBody;
+    auto FullState = StartState;
+    ck::StepProceduralSurfaceMotion(Settings, FVector::RightVector, 0.0f, Step, Cast, NoFeet, FullBody, FullState);
+    auto ZeroBody = StartBody;
+    auto ZeroState = StartState;
+    ck::StepProceduralSurfaceMotion(Settings, FVector::RightVector, 0.0f, Step, Cast, NoFeet, ZeroBody, ZeroState, 0.0f);
+    const auto HipLocal = Anchors[0].Get_HipLocal();
+    const auto FootWorld = Anchors[0].Get_FootWorld();
+    TestTrue(TEXT("A zero-speed steering command attempts a reach-breaking turn while zero voluntary scale holds"),
+        FVector::Dist(FullBody.TransformPosition(HipLocal), FootWorld) > Reach + DistanceTolerance
+        && FVector::Dist(ZeroBody.TransformPosition(HipLocal), FootWorld) <= Reach + DistanceTolerance
+        && FullBody.GetRotation().AngularDistance(ZeroBody.GetRotation()) > DistanceTolerance);
+
+    auto Body = StartBody;
+    auto State = StartState;
+    const auto Outcome = ck::StepProceduralSurfaceMotionPaced(Settings, FVector::RightVector, 0.0f, Step, Cast, NoFeet,
+        TArrayView<const ck::FProceduralSurfaceReachPaceAnchor>{Anchors}, TOptional<FTransform>{}, Body, State);
+    TestTrue(TEXT("Turn-only reach pacing reports the attempted hip motion without moving the plant out of reach"),
+        Outcome.Get_Scale() < 1.0f && Outcome.Get_AttemptedStanceSpeed() > 0.0f
+        && State.Get_Grounded() && FVector::Dist(Body.TransformPosition(HipLocal), FootWorld) <= Reach + 0.01);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralSurfaceMotionPacedAirborneBaselineTest,
+    "Ck.ProceduralAnimation.SurfaceMotion.PacedAirborneBaselineStillChecksReach",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralSurfaceMotionPacedAirborneBaselineTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_surface_motion;
+
+    // At zero voluntary travel there is no floor, so the body falls toward its planted foot. Full travel reaches
+    // a narrow floor patch but moves the hip beyond the chain. Falling is not permission to accept that full trial.
+    const auto World = TArray<FSolid>{MakeBox(FVector{1.0, -100.0, -50.0}, FVector{5.0, 100.0, 0.0})};
+    const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
+    const auto Settings = MakeSettings().Set_ContactGrace(FCk_Time{});
+    const auto PaceStep = FCk_Time{0.016};
+    constexpr auto PaceSpeed = 125.0f;
+    constexpr auto ChainReach = 65.0f;
+    const auto StartBody = MakeBody(FVector{0.0, 0.0, Clearance}, FVector::UpVector, FVector::ForwardVector);
+    const auto StartState = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    auto ZeroBody = StartBody;
+    auto ZeroState = StartState;
+    ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, PaceSpeed, PaceStep, Cast, NoFeet,
+        ZeroBody, ZeroState, 0.0f);
+    auto FullBody = StartBody;
+    auto FullState = StartState;
+    ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, PaceSpeed, PaceStep, Cast, NoFeet,
+        FullBody, FullState, 1.0f);
+    if (NOT TestTrue(TEXT("The zero trial falls but remains in chain reach"),
+            NOT ZeroState.Get_Grounded() && FVector::Dist(ZeroBody.GetLocation(), FVector::ZeroVector) <= ChainReach)
+        || NOT TestTrue(TEXT("The full trial lands beyond chain reach"),
+            FullState.Get_Grounded() && FVector::Dist(FullBody.GetLocation(), FVector::ZeroVector) > ChainReach + DistanceTolerance))
+    { return false; }
+
+    const auto Anchors = TArray<ck::FProceduralSurfaceReachPaceAnchor>{
+        ck::FProceduralSurfaceReachPaceAnchor{FVector::ZeroVector, FVector::ZeroVector, ChainReach}};
+    auto Body = StartBody;
+    auto State = StartState;
+    const auto Outcome = ck::StepProceduralSurfaceMotionPaced(Settings, FVector::ForwardVector, PaceSpeed,
+        PaceStep, Cast, NoFeet, TArrayView<const ck::FProceduralSurfaceReachPaceAnchor>{Anchors},
+        TOptional<FTransform>{}, Body, State);
+    TestTrue(TEXT("A falling zero trial does not bypass the planted chain bound"),
+        Outcome.Get_Scale() < 1.0f && NOT Outcome.Get_PhysicalOverride()
+        && Outcome.Get_Trials() >= 2 && Outcome.Get_Trials() <= 8
+        && FVector::Dist(Body.GetLocation(), FVector::ZeroVector) <= ChainReach + DistanceTolerance);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
 #endif

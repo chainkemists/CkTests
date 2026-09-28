@@ -16,13 +16,13 @@ class UCk_AutoTest_PaViz_Telemetry : UCk_AutoTest_Base
             ck_paviz_telemetry::MakeRoster(ECkProceduralAnimationGym_Species::Tentacled, ECkProceduralAnimationGym_Species::Spider,
                 ECkProceduralAnimationGym_Species::Beast));
         Created = _Recorder.Add_Fixture(InHandle, "Stairs", ECkProceduralAnimationGym_Course::Stairs, FVector(120000.0, 125000.0, 600.0),
-            ck_paviz_telemetry::MakeRoster(ECkProceduralAnimationGym_Species::Centipede, ECkProceduralAnimationGym_Species::Spider,
+            ck_paviz_telemetry::MakeRoster(ECkProceduralAnimationGym_Species::Tentacled, ECkProceduralAnimationGym_Species::Spider,
                 ECkProceduralAnimationGym_Species::Beast)) && Created;
         Created = _Recorder.Add_Fixture(InHandle, "Uneven", ECkProceduralAnimationGym_Course::Uneven, FVector(120000.0, 135000.0, 600.0),
             ck_paviz_telemetry::MakeRoster(ECkProceduralAnimationGym_Species::Crawler4, ECkProceduralAnimationGym_Species::Crawler6,
                 ECkProceduralAnimationGym_Species::Crawler8)) && Created;
         Created = _Recorder.Add_Fixture(InHandle, "Rubble", ECkProceduralAnimationGym_Course::Rubble, FVector(120000.0, 140000.0, 600.0),
-            ck_paviz_telemetry::MakeRoster(ECkProceduralAnimationGym_Species::Centipede, ECkProceduralAnimationGym_Species::Tentacled,
+            ck_paviz_telemetry::MakeRoster(ECkProceduralAnimationGym_Species::Spider, ECkProceduralAnimationGym_Species::Tentacled,
                 ECkProceduralAnimationGym_Species::Beast)) && Created;
         auto SpringRoster = TArray<ECkProceduralAnimationGym_Species>();
         SpringRoster.Add(ECkProceduralAnimationGym_Species::Beast);

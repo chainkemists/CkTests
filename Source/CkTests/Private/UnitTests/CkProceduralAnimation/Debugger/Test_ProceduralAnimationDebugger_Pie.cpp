@@ -4,6 +4,7 @@
 
 #include "CkCore/Validation/CkIsValid.h"
 #include "CkDebuggerCommon/Navigation/CkDebug_SelectionSync.h"
+#include "CkDebuggerCommon/Widgets/SCkDebug_EvidenceList.h"
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
 #include "CkEcs/Handle/CkHandle_Utils.h"
 #include "CkEcsExt/Transform/CkTransform_Utils.h"
@@ -12,6 +13,7 @@
 #include "CkProceduralAnimation/Gait/CkProceduralGait_Utils.h"
 #include "CkProceduralAnimation/Leg/CkProceduralLeg_Utils.h"
 #include "CkProceduralAnimation/Rig/CkProceduralRig_Utils.h"
+#include "CkProceduralAnimation/SurfaceMotion/CkSurfaceMotion_Utils.h"
 #include "CkProceduralAnimationDebugger/Model/CkProceduralAnimationDebugger_Model.h"
 #include "CkProceduralAnimationDebugger/Window/SCkProceduralAnimationDebuggerWindow.h"
 #include "CkTests/Net/CkNetAutomation_Common.h"
@@ -66,6 +68,7 @@ namespace ck_test_procedural_animation_debugger_pie
         FCk_Handle PendingRoot;
         FString PendingId;
         FCk_ProceduralAnimation_DebugSnapshot Captured;
+        FCk_ProceduralAnimation_DebugSnapshot CoherentRig;
         uint64 CapturedSequence = 0;
         uint64 HeldSequence = 0;
         FVector CapturedFoot = FVector::ZeroVector;
@@ -82,8 +85,10 @@ namespace ck_test_procedural_animation_debugger_pie
         TSharedPtr<FCkProceduralAnimationDebugger_Model> Model;
         TSharedPtr<SButton> EnableDisableButton;
         TSharedPtr<SButton> DetachButton;
+        TSharedPtr<SCkDebug_EvidenceList> LegEvidence;
         FCk_Handle Body;
         FCk_Handle_ProceduralLeg Leg;
+        uint64 EnabledSampleSequence = 0;
     };
 
     // --------------------------------------------------------------------------------------------------------------------
@@ -122,6 +127,22 @@ namespace ck_test_procedural_animation_debugger_pie
     {
         InButton->SlatePrepass();
         return InButton->IsEnabled();
+    }
+
+    auto
+        Find_LegEvidence(
+            const TSharedPtr<SCkDebug_EvidenceList>& InList,
+            const FString& InLegEntityId)
+        -> const FCkDebug_EvidenceItem*
+    {
+        if (NOT InList.IsValid())
+        { return nullptr; }
+        for (const auto& Item : InList->Get_Items())
+        {
+            if (Item.IsValid() && Item->Key == InLegEntityId)
+            { return Item.Get(); }
+        }
+        return nullptr;
     }
 
     // --------------------------------------------------------------------------------------------------------------------
@@ -224,6 +245,16 @@ auto
         AddError(TEXT("The debugger PIE test requires Slate and its compiled AS fixture."));
         return false;
     }
+    const auto* MotionClass = UCk_Utils_SurfaceMotion_UE::StaticClass();
+    const auto* PaceScale = MotionClass->FindFunctionByName(FName{TEXT("Get_ReachPaceScale")});
+    const auto* PaceState = MotionClass->FindFunctionByName(FName{TEXT("Get_ReachPaceState")});
+    if (TestNotNull(TEXT("The reach pace scale getter is reflected"), PaceScale))
+    { TestTrue(TEXT("The reach pace scale getter is Blueprint pure"), PaceScale->HasAllFunctionFlags(FUNC_BlueprintCallable | FUNC_BlueprintPure)); }
+    if (TestNotNull(TEXT("The reach pace state getter is reflected"), PaceState))
+    { TestTrue(TEXT("The reach pace state getter is Blueprint pure"), PaceState->HasAllFunctionFlags(FUNC_BlueprintCallable | FUNC_BlueprintPure)); }
+    const auto* PaceEnum = StaticEnum<ECk_SurfaceMotion_ReachPaceState>();
+    if (TestNotNull(TEXT("The reach pace state enum is reflected"), PaceEnum))
+    { TestTrue(TEXT("The reach pace state enum is a Blueprint type"), PaceEnum->HasMetaData(TEXT("BlueprintType"))); }
     AddExpectedError(TEXT("lost an authored part; rig has failed without partially posing its chain."),
         EAutomationExpectedErrorFlags::Contains, 1);
 
@@ -347,6 +378,8 @@ auto
             State->Captured = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Selected);
             State->CapturedSequence = State->Captured.Get_Sample().Get_Sequence();
             TestTrue(TEXT("Actual surface motion is present"), State->Captured.Get_Status().Get_HasSurfaceMotion());
+            TestTrue(TEXT("A healthy surface motion result matches the captured gait frame"),
+                State->Captured.Get_Freshness().Get_MotionMatchesGaitFrame());
             TestTrue(TEXT("Rig composition is present"), State->Captured.Get_Status().Get_HasRig());
             auto ActualHits = 0;
             for (const auto& Leg : State->Captured.Get_Legs())
@@ -413,12 +446,34 @@ auto
         FCk_NetAutoTest_Condition::CreateLambda([State]
         {
             Refresh(State);
-            return UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Selected).Get_Sample().Get_Sequence()
-                > State->CapturedSequence + 5;
-        }), 10.0, TEXT("Production advances after the captured snapshot")));
+            const auto Current = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Selected);
+            if (Current.Get_Sample().Get_Sequence() <= State->CapturedSequence + 5
+                || NOT Current.Get_Freshness().Get_RigMatchesGaitSequence()
+                || Current.Get_Freshness().Get_RigPosePending())
+            { return false; }
+            State->CoherentRig = Current;
+            return true;
+        }), 10.0, TEXT("Production advances to a captured gait and fully applied rig pose")));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
         [this, State](UWorld*)
         {
+            auto PlantedRigFeet = 0;
+            auto PlantedRigFeetNearTarget = 0;
+            for (const auto& Leg : State->CoherentRig.Get_Legs())
+            {
+                if (NOT Leg.Get_Enabled() || NOT Leg.Get_Foot().Get_Planted())
+                { continue; }
+                ++PlantedRigFeet;
+                if (TestTrue(TEXT("A planted leg exposes its captured rig foot transform"), Leg.Get_Rig().Get_Foot().Get_Available()))
+                {
+                    const auto Gap = FVector::Distance(
+                        Leg.Get_Rig().Get_Foot().Get_Transform().GetLocation(), Leg.Get_Foot().Get_Position());
+                    TestTrue(TEXT("The captured rig foot-to-target gap is finite"), FMath::IsFinite(Gap));
+                    PlantedRigFeetNearTarget += Gap <= 5.0 ? 1 : 0;
+                }
+            }
+            TestTrue(TEXT("The production rig snapshot includes a planted foot"), PlantedRigFeet > 0);
+            TestTrue(TEXT("A planted production rig foot reaches its gait target within 5 cm"), PlantedRigFeetNearTarget > 0);
             TestEqual(TEXT("Captured sequence stays immutable while simulation advances"),
                 State->Captured.Get_Sample().Get_Sequence(), State->CapturedSequence);
             if (State->Captured.Get_Legs().Num() > 0)
@@ -652,6 +707,9 @@ auto
             }
             State->EnableDisableButton = StaticCastSharedPtr<SButton>(EnableDisable);
             State->DetachButton = StaticCastSharedPtr<SButton>(Detach);
+            const auto Evidence = FindWidget(State->Panel.ToSharedRef(), NAME_None, TEXT("SCkDebug_EvidenceList"));
+            if (TestTrue(TEXT("The mounted window exposes its live leg evidence"), Evidence.IsValid()))
+            { State->LegEvidence = StaticCastSharedPtr<SCkDebug_EvidenceList>(Evidence); }
 
             TestTrue(TEXT("A body selection alone selects no leg"), ck::Is_NOT_Valid(State->Model->Get_SelectedLeg()));
             TestFalse(TEXT("Leg actions are unavailable without a selected leg"),
@@ -670,19 +728,62 @@ auto
             TestTrue(TEXT("The selected leg id resolves to the live leg"), State->Model->Get_SelectedLeg() == State->Leg);
             TestTrue(TEXT("Leg actions are available once a live leg is selected"),
                 Get_IsButtonEnabled(State->EnableDisableButton) && Get_IsButtonEnabled(State->DetachButton));
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([State]
+        {
+            const auto Snapshot = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Body);
+            const auto* Leg = Snapshot.Get_Legs().FindByPredicate([](const FCk_ProceduralAnimation_DebugLeg& InLeg)
+            {
+                return InLeg.Get_Id() == ActedLegId;
+            });
+            return Leg != nullptr && Leg->Get_Foot().Get_ContactTrusted() && Leg->Get_Probe().Get_AttemptCount() > 0
+                && Snapshot.Get_Freshness().Get_RigMatchesGaitSequence() && NOT Snapshot.Get_Freshness().Get_RigPosePending()
+                && Leg->Get_Rig().Get_Foot().Get_Available();
+        }), 10.0, TEXT("The selected live leg has trusted contact and an actual probe before disable")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
+        [this, State](UWorld*)
+        {
+            State->Panel->Request_Refresh();
+            const auto* EnabledEvidence = Find_LegEvidence(State->LegEvidence, State->Leg.Get_Entity().ToString());
+            if (TestNotNull(TEXT("The enabled leg has a mounted evidence row"), EnabledEvidence))
+            { TestTrue(TEXT("The enabled row reports its current rig foot-to-target gap"),
+                EnabledEvidence->Detail.ToString().Contains(TEXT("Rig foot"))); }
+            State->EnabledSampleSequence = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Body).Get_Sample().Get_Sequence();
             State->EnableDisableButton->SimulateClick();
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
         FCk_NetAutoTest_Condition::CreateLambda([State]
         {
-            return UCk_Utils_ProceduralLeg_UE::Get_EnableDisable(State->Leg) == ECk_EnableDisable::Disable;
-        }), 10.0, TEXT("The mounted Disable button disables the selected leg through its request")));
+            const auto Snapshot = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Body);
+            const auto* Leg = Snapshot.Get_Legs().FindByPredicate([](const FCk_ProceduralAnimation_DebugLeg& InLeg)
+            {
+                return InLeg.Get_Id() == ActedLegId;
+            });
+            return UCk_Utils_ProceduralLeg_UE::Get_EnableDisable(State->Leg) == ECk_EnableDisable::Disable
+                && Snapshot.Get_Sample().Get_Sequence() > State->EnabledSampleSequence && Leg != nullptr && NOT Leg->Get_Enabled();
+        }), 10.0, TEXT("The mounted Disable button produces an accepted snapshot of the disabled leg")));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
         [this, State](UWorld*)
         {
             const auto Gait = UCk_Utils_ProceduralGait_UE::Cast(State->Body);
             TestEqual(TEXT("Only the selected leg is disabled"), UCk_Utils_ProceduralGait_UE::Get_EnabledLegCount(Gait),
                 SmallLegCount - 1);
+            const auto Snapshot = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Body);
+            const auto* Disabled = Snapshot.Get_Legs().FindByPredicate([](const FCk_ProceduralAnimation_DebugLeg& InLeg)
+            {
+                return InLeg.Get_Id() == ActedLegId;
+            });
+            if (TestNotNull(TEXT("The accepted snapshot retains the disabled leg"), Disabled))
+            {
+                TestFalse(TEXT("A disabled leg no longer reports its old trusted contact"), Disabled->Get_Foot().Get_ContactTrusted());
+                TestEqual(TEXT("A disabled leg no longer reports its old probe"), Disabled->Get_Probe().Get_AttemptCount(), 0);
+            }
+            State->Panel->Request_Refresh();
+            const auto* DisabledEvidence = Find_LegEvidence(State->LegEvidence, State->Leg.Get_Entity().ToString());
+            if (TestNotNull(TEXT("The disabled leg remains in the mounted evidence list"), DisabledEvidence))
+            { TestFalse(TEXT("The disabled row omits its retained rig foot-to-target gap"),
+                DisabledEvidence->Detail.ToString().Contains(TEXT("Rig foot"))); }
             TestTrue(TEXT("A disabled leg stays selected and actionable"), State->Model->Get_SelectedLeg() == State->Leg);
             State->EnableDisableButton->SimulateClick();
         })));
