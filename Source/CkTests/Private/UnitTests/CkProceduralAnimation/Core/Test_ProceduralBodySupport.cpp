@@ -635,6 +635,79 @@ auto
     return true;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralBodyPoseReachProjectionTest,
+    "Ck.ProceduralAnimation.BodySupport.PosedReachProjectionKeepsRecordedPostPlant",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralBodyPoseReachProjectionTest::
+    RunTest(const FString&)
+    -> bool
+{
+    const auto Body = FTransform{FQuat{FVector::UpVector, PI}, FVector{-267.2, 0.0, 154.9}};
+    const auto Previous = FTransform{FQuat{FVector::RightVector, -0.0268}, FVector::ZeroVector};
+    const auto Proposed = FTransform{FQuat{FVector::RightVector, -0.2922}, FVector{0.0, 0.0, 0.2}};
+    const auto Anchor = ck::FProceduralBodyPoseReachAnchor{FVector{45.0, 28.0, 0.0},
+        FVector{-265.6, -85.0, 90.0}, 100.0f};
+    const auto Anchors = TArray<ck::FProceduralBodyPoseReachAnchor>{Anchor};
+    const auto Distance = [&](const FTransform& InOffset) -> double
+    {
+        return FVector::Dist((InOffset * Body).TransformPosition(Anchor.Get_HipLocal()), Anchor.Get_FootWorld());
+    };
+
+    TestTrue(TEXT("Recorded planted foot is reachable from the simulation hip"),
+        FVector::Dist(Body.TransformPosition(Anchor.Get_HipLocal()), Anchor.Get_FootWorld()) < 100.0);
+    TestTrue(TEXT("The prior pose is reachable"), Distance(Previous) < 100.0);
+    TestTrue(TEXT("The unconstrained spring pose exceeds physical reach"), Distance(Proposed) > 105.0);
+
+    const auto Projected = ck::ProjectProceduralBodyPoseToReach(Body, Previous, Proposed, Anchors);
+    TestTrue(TEXT("Reach projection accepts the recorded input"), Projected.IsSet());
+    if (NOT Projected.IsSet())
+    { return false; }
+    TestTrue(TEXT("The spring retains a positive partial pose step"),
+        Projected->Get_Fraction() > 0.0f && Projected->Get_Fraction() < 1.0f);
+    TestFalse(TEXT("A reachable prior pose needs no identity fallback"), Projected->Get_UsedIdentityBase());
+    TestTrue(TEXT("Only a checked pose within the chain is returned"), Distance(Projected->Get_Offset()) <= 100.01);
+
+    const auto Empty = ck::ProjectProceduralBodyPoseToReach(Body, Previous, Proposed,
+        TArrayView<const ck::FProceduralBodyPoseReachAnchor>{});
+    TestTrue(TEXT("Without planted anchors, the original spring pose is unchanged"), Empty.IsSet()
+        && Empty->Get_Offset().Equals(Proposed, 1.0e-4) && Empty->Get_Fraction() == 1.0f);
+
+    const auto InvalidPrevious = FTransform{FQuat{FVector::RightVector, -0.4}, FVector::ZeroVector};
+    const auto Recovered = ck::ProjectProceduralBodyPoseToReach(Body, InvalidPrevious, Proposed, Anchors);
+    TestTrue(TEXT("An already unreachable pose falls back to the simulation pose"), Recovered.IsSet()
+        && Recovered->Get_UsedIdentityBase() && Distance(Recovered->Get_Offset()) <= 100.01);
+
+    const auto TwoAnchors = TArray<ck::FProceduralBodyPoseReachAnchor>{
+        ck::FProceduralBodyPoseReachAnchor{FVector::ZeroVector, FVector::ZeroVector, 30.0f},
+        ck::FProceduralBodyPoseReachAnchor{FVector{10.0, 0.0, 0.0}, FVector{10.0, 0.0, 0.0}, 5.0f}};
+    const auto Shift = FTransform{FVector{20.0, 0.0, 0.0}};
+    const auto Multi = ck::ProjectProceduralBodyPoseToReach(FTransform::Identity, FTransform::Identity,
+        Shift, TwoAnchors);
+    TestTrue(TEXT("Every anchor, including the tighter second leg, constrains a candidate"), Multi.IsSet()
+        && Multi->Get_Fraction() < 0.3f
+        && FVector::Dist((Multi->Get_Offset()).TransformPosition(TwoAnchors[1].Get_HipLocal()),
+            TwoAnchors[1].Get_FootWorld()) <= 5.01);
+
+    const auto Malformed = TArray<ck::FProceduralBodyPoseReachAnchor>{
+        ck::FProceduralBodyPoseReachAnchor{Anchor.Get_HipLocal(), Anchor.Get_FootWorld(), -1.0f}};
+    TestFalse(TEXT("A malformed reach cannot produce a pose"),
+        ck::ProjectProceduralBodyPoseToReach(Body, Previous, Proposed, Malformed).IsSet());
+    const auto InvalidOffset = FTransform{FQuat::Identity, FVector::ZeroVector, FVector{2.0, 1.0, 1.0}};
+    TestFalse(TEXT("A non-rigid previous offset is rejected instead of silently losing its scale"),
+        ck::ProjectProceduralBodyPoseToReach(Body, InvalidOffset, Proposed, Anchors).IsSet());
+    const auto Infinity = std::numeric_limits<double>::infinity();
+    const auto InvalidFoot = TArray<ck::FProceduralBodyPoseReachAnchor>{
+        ck::FProceduralBodyPoseReachAnchor{Anchor.Get_HipLocal(), FVector{Infinity, 0.0, 0.0}, 100.0f}};
+    TestFalse(TEXT("A non-finite foot cannot produce a pose"),
+        ck::ProjectProceduralBodyPoseToReach(Body, Previous, Proposed, InvalidFoot).IsSet());
+    return true;
+}
+
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------

@@ -79,6 +79,22 @@ namespace ck_procedural_gym_assets
         return Legs;
     }
 
+    TArray<FCk_ProceduralLeg_Spec> MakeSmallCrawlerLegs()
+    {
+        auto Legs = TArray<FCk_ProceduralLeg_Spec>();
+        auto Lengths = TArray<float32>();
+        Lengths.Add(36.0f);
+        Lengths.Add(48.0f);
+        for (auto Index = 0; Index < 4; Index++)
+        {
+            auto Radial = Get_RadialDirection(Index, 4);
+            Legs.Add(MakeLegWithLengths(FName(f"Leg{Index}"), Radial * 18.0,
+                Radial * 60.0 - FVector(0.0, 0.0, 39.0), Radial * 60.0 + FVector(0.0, 0.0, 39.0),
+                Index % 2 == 0 ? 0.0f : 0.5f, Lengths));
+        }
+        return Legs;
+    }
+
     // Two legs on the body's lateral axis, the layout the admission and buried-probe tests assert against.
     FCk_ProceduralLeg_Spec MakeSideLeg(int32 InLegIndex)
     {
@@ -284,6 +300,20 @@ namespace ck
         _Step.Set_Height(22.0f);
         _Step.Set_Threshold(30.0f);
         _Step.Set_MaxVelocityLead(40.0f);
+    }
+
+    asset ProceduralGym_GaitSmallCrawler of UCk_ProceduralGait_Data
+    {
+        _Timing.Set_CycleDuration(FCk_Time(0.64));
+        _Timing.Set_StepDuration(FCk_Time(0.16));
+        _Step.Set_Height(14.4f);
+        _Step.Set_Threshold(18.0f);
+        _Step.Set_MaxVelocityLead(24.0f);
+    }
+
+    asset ProceduralGym_RigSmallCrawler4 of UCk_ProceduralRig_Data
+    {
+        _Legs.Append(ck_procedural_gym_assets::MakeSmallCrawlerLegs());
     }
 
     asset ProceduralGym_Rig4 of UCk_ProceduralRig_Data

@@ -1,7 +1,7 @@
 // Language=angelscript
 
-// One HighResShot side capture of each stress course's middle walker at the course's feature, plus top-down ones of the
-// spin, the pillar crossing, the cylinder and the pillar field, for docs/campaigns/procedural-animation/viz, through the
+// HighResShot captures of each stress course at its feature, including each cylinder walker both ascending and descending,
+// plus top-down views of the spin, pillar crossing, cylinder and pillar field, through the
 // shared shot plan (CkPaViz_ShotPlan.as). Needs a real RHI (--no-nullrhi); under -nullrhi it still passes and the captures
 // are black.
 class UCk_AutoTest_PaViz_StressVisual : UCk_AutoTest_Base
@@ -13,9 +13,9 @@ class UCk_AutoTest_PaViz_StressVisual : UCk_AutoTest_Base
     private float _SideHeight = 200.0;
     private float _TopDownHeight = 600.0;
     private int32 _Middle = 1;
-    private int32 _FirstLane = 0;
-    // The cylinder's lane walker is shot once it is halfway up the climb, whichever way round the cylinder it faces.
+    // The cylinder walkers are shot halfway up and down each loop, whichever way around the cylinder they face.
     private float _CylinderShotMinZ = 250.0;
+    private float _CylinderDescendingMaxZ = 350.0;
     private float _AnyX = 100000.0;
 
     UFUNCTION(BlueprintOverride)
@@ -71,8 +71,13 @@ class UCk_AutoTest_PaViz_StressVisual : UCk_AutoTest_Base
         _Shots.Add_Shot(CrossingFixture, _Middle, "pillar-tops", 0.0, 0, false, _SideHeight);
         _Shots.Add_Shot(CrossingFixture, _Middle, "pillar-tops-topdown", 0.0, 0, true, _TopDownHeight);
         _Shots.Add_Shot(PostsFixture, _Middle, "posts", 0.0, 0, false, _SideHeight);
-        _Shots.Add_Shot(CylinderFixture, _FirstLane, "cylinder-side", _AnyX, 1, false, _SideHeight, _CylinderShotMinZ);
-        _Shots.Add_Shot(CylinderFixture, _FirstLane, "cylinder-topdown", _AnyX, 1, true, _TopDownHeight, _CylinderShotMinZ);
+        auto CylinderRoster = ck_procedural_gym::Get_StressRoster(ECkProceduralAnimationGym_Course::Cylinder);
+        for (auto Walker = 0; Walker < CylinderRoster.Num(); Walker++)
+        {
+            _Shots.Add_Shot(CylinderFixture, Walker, "cylinder-ascending", _AnyX, 1, false, _SideHeight, _CylinderShotMinZ);
+            _Shots.Add_Shot(CylinderFixture, Walker, "cylinder-descending", _AnyX, 2, true, _TopDownHeight,
+                _CylinderShotMinZ, 0.0, _CylinderDescendingMaxZ);
+        }
         _Shots.Add_Shot(PillarsFixture, _Middle, "between-rows", 0.0, 0, true, _TopDownHeight);
 
         // HighResShot rewrites these three and does not always put them back; snapshot them so the base does.
@@ -84,7 +89,7 @@ class UCk_AutoTest_PaViz_StressVisual : UCk_AutoTest_Base
         System::ExecuteConsoleCommand("viewmode unlit");
 
         Add_Step_WaitUntil("the stress-course walkers are composed and evaluated", n"Check_Ready", 1200, 30.0f);
-        Add_Step_WaitUntil("every planned capture is taken or 40 s pass", n"Check_Captured", 0, 45.0f);
+        Add_Step_WaitUntil("every planned capture is taken or 80 s pass", n"Check_Captured", 0, 85.0f);
         Add_Step("restore the lit view mode and retire the fixtures", n"Step_Finish");
         Add_Step_WaitUntil("the fixtures are gone", n"Check_Destroyed", 0, 10.0f);
         Run_Steps(InHandle);
@@ -107,12 +112,13 @@ class UCk_AutoTest_PaViz_StressVisual : UCk_AutoTest_Base
     private void Check_Captured(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         auto Result = OutResult;
-        Result.Set(_Shots.Update_Captured(40.0));
+        Result.Set(_Shots.Update_Captured(80.0));
     }
 
     UFUNCTION()
     private void Step_Finish(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
+        Assert_Equals_Int(_Shots.Taken, _Shots.PlanTaken.Num(), "Every planned stress shot was captured, including both cylinder directions for every walker");
         System::ExecuteConsoleCommand("viewmode lit");
         _Shots.Finish();
     }

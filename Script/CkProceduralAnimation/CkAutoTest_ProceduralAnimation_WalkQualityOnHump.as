@@ -248,7 +248,7 @@ class UCk_AutoTest_ProceduralAnimation_WalkQualityOnHump : UCk_AutoTest_Base
         {
             auto Crawler = _Fixture.Crawlers[Index];
             auto Quality = _Quality[Index];
-            auto Name = ck_procedural_gym::Get_SpeciesName(Crawler.Layout.Species);
+            auto SpeciesName = ck_procedural_gym::Get_SpeciesName(Crawler.Layout.Species);
             for (auto LegIndex = 0; LegIndex < Quality.Planted.Num(); LegIndex++)
             {
                 if (Quality.Planted[LegIndex])
@@ -263,18 +263,18 @@ class UCk_AutoTest_ProceduralAnimation_WalkQualityOnHump : UCk_AutoTest_Base
             auto UpStepP95 = Get_Percentile(Quality.UpSteps, 95.0);
             auto Frames = Quality.UpSteps.Num();
             auto Plants = Quality.PlantSlides.Num();
-            ck::Trace(f"[WALK-QUALITY] {Name}: M1 p99 depth {DepthP99 :.3} cm over {Quality.JointDepths.Num()} frames, M2 {BeyondReach :.4} of {Quality.PlantedSamples} planted samples, M3 p95 slide {SlideP95 :.3} cm over {Plants} plants, M5 p95 up step {UpStepP95 :.3} deg over {Frames} frames");
+            ck::Trace(f"[WALK-QUALITY] {SpeciesName}: M1 p99 depth {DepthP99 :.3} cm over {Quality.JointDepths.Num()} frames, M2 {BeyondReach :.4} of {Quality.PlantedSamples} planted samples, M3 p95 slide {SlideP95 :.3} cm over {Plants} plants, M5 p95 up step {UpStepP95 :.3} deg over {Frames} frames");
 
-            Assert_True(Quality.CrossedBack, f"The {Name} crossed the hump, turned and came back over its crest");
-            Assert_True(Plants > 0 && Frames > 0, f"The {Name} was measured ({Frames} frames, {Plants} plants)");
+            Assert_True(Quality.CrossedBack, f"The {SpeciesName} crossed the hump, turned and came back over its crest");
+            Assert_True(Plants > 0 && Frames > 0, f"The {SpeciesName} was measured ({Frames} frames, {Plants} plants)");
             Assert_True(DepthP99 < _MaxJointDepthP99,
-                f"M1: the {Name}'s interior joints stay out of its drawn body (p99 depth {DepthP99 :.3} cm, below {_MaxJointDepthP99 :.1})");
+                f"M1: the {SpeciesName}'s interior joints stay out of its drawn body (p99 depth {DepthP99 :.3} cm, below {_MaxJointDepthP99 :.1})");
             Assert_True(BeyondReach < _MaxPlantedBeyondReach,
-                f"M2: the {Name}'s planted feet stay within reach ({BeyondReach :.4} beyond, below {_MaxPlantedBeyondReach :.2})");
+                f"M2: the {SpeciesName}'s planted feet stay within reach ({BeyondReach :.4} beyond, below {_MaxPlantedBeyondReach :.2})");
             Assert_True(SlideP95 < _MaxPlantSlideP95,
-                f"M3: the {Name}'s drawn feet hold while planted (p95 slide {SlideP95 :.3} cm, below {_MaxPlantSlideP95 :.1})");
+                f"M3: the {SpeciesName}'s drawn feet hold while planted (p95 slide {SlideP95 :.3} cm, below {_MaxPlantSlideP95 :.1})");
             Assert_True(UpStepP95 < _MaxUpStepP95,
-                f"M5: the {Name}'s drawn body turns smoothly on the hump (p95 {UpStepP95 :.3} deg per frame, below {_MaxUpStepP95 :.1})");
+                f"M5: the {SpeciesName}'s drawn body turns smoothly on the hump (p95 {UpStepP95 :.3} deg per frame, below {_MaxUpStepP95 :.1})");
         }
         _Fixture.Request_Destroy();
     }

@@ -892,6 +892,7 @@ auto
         bool SawFreeze = false;
         bool Landed = false;
         FVector LandingPoint = FVector::ZeroVector;
+        FVector CommittedLandingPoint = FVector::ZeroVector;
         FVector BeforePlant = FVector::ZeroVector;
         FVector Plant = FVector::ZeroVector;
         TArray<double> SwingHeights;
@@ -950,6 +951,7 @@ auto
                 Landing.TakeOffLandingPoint = Swing.Get_LandingPoint();
                 Landing.TakeOffTarget = Swing.Get_Target();
             }
+            Landing.CommittedLandingPoint = Swing.Get_CommittedLandingPoint();
             Landing.LiftedBeforeFreeze |= NOT Swing.Get_TargetFrozen() && Swing.Get_LandingLiftStartAlpha() >= 0.0f;
             if (Swing.Get_TargetFrozen())
             {
@@ -1015,6 +1017,12 @@ auto
 
     const auto Lower = DoStep(BelowTheTargetZ, FromTheFreeze);
     TestEqual(TEXT("Ground below the landing target never lowers the plant"), Lower.Plant.Z, LowerTreadZ, Tolerance);
+    TestTrue(TEXT("Accepted upper ground publishes the point the swing actually plants on"),
+        OnUpperTread.CommittedLandingPoint.Equals(OnUpperTread.Plant, Tolerance));
+    TestTrue(TEXT("A lower raw report does not lower the committed support point below the accepted target"),
+        Lower.CommittedLandingPoint.Equals(Lower.Plant, Tolerance));
+    TestTrue(TEXT("An unreachable raw report cannot raise the committed support point"),
+        Unreachable.CommittedLandingPoint.Equals(Unreachable.Plant, Tolerance));
 
     // Stepping down: the foot leaves the upper tread for a target on the lower one, and from its first swing frame on it is
     // told the ground under the landing point the solver exposed on the frame before, as the ECS probe tells it. The riser
@@ -2233,6 +2241,343 @@ auto
             "exactly (%s against %s)"), *Pitched.Landing->ToString(), *Target.ToString()),
         Pitched.Landing->Equals(Target, Tolerance));
 
+    return true;
+}
+
+// Append before #endif in existing Core/Test_ProceduralGait_Reach.cpp; no production fix is part of this draft.
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitUntrustedPlantRecoversToNearbyGroundTest,
+    "Ck.ProceduralAnimation.Gait.UntrustedPlantRecoversToNearbyGround",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitUntrustedPlantRecoversToNearbyGroundTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+    const auto Initial = TArray<FVector>{{0.0, 30.0, -60.0}, {0.0, -30.0, -60.0}};
+    const auto Init = [&](ck::FProceduralGaitSolver& InOutSolver, TArray<ck::FProceduralGaitLegInput>& OutInputs,
+        TArray<ck::FProceduralGaitLegOutput>& OutOutputs)
+    {
+        InOutSolver.Get_Settings().Get_Step().Set_Threshold(50.0f).Set_StrokeOvershootFraction(0.0f);
+        InOutSolver.Get_Settings().Get_Settle().Set_AtRest(false);
+        InOutSolver.Get_Settings().Get_Cadence().Set_MaxSimultaneousSwings(1);
+        InOutSolver.Reset(Initial);
+        InOutSolver.SetPlantedPose(0, Initial[0], FVector::UpVector, false);
+        OutInputs.SetNum(2);
+        OutOutputs.SetNum(2);
+        for (auto Index = 0; Index < 2; ++Index)
+        {
+            OutInputs[Index].Set_Hip(FVector{0.0, Index == 0 ? 20.0 : -20.0, 0.0}).Set_Reach(100.0f)
+                .Set_IdealTarget(Initial[Index]).Set_PhaseOffset(Index == 0 ? 0.5f : 0.0f)
+                .Set_TargetTrusted(Index != 0).Set_TargetValid(true).Set_TargetIsFoothold(true)
+                .Set_LandingGround(ck::EProceduralGaitLandingGround::Found).Set_LandingGroundZ(-60.0f);
+        }
+        OutInputs[0].Set_IdealTarget(Initial[0] + FVector{10.0, 0.0, 0.0});
+    };
+
+    auto Solver = ck::FProceduralGaitSolver{};
+    auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+    auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+    Init(Solver, Inputs, Outputs);
+    // An untrusted target is not a contact recovery request, even when geometrically close to the emitted air foot.
+    for (auto Frame = 0; Frame < 30; ++Frame)
+    {
+        TestTrue(TEXT("The guessed target input is accepted"), Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs));
+        TestFalse(TEXT("A guessed target does not promote the unsupported plant"), Solver.GetLegState(0).Get_Plant().Get_Trusted());
+        TestFalse(TEXT("A guessed target does not start a recovery swing"), Solver.GetLegState(0).Get_Swing().Get_Active());
+    }
+    Inputs[0].Set_TargetTrusted(true);
+    const auto BeforeClock = Solver.GetGaitClock();
+    const auto BeforePlant = Solver.GetLegState(0).Get_Plant().Get_Position();
+    TestTrue(TEXT("Zero dt accepts the newly validated target without advancing"),
+        Solver.Step(FCk_Time{}, 0.0f, FVector::ZeroVector, Inputs, Outputs));
+    TestTrue(TEXT("Zero dt does not start recovery or mutate the unsupported plant"),
+        NOT Solver.GetLegState(0).Get_Swing().Get_Active() && NOT Solver.GetLegState(0).Get_Plant().Get_Trusted()
+        && Solver.GetGaitClock() == BeforeClock && Solver.GetLegState(0).Get_Plant().Get_Position() == BeforePlant);
+    auto SawSwing = false;
+    auto Recovered = false;
+    for (auto Frame = 0; Frame < 90; ++Frame)
+    {
+        TestTrue(TEXT("Nearby contact recovery step is accepted"), Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs));
+        SawSwing |= Solver.GetLegState(0).Get_Swing().Get_Active();
+        Recovered |= SawSwing && Outputs[0].Get_Planted() && Solver.GetLegState(0).Get_Plant().Get_Trusted();
+    }
+    TestTrue(TEXT("A newly validated contact below the normal step threshold requests a real recovery swing"), SawSwing);
+    TestTrue(TEXT("The recovery swing lands on the validated target"), Recovered);
+    TestTrue(TEXT("Recovery uses the provided target without moving its geometry"),
+        Recovered && Solver.GetLegState(0).Get_Plant().Get_Position().Equals(Inputs[0].Get_IdealTarget(), 0.01));
+
+    Init(Solver, Inputs, Outputs);
+    Inputs[1].Set_IdealTarget(Initial[1] + FVector{60.0, 0.0, 0.0});
+    Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+    if (NOT TestTrue(TEXT("Precondition: the trusted neighbor occupies the one-swing budget"),
+        Solver.GetLegState(1).Get_Swing().Get_Active()))
+    { return false; }
+    Inputs[0].Set_TargetTrusted(true);
+    SawSwing = false;
+    Recovered = false;
+    for (auto Frame = 0; Frame < 90; ++Frame)
+    {
+        Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+        const auto Active = static_cast<int32>(Solver.GetLegState(0).Get_Swing().Get_Active())
+            + static_cast<int32>(Solver.GetLegState(1).Get_Swing().Get_Active());
+        TestTrue(TEXT("Contact recovery does not bypass the authored swing budget"), Active <= 1);
+        SawSwing |= Solver.GetLegState(0).Get_Swing().Get_Active();
+        Recovered |= SawSwing && Outputs[0].Get_Planted() && Solver.GetLegState(0).Get_Plant().Get_Trusted();
+    }
+    TestTrue(TEXT("Recovery proceeds after the occupied budget becomes free"), Recovered);
+
+    Init(Solver, Inputs, Outputs);
+    Solver.Get_Settings().Get_Step().Set_Threshold(20.0f).Set_StrokeOvershootFraction(0.5f);
+    Inputs[0].Set_TargetTrusted(true).Set_TargetIsFoothold(false)
+        .Set_IdealTarget(Initial[0] + FVector{40.0, 0.0, 0.0}).Set_PhaseOffset(0.0f);
+    const auto RecoveryTarget = Inputs[0].Get_IdealTarget();
+    const auto Velocity = FVector{30.0, 0.0, 0.0};
+    SawSwing = false;
+    Recovered = false;
+    for (auto Frame = 0; Frame < 90; ++Frame)
+    {
+        Solver.Step(FrameDt, 0.0f, Velocity, Inputs, Outputs);
+        const auto& Swing = Solver.GetLegState(0).Get_Swing();
+        if (Swing.Get_Active())
+        {
+            SawSwing = true;
+            TestFalse(TEXT("Recovery does not apply stroke overshoot even above the ordinary threshold"), Swing.Get_Overshoot());
+            if (Swing.Get_TargetFrozen())
+            {
+                TestTrue(TEXT("The recovery freeze does not push a non-foothold contact along velocity"),
+                    Swing.Get_Target().Equals(RecoveryTarget, 0.01));
+            }
+        }
+        if (SawSwing && Outputs[0].Get_Planted())
+        {
+            Recovered = Solver.GetLegState(0).Get_Plant().Get_Trusted();
+            break;
+        }
+    }
+    TestTrue(TEXT("A larger-error non-foothold recovery lands on its validated point"), Recovered
+        && Solver.GetLegState(0).Get_Plant().Get_Position().Equals(RecoveryTarget, 0.01));
+
+    Init(Solver, Inputs, Outputs);
+    Inputs[0].Set_TargetTrusted(true).Set_LandingGround(ck::EProceduralGaitLandingGround::None);
+    for (auto Frame = 0; Frame < 45; ++Frame)
+    {
+        Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+        TestFalse(TEXT("Recovery never promotes trust when landing ground is withdrawn"),
+            Solver.GetLegState(0).Get_Plant().Get_Trusted());
+    }
+
+    Init(Solver, Inputs, Outputs);
+    Inputs[0].Set_TargetTrusted(true).Set_Enabled(false);
+    Solver.Step(FrameDt, 0.0f, FVector::ZeroVector, Inputs, Outputs);
+    TestFalse(TEXT("A disabled unsupported leg does not begin contact recovery"), Solver.GetLegState(0).Get_Swing().Get_Active());
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitFootReservationPredicateTest,
+    "Ck.ProceduralAnimation.Gait.FootReservationPredicate",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitFootReservationPredicateTest::
+    RunTest(
+        const FString&)
+    -> bool
+{
+    const auto Reservations = TArray<ck::FProceduralFootReservation>{
+        {FVector::ZeroVector, 10.0f, 1}, {FVector{100.0, 0.0, 0.0}, 0.0f, 2}};
+    TestFalse(TEXT("Positive-radius contacts cannot penetrate a peer reservation"),
+        ck::Get_IsProceduralFootContactAvailable(FVector{19.0, 0.0, 0.0}, 10.0f, 0, Reservations));
+    TestTrue(TEXT("Tangent contacts are available"),
+        ck::Get_IsProceduralFootContactAvailable(FVector{20.0, 0.0, 0.0}, 10.0f, 0, Reservations));
+    TestTrue(TEXT("A contact does not obstruct itself"),
+        ck::Get_IsProceduralFootContactAvailable(FVector::ZeroVector, 10.0f, 1, Reservations));
+    TestTrue(TEXT("Zero radius preserves legacy overlapping targets"),
+        ck::Get_IsProceduralFootContactAvailable(FVector::ZeroVector, 0.0f, 0, Reservations));
+    TestTrue(TEXT("Zero-radius peers do not reserve"),
+        ck::Get_IsProceduralFootContactAvailable(FVector{100.0, 0.0, 0.0}, 10.0f, 0, Reservations));
+    TestFalse(TEXT("Negative radius is rejected"),
+        ck::Get_IsProceduralFootContactAvailable(FVector::ZeroVector, -1.0f, 0, Reservations));
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitFootReservationsProtectCommittedContactsTest,
+    "Ck.ProceduralAnimation.Gait.FootReservationsProtectCommittedContacts",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitFootReservationsProtectCommittedContactsTest::
+    RunTest(
+        const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+    const auto Initial = TArray<FVector>{{-60.0, 40.0, -60.0}, {60.0, 40.0, -60.0}};
+    const auto Shared = FVector{0.0, 40.0, -60.0};
+    auto Solver = ck::FProceduralGaitSolver{};
+    auto Inputs = TArray<ck::FProceduralGaitLegInput>{};
+    auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+    const auto Init = [&](float InRadius)
+    {
+        Solver.Get_Settings().Get_Step().Set_Threshold(10.0f).Set_StrokeOvershootFraction(0.5f);
+        Solver.Get_Settings().Get_Settle().Set_AtRest(false);
+        Solver.Get_Settings().Get_Cadence().Set_MaxSimultaneousSwings(2);
+        Solver.Reset(Initial);
+        Inputs.SetNum(2);
+        Outputs.SetNum(2);
+        for (auto Index = 0; Index < 2; ++Index)
+        {
+            Inputs[Index] = ck::FProceduralGaitLegInput{};
+            Inputs[Index].Set_Hip(FVector{0.0, Index == 0 ? 20.0 : -20.0, 0.0}).Set_Reach(200.0f)
+                .Set_IdealTarget(Shared).Set_PhaseOffset(0.0f).Set_TargetTrusted(true).Set_TargetValid(true)
+                .Set_TargetIsFoothold(false).Set_FootContactRadius(InRadius);
+        }
+    };
+    const auto Tick = [&]() { return Solver.Step(FrameDt, 0.0f, FVector{30.0, 0.0, 0.0}, Inputs, Outputs); };
+    Init(10.0f);
+    TestTrue(TEXT("Reserved contact step is accepted"), Tick());
+    if (NOT TestTrue(TEXT("The first same-phase leg reserves the shared landing before its peer"),
+        Solver.GetLegState(0).Get_Swing().Get_Active() && NOT Solver.GetLegState(1).Get_Swing().Get_Active()))
+    { return false; }
+    TestTrue(TEXT("The blocked peer's existing plant is not moved"),
+        Solver.GetLegState(1).Get_Plant().Get_Position().Equals(Initial[1], 0.01));
+    Inputs[0].Set_IdealTarget(Initial[1]);
+    for (auto Frame = 0; Frame < 30; ++Frame)
+    {
+        Tick();
+        const auto& State = Solver.GetLegState(0);
+        if (State.Get_Swing().Get_Active())
+        {
+            TestTrue(TEXT("A retarget onto a trusted peer keeps the admitted landing through freeze"),
+                State.Get_Swing().Get_LandingPoint().Equals(Shared, 0.01));
+            TestFalse(TEXT("Reserved contacts do not stroke beyond their validated point"), State.Get_Swing().Get_Overshoot());
+        }
+        TestFalse(TEXT("The peer cannot start toward the occupied committed landing"), Solver.GetLegState(1).Get_Swing().Get_Active());
+    }
+    TestTrue(TEXT("The first contact lands on its exact admitted point"),
+        Solver.GetLegState(0).Get_Plant().Get_Trusted() && Solver.GetLegState(0).Get_Plant().Get_Position().Equals(Shared, 0.01));
+    Inputs[0].Set_IdealTarget(Shared);
+    Inputs[1].Set_TargetTrusted(false);
+    Tick();
+    TestFalse(TEXT("An untrusted gather cannot enter a trusted peer reservation"), Solver.GetLegState(1).Get_Swing().Get_Active());
+    Inputs[1].Set_TargetTrusted(true).Set_IdealTarget(FVector{0.0, 80.0, -60.0}).Set_PlantCrowded(true);
+    auto SawClearSwing = false;
+    for (auto Frame = 0; Frame < 60; ++Frame)
+    {
+        Tick();
+        SawClearSwing |= Solver.GetLegState(1).Get_Swing().Get_Active();
+        TestTrue(TEXT("Moving the crowded leg does not slide the existing trusted peer"),
+            Solver.GetLegState(0).Get_Plant().Get_Position().Equals(Shared, 0.01));
+    }
+    TestTrue(TEXT("An available replacement permits recovery from the contested target"), SawClearSwing
+        && Solver.GetLegState(1).Get_Plant().Get_Trusted()
+        && Solver.GetLegState(1).Get_Plant().Get_Position().Equals(Inputs[1].Get_IdealTarget(), 0.01));
+
+    Init(0.0f);
+    Tick();
+    TestTrue(TEXT("Zero radii preserve simultaneous same-target legacy takeoff"),
+        Solver.GetLegState(0).Get_Swing().Get_Active() && Solver.GetLegState(1).Get_Swing().Get_Active());
+    const auto Before = Solver.GetLegState(0).Get_Swing().Get_Target();
+    Inputs[0].Set_FootContactRadius(-1.0f);
+    TestFalse(TEXT("A malformed input radius rejects the entire step"), Tick());
+    TestTrue(TEXT("Radius rejection leaves committed state unchanged"), Solver.GetLegState(0).Get_Swing().Get_Target() == Before);
+
+    Init(10.0f);
+    Solver.SetPlantedPose(1, FVector{0.0, 40.0, 0.0}, FVector::UpVector, true);
+    Inputs[1].Set_IdealTarget(FVector{0.0, 40.0, 0.0});
+    Tick();
+    Inputs[0].Set_LandingGround(ck::EProceduralGaitLandingGround::Found).Set_LandingGroundZ(0.0f);
+    for (auto Frame = 0; Frame < 30; ++Frame)
+    {
+        Tick();
+        if (Solver.GetLegState(0).Get_Swing().Get_Active())
+        {
+            TestTrue(TEXT("An occupied raised landing leaves the original commitment intact"),
+                Solver.GetLegState(0).Get_Swing().Get_LandingLiftStartAlpha() < 0.0f
+                && Solver.GetLegState(0).Get_Swing().Get_LandingPoint().Equals(Shared, 0.01));
+            TestTrue(TEXT("The shared support/reservation point never promotes the rejected lift report"),
+                Solver.GetLegState(0).Get_Swing().Get_CommittedLandingPoint().Equals(Shared, 0.01));
+        }
+    }
+    TestTrue(TEXT("An occupied lift cannot promote an overlapping trusted plant"),
+        Solver.GetLegState(0).Get_Plant().Get_Position().Equals(Shared, 0.01));
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralGaitCommittedLandingFollowsLiftedPullbackTest,
+    "Ck.ProceduralAnimation.Gait.CommittedLandingFollowsLiftedPullback",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralGaitCommittedLandingFollowsLiftedPullbackTest::
+    RunTest(
+        const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_gait_reach;
+    const auto Target = FVector{40.0, 60.0, -40.0};
+    const auto Velocity = FVector{100.0, 0.0, 0.0};
+    auto Solver = ck::FProceduralGaitSolver{};
+    Solver.Get_Settings().Get_Settle().Set_AtRest(false);
+    Solver.Reset({FVector{0.0, 60.0, -40.0}});
+    auto Inputs = TArray<ck::FProceduralGaitLegInput>{ck::FProceduralGaitLegInput{}
+        .Set_IdealTarget(Target).Set_Hip(FVector::ZeroVector).Set_Reach(200.0f)};
+    auto Outputs = TArray<ck::FProceduralGaitLegOutput>{};
+    Outputs.SetNum(1);
+    auto SawLift = false;
+    auto SawPullback = false;
+    auto TookOff = false;
+    auto Landed = false;
+    auto LastCommitted = FVector::ZeroVector;
+    auto LargestLiftPlanarDifference = 0.0;
+    for (auto Frame = 0; Frame < 120 && NOT Landed; ++Frame)
+    {
+        Solver.Step(FrameDt, Velocity.Size2D(), Velocity, Inputs, Outputs);
+        const auto& Swing = Solver.GetLegState(0).Get_Swing();
+        if (Outputs[0].Get_Planted())
+        {
+            if (TookOff)
+            {
+                Landed = true;
+                TestTrue(TEXT("The completed pullback lands at the validated XY and the accepted lifted height"),
+                    Outputs[0].Get_Position().Equals(FVector{Target.X, Target.Y, -20.0}, 0.01));
+            }
+            continue;
+        }
+        TookOff = true;
+        LastCommitted = Swing.Get_CommittedLandingPoint();
+        SawLift |= Swing.Get_LandingLiftStartAlpha() >= 0.0f;
+        SawPullback |= Swing.Get_PullBackStartAlpha() >= 0.0f;
+        TestTrue(TEXT("Committed landing retains the current landing XY throughout lift and pullback"),
+            FVector2D{LastCommitted}.Equals(FVector2D{Swing.Get_LandingPoint()}, 0.01));
+        if (Swing.Get_LandingLiftStartAlpha() >= 0.0f)
+        {
+            TestEqual(TEXT("A committed lifted landing uses only the accepted lift height"), LastCommitted.Z,
+                FMath::Max(Swing.Get_LandingPoint().Z, Swing.Get_LiftedLandingPoint().Z), 0.01);
+            LargestLiftPlanarDifference = FMath::Max(LargestLiftPlanarDifference,
+                FVector::Dist2D(Swing.Get_LandingPoint(), Swing.Get_LiftedLandingPoint()));
+        }
+        Inputs[0].Set_LandingGround(Swing.Get_TargetFrozen()
+            ? ck::EProceduralGaitLandingGround::None : ck::EProceduralGaitLandingGround::Found)
+            .Set_LandingGroundZ(-20.0f);
+    }
+    TestTrue(TEXT("The real swing lifted, froze, pulled back and landed"), SawLift && SawPullback && Landed);
+    TestTrue(TEXT("The lifted swing changed XY away from the retained lift point, exercising the old reservation discrepancy"),
+        LargestLiftPlanarDifference > 1.0);
     return true;
 }
 

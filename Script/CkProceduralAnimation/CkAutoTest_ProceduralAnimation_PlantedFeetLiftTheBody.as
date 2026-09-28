@@ -50,6 +50,88 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
     private float _RaysPerSolveMargin = 10.0;
     private float _FeetRaysSum = 0.0;
     private float _RaysRaysSum = 0.0;
+    private TArray<FString> _SupportHistory;
+    private bool _ReportedSupportLoss = false;
+    private float _PreviousSupportFrameTime = -1.0;
+    private bool _WasInwardUnreachable = false;
+    private int32 _CandidateEvents = 0;
+
+    void Record_SupportFrame(FCkProceduralAnimationGym_CrawlerHandles InHandles, FVector InBodyLocal)
+    {
+        auto Elapsed = float(System::GetGameTimeInSeconds()) - _StartTime;
+        auto Delta = _PreviousSupportFrameTime >= 0.0 ? Elapsed - _PreviousSupportFrameTime : 0.0;
+        _PreviousSupportFrameTime = Elapsed;
+        if ((_SampledFrames % 2 != 0) || (InBodyLocal.X < _FirstLandingMinX) ||
+            (InBodyLocal.X > Get_LastColumnFarX() + _SecondLandingLength))
+        {
+            return;
+        }
+
+        auto Body = utils_transform::Get_EntityCurrentTransform(InHandles.Root);
+        auto Plane = utils_procedural_gait::Get_FeetPlane(InHandles.Gait);
+        auto Normal = utils_surface_motion::Get_SupportNormal(InHandles.Motion);
+        auto Point = Plane.Get_Point() - _FeetOrigin;
+        auto PlaneNormal = Plane.Get_Normal();
+        FString Legs = "";
+        for (auto Leg : InHandles.Legs)
+        {
+            auto Foot = utils_procedural_leg::Get_Foot(Leg);
+            auto Placement = utils_procedural_leg::Get_Placement(Leg);
+            auto Hip = Body.TransformPosition(Placement.Get_HipLocal()) - _FeetOrigin;
+            auto Position = Foot.Get_Position() - _FeetOrigin;
+            auto Planted = Foot.Get_Phase() == ECk_ProceduralLeg_FootPhase::Planted ? 1 : 0;
+            auto Trusted = Foot.Get_Contact() == ECk_ProceduralLeg_FootContact::Trusted ? 1 : 0;
+            auto Source = int32(Foot.Get_Foothold());
+            auto Verdict = int32(utils_procedural_leg::Get_IdealVerdict(Leg));
+            auto FootNormal = Foot.Get_Normal();
+            Legs = f"{Legs} {utils_procedural_leg::Get_Id(Leg)}:{Planted}/{Trusted}/{Source}/{Verdict} h({Hip.X :.0},{Hip.Y :.0},{Hip.Z :.0}) f({Position.X :.0},{Position.Y :.0},{Position.Z :.0}) n({FootNormal.X :.1},{FootNormal.Y :.1},{FootNormal.Z :.1})";
+        }
+
+        auto PlaneState = int32(Plane.Get_State());
+        auto ContactSource = int32(utils_surface_motion::Get_ContactSource(InHandles.Motion));
+        _SupportHistory.Add(f"[SUPPORT-DIAG] t {Elapsed :.3} dt {Delta :.3} body ({InBodyLocal.X :.1},{InBodyLocal.Y :.1},{InBodyLocal.Z :.1}) plane {PlaneState} point ({Point.X :.1},{Point.Y :.1},{Point.Z :.1}) normal ({PlaneNormal.X :.2},{PlaneNormal.Y :.2},{PlaneNormal.Z :.2}) source {ContactSource} up ({Normal.X :.2},{Normal.Y :.2},{Normal.Z :.2}) legs {Legs}");
+        if (_SupportHistory.Num() > 90)
+        {
+            _SupportHistory.RemoveAt(0);
+        }
+    }
+
+    void Record_InwardUnreachable(FCkProceduralAnimationGym_CrawlerHandles InHandles, FVector InBodyLocal)
+    {
+        auto Leg = InHandles.Legs[0];
+        auto Foot = utils_procedural_leg::Get_Foot(Leg);
+        auto InwardUnreachable = Foot.Get_Foothold() == ECk_ProceduralLeg_Foothold::Inward &&
+            utils_procedural_leg::Get_IdealVerdict(Leg) == ECk_ProceduralLeg_FootholdVerdict::Unreachable;
+        if (InwardUnreachable && !_WasInwardUnreachable && _CandidateEvents < 16)
+        {
+            _CandidateEvents++;
+            auto Elapsed = float(System::GetGameTimeInSeconds()) - _StartTime;
+            auto SnapshotLeg = UCk_Utils_AutoTest_UE::Get_ProceduralAnimationLegSnapshot(
+                InHandles.Root, utils_procedural_leg::Get_Id(Leg), _FeetOrigin);
+            ck::Trace(f"[PILLAR-CANDIDATES] event {_CandidateEvents} t {Elapsed :.3} body ({InBodyLocal.X :.3},{InBodyLocal.Y :.3},{InBodyLocal.Z :.3}) {SnapshotLeg}");
+        }
+        _WasInwardUnreachable = InwardUnreachable;
+    }
+
+    void Report_FirstSupportLoss(FVector InBodyLocal)
+    {
+        if (_ReportedSupportLoss || _SupportHistory.Num() == 0)
+        {
+            return;
+        }
+        auto Floor = _TopZ + _FeetFloorClearances * Get_Clearance();
+        if (InBodyLocal.Z >= Floor && _OffTopPlantFrames == 0)
+        {
+            return;
+        }
+
+        _ReportedSupportLoss = true;
+        ck::Trace(f"[SUPPORT-DIAG] first loss: body z {InBodyLocal.Z :.1}, floor {Floor :.1}, off-top leg-frames {_OffTopPlantFrames}");
+        for (auto Index = 0; Index < _SupportHistory.Num(); Index++)
+        {
+            ck::Trace(_SupportHistory[Index]);
+        }
+    }
 
     float Get_LastColumnFarX() const
     {
@@ -234,8 +316,11 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
         {
             _FeetSourceFrames++;
         }
+        Record_SupportFrame(Feet, FeetLocal);
+        Record_InwardUnreachable(Feet, FeetLocal);
         DoCheck_TrustedPlants(Feet.Legs, _FeetOrigin, "PlantedFeet");
         DoCheck_TrustedPlants(Rays.Legs, _RaysOrigin, "Rays");
+        Report_FirstSupportLoss(FeetLocal);
         _FeetRaysSum += utils_procedural_animation_debug::Get_RaysLastSolve(Feet.Gait);
         _RaysRaysSum += utils_procedural_animation_debug::Get_RaysLastSolve(Rays.Gait);
 
@@ -251,7 +336,7 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
         auto FeetX = (utils_transform::Get_EntityCurrentLocation(_Feet.Crawlers[0].Handles.Root) - _FeetOrigin).X;
         auto FeetFloor = _TopZ + _FeetFloorClearances * Clearance;
         auto RaysDip = _TopZ + _RaysDipClearances * Clearance;
-        ck::Trace(f"[PLANTED-FEET] PlantedFeet walker: lowest body z {_FeetMinZ :.1} ({_FeetMinAt}), floor {FeetFloor :.1}, final x {FeetX :.0}, feet contact on {_FeetSourceFrames} of {_SampledFrames} frames; Rays walker: lowest body z {_RaysMinZ :.1}, dip below {RaysDip :.1}");
+        ck::Trace(f"[PLANTED-FEET] PlantedFeet walker: lowest body z {_FeetMinZ :.1} ({_FeetMinAt}), floor {FeetFloor :.1}, final x {FeetX :.0}, feet contact on {_FeetSourceFrames} of {_SampledFrames} frames, inward-unreachable events {_CandidateEvents}; Rays walker: lowest body z {_RaysMinZ :.1}, dip below {RaysDip :.1}");
         Assert_True(_SampledFrames > 0, "Precondition: the crossing was sampled");
         Assert_True(FeetX > Get_LastColumnFarX(), f"The PlantedFeet walker passed the last pillar (x {FeetX :.0}, last pillar ends at {Get_LastColumnFarX() :.0})");
         Assert_True(_FeetMinZ >= FeetFloor,

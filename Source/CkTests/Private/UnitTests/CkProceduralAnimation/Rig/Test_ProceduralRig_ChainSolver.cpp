@@ -155,6 +155,7 @@ auto
     using namespace ck_test_procedural_rig_chain_solver;
 
     const auto State = MakeShared<FState>();
+    AddExpectedError(TEXT("Procedural animation Add_Walker rejected body"), EAutomationExpectedErrorFlags::Contains, 0);
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(1, TEXT("/Engine/Maps/Entry")));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(1, 30.0f));
@@ -177,7 +178,37 @@ auto
             {
                 auto Rig = FCk_ProceduralRig_Spec{Case.Segments};
                 Rig.Set_Solver(Case.Solver);
+                if (Case.LegId == AutoLegId)
+                { Rig.Set_SegmentClearanceRadii(TArray<float>{0.0f, 0.0f, 0.0f}); }
+                else if (Case.LegId == FabrikLegId)
+                { Rig.Set_SegmentClearanceRadii(TArray<float>{5.0f, 5.0f, 5.0f}); }
                 Chains.Emplace(Case.LegId, Rig);
+            }
+
+            const auto InvalidRadii = TArray<TArray<float>>{
+                TArray<float>{1.0f},
+                TArray<float>{1.0f, -1.0f, 1.0f},
+                TArray<float>{1.0f, NAN, 1.0f},
+                TArray<float>{1.0f, INFINITY, 1.0f}};
+            for (const auto& Radii : InvalidRadii)
+            {
+                auto InvalidChains = Chains;
+                auto InvalidRig = InvalidChains[0].Get_Rig();
+                InvalidRig.Set_SegmentClearanceRadii(Radii);
+                InvalidChains[0] = FCk_ProceduralWalker_LegChain{State->Cases[0].LegId, InvalidRig};
+                const auto Rejected = UCk_Utils_ProceduralAnimation_UE::Add_Walker(Body, MakeRig(),
+                    NewObject<UCk_ProceduralGait_Data>(), InvalidChains);
+                TestFalse(TEXT("Malformed, negative or nonfinite radii reject walker admission"), ck::IsValid(Rejected.Get_Gait()));
+                TestFalse(TEXT("Rejected radii add no gait fragment"), UCk_Utils_ProceduralGait_UE::Has(Body));
+                TestEqual(TEXT("Rejected radii create no legs"), UCk_Utils_ProceduralLeg_UE::Get_Legs(Body).Num(), 0);
+                for (const auto& Case : State->Cases)
+                {
+                    for (const auto& Part : Case.Segments)
+                    {
+                        TestTrue(TEXT("Rejected radii preserve every existing part transform"),
+                            UCk_Utils_Transform_UE::Get_EntityCurrentTransform(Part).Equals(FTransform{BodyLocation}));
+                    }
+                }
             }
 
             const auto Walker = UCk_Utils_ProceduralAnimation_UE::Add_Walker(Body, MakeRig(), NewObject<UCk_ProceduralGait_Data>(), Chains);
@@ -192,6 +223,9 @@ auto
         [this, State](UWorld*)
         {
             const auto Body = UCk_Utils_Transform_UE::Get_EntityCurrentTransform(State->Body);
+            const auto Snapshot = UCk_Utils_ProceduralAnimation_Debug_UE::Get_Snapshot(State->Root);
+            TestTrue(TEXT("Sibling diagnostics belong to the current posed solve"), Snapshot.Get_Freshness().Get_RigMatchesGaitSequence());
+            TestFalse(TEXT("Sibling diagnostics have no pending part transforms"), Snapshot.Get_Freshness().Get_RigPosePending());
             for (const auto& Case : State->Cases)
             {
                 const auto Leg = UCk_Utils_ProceduralLeg_UE::TryGet_Leg(State->Root, Case.LegId);
@@ -233,6 +267,22 @@ auto
                     const auto* SolverName = Case.Solver == ECk_ProceduralRig_ChainSolver::Auto ? TEXT("Auto") : TEXT("explicit Curve");
                     TestTrue(FString::Printf(TEXT("Leg %s: the %s chain is posed by the curve (max joint gap %.4f cm)"),
                         *Case.LegId.ToString(), SolverName, GapToCurve), GapToCurve < MatchTolerance);
+                }
+
+                const auto* DebugLeg = Snapshot.Get_Legs().FindByPredicate([&](const FCk_ProceduralAnimation_DebugLeg& InLeg)
+                { return InLeg.Get_Id() == Case.LegId; });
+                if (TestNotNull(TEXT("The actual rig has a captured debug row"), DebugLeg))
+                {
+                    const auto& DebugRig = DebugLeg->Get_Rig();
+                    const auto ExpectedRadius = Case.LegId == FabrikLegId ? 5.0f : 0.0f;
+                    const auto ExpectedCount = Case.LegId == CurveLegId ? 0 : Case.Segments.Num();
+                    TestEqual(TEXT("Empty, zero and fixed-chain radii retain their authored snapshot shape"),
+                        DebugRig.Get_SegmentClearanceRadii().Num(), ExpectedCount);
+                    for (const auto Radius : DebugRig.Get_SegmentClearanceRadii())
+                    { TestEqual(TEXT("The captured radius is the admitted authored value"), Radius, ExpectedRadius); }
+                    TestEqual(TEXT("Separated fixed chains publish zero sibling crossings"), DebugRig.Get_SiblingCrossingLinks(), 0);
+                    TestEqual(TEXT("No-clearance chains preserve their legacy solid/body counter"), DebugRig.Get_CrossingLinks(), 0);
+                    TestEqual(TEXT("Separated fixed chains remain Clear"), DebugRig.Get_ChainState(), ECk_ProceduralRig_ChainState::Clear);
                 }
 
                 const auto Rig = UCk_Utils_ProceduralRig_UE::Cast(Leg);

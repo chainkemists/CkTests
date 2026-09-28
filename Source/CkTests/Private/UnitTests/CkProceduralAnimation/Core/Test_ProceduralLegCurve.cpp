@@ -97,6 +97,46 @@ namespace ck_test_procedural_leg_curve
     }
 
     auto
+        Get_MaxLinkError(
+            TArrayView<const FVector> InJoints,
+            TArrayView<const float> InLengths)
+        -> double
+    {
+        auto Error = 0.0;
+        for (auto Index = 0; Index < InLengths.Num(); ++Index)
+        { Error = FMath::Max(Error, FMath::Abs(FVector::Dist(InJoints[Index], InJoints[Index + 1]) - InLengths[Index])); }
+        return Error;
+    }
+
+    auto
+        Get_AreJointsFinite(
+            TArrayView<const FVector> InJoints)
+        -> bool
+    {
+        for (const auto& Joint : InJoints)
+        {
+            if (Joint.ContainsNaN())
+            { return false; }
+        }
+        return true;
+    }
+
+    auto
+        Get_MaxPlaneError(
+            TArrayView<const FVector> InJoints,
+            const FVector& InHip,
+            const FVector& InFoot,
+            const FVector& InBend)
+        -> double
+    {
+        const auto Normal = FVector::CrossProduct(InFoot - InHip, InBend).GetSafeNormal();
+        auto Error = 0.0;
+        for (const auto& Joint : InJoints)
+        { Error = FMath::Max(Error, FMath::Abs(FVector::DotProduct(Joint - InHip, Normal))); }
+        return Error;
+    }
+
+    auto
         Get_IsUntouched(
             const TArray<FVector>& InJoints)
         -> bool
@@ -304,6 +344,206 @@ auto
             Chain.Name, FoldedMaxJointMovePerStep, Worst, *WorstAt), Worst <= FoldedMaxJointMovePerStep);
     }
 
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralLegCurvePreservesRecordedBeastProximalLinkTest,
+    "Ck.ProceduralAnimation.LegCurve.PreservesRecordedBeastProximalLink",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralLegCurvePreservesRecordedBeastProximalLinkTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_leg_curve;
+
+    // Flat/Beast RL frame 802: full-chain closure pulled the first link through the body's visual box.
+    // The recorded pre-closure curve's first joint is the shape-preserving anchor for suffix closure.
+    const auto RecordedHip = FVector{1110.7383126269115, -48.22601038492473, 27.8628513};
+    const auto RecordedFoot = FVector{1133.7, -66.0, 25.3};
+    const auto RecordedPole = FVector{1155.0850294649085, -85.32223317308407, 40.5671617};
+    const auto RecordedFirstJoint = FVector{1111.3102690143294, -53.3146252248031, 57.422602058459745};
+    const auto Lengths = TArray<float>{30.0f, 35.0f, 30.0f, 25.0f};
+    auto Joints = TArray<FVector>{};
+    if (NOT TestTrue(TEXT("The recorded Flat Beast rear chain solves"),
+        Solve(RecordedHip, RecordedFoot, RecordedPole - RecordedHip, Lengths, Joints)))
+    { return false; }
+
+    TestTrue(TEXT("The recorded foot closes while the first joint remains on the original curve"),
+        FVector::Dist(Joints.Last(), RecordedFoot) < 0.1 && FVector::Dist(Joints[1], RecordedFirstJoint) < 0.2);
+    TestTrue(TEXT("The recorded first link retains its exact length"),
+        FMath::Abs(FVector::Dist(Joints[0], Joints[1]) - Lengths[0]) < LinkTolerance);
+    TestTrue(TEXT("Every recorded joint remains finite and rigid"),
+        Get_AreJointsFinite(Joints) && Get_MaxLinkError(Joints, Lengths) < LinkTolerance);
+    TestTrue(TEXT("The suffix correction stays in the authored bend plane"),
+        Get_MaxPlaneError(Joints, RecordedHip, RecordedFoot, RecordedPole - RecordedHip) < PlaneTolerance);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralLegCurveClosesRecordedBeastTouchdownTest,
+    "Ck.ProceduralAnimation.LegCurve.ClosesRecordedBeastTouchdown",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralLegCurveClosesRecordedBeastTouchdownTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_leg_curve;
+
+    // Flat/Beast RL touchdown from the real-Jolt telemetry frame 805: the former curve ended 9 cm off the foot.
+    const auto RecordedHip = FVector{1111.3847134806206, -44.02420429030417, 30.7841064};
+    const auto RecordedFoot = FVector{1135.0, -30.5, 0.0};
+    const auto RecordedPole = FVector{1162.48611941862, -70.74775483312705, 44.1442872};
+    const auto Lengths = TArray<float>{30.0f, 35.0f, 30.0f, 25.0f};
+    auto Joints = TArray<FVector>{};
+    if (NOT TestTrue(TEXT("The recorded Beast rear chain solves"),
+        Solve(RecordedHip, RecordedFoot, RecordedPole - RecordedHip, Lengths, Joints)))
+    { return false; }
+
+    TestTrue(TEXT("The recorded Beast endpoint closes to within 0.1 cm"), FVector::Dist(Joints.Last(), RecordedFoot) < 0.1);
+    TestTrue(TEXT("The recorded Beast first joint stays on the original curve"),
+        FVector::Dist(Joints[1], FVector{1135.3985831431503, -59.07507010118864, 40.623085115994314}) < 0.2);
+    TestTrue(TEXT("The recorded Beast joints stay finite"), Get_AreJointsFinite(Joints));
+    TestTrue(TEXT("The corrected Beast keeps every rigid link"), Get_MaxLinkError(Joints, Lengths) < LinkTolerance);
+    TestTrue(TEXT("The corrected Beast stays in its authored bend plane"),
+        Get_MaxPlaneError(Joints, RecordedHip, RecordedFoot, RecordedPole - RecordedHip) < PlaneTolerance);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralLegCurveClosesFoldedReachableTargetsTest,
+    "Ck.ProceduralAnimation.LegCurve.ClosesFoldedReachableTargets",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralLegCurveClosesFoldedReachableTargetsTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_leg_curve;
+
+    for (const auto& Chain : Get_Chains())
+    {
+        const auto Length = Get_Length(Chain.Lengths);
+        auto WorstEnd = 0.0;
+        auto WorstLink = 0.0;
+        auto WorstPlane = 0.0;
+        auto AllFinite = true;
+        auto WorstWhere = FString{};
+        for (const auto& Direction : Get_FootDirections())
+        {
+            for (auto Distance = 0.05 * Length; Distance <= 0.95 * Length; Distance += 1.0)
+            {
+                const auto Foot = Hip + Direction * Distance;
+                auto Joints = TArray<FVector>{};
+                if (NOT TestTrue(FString::Printf(TEXT("%s at %.1f cm solves"), Chain.Name, Distance),
+                    Solve(Hip, Foot, Bend, Chain.Lengths, Joints)))
+                { continue; }
+
+                const auto End = FVector::Dist(Joints.Last(), Foot);
+                if (End > WorstEnd)
+                {
+                    WorstEnd = End;
+                    WorstWhere = FString::Printf(TEXT("D/L %.3f direction %s"), Distance / Length, *Direction.ToString());
+                }
+                WorstLink = FMath::Max(WorstLink, Get_MaxLinkError(Joints, Chain.Lengths));
+                WorstPlane = FMath::Max(WorstPlane, Get_MaxPlaneError(Joints, Hip, Foot, Bend));
+                AllFinite &= Get_AreJointsFinite(Joints);
+            }
+        }
+        TestTrue(FString::Printf(TEXT("%s closes across its reachable 5-95%% radial sweep (worst %.4f cm at %s)"),
+            Chain.Name, WorstEnd, *WorstWhere), WorstEnd < 0.1);
+        TestTrue(FString::Printf(TEXT("%s preserves rigid links across the sweep (worst %.6f cm)"),
+            Chain.Name, WorstLink), WorstLink < LinkTolerance);
+        TestTrue(FString::Printf(TEXT("%s stays planar across the sweep (worst %.6f cm)"),
+            Chain.Name, WorstPlane), WorstPlane < PlaneTolerance);
+        TestTrue(FString::Printf(TEXT("%s stays finite across the sweep"), Chain.Name), AllFinite);
+    }
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralLegCurveFoldedBranchRemainsBoundedTest,
+    "Ck.ProceduralAnimation.LegCurve.FoldedBranchRemainsBounded",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralLegCurveFoldedBranchRemainsBoundedTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_leg_curve;
+
+    const auto Lengths = TArray<float>{40.0f, 40.0f, 60.0f};
+    const auto Direction = Get_FootDirections()[0];
+    auto Before = TArray<FVector>{};
+    auto After = TArray<FVector>{};
+    TestTrue(TEXT("The Crawler curve solves before its folded branch switch"),
+        Solve(Hip, Hip + Direction * 52.30, Bend, Lengths, Before));
+    TestTrue(TEXT("The Crawler curve solves after its folded branch switch"),
+        Solve(Hip, Hip + Direction * 52.35, Bend, Lengths, After));
+    if (Before.Num() == 0 || After.Num() == 0)
+    { return false; }
+    TestTrue(TEXT("The 0.05 cm target change keeps the branch joint jump below 0.5 cm"),
+        Get_MaxJointMove(Before, After) < 0.5);
+    TestTrue(TEXT("The original proximal link varies continuously through the branch"),
+        FVector::Dist(Before[1], After[1]) < 0.1);
+    TestTrue(TEXT("Both sides of the folded branch still close"),
+        FVector::Dist(Before.Last(), Hip + Direction * 52.30) < 0.1 &&
+        FVector::Dist(After.Last(), Hip + Direction * 52.35) < 0.1);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralLegCurvePreservesUnreachableAndCoincidentTest,
+    "Ck.ProceduralAnimation.LegCurve.PreservesUnreachableAndCoincident",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralLegCurvePreservesUnreachableAndCoincidentTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_leg_curve;
+
+    const auto Uneven = TArray<float>{10.0f, 1.0f};
+    const auto Inside = Hip + Get_FootDirections()[0] * 1.1;
+    auto Unreachable = TArray<FVector>{};
+    if (TestTrue(TEXT("A target inside the 9 cm inner reach keeps a finite pose"),
+        Solve(Hip, Inside, Bend, Uneven, Unreachable)))
+    {
+        TestTrue(TEXT("Every inner-unreachable joint is finite"), Get_AreJointsFinite(Unreachable));
+        TestTrue(TEXT("The unreachable pose preserves both rigid links"),
+            Get_MaxLinkError(Unreachable, Uneven) < LinkTolerance);
+        TestTrue(TEXT("The unreachable foot is not falsely reported as closed"),
+            FVector::Dist(Unreachable.Last(), Inside) >= 9.0 - 1.1 - 0.01);
+    }
+
+    const auto Folded = TArray<float>{30.0f, 35.0f, 30.0f, 25.0f};
+    auto Coincident = TArray<FVector>{};
+    if (TestTrue(TEXT("A coincident hip and foot keeps its finite curve pose"),
+        Solve(Hip, Hip, Bend, Folded, Coincident)))
+    {
+        TestTrue(TEXT("Every coincident joint is finite"), Get_AreJointsFinite(Coincident));
+        TestTrue(TEXT("The coincident pose retains rigid links without inventing a bend axis"),
+            Get_MaxLinkError(Coincident, Folded) < LinkTolerance);
+        TestTrue(TEXT("The coincident pose keeps its hip fixed"),
+            FVector::Dist(Coincident[0], Hip) < LinkTolerance);
+    }
     return true;
 }
 

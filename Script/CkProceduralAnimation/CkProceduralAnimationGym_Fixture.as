@@ -9,7 +9,8 @@ enum ECkProceduralAnimationGym_Species
     Centipede,
     Tentacled,
     Beast,
-    Biped
+    Biped,
+    SmallCrawler4
 }
 
 enum ECkProceduralAnimationGym_Course
@@ -42,7 +43,6 @@ enum ECkProceduralAnimationGym_Patrol
     Helix
 }
 
-// Which surface-motion height source a fixture composes its walkers with: each species' own, or one for every walker.
 enum ECkProceduralAnimationGym_HeightSource
 {
     Species,
@@ -90,6 +90,8 @@ struct FCkProceduralAnimationGym_SpeciesProfile
     ECk_SurfaceMotion_WallPolicy WallPolicy = ECk_SurfaceMotion_WallPolicy::Climb;
     UPROPERTY()
     float MaxStepHeight = 0.0;
+    UPROPERTY()
+    float VisualScale = 1.0;
 }
 
 namespace ck_procedural_gym
@@ -99,6 +101,8 @@ namespace ck_procedural_gym
     const float SlabHalfThickness = 14.0;
     const float NarrowLaneSpacing = 280.0;
     const float WideLaneSpacing = 380.0;
+    const float CylinderLaneSpacing = 800.0;
+    const float CylinderCourseHalfWidth = 1250.0;
     const float BodyClearance = 65.0;
     const float StartX = -1200.0;
     const float TurnaroundX = 1150.0;
@@ -150,11 +154,13 @@ namespace ck_procedural_gym
     const float BeamHalfLength = 1000.0;
     const float BeamHalfWidth = 15.0;
     const float BeamHeight = 60.0;
-    const float PillarHalfSize = 20.0;
+    const float PillarHalfSize = 60.0;
     const float PillarHeight = 200.0;
-    const float PillarSpacing = 150.0;
-    const float PillarHalfSpanX = 900.0;
-    // Three spacings, so with the rows half a spacing off the centre line every lane threads a corridor between two rows.
+    const float PillarSpacing = 160.0;
+    const float PillarHalfSpanX = 800.0;
+    const float PillarLaneStagger = 20.0;
+    const int32 PillarColumnCount = 11;
+    // Each lane crosses its own staggered stepping tops; the route centreline intersects every block.
     const float PillarsLaneSpacing = 450.0;
     const float CrossingRampRun = 300.0;
     const float CrossingHeight = 150.0;
@@ -180,21 +186,16 @@ namespace ck_procedural_gym
     const float PostPitch = 2.0 * PostLowHalfSize + PostStepApproachLength;
     const float PostFlankOffset = 100.0;
     const float CylinderRadiusWide = 90.0;
-    const float CylinderRadiusNarrow = 45.0;
     const float CylinderHeight = 500.0;
-    const int32 CylinderFacets = 24;
-    const float CylinderFacetHalfThickness = 40.0;
-    const float CylinderFacetSeamOverlap = 1.0;
-    const float HelixPitchDegrees = 30.0;
     const float HelixTopZ = 400.0;
-    const float HelixBottomZ = 120.0;
-    // Above every species' clearance, so one frame of wall support at floor height does not start the climb.
-    const float HelixClimbStartAboveClearance = 30.0;
+    // Above the 90 cm floor clearance of the spider and biped, so the return does not adopt the floor.
+    const float HelixBottomZ = 160.0;
+    const float HelixTurnToleranceZ = 10.0;
+    const float HelixHeightCorrectionDistance = 100.0;
+    const float HelixMaxHeightCorrection = 0.35;
+    const float HelixMinWallCoverage = 0.8;
     // A climbing or circling walker that has had no wall support for this long fell off and approaches again.
     const float HelixLostWallSeconds = 1.0;
-    const float HelixLandedZ = 100.0;
-    // The outer lanes keep 280 cm between the cylinder's axis and the course edge.
-    const float CylinderLeaveMargin = 120.0;
     const float SpinSeconds = 6.0;
     const float SpinDegreesPerSecond = 120.0;
     // The traversal tests' support evidence: a turn of the accepted support normal counts as a flip above this angle, and
@@ -218,6 +219,11 @@ namespace ck_procedural_gym
     const float ProbeReachBeyondClearance = 115.0;
     const float MaxStepHeightPerClearance = 1.3;
     const FVector FootHalfExtents = FVector(10.0, 9.0, 5.0);
+
+    FVector Get_FootHalfExtents(float InVisualScale)
+    {
+        return FootHalfExtents * InVisualScale;
+    }
     const float SegmentRootThickness = 8.0;
     const float SegmentTipThickness = 5.5;
 
@@ -259,7 +265,15 @@ namespace ck_procedural_gym
     FCkProceduralAnimationGym_SpeciesProfile Get_SpeciesProfile(ECkProceduralAnimationGym_Species InSpecies)
     {
         auto Profile = FCkProceduralAnimationGym_SpeciesProfile();
-        if (InSpecies == ECkProceduralAnimationGym_Species::Spider)
+        if (InSpecies == ECkProceduralAnimationGym_Species::SmallCrawler4)
+        {
+            Profile.Rig = ck::ProceduralGym_RigSmallCrawler4;
+            Profile.Gait = ck::ProceduralGym_GaitSmallCrawler;
+            Profile.Clearance = 39.0;
+            Profile.BodyHalfExtents = Crawler4BodyHalfExtents * 0.6;
+            Profile.VisualScale = 0.6;
+        }
+        else if (InSpecies == ECkProceduralAnimationGym_Species::Spider)
         {
             Profile.Rig = ck::ProceduralGym_RigSpider;
             Profile.Gait = ck::ProceduralGym_GaitSpider;
@@ -316,6 +330,10 @@ namespace ck_procedural_gym
 
     FString Get_SpeciesName(ECkProceduralAnimationGym_Species InSpecies)
     {
+        if (InSpecies == ECkProceduralAnimationGym_Species::SmallCrawler4)
+        {
+            return "SmallCrawler";
+        }
         if (InSpecies == ECkProceduralAnimationGym_Species::Spider)
         {
             return "Spider";
@@ -494,8 +512,8 @@ namespace ck_procedural_gym
             InCourse == ECkProceduralAnimationGym_Course::Hump || Get_IsStressCourse(InCourse);
     }
 
-    // Three walkers per stress course; every species but the biped, which only climbs the cylinder, crosses at least two of
-    // them. The gym and the PaViz harness share it. The beast, which slides along the faces it cannot step onto, stays off
+    // Three walkers per stress course. The gym and the PaViz harness share these authored rosters. The beast, which slides
+    // along the faces it cannot step onto, stays off
     // the courses whose only way on is a climb: the ledge and the log.
     TArray<ECkProceduralAnimationGym_Species> Get_StressRoster(ECkProceduralAnimationGym_Course InCourse)
     {
@@ -515,7 +533,7 @@ namespace ck_procedural_gym
         else if (InCourse == ECkProceduralAnimationGym_Course::Ridge)
         {
             Roster.Add(ECkProceduralAnimationGym_Species::Spider);
-            Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler6);
             Roster.Add(ECkProceduralAnimationGym_Species::Crawler8);
         }
         else if (InCourse == ECkProceduralAnimationGym_Course::Log)
@@ -526,7 +544,7 @@ namespace ck_procedural_gym
         }
         else if (InCourse == ECkProceduralAnimationGym_Course::Beam)
         {
-            Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler4);
             Roster.Add(ECkProceduralAnimationGym_Species::Spider);
             Roster.Add(ECkProceduralAnimationGym_Species::Beast);
         }
@@ -539,7 +557,7 @@ namespace ck_procedural_gym
         else if (InCourse == ECkProceduralAnimationGym_Course::Spin)
         {
             Roster.Add(ECkProceduralAnimationGym_Species::Beast);
-            Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
+            Roster.Add(ECkProceduralAnimationGym_Species::Spider);
             Roster.Add(ECkProceduralAnimationGym_Species::Tentacled);
         }
         else if (InCourse == ECkProceduralAnimationGym_Course::PillarCrossing)
@@ -552,13 +570,13 @@ namespace ck_procedural_gym
         {
             Roster.Add(ECkProceduralAnimationGym_Species::Crawler4);
             Roster.Add(ECkProceduralAnimationGym_Species::Beast);
-            Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
+            Roster.Add(ECkProceduralAnimationGym_Species::Crawler6);
         }
         else if (InCourse == ECkProceduralAnimationGym_Course::Cylinder)
         {
             Roster.Add(ECkProceduralAnimationGym_Species::Spider);
-            Roster.Add(ECkProceduralAnimationGym_Species::Centipede);
             Roster.Add(ECkProceduralAnimationGym_Species::Biped);
+            Roster.Add(ECkProceduralAnimationGym_Species::SmallCrawler4);
         }
         return Roster;
     }
@@ -570,6 +588,10 @@ namespace ck_procedural_gym
 
     float Get_LaneSpacing(ECkProceduralAnimationGym_Course InCourse)
     {
+        if (InCourse == ECkProceduralAnimationGym_Course::Cylinder)
+        {
+            return CylinderLaneSpacing;
+        }
         if (InCourse == ECkProceduralAnimationGym_Course::Pillars)
         {
             return PillarsLaneSpacing;
@@ -577,14 +599,44 @@ namespace ck_procedural_gym
         return Get_IsWideCourse(InCourse) ? WideLaneSpacing : NarrowLaneSpacing;
     }
 
-    float Get_CylinderRadius(int32 InLaneIndex)
+    float Get_CylinderRadius()
     {
-        return InLaneIndex == 1 ? CylinderRadiusNarrow : CylinderRadiusWide;
+        return CylinderRadiusWide;
     }
 
     float Get_CourseHalfWidth(ECkProceduralAnimationGym_Course InCourse)
     {
+        if (InCourse == ECkProceduralAnimationGym_Course::Cylinder)
+        {
+            return CylinderCourseHalfWidth;
+        }
         return Get_IsWideCourse(InCourse) ? WideCourseHalfWidth : NarrowCourseHalfWidth;
+    }
+
+    float Get_PillarHeight(int32 InColumn)
+    {
+        return Math::Min(PillarHeight, 60.0 + 40.0 * Math::Min(InColumn, PillarColumnCount - 1 - InColumn));
+    }
+
+    FVector Get_PillarCenter(int32 InColumn, float InLaneY)
+    {
+        auto Stagger = InColumn % 2 == 0 ? -PillarLaneStagger : PillarLaneStagger;
+        return FVector(-PillarHalfSpanX + PillarSpacing * InColumn, InLaneY + Stagger, Get_PillarHeight(InColumn) * 0.5);
+    }
+
+    int32 Get_PillarTopIndex(FVector InLocalFoot, float InLaneY)
+    {
+        for (auto Column = 0; Column < PillarColumnCount; Column++)
+        {
+            auto Center = Get_PillarCenter(Column, InLaneY);
+            if (Math::Abs(InLocalFoot.X - Center.X) <= PillarHalfSize + 1.0 &&
+                Math::Abs(InLocalFoot.Y - Center.Y) <= PillarHalfSize + 1.0 &&
+                Math::Abs(InLocalFoot.Z - Get_PillarHeight(Column)) <= 1.0)
+            {
+                return Column;
+            }
+        }
+        return -1;
     }
 
     float Get_FrameTargetZ(ECkProceduralAnimationGym_Course InCourse)
@@ -650,10 +702,10 @@ namespace ck_procedural_gym
         return ECk_ProceduralRig_Clearance::Swivel;
     }
 
-    FVector Get_SegmentHalfExtents(TArray<float32> InLengths, int32 InSegmentIndex)
+    FVector Get_SegmentHalfExtents(TArray<float32> InLengths, int32 InSegmentIndex, float InVisualScale = 1.0)
     {
         auto Alpha = InLengths.Num() > 1 ? float(InSegmentIndex) / float(InLengths.Num() - 1) : 0.0;
-        auto Thickness = Math::Lerp(SegmentRootThickness, SegmentTipThickness, Alpha);
+        auto Thickness = Math::Lerp(SegmentRootThickness, SegmentTipThickness, Alpha) * InVisualScale;
         return FVector(InLengths[InSegmentIndex] * 0.5, Thickness, Thickness);
     }
 
@@ -749,13 +801,40 @@ struct FCkProceduralAnimationGym_CrawlerProgress
     UPROPERTY()
     float LastOnWallTime = -1.0;
     UPROPERTY()
+    FVector LastHelixRadial = FVector::ZeroVector;
+    UPROPERTY()
+    float HelixAngle = 0.0;
+    UPROPERTY()
+    int32 HelixCycleSamples = 0;
+    UPROPERTY()
+    int32 HelixCycleWallSamples = 0;
+    UPROPERTY()
+    bool HelixHadObservedSideLastUpdate = false;
+    UPROPERTY()
+    TArray<bool> HelixCycleWallPlants;
+    UPROPERTY()
     float FurthestDistance = 0.0;
     UPROPERTY()
     int32 PlantedCount = 0;
     UPROPERTY()
     int32 TrustedCount = 0;
     UPROPERTY()
+    int32 TrustedPlantedCount = 0;
+    UPROPERTY()
     bool WasReady = false;
+
+    // State-only observation. Grounded wall grace preserves the radial route; unsupported samples break continuity.
+    void Observe_HelixRadial(FVector InRadialDirection, bool InTrustedWall, bool InGroundedWallGrace)
+    {
+        auto ObservedSide = InTrustedWall || InGroundedWallGrace;
+        if (ObservedSide && HelixHadObservedSideLastUpdate && LastHelixRadial.IsNearlyZero() == false)
+        {
+            auto Cross = LastHelixRadial.CrossProduct(InRadialDirection);
+            HelixAngle += Math::Atan2(Cross.Z, LastHelixRadial.DotProduct(InRadialDirection));
+        }
+        LastHelixRadial = InRadialDirection;
+        HelixHadObservedSideLastUpdate = ObservedSide;
+    }
 }
 
 struct FCkProceduralAnimationGym_CrawlerEvidence
@@ -770,6 +849,14 @@ struct FCkProceduralAnimationGym_CrawlerEvidence
     bool WallSupportLost = false;
     UPROPERTY()
     bool InvalidOutput = false;
+    UPROPERTY()
+    float CylinderMinZ = 1000000.0;
+    UPROPERTY()
+    float CylinderMaxZ = -1000000.0;
+    UPROPERTY()
+    float CylinderMinCycleWallCoverage = 1.0;
+    UPROPERTY()
+    TArray<int32> CylinderWallPlantCycles;
     UPROPERTY()
     TArray<bool> SawSwing;
     UPROPERTY()
@@ -859,6 +946,37 @@ struct FCkProceduralAnimationGym_Crawler
         return Count;
     }
 
+    int32 Get_CylinderCycleWallPlantCount() const
+    {
+        auto Count = 0;
+        for (auto Planted : Progress.HelixCycleWallPlants)
+        {
+            if (Planted)
+            {
+                Count++;
+            }
+        }
+        return Count;
+    }
+
+    bool Get_IsPlantedCylinderWallFoot(FCk_ProceduralLeg_Foot InFoot) const
+    {
+        if (Layout.Course != ECkProceduralAnimationGym_Course::Cylinder ||
+            InFoot.Get_Phase() != ECk_ProceduralLeg_FootPhase::Planted ||
+            InFoot.Get_Contact() != ECk_ProceduralLeg_FootContact::Trusted)
+        {
+            return false;
+        }
+        auto Axis = Layout.Origin + FVector(0.0, Layout.LaneY, 0.0);
+        auto Radial = InFoot.Get_Position() - Axis;
+        auto Height = Radial.Z;
+        Radial.Z = 0.0;
+        auto Normal = InFoot.Get_Normal().GetSafeNormal();
+        return Height > 0.0 && Height < ck_procedural_gym::CylinderHeight &&
+            Radial.Size() >= Layout.CylinderRadius - 15.0 && Radial.Size() <= Layout.CylinderRadius + 25.0 &&
+            Math::Abs(Normal.Z) < 0.3 && Normal.DotProduct(Radial.GetSafeNormal()) > 0.7;
+    }
+
     // The spin starts on the first update after the walker is ready.
     bool DoUpdateSpin()
     {
@@ -890,7 +1008,20 @@ struct FCkProceduralAnimationGym_Crawler
         }
         if (Layout.Course == ECkProceduralAnimationGym_Course::Cylinder)
         {
-            return Evidence.SawWall;
+            if (Evidence.CylinderWallPlantCycles.Num() != Layout.LegCount)
+            {
+                return false;
+            }
+            for (auto WallPlantCycles : Evidence.CylinderWallPlantCycles)
+            {
+                if (WallPlantCycles == 0)
+                {
+                    return false;
+                }
+            }
+            return Evidence.SawWall && Evidence.CylinderMinZ <= ck_procedural_gym::HelixBottomZ + ck_procedural_gym::HelixTurnToleranceZ &&
+                Evidence.CylinderMaxZ >= ck_procedural_gym::HelixTopZ - ck_procedural_gym::HelixTurnToleranceZ &&
+                Evidence.CylinderMinCycleWallCoverage >= ck_procedural_gym::HelixMinWallCoverage;
         }
         return true;
     }
@@ -913,77 +1044,121 @@ struct FCkProceduralAnimationGym_Crawler
         Evidence.LastSupportNormal = SupportNormal.GetSafeNormal();
     }
 
-    // Advances the helix stage whose end condition holds, then steers for the current stage: approach the lane's cylinder,
-    // circle up it, circle down it, climb down to the floor, walk away from it, return to the start. A walker that loses
-    // the wall while on the cylinder steers back toward its axis, and approaches again after a second off it: the helix
-    // steer carried on along the floor would take it off the course.
+    FVector Get_HelixSteer(FVector InTangent, float InRadius, float InZ) const
+    {
+        auto Angle = Math::Max(Progress.HelixAngle, 0.0);
+        auto HeightSpan = ck_procedural_gym::HelixTopZ - ck_procedural_gym::HelixBottomZ;
+        auto TargetZ = ck_procedural_gym::HelixBottomZ + HeightSpan * (1.0 - Math::Cos(Angle * 0.5)) * 0.5;
+        auto HeightSlope = HeightSpan * Math::Sin(Angle * 0.5) / (4.0 * Math::Max(InRadius, 1.0));
+        auto HeightCorrection = Math::Clamp((TargetZ - InZ) / ck_procedural_gym::HelixHeightCorrectionDistance,
+            -ck_procedural_gym::HelixMaxHeightCorrection, ck_procedural_gym::HelixMaxHeightCorrection);
+        return InTangent + FVector::UpVector * (HeightSlope + HeightCorrection);
+    }
+
+    // The observed angle around the cylinder drives a continuous up-and-down height target. The walker approaches from
+    // the floor once, then circles on the wall; losing supported side contact breaks angular continuity and eventually
+    // restarts the approach.
     FVector DoUpdate_HelixRoute(FVector InPosition, FVector InLocal)
     {
         auto Axis = Layout.Origin + FVector(0.0, Layout.LaneY, 0.0);
         auto Radial = InPosition - Axis;
         Radial.Z = 0.0;
-        auto Tangent = FVector::UpVector.CrossProduct(Radial.GetSafeNormal());
-        auto Pitch = Math::DegreesToRadians(ck_procedural_gym::HelixPitchDegrees);
+        auto Radius = Radial.Size();
+        auto RadialDirection = Radial.GetSafeNormal();
+        auto Tangent = FVector::UpVector.CrossProduct(RadialDirection);
         auto SupportNormal = utils_surface_motion::Get_SupportNormal(Handles.Motion);
-        auto OnWall = Math::Abs(SupportNormal.Z) < 0.3;
+        auto Clearance = ck_procedural_gym::Get_SpeciesProfile(Layout.Species).Clearance;
+        auto ContactQuery = utils_surface_motion::Get_ContactQuery(Handles.Motion);
+        auto OnCylinderSide = Math::Abs(SupportNormal.Z) < 0.3 &&
+            SupportNormal.GetSafeNormal().DotProduct(RadialDirection) > 0.7 &&
+            Radius > Layout.CylinderRadius * 0.75 && Radius < Layout.CylinderRadius + Clearance * 2.0 + 20.0 &&
+            InLocal.Z > 0.0 && InLocal.Z < ck_procedural_gym::CylinderHeight;
+        auto OnWall = ContactQuery == ECk_SurfaceMotion_ContactQuery::Trusted && OnCylinderSide;
         auto Now = float(System::GetGameTimeInSeconds());
+        auto GraceSteer = ContactQuery == ECk_SurfaceMotion_ContactQuery::Missed && OnCylinderSide &&
+            utils_surface_motion::Get_Support(Handles.Motion) == ECk_SurfaceMotion_Support::Grounded;
         if (OnWall)
         {
             Progress.LastOnWallTime = Now;
         }
-        auto ClimbStartZ = ck_procedural_gym::Get_SpeciesProfile(Layout.Species).Clearance + ck_procedural_gym::HelixClimbStartAboveClearance;
-        auto OnCylinderRoute = Progress.RouteStage >= 1 && Progress.RouteStage <= 3;
-        if (Progress.RouteStage == 0 && OnWall && InLocal.Z > ClimbStartZ)
+        if (Progress.RouteStage == 0 && OnWall && InLocal.Z >= ck_procedural_gym::HelixBottomZ - ck_procedural_gym::HelixTurnToleranceZ)
         {
             Progress.RouteStage = 1;
+            Progress.HelixAngle = 0.0;
+            Progress.LastHelixRadial = RadialDirection;
+            Progress.HelixCycleSamples = 0;
+            Progress.HelixCycleWallSamples = 0;
+            Progress.HelixHadObservedSideLastUpdate = true;
         }
-        else if (Progress.RouteStage == 3 && SupportNormal.Z > 0.7 && InLocal.Z < ck_procedural_gym::HelixLandedZ)
-        {
-            Progress.RouteStage = 4;
-        }
-        else if (OnCylinderRoute && Now - Progress.LastOnWallTime > ck_procedural_gym::HelixLostWallSeconds)
-        {
-            Progress.RouteStage = 0;
-        }
-        else if (Progress.RouteStage == 1 && InLocal.Z > ck_procedural_gym::HelixTopZ)
-        {
-            Progress.RouteStage = 2;
-        }
-        else if (Progress.RouteStage == 2 && InLocal.Z < ck_procedural_gym::HelixBottomZ)
-        {
-            Progress.RouteStage = 3;
-        }
-        else if (Progress.RouteStage == 4 && Radial.Size() > Layout.CylinderRadius + ck_procedural_gym::CylinderLeaveMargin)
-        {
-            Progress.RouteStage = 5;
-        }
-        else if (Progress.RouteStage == 5 && InLocal.X < -ck_procedural_gym::TurnaroundX)
-        {
-            Progress.Traversals++;
-            Progress.RouteStage = 0;
-        }
-
-        if (Progress.RouteStage == 0 || (Progress.RouteStage >= 1 && Progress.RouteStage <= 3 && OnWall == false))
+        if (Progress.RouteStage == 0)
         {
             return FVector(-Radial.X, -Radial.Y, 0.0);
         }
-        if (Progress.RouteStage == 1)
+        Progress.HelixCycleSamples++;
+        if (OnWall == false)
         {
-            return Tangent * Math::Cos(Pitch) + FVector::UpVector * Math::Sin(Pitch);
+            Progress.Observe_HelixRadial(RadialDirection, false, GraceSteer);
+            if ((SupportNormal.Z > 0.7 && InLocal.Z < ck_procedural_gym::HelixBottomZ) ||
+                Now - Progress.LastOnWallTime > ck_procedural_gym::HelixLostWallSeconds)
+            {
+                Progress.RouteStage = 0;
+                Progress.HelixAngle = 0.0;
+                for (auto Index = 0; Index < Progress.HelixCycleWallPlants.Num(); Index++)
+                {
+                    Progress.HelixCycleWallPlants[Index] = false;
+                }
+            }
+            // Surface motion deliberately retains Grounded briefly through a missing ray. Keep the tangent request and
+            // observed radial angle during that grace; trusted wall coverage and cycle admission still need a fresh query.
+            if (GraceSteer)
+            {
+                return Get_HelixSteer(Tangent, Radius, InLocal.Z);
+            }
+            return FVector(-Radial.X, -Radial.Y, 0.0);
         }
-        if (Progress.RouteStage == 2)
+        Progress.HelixCycleWallSamples++;
+        Evidence.CylinderMinZ = Math::Min(Evidence.CylinderMinZ, InLocal.Z);
+        Evidence.CylinderMaxZ = Math::Max(Evidence.CylinderMaxZ, InLocal.Z);
+        Progress.Observe_HelixRadial(RadialDirection, true, false);
+
+        auto HalfCycle = 2.0 * Math::PI;
+        auto FullCycle = 4.0 * Math::PI;
+        if (Progress.RouteStage == 1 && Progress.HelixAngle >= HalfCycle)
         {
-            return Tangent * Math::Cos(Pitch) - FVector::UpVector * Math::Sin(Pitch);
+            Progress.HelixAngle = HalfCycle;
+            if (InLocal.Z >= ck_procedural_gym::HelixTopZ - ck_procedural_gym::HelixTurnToleranceZ)
+            {
+                Progress.RouteStage = 2;
+            }
         }
-        if (Progress.RouteStage == 3)
+        else if (Progress.RouteStage == 2 && Progress.HelixAngle >= FullCycle)
         {
-            return FVector(0.0, 0.0, -1.0);
+            Progress.HelixAngle = FullCycle;
+            if (InLocal.Z <= ck_procedural_gym::HelixBottomZ + ck_procedural_gym::HelixTurnToleranceZ)
+            {
+                auto Coverage = float(Progress.HelixCycleWallSamples) / float(Progress.HelixCycleSamples);
+                if (Coverage >= ck_procedural_gym::HelixMinWallCoverage &&
+                    Get_CylinderCycleWallPlantCount() == Layout.LegCount)
+                {
+                    Progress.Traversals++;
+                    Evidence.CylinderMinCycleWallCoverage = Math::Min(Evidence.CylinderMinCycleWallCoverage, Coverage);
+                    for (auto Index = 0; Index < Evidence.CylinderWallPlantCycles.Num(); Index++)
+                    {
+                        Evidence.CylinderWallPlantCycles[Index]++;
+                    }
+                }
+                Progress.RouteStage = 1;
+                Progress.HelixAngle = 0.0;
+                Progress.HelixCycleSamples = 0;
+                Progress.HelixCycleWallSamples = 0;
+                for (auto Index = 0; Index < Progress.HelixCycleWallPlants.Num(); Index++)
+                {
+                    Progress.HelixCycleWallPlants[Index] = false;
+                }
+            }
         }
-        if (Progress.RouteStage == 4)
-        {
-            return Radial.GetSafeNormal();
-        }
-        return FVector(-ck_procedural_gym::GoalX, Layout.LaneY, InLocal.Z) - InLocal;
+
+        return Get_HelixSteer(Tangent, Radius, InLocal.Z);
     }
 
     void Update(bool InRun, bool InDraw, bool InLabels)
@@ -1023,6 +1198,7 @@ struct FCkProceduralAnimationGym_Crawler
 
         Progress.PlantedCount = 0;
         Progress.TrustedCount = 0;
+        Progress.TrustedPlantedCount = 0;
         for (auto Index = 0; Index < Handles.Legs.Num(); Index++)
         {
             if (ck::Is_NOT_Valid(Handles.Legs[Index]))
@@ -1034,6 +1210,14 @@ struct FCkProceduralAnimationGym_Crawler
             if (Foot.Get_Phase() == ECk_ProceduralLeg_FootPhase::Planted)
             {
                 Progress.PlantedCount++;
+                if (Foot.Get_Contact() == ECk_ProceduralLeg_FootContact::Trusted)
+                {
+                    Progress.TrustedPlantedCount++;
+                }
+                if (Progress.RouteStage >= 1 && Progress.RouteStage <= 2 && Get_IsPlantedCylinderWallFoot(Foot))
+                {
+                    Progress.HelixCycleWallPlants[Index] = true;
+                }
                 if (Evidence.SawSwing[Index] && Foot.Get_Contact() == ECk_ProceduralLeg_FootContact::Trusted)
                 {
                     Evidence.Replanted[Index] = true;
@@ -1058,7 +1242,8 @@ struct FCkProceduralAnimationGym_Crawler
             }
             if (InDraw)
             {
-                auto FootColor = Foot.Get_Phase() == ECk_ProceduralLeg_FootPhase::Planted ? FLinearColor::Green : FLinearColor(1.0, 0.5, 0.0, 1.0);
+                auto FootColor = Foot.Get_Phase() != ECk_ProceduralLeg_FootPhase::Planted ? FLinearColor(1.0, 0.5, 0.0, 1.0) :
+                    (Foot.Get_Contact() == ECk_ProceduralLeg_FootContact::Trusted ? FLinearColor::Green : FLinearColor::Red);
                 utils_debug_draw::DrawDebugSphere(Foot.Get_Position(), 7.0, 8, FootColor, 0.0, 1.5);
                 utils_debug_draw::DrawDebugLine(Foot.Get_Position(), Foot.Get_Position() + Foot.Get_Normal() * 35.0,
                     FLinearColor(0.0, 1.0, 1.0, 1.0), 0.0, 1.5);
@@ -1149,7 +1334,8 @@ struct FCkProceduralAnimationGym_Crawler
         {
             auto SpeciesName = ck_procedural_gym::Get_SpeciesName(Layout.Species);
             utils_debug_draw::DrawDebugString(Position + FVector(0.0, 0.0, 145.0),
-                f"{SpeciesName} | {Progress.PlantedCount}/{Layout.LegCount} planted | laps {Progress.Traversals}", Layout.Color, 0.0f);
+                f"{SpeciesName} | {Progress.TrustedPlantedCount}/{Progress.PlantedCount} trusted/planted | laps {Progress.Traversals}",
+                Layout.Color, 0.0f);
         }
     }
 }
@@ -1162,6 +1348,8 @@ struct FCkProceduralAnimationGym_Rendering
     // per reset would accumulate distinct world-lifetime renderer cache entries.
     UPROPERTY()
     TArray<FLinearColor> RendererColors;
+    UPROPERTY()
+    TArray<bool> RendererCylinders;
     UPROPERTY()
     TArray<UCk_IsmRenderer_Data> Renderers;
     UPROPERTY()
@@ -1204,6 +1392,10 @@ struct FCkProceduralAnimationGym_SpawnRequest
     float StartHeight = 0.0;
     UPROPERTY()
     FCkProceduralAnimationGym_WallOverride WallOverride;
+    UPROPERTY()
+    bool SiblingAvoidance = true;
+    UPROPERTY()
+    bool FootReservations = true;
 }
 
 struct FCkProceduralAnimationGym_Fixture
@@ -1247,7 +1439,8 @@ struct FCkProceduralAnimationGym_Fixture
         ECk_ProceduralBodyPose_ConformMode InConformMode = ECk_ProceduralBodyPose_ConformMode::PlantedFeet,
         ECkProceduralAnimationGym_HeightSource InHeightSource = ECkProceduralAnimationGym_HeightSource::Species,
         float InStartHeight = 0.0,
-        FCkProceduralAnimationGym_WallOverride InWallOverride = FCkProceduralAnimationGym_WallOverride())
+        FCkProceduralAnimationGym_WallOverride InWallOverride = FCkProceduralAnimationGym_WallOverride(),
+        bool InSiblingAvoidance = true, bool InFootReservations = true)
     {
         if (Get_IsDestroyed() == false || ck::Is_NOT_Valid(InOwner) || InRoster.Num() < 1 || InRoster.Num() > 3)
         {
@@ -1275,6 +1468,8 @@ struct FCkProceduralAnimationGym_Fixture
         Spawn.HeightSource = InHeightSource;
         Spawn.StartHeight = InStartHeight;
         Spawn.WallOverride = InWallOverride;
+        Spawn.SiblingAvoidance = InSiblingAvoidance;
+        Spawn.FootReservations = InFootReservations;
         Spawn.Pending = true;
 
         auto GroundColor = FLinearColor(0.12, 0.18, 0.24, 1.0);
@@ -1362,7 +1557,7 @@ struct FCkProceduralAnimationGym_Fixture
             }
             else if (Spawn.Course == ECkProceduralAnimationGym_Course::Pillars)
             {
-                AddPillars(HalfWidth, RaisedColor);
+                AddPillars(RaisedColor);
             }
             else if (Spawn.Course == ECkProceduralAnimationGym_Course::PillarCrossing)
             {
@@ -1408,17 +1603,15 @@ struct FCkProceduralAnimationGym_Fixture
         }
     }
 
-    void AddPillars(float InHalfWidth, FLinearColor InColor)
+    void AddPillars(FLinearColor InColor)
     {
-        auto Columns = Math::RoundToInt(2.0 * ck_procedural_gym::PillarHalfSpanX / ck_procedural_gym::PillarSpacing);
-        auto Rows = Math::FloorToInt((InHalfWidth - ck_procedural_gym::PillarHalfSize) / ck_procedural_gym::PillarSpacing);
-        auto HalfExtents = FVector(ck_procedural_gym::PillarHalfSize, ck_procedural_gym::PillarHalfSize, ck_procedural_gym::PillarHeight * 0.5);
-        for (auto Column = 0; Column <= Columns; Column++)
+        for (auto Lane = 0; Lane < Spawn.Roster.Num(); Lane++)
         {
-            for (auto Row = -Rows; Row < Rows; Row++)
+            auto LaneY = ck_procedural_gym::Get_LaneY(Lane, Spawn.Roster.Num(), Spawn.Course);
+            for (auto Column = 0; Column < ck_procedural_gym::PillarColumnCount; Column++)
             {
-                AddSurface(FVector(-ck_procedural_gym::PillarHalfSpanX + ck_procedural_gym::PillarSpacing * Column,
-                    ck_procedural_gym::PillarSpacing * (Row + 0.5), HalfExtents.Z), FRotator::ZeroRotator, HalfExtents, InColor);
+                AddSurface(ck_procedural_gym::Get_PillarCenter(Column, LaneY), FRotator::ZeroRotator,
+                    FVector(ck_procedural_gym::PillarHalfSize, ck_procedural_gym::PillarHalfSize, ck_procedural_gym::Get_PillarHeight(Column) * 0.5), InColor);
             }
         }
     }
@@ -1479,24 +1672,17 @@ struct FCkProceduralAnimationGym_Fixture
         }
     }
 
-    // A vertical cylinder at the centre of every lane. A facet's local X is the radial, so its outer face sits at the
-    // radius; each facet is a little wider than the polygon's edge so no seam opens between neighbours.
+    // One continuous cylinder at the centre of every lane. Intersecting box facets leave exterior seams that can block
+    // the surface-motion clearance ray even when the walker is alongside the visible wall.
     void AddCylinders(FLinearColor InColor, FLinearColor InAlternateColor)
     {
         auto HalfHeight = ck_procedural_gym::CylinderHeight * 0.5;
         for (auto Lane = 0; Lane < Spawn.Roster.Num(); Lane++)
         {
             auto LaneY = ck_procedural_gym::Get_LaneY(Lane, Spawn.Roster.Num(), Spawn.Course);
-            auto Radius = ck_procedural_gym::Get_CylinderRadius(Lane);
-            auto HalfExtents = FVector(ck_procedural_gym::CylinderFacetHalfThickness,
-                Radius * Math::Tan(Math::PI / ck_procedural_gym::CylinderFacets) + ck_procedural_gym::CylinderFacetSeamOverlap, HalfHeight);
-            for (auto Facet = 0; Facet < ck_procedural_gym::CylinderFacets; Facet++)
-            {
-                auto Theta = 2.0 * Math::PI * Facet / ck_procedural_gym::CylinderFacets;
-                AddSurface(FVector(Math::Cos(Theta), Math::Sin(Theta), 0.0) * (Radius - ck_procedural_gym::CylinderFacetHalfThickness) +
-                    FVector(0.0, LaneY, HalfHeight), FRotator(0.0, Math::RadiansToDegrees(Theta), 0.0), HalfExtents,
-                    Facet % 2 == 0 ? InColor : InAlternateColor);
-            }
+            auto Radius = ck_procedural_gym::Get_CylinderRadius();
+            AddCylinder(FVector(0.0, LaneY, HalfHeight), Radius, HalfHeight,
+                Lane % 2 == 0 ? InColor : InAlternateColor);
         }
     }
 
@@ -1553,7 +1739,7 @@ struct FCkProceduralAnimationGym_Fixture
             auto FromX = -ck_procedural_gym::HumpHalfWidth + ck_procedural_gym::HumpFacetLength * Index;
             auto ToX = FromX + ck_procedural_gym::HumpFacetLength;
             AddSlabWithShape(FVector(FromX, 0.0, Get_HumpHeight(FromX)), FVector(ToX, 0.0, Get_HumpHeight(ToX)),
-                (Index / 4) % 2 == 0 ? InColor : InAlternateColor, ck_procedural_gym::HumpSlabHalfThickness);
+                Math::IntegerDivisionTrunc(Index, 4) % 2 == 0 ? InColor : InAlternateColor, ck_procedural_gym::HumpSlabHalfThickness);
         }
     }
 
@@ -1574,18 +1760,20 @@ struct FCkProceduralAnimationGym_Fixture
             FVector(Delta.Size() * 0.5, ck_procedural_gym::Get_CourseHalfWidth(Spawn.Course), InHalfThickness), InColor);
     }
 
-    UCk_IsmRenderer_Data GetOrCreate_Renderer(FLinearColor InColor)
+    UCk_IsmRenderer_Data GetOrCreate_Renderer(FLinearColor InColor, bool InCylinder = false)
     {
         for (auto Index = 0; Index < Rendering.RendererColors.Num(); Index++)
         {
-            if (Rendering.RendererColors[Index].Equals(InColor) && ck::IsValid(Rendering.Renderers[Index]))
+            if (Rendering.RendererColors[Index].Equals(InColor) && Rendering.RendererCylinders[Index] == InCylinder &&
+                ck::IsValid(Rendering.Renderers[Index]))
             {
                 return Rendering.Renderers[Index];
             }
         }
 
         auto World = utils_entity_lifetime::Get_WorldForEntity(SceneRoot);
-        auto Mesh = Cast<UStaticMesh>(utils_i_o::LoadAssetByName("/Engine/BasicShapes/Cube.Cube",
+        auto Mesh = Cast<UStaticMesh>(utils_i_o::LoadAssetByName(InCylinder ? "/Engine/BasicShapes/Cylinder.Cylinder" :
+            "/Engine/BasicShapes/Cube.Cube",
             ECk_AssetSearchScope::Engine)._Asset);
         if (ck::Is_NOT_Valid(World) || ck::Is_NOT_Valid(Mesh))
         {
@@ -1613,6 +1801,7 @@ struct FCkProceduralAnimationGym_Fixture
             return nullptr;
         }
         Rendering.RendererColors.Add(InColor);
+        Rendering.RendererCylinders.Add(InCylinder);
         Rendering.Renderers.Add(Renderer);
         return Renderer;
     }
@@ -1657,6 +1846,38 @@ struct FCkProceduralAnimationGym_Fixture
         RetirementProbes.Ends.Add(Spawn.Origin + InLocation - ProbeAxis * ProbeHalfLength);
     }
 
+    void AddCylinder(FVector InLocation, float InRadius, float InHalfHeight, FLinearColor InColor)
+    {
+        auto Owner = SceneRoot;
+        auto Entity = utils_entity_lifetime::Request_CreateEntity(Owner);
+        auto WorldLocation = Spawn.Origin + InLocation;
+        auto Transform = utils_transform::Add(Entity, FTransform(FRotator::ZeroRotator, WorldLocation),
+            ECk_Replication::DoesNotReplicate);
+        if (Rendering.Render)
+        {
+            auto Renderer = GetOrCreate_Renderer(InColor, true);
+            if (ck::IsValid(Renderer))
+            {
+                auto Params = FCk_IsmProxy_Spec(Renderer);
+                // Engine cylinder is 100 cm across and 100 cm tall.
+                Params.Set_ScaleMultiplier(FVector(InRadius / 50.0, InRadius / 50.0, InHalfHeight / 50.0));
+                utils_ism_proxy::Add(Transform, Params);
+            }
+        }
+        Entities.Add(Entity);
+
+        auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Cylinder);
+        Shape.Set_Radius(InRadius);
+        Shape.Set_HalfHeight(InHalfHeight);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
+        Params.Set_ShapeDimensions(Shape);
+        Params.Set_MotionType(ECk_MotionType::Static);
+        Params.Set_CollisionProfileName(n"BlockAll");
+        Bodies.Add(utils_jolt_body::Add(Entity, Params));
+        RetirementProbes.Starts.Add(WorldLocation + FVector::UpVector * (InHalfHeight + 2.0));
+        RetirementProbes.Ends.Add(WorldLocation - FVector::UpVector * (InHalfHeight + 2.0));
+    }
+
     bool Get_AreSurfacesReady() const
     {
         if (Bodies.IsEmpty())
@@ -1693,21 +1914,29 @@ struct FCkProceduralAnimationGym_Fixture
         FCk_ProceduralLeg_Spec InLeg)
     {
         auto Lengths = InLeg.Get_Chain().Get_SegmentLengths();
+        auto VisualScale = ck_procedural_gym::Get_SpeciesProfile(InOutCrawler.Layout.Species).VisualScale;
         auto Segments = TArray<FCk_Handle_Transform>();
+        auto SegmentClearanceRadii = TArray<float32>();
         for (auto SegmentIndex = 0; SegmentIndex < Lengths.Num(); SegmentIndex++)
         {
+            auto HalfExtents = ck_procedural_gym::Get_SegmentHalfExtents(Lengths, SegmentIndex, VisualScale);
+            SegmentClearanceRadii.Add(float32(Math::Sqrt(HalfExtents.Y * HalfExtents.Y + HalfExtents.Z * HalfExtents.Z)));
             auto Tint = Lengths.Num() > 1 ? float(SegmentIndex) / float(Lengths.Num() - 1) : 0.0;
             auto Shade = InOutCrawler.Layout.Color * (1.0 - 0.25 * Tint);
             Shade.A = 1.0;
             Segments.Add(AddVisual(InOutCrawler.Handles.Root, FTransform(InOutCrawler.Layout.Start),
-                ck_procedural_gym::Get_SegmentHalfExtents(Lengths, SegmentIndex), Shade));
+                HalfExtents, Shade));
         }
-        auto Foot = AddVisual(InOutCrawler.Handles.Root, FTransform(InOutCrawler.Layout.Start), ck_procedural_gym::FootHalfExtents,
+        auto Foot = AddVisual(InOutCrawler.Handles.Root, FTransform(InOutCrawler.Layout.Start), ck_procedural_gym::Get_FootHalfExtents(VisualScale),
             FLinearColor(0.8, 0.9, 0.95, 1.0));
         InOutCrawler.Handles.VisibleFeet.Add(Foot);
 
         auto RigParams = FCk_ProceduralRig_Spec();
         RigParams.Set_Segments(Segments);
+        if (Spawn.SiblingAvoidance)
+        {
+            RigParams.Set_SegmentClearanceRadii(SegmentClearanceRadii);
+        }
         RigParams.Set_Foot(Foot);
         RigParams.Set_Solver(ck_procedural_gym::Get_ChainSolver(InOutCrawler.Layout.Species));
         RigParams.Set_Clearance(ck_procedural_gym::Get_Clearance());
@@ -1727,7 +1956,7 @@ struct FCkProceduralAnimationGym_Fixture
             (Spawn.Course == ECkProceduralAnimationGym_Course::Cylinder ? ECkProceduralAnimationGym_Patrol::Helix : ECkProceduralAnimationGym_Patrol::Route);
         if (Spawn.Course == ECkProceduralAnimationGym_Course::Cylinder)
         {
-            Crawler.Layout.CylinderRadius = ck_procedural_gym::Get_CylinderRadius(InIndex);
+            Crawler.Layout.CylinderRadius = ck_procedural_gym::Get_CylinderRadius();
         }
         Crawler.Layout.Color = InIndex == 0 ? FLinearColor(0.1, 0.8, 0.85, 1.0) :
             (InIndex == 1 ? FLinearColor(1.0, 0.58, 0.12, 1.0) : FLinearColor(0.65, 0.35, 1.0, 1.0));
@@ -1754,15 +1983,36 @@ struct FCkProceduralAnimationGym_Fixture
             Profile.SurfaceTurnRate, ck_procedural_gym::Get_HeightSource(Spawn.HeightSource, Profile.HeightSource), WallPolicy, MaxStepHeight));
 
         Crawler.Layout.GaitPreset = Profile.Gait;
+        // The singleton rig asset is shared. Copy specs into a transient per-instance asset before authoring contact radii.
+        auto InstanceRig = Cast<UCk_ProceduralRig_Data>(NewObject(Profile.Rig, UCk_ProceduralRig_Data));
+        if (IsValid(InstanceRig) == false)
+        {
+            CompositionError = f"{CourseIdentifier} {SpeciesName}: the per-instance rig asset could not be created";
+            return;
+        }
+        auto InstanceLegs = TArray<FCk_ProceduralLeg_Spec>();
+        for (auto AuthoredLeg : Profile.Rig.Get_Legs())
+        {
+            auto LegParams = AuthoredLeg;
+            auto Lengths = LegParams.Get_Chain().Get_SegmentLengths();
+            auto TipHalfExtents = ck_procedural_gym::Get_SegmentHalfExtents(Lengths, Lengths.Num() - 1, Profile.VisualScale);
+            auto TipRadius = Math::Sqrt(TipHalfExtents.Y * TipHalfExtents.Y + TipHalfExtents.Z * TipHalfExtents.Z);
+            auto FootRadius = ck_procedural_gym::Get_FootHalfExtents(Profile.VisualScale).Size();
+            LegParams.Set_FootContactRadius(Spawn.FootReservations ? float32(Math::Max(TipRadius, FootRadius)) : 0.0f);
+            InstanceLegs.Add(LegParams);
+        }
+        InstanceRig.Set_Legs(InstanceLegs);
         auto Chains = TArray<FCk_ProceduralWalker_LegChain>();
-        for (auto LegParams : Profile.Rig.Get_Legs())
+        for (auto LegParams : InstanceRig.Get_Legs())
         {
             Chains.Add(MakeLegChain(Crawler, LegParams));
             Crawler.Evidence.SawSwing.Add(false);
             Crawler.Evidence.Replanted.Add(false);
+            Crawler.Progress.HelixCycleWallPlants.Add(false);
+            Crawler.Evidence.CylinderWallPlantCycles.Add(0);
         }
 
-        auto Walker = utils_procedural_animation::Add_Walker(Crawler.Handles.Root, Profile.Rig, Crawler.Layout.GaitPreset, Chains);
+        auto Walker = utils_procedural_animation::Add_Walker(Crawler.Handles.Root, InstanceRig, Crawler.Layout.GaitPreset, Chains);
         Crawler.Handles.Gait = Walker.Get_Gait();
         Crawler.Handles.Legs = Walker.Get_Legs();
         if (ck::IsValid(Crawler.Handles.Gait))

@@ -210,6 +210,50 @@ auto
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkProceduralFootholdTransitionSlopeReferenceTest,
+    "Ck.ProceduralAnimation.Foothold.TransitionSlopeReference",
+    ck::tests::kCkUnitTestFlags)
+
+auto
+    FCkProceduralFootholdTransitionSlopeReferenceTest::
+    RunTest(const FString&)
+    -> bool
+{
+    using namespace ck_test_procedural_foothold;
+
+    // Recorded intact Spider approach: the desired ledge top is occluded, while both its face and the approach floor
+    // are already usable. Ranking from the intended top with a transition normal must not keep preferring the floor.
+    constexpr auto SpiderReach = 220.0f;
+    constexpr auto Planted = true;
+    const auto Goal = FVector{-115.906, 51.219, 150.0};
+    const auto OldPlant = FVector{-161.820, 107.406, 0.0};
+    const auto Face = ck::FProceduralFootholdCandidate{FVector{-150.0, 41.812, 134.804}, FVector::BackwardVector,
+        ck::EProceduralFootholdSource::Front, ck::EProceduralFootholdVerdict::Usable};
+    const auto Floor = MakeLevel(FVector{-169.484, 36.438, 0.0});
+    const auto Candidates = TArray<ck::FProceduralFootholdCandidate>{Face, Floor};
+    const auto Before = Candidates;
+    const auto Defaults = ck::FProceduralFootholdSettings{};
+    const auto Transition = ck::FProceduralFootholdSettings{}.Set_SlopeUp(FVector::UpVector + FVector::BackwardVector);
+    TestEqual(TEXT("Control: the default floor reference retains the old floor preference"),
+        ck::SelectProceduralFoothold(Candidates, Goal, OldPlant, Planted, SpiderReach, Defaults), 1);
+    TestEqual(TEXT("The admitted approach face wins with the transition reference"),
+        ck::SelectProceduralFoothold(Candidates, Goal, OldPlant, Planted, SpiderReach, Transition), 0);
+    TestTrue(TEXT("Ranking does not mutate candidate positions, normals or verdicts"), Get_AreSame(Candidates, Before));
+
+    const auto Rejected = TArray<ck::FProceduralFootholdCandidate>{
+        ck::FProceduralFootholdCandidate{Face.Get_Position(), Face.Get_Normal(), Face.Get_Source(),
+            ck::EProceduralFootholdVerdict::TooSteep}, Floor};
+    TestEqual(TEXT("The slope reference cannot promote a face rejected by the unchanged angle gate"),
+        ck::SelectProceduralFoothold(Rejected, Goal, OldPlant, Planted, SpiderReach, Transition), 1);
+    TestFalse(TEXT("The current-support admission still rejects a vertical face below a 90-degree allowance"),
+        ck::Get_IsFootholdLevelEnough(Face.Get_Normal(), 60.0f));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkProceduralFootholdRejectsMalformedInputTest,
     "Ck.ProceduralAnimation.Foothold.RejectsMalformedInput",
     ck::tests::kCkUnitTestFlags)
@@ -240,6 +284,18 @@ auto
     TestEqual(TEXT("A NaN position has no pick, even beside a well-formed candidate"), Select(WithNaN, Swinging),
         static_cast<int32>(INDEX_NONE));
     TestTrue(TEXT("A rejected NaN position leaves the candidates unchanged"), Get_AreSame(WithNaN, WithNaNCopy));
+
+    const auto BadReferences = TArray<FVector>{FVector::ZeroVector, FVector{NaN, 0.0, 1.0}};
+    for (const auto& Reference : BadReferences)
+    {
+        const auto InvalidSettings = ck::FProceduralFootholdSettings{}.Set_SlopeUp(Reference);
+        TestEqual(TEXT("A zero or non-finite slope reference has no pick"), Select(WellFormed, Swinging, InvalidSettings),
+            static_cast<int32>(INDEX_NONE));
+        TestEqual(TEXT("A malformed slope reference has a nonselectable direct cost"),
+            ck::ComputeProceduralFootholdCost(WellFormed[0], Ideal, Plant, Swinging, Reach, InvalidSettings),
+            TNumericLimits<double>::Max());
+        TestTrue(TEXT("A rejected slope reference leaves the candidates unchanged"), Get_AreSame(WellFormed, WellFormedCopy));
+    }
 
     return true;
 }

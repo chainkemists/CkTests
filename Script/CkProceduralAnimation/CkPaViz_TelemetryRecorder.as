@@ -109,6 +109,10 @@ struct FCkPaViz_TelemetryRecorder
 
     bool Get_HasPassedTurnaround(const FCkProceduralAnimationGym_Crawler& InCrawler) const
     {
+        if (InCrawler.Layout.Course == ECkProceduralAnimationGym_Course::Cylinder)
+        {
+            return InCrawler.Progress.Traversals > 0;
+        }
         return InCrawler.Progress.RouteStage == 1 || InCrawler.Progress.Traversals > 0;
     }
 
@@ -286,7 +290,7 @@ struct FCkPaViz_TelemetryRecorder
         else if (Crawler.Layout.Course == ECkProceduralAnimationGym_Course::Cylinder)
         {
             auto CylinderRadius = Crawler.Layout.CylinderRadius;
-            CourseFields = f",\"cyl\":{CylinderRadius :.1}";
+            CourseFields = f",\"cyl\":{CylinderRadius :.1},\"cylNative\":1";
         }
         else if (Crawler.Layout.Course == ECkProceduralAnimationGym_Course::Posts)
         {
@@ -435,6 +439,9 @@ struct FCkPaViz_TelemetryRecorder
         auto SupportNormal = Get_Direction(SupportNormalValue);
         // ECk_SurfaceMotion_ContactSource by value: None, Forward, Down, LookAhead, Fan, Fall, Feet, Step.
         auto ContactSource = int32(utils_surface_motion::Get_ContactSource(Handles.Motion));
+        auto PaceScale = utils_surface_motion::Get_ReachPaceScale(Handles.Motion);
+        // ECk_SurfaceMotion_ReachPaceState by value: Free, Pacing, Blocked, PhysicalOverride.
+        auto PaceState = int32(utils_surface_motion::Get_ReachPaceState(Handles.Motion));
         // ",\"ob\":[x,y,z]" (the face's normal) while the last substep slid the body along a face, or nothing.
         FString Obstruction = "";
         if (utils_surface_motion::Get_Obstruction(Handles.Motion) == ECk_SurfaceMotion_Obstruction::Wall)
@@ -509,7 +516,7 @@ struct FCkPaViz_TelemetryRecorder
             auto FeetPlaneState = int32(utils_procedural_gait::Get_FeetPlane(Handles.Gait).Get_State());
             FeetPlane = f",\"fp\":{FeetPlaneState}";
         }
-        ck::Trace(f"[PAVIZ] {Open}\"k\":\"f\",\"c\":\"{Course}\",\"s\":\"{WalkerName}\",\"w\":{InWalker},\"n\":{Frame},\"t\":{InElapsed :.4},\"stage\":{RouteStage},\"sp\":{Spinning},\"b\":{BodyLocation},\"bq\":{BodyRotation},\"p\":{PresentationLocation},\"pq\":{PresentationRotation},\"off\":{OffsetLocation},\"oq\":{OffsetRotation},\"tq\":{TargetRotation},\"sn\":{SupportNormal},\"src\":{ContactSource}{Obstruction}{FeetPlane},\"rays\":{Rays},\"legs\":[{Legs}]{Close}",
+        ck::Trace(f"[PAVIZ] {Open}\"k\":\"f\",\"c\":\"{Course}\",\"s\":\"{WalkerName}\",\"w\":{InWalker},\"n\":{Frame},\"t\":{InElapsed :.4},\"stage\":{RouteStage},\"sp\":{Spinning},\"b\":{BodyLocation},\"bq\":{BodyRotation},\"p\":{PresentationLocation},\"pq\":{PresentationRotation},\"off\":{OffsetLocation},\"oq\":{OffsetRotation},\"tq\":{TargetRotation},\"sn\":{SupportNormal},\"src\":{ContactSource},\"pace\":{PaceScale :.3},\"paceState\":{PaceState}{Obstruction}{FeetPlane},\"rays\":{Rays},\"legs\":[{Legs}]{Close}",
             FName(f"PAVIZ.{Course}.{InWalker}"), 0.0f);
     }
 

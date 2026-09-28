@@ -167,7 +167,7 @@ class UCk_AutoTest_ProceduralAnimation_LongChainsStayConnected : UCk_AutoTest_Ba
         for (auto Index = 0; Index < _Fixture.Crawlers.Num(); Index++)
         {
             auto Crawler = _Fixture.Crawlers[Index];
-            auto Name = ck_procedural_gym::Get_SpeciesName(Crawler.Layout.Species);
+            auto SpeciesName = ck_procedural_gym::Get_SpeciesName(Crawler.Layout.Species);
             auto MaxJointGap = _MaxJointGap[Index];
             auto MaxReachError = _MaxReachError[Index];
             auto ReachableSamples = _ReachableSamples[Index];
@@ -176,17 +176,17 @@ class UCk_AutoTest_ProceduralAnimation_LongChainsStayConnected : UCk_AutoTest_Ba
             auto MaxReachErrorNearExtension = _MaxReachErrorNearExtension[Index];
             auto NearExtensionSamples = _NearExtensionSamples[Index];
             auto WorstReachNearExtension = _WorstReachNearExtension[Index];
-            ck::Trace(f"[LONG-CHAINS] {Name}: max joint gap {MaxJointGap :.4} cm ({WorstGap}), max reach error {MaxReachError :.4} cm ({WorstReach}), {ReachableSamples} planted reachable samples");
-            ck::Trace(f"[LONG-CHAINS] {Name}: MaxReachErrorNearExtension {MaxReachErrorNearExtension :.4} cm ({WorstReachNearExtension}), {NearExtensionSamples} planted samples between 95 and 98 % of the chain length");
-            Assert_True(MaxJointGap < 1.0, f"The {Name}'s posed segments stay joined end to start (worst gap {MaxJointGap :.3} cm at {WorstGap})");
-            Assert_True(MaxReachError < 2.0, f"The {Name}'s chain end reaches each planted, reachable foot (worst error {MaxReachError :.3} cm at {WorstReach})");
-            Assert_True(ReachableSamples > 0, f"The {Name} planted a reachable foot at least once ({ReachableSamples} samples)");
+            ck::Trace(f"[LONG-CHAINS] {SpeciesName}: max joint gap {MaxJointGap :.4} cm ({WorstGap}), max reach error {MaxReachError :.4} cm ({WorstReach}), {ReachableSamples} planted reachable samples");
+            ck::Trace(f"[LONG-CHAINS] {SpeciesName}: MaxReachErrorNearExtension {MaxReachErrorNearExtension :.4} cm ({WorstReachNearExtension}), {NearExtensionSamples} planted samples between 95 and 98 % of the chain length");
+            Assert_True(MaxJointGap < 1.0, f"The {SpeciesName}'s posed segments stay joined end to start (worst gap {MaxJointGap :.3} cm at {WorstGap})");
+            Assert_True(MaxReachError < 2.0, f"The {SpeciesName}'s chain end reaches each planted, reachable foot (worst error {MaxReachError :.3} cm at {WorstReach})");
+            Assert_True(ReachableSamples > 0, f"The {SpeciesName} planted a reachable foot at least once ({ReachableSamples} samples)");
             for (auto LegIndex = 0; LegIndex < Crawler.Handles.Legs.Num(); LegIndex++)
             {
                 auto Leg = Crawler.Handles.Legs[LegIndex];
                 auto Rig = utils_procedural_rig::DoCast(Leg);
                 Assert_True(ck::IsValid(Leg) && Rig.IsSet() && utils_procedural_rig::Get_Status(Rig.GetValue()) == ECk_ProceduralAnimation_Status::Ready,
-                    f"The {Name}'s rig on leg {LegIndex} stays Ready");
+                    f"The {SpeciesName}'s rig on leg {LegIndex} stays Ready");
             }
         }
         _Fixture.Request_Destroy();

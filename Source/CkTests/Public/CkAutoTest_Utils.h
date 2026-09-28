@@ -9,6 +9,45 @@
 
 #include "CkAutoTest_Utils.generated.h"
 
+// Read-only measurement of the published rig, independent of the candidate selector's scoring implementation.
+USTRUCT(BlueprintType)
+struct CKTESTS_API FCk_AutoTest_ProceduralRigMetrics
+{
+    GENERATED_BODY()
+    CK_GENERATED_BODY(FCk_AutoTest_ProceduralRigMetrics);
+
+private:
+    UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    bool _Ready = false;
+
+    UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    double _TotalPenetrationSquared = 0.0;
+
+    UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    double _MaximumPenetration = 0.0;
+
+    UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    int32 _OverlappingPairs = 0;
+
+    UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    double _MaximumJointGap = 0.0;
+
+    UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    double _MaximumFootGap = 0.0;
+
+    UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    int64 _SampleSequence = 0;
+
+public:
+    CK_PROPERTY(_Ready);
+    CK_PROPERTY(_TotalPenetrationSquared);
+    CK_PROPERTY(_MaximumPenetration);
+    CK_PROPERTY(_OverlappingPairs);
+    CK_PROPERTY(_MaximumJointGap);
+    CK_PROPERTY(_MaximumFootGap);
+    CK_PROPERTY(_SampleSequence);
+};
+
 UCLASS()
 class CKTESTS_API UCk_Utils_AutoTest_UE : public UBlueprintFunctionLibrary
 {
@@ -84,4 +123,20 @@ public:
     TryGet_GoapLastSearchDebugWithoutWorldStateSource_ForTesting(
         const FCk_Handle_Goap_Planner& InPlanner,
         UPARAM(ref) TArray<FCk_Goap_SearchDebugRow>& OutRows);
+
+    // Test-only, read-only summary of one leg's last accepted procedural-animation solve.
+    UFUNCTION(BlueprintPure, Category = "Ck|Utils|AutoTest", meta = (DevelopmentOnly))
+    static FString
+    Get_ProceduralAnimationLegSnapshot(
+        const FCk_Handle& InBody,
+        FName InLegId,
+        FVector InOrigin);
+
+    // Radii are flattened in captured leg/segment order, so a legacy rig can be measured with the same geometry.
+    // Ready is false until the accepted gait and fully published rig poses agree and every requested part is live.
+    UFUNCTION(BlueprintPure, Category = "Ck|Utils|AutoTest", meta = (DevelopmentOnly))
+    static FCk_AutoTest_ProceduralRigMetrics
+    Get_ProceduralAnimationRigMetrics(
+        const FCk_Handle& InBody,
+        const TArray<float>& InSegmentRadii);
 };
