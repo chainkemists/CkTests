@@ -10,7 +10,9 @@ enum ECkProceduralAnimationGym_Species
     Tentacled,
     Beast,
     Biped,
-    SmallCrawler4
+    SmallCrawler4,
+    Centipede3,
+    Centipede5
 }
 
 enum ECkProceduralAnimationGym_Course
@@ -92,6 +94,10 @@ struct FCkProceduralAnimationGym_SpeciesProfile
     float MaxStepHeight = 0.0;
     UPROPERTY()
     float VisualScale = 1.0;
+    UPROPERTY()
+    int32 SegmentCount = 1;
+    UPROPERTY()
+    float SegmentSpacing = 0.0;
 }
 
 namespace ck_procedural_gym
@@ -288,6 +294,16 @@ namespace ck_procedural_gym
             Profile.BodyHalfExtents = ck_procedural_gym_assets::CentipedeBodyHalfExtents;
             Profile.SurfaceTurnRate = CentipedeSurfaceTurnRate;
         }
+        else if (InSpecies == ECkProceduralAnimationGym_Species::Centipede3 || InSpecies == ECkProceduralAnimationGym_Species::Centipede5)
+        {
+            Profile.Rig = ck::ProceduralGym_RigCentipedeSegment;
+            Profile.Gait = ck::ProceduralGym_GaitCentipede;
+            Profile.Clearance = ck_procedural_gym_assets::CentipedeRestDrop;
+            Profile.BodyHalfExtents = ck_procedural_gym_assets::CentipedeSegmentHalfExtents;
+            Profile.SurfaceTurnRate = CentipedeSurfaceTurnRate;
+            Profile.SegmentCount = InSpecies == ECkProceduralAnimationGym_Species::Centipede3 ? 3 : 5;
+            Profile.SegmentSpacing = ck_procedural_gym_assets::CentipedeSegmentSpacing;
+        }
         else if (InSpecies == ECkProceduralAnimationGym_Species::Tentacled)
         {
             Profile.Rig = ck::ProceduralGym_RigTentacled;
@@ -341,6 +357,14 @@ namespace ck_procedural_gym
         if (InSpecies == ECkProceduralAnimationGym_Species::Centipede)
         {
             return "Centipede";
+        }
+        if (InSpecies == ECkProceduralAnimationGym_Species::Centipede3)
+        {
+            return "Centipede3";
+        }
+        if (InSpecies == ECkProceduralAnimationGym_Species::Centipede5)
+        {
+            return "Centipede5";
         }
         if (InSpecies == ECkProceduralAnimationGym_Species::Tentacled)
         {
@@ -696,6 +720,15 @@ namespace ck_procedural_gym
         return ECk_ProceduralRig_ChainSolver::Auto;
     }
 
+    // Segment k holds the train's global pairs 2k and 2k+1, so the train keeps MakeCentipedeLegs' four-group wave.
+    // Leg order per segment is L0 R0 L1 R1.
+    float32 Get_SegmentPhaseOffset(int32 InSegmentIndex, int32 InLegIndex)
+    {
+        auto Pair = Math::IntegerDivisionTrunc(InLegIndex, 2);
+        auto SideIndex = InLegIndex % 2;
+        return float32(Math::Frac(((2 * InSegmentIndex + Pair) % 4) * 0.25 + SideIndex * 0.5));
+    }
+
     // Every species swivels its knees clear of the pillars and edges its legs pass, the rigid centipede included.
     ECk_ProceduralRig_Clearance Get_Clearance()
     {
@@ -744,6 +777,24 @@ namespace ck_procedural_gym
     }
 }
 
+// A follower segment: its own walker and body pose, no mover. The head's CkChain places its root.
+struct FCkProceduralAnimationGym_SegmentHandles
+{
+    UPROPERTY()
+    FCk_Handle_Transform Root;
+    UPROPERTY()
+    FCk_Handle_Transform Presentation;
+    UPROPERTY()
+    FCk_Handle_ProceduralGait Gait;
+    UPROPERTY()
+    FCk_Handle_ProceduralBodyPose BodyPose;
+    UPROPERTY()
+    TArray<FCk_Handle_ProceduralLeg> Legs;
+    UPROPERTY()
+    TArray<FCk_Handle_Transform> VisibleFeet;
+}
+
+// Root, Gait, Motion and BodyPose are the head's. Legs and VisibleFeet hold every segment's, head first.
 struct FCkProceduralAnimationGym_CrawlerHandles
 {
     UPROPERTY()
@@ -760,6 +811,11 @@ struct FCkProceduralAnimationGym_CrawlerHandles
     TArray<FCk_Handle_ProceduralLeg> Legs;
     UPROPERTY()
     TArray<FCk_Handle_Transform> VisibleFeet;
+    // Followers only, nearest the head first.
+    UPROPERTY()
+    TArray<FCkProceduralAnimationGym_SegmentHandles> Segments;
+    UPROPERTY()
+    FCk_Handle_Chain Chain;
 }
 
 struct FCkProceduralAnimationGym_CrawlerLayout
@@ -911,6 +967,22 @@ struct FCkProceduralAnimationGym_Crawler
             if (Rig.IsSet() == false || utils_procedural_rig::Get_Status(Rig.GetValue()) != ECk_ProceduralAnimation_Status::Ready)
             {
                 return false;
+            }
+        }
+        if (Handles.Segments.Num() > 0)
+        {
+            if (ck::Is_NOT_Valid(Handles.Chain) || utils_chain::Get_NumLinks(Handles.Chain) != Handles.Segments.Num())
+            {
+                return false;
+            }
+            for (auto Segment : Handles.Segments)
+            {
+                if (ck::Is_NOT_Valid(Segment.Gait) || ck::Is_NOT_Valid(Segment.BodyPose) ||
+                    utils_procedural_gait::Get_Status(Segment.Gait) != ECk_ProceduralAnimation_Status::Ready ||
+                    utils_procedural_body_pose::Get_Status(Segment.BodyPose) != ECk_ProceduralAnimation_Status::Ready)
+                {
+                    return false;
+                }
             }
         }
         return true;
@@ -1329,6 +1401,16 @@ struct FCkProceduralAnimationGym_Crawler
         {
             utils_debug_draw::DrawDebugLine(Position, Position + Transform.GetRotation().GetUpVector() * 110.0,
                 Layout.Color, 0.0, 3.0);
+            for (auto Segment : Handles.Segments)
+            {
+                if (ck::Is_NOT_Valid(Segment.Root))
+                {
+                    continue;
+                }
+                auto SegmentTransform = utils_transform::Get_EntityCurrentTransform(Segment.Root);
+                utils_debug_draw::DrawDebugLine(SegmentTransform.GetLocation(),
+                    SegmentTransform.GetLocation() + SegmentTransform.GetRotation().GetUpVector() * 110.0, Layout.Color, 0.0, 3.0);
+            }
         }
         if (InLabels)
         {
@@ -1948,7 +2030,7 @@ struct FCkProceduralAnimationGym_Fixture
         auto Crawler = FCkProceduralAnimationGym_Crawler();
         Crawler.Layout.Species = Spawn.Roster[InIndex];
         auto Profile = ck_procedural_gym::Get_SpeciesProfile(Crawler.Layout.Species);
-        Crawler.Layout.LegCount = Profile.Rig.Get_Legs().Num();
+        Crawler.Layout.LegCount = Profile.Rig.Get_Legs().Num() * Profile.SegmentCount;
         Crawler.Layout.LaneY = ck_procedural_gym::Get_LaneY(InIndex, Spawn.Roster.Num(), Spawn.Course);
         Crawler.Layout.Origin = Spawn.Origin;
         Crawler.Layout.Course = Spawn.Course;
@@ -1983,25 +2065,12 @@ struct FCkProceduralAnimationGym_Fixture
             Profile.SurfaceTurnRate, ck_procedural_gym::Get_HeightSource(Spawn.HeightSource, Profile.HeightSource), WallPolicy, MaxStepHeight));
 
         Crawler.Layout.GaitPreset = Profile.Gait;
-        // The singleton rig asset is shared. Copy specs into a transient per-instance asset before authoring contact radii.
-        auto InstanceRig = Cast<UCk_ProceduralRig_Data>(NewObject(Profile.Rig, UCk_ProceduralRig_Data));
+        auto InstanceRig = MakeInstanceRig(Profile, 0);
         if (IsValid(InstanceRig) == false)
         {
             CompositionError = f"{CourseIdentifier} {SpeciesName}: the per-instance rig asset could not be created";
             return;
         }
-        auto InstanceLegs = TArray<FCk_ProceduralLeg_Spec>();
-        for (auto AuthoredLeg : Profile.Rig.Get_Legs())
-        {
-            auto LegParams = AuthoredLeg;
-            auto Lengths = LegParams.Get_Chain().Get_SegmentLengths();
-            auto TipHalfExtents = ck_procedural_gym::Get_SegmentHalfExtents(Lengths, Lengths.Num() - 1, Profile.VisualScale);
-            auto TipRadius = Math::Sqrt(TipHalfExtents.Y * TipHalfExtents.Y + TipHalfExtents.Z * TipHalfExtents.Z);
-            auto FootRadius = ck_procedural_gym::Get_FootHalfExtents(Profile.VisualScale).Size();
-            LegParams.Set_FootContactRadius(Spawn.FootReservations ? float32(Math::Max(TipRadius, FootRadius)) : 0.0f);
-            InstanceLegs.Add(LegParams);
-        }
-        InstanceRig.Set_Legs(InstanceLegs);
         auto Chains = TArray<FCk_ProceduralWalker_LegChain>();
         for (auto LegParams : InstanceRig.Get_Legs())
         {
@@ -2027,12 +2096,132 @@ struct FCkProceduralAnimationGym_Fixture
             PoseSpec.Set_Conform(Conform);
             Crawler.Handles.BodyPose = utils_procedural_body_pose::Add(Crawler.Handles.Gait, PoseSpec);
         }
-        if (ck::Is_NOT_Valid(Crawler.Handles.Motion) || ck::Is_NOT_Valid(Crawler.Handles.Gait) || Crawler.Handles.Legs.Num() != Crawler.Layout.LegCount ||
+        if (ck::Is_NOT_Valid(Crawler.Handles.Motion) || ck::Is_NOT_Valid(Crawler.Handles.Gait) || Crawler.Handles.Legs.Num() != Profile.Rig.Get_Legs().Num() ||
             ck::Is_NOT_Valid(Crawler.Handles.BodyPose))
         {
             CompositionError = f"{CourseIdentifier} {SpeciesName} with {Crawler.Layout.LegCount} legs: surface motion, walker or body pose composition was rejected";
         }
+        if (Profile.SegmentCount > 1)
+        {
+            SpawnSegments(Crawler, Profile, RootEntity, CourseIdentifier, SpeciesName);
+        }
         Crawlers.Add(Crawler);
+    }
+
+    // The singleton rig asset is shared. Copy specs into a transient per-instance asset before authoring contact radii.
+    // A segmented species also takes segment InSegmentIndex's phase offsets.
+    UCk_ProceduralRig_Data MakeInstanceRig(FCkProceduralAnimationGym_SpeciesProfile InProfile, int32 InSegmentIndex)
+    {
+        auto InstanceRig = Cast<UCk_ProceduralRig_Data>(NewObject(InProfile.Rig, UCk_ProceduralRig_Data));
+        if (IsValid(InstanceRig) == false)
+        {
+            return nullptr;
+        }
+        auto AuthoredLegs = InProfile.Rig.Get_Legs();
+        auto InstanceLegs = TArray<FCk_ProceduralLeg_Spec>();
+        for (auto LegIndex = 0; LegIndex < AuthoredLegs.Num(); LegIndex++)
+        {
+            auto LegParams = AuthoredLegs[LegIndex];
+            auto Lengths = LegParams.Get_Chain().Get_SegmentLengths();
+            auto TipHalfExtents = ck_procedural_gym::Get_SegmentHalfExtents(Lengths, Lengths.Num() - 1, InProfile.VisualScale);
+            auto TipRadius = Math::Sqrt(TipHalfExtents.Y * TipHalfExtents.Y + TipHalfExtents.Z * TipHalfExtents.Z);
+            auto FootRadius = ck_procedural_gym::Get_FootHalfExtents(InProfile.VisualScale).Size();
+            LegParams.Set_FootContactRadius(Spawn.FootReservations ? float32(Math::Max(TipRadius, FootRadius)) : 0.0f);
+            if (InProfile.SegmentCount > 1)
+            {
+                auto Placement = LegParams.Get_Placement();
+                Placement.Set_PhaseOffset(ck_procedural_gym::Get_SegmentPhaseOffset(InSegmentIndex, LegIndex));
+                LegParams.Set_Placement(Placement);
+            }
+            InstanceLegs.Add(LegParams);
+        }
+        InstanceRig.Set_Legs(InstanceLegs);
+        return InstanceRig;
+    }
+
+    // Followers are plain transforms with their own walker and body pose and no mover: the head's CkChain path history
+    // places them where the head was, with the surface-aligned frame it had there.
+    void SpawnSegments(FCkProceduralAnimationGym_Crawler& InOutCrawler, FCkProceduralAnimationGym_SpeciesProfile InProfile,
+        FCk_Handle InHeadEntity, FString InCourseIdentifier, FString InSpeciesName)
+    {
+        auto HeadEntity = InHeadEntity;
+        for (auto SegmentIndex = 1; SegmentIndex < InProfile.SegmentCount; SegmentIndex++)
+        {
+            auto FollowerEntity = utils_entity_lifetime::Request_CreateEntity(HeadEntity);
+            FollowerEntity.Request_OverrideToSelf();
+            FollowerEntity.Set_DebugName(FName(f"ProceduralAnimation.{InCourseIdentifier}.{InSpeciesName}.Segment{SegmentIndex}"));
+            Entities.Add(FollowerEntity);
+
+            auto Start = InOutCrawler.Layout.Start - FVector(SegmentIndex * InProfile.SegmentSpacing, 0.0, 0.0);
+            auto Segment = FCkProceduralAnimationGym_SegmentHandles();
+            Segment.Root = utils_transform::Add(FollowerEntity, FTransform(Start), ECk_Replication::DoesNotReplicate);
+            auto Shade = InOutCrawler.Layout.Color * (1.0 - 0.25 * float(SegmentIndex) / float(InProfile.SegmentCount - 1));
+            Shade.A = 1.0;
+            Segment.Presentation = AddVisual(FollowerEntity, FTransform(Start), InProfile.BodyHalfExtents, Shade);
+
+            auto InstanceRig = MakeInstanceRig(InProfile, SegmentIndex);
+            if (IsValid(InstanceRig) == false)
+            {
+                CompositionError = f"{InCourseIdentifier} {InSpeciesName} segment {SegmentIndex}: the per-instance rig asset could not be created";
+                return;
+            }
+
+            // MakeLegChain parents a leg's parts under the crawler's root; a view rooted at the follower keeps them there.
+            auto SegmentView = InOutCrawler;
+            SegmentView.Handles.Root = Segment.Root;
+            SegmentView.Handles.VisibleFeet.Empty();
+            SegmentView.Layout.Start = Start;
+            auto Chains = TArray<FCk_ProceduralWalker_LegChain>();
+            for (auto LegParams : InstanceRig.Get_Legs())
+            {
+                Chains.Add(MakeLegChain(SegmentView, LegParams));
+                InOutCrawler.Evidence.SawSwing.Add(false);
+                InOutCrawler.Evidence.Replanted.Add(false);
+                InOutCrawler.Progress.HelixCycleWallPlants.Add(false);
+                InOutCrawler.Evidence.CylinderWallPlantCycles.Add(0);
+            }
+            Segment.VisibleFeet = SegmentView.Handles.VisibleFeet;
+
+            auto Walker = utils_procedural_animation::Add_Walker(Segment.Root, InstanceRig, InOutCrawler.Layout.GaitPreset, Chains);
+            Segment.Gait = Walker.Get_Gait();
+            Segment.Legs = Walker.Get_Legs();
+            if (ck::IsValid(Segment.Gait))
+            {
+                auto Support = FCk_ProceduralBodyPose_Support();
+                Support.Set_CollapseDrop(InProfile.CollapseDrop);
+                Support.Set_MaxTilt(ck_procedural_gym::BodyMaxTilt);
+                auto Conform = FCk_ProceduralBodyPose_Conform();
+                Conform.Set_Mode(Spawn.ConformMode);
+                auto PoseSpec = FCk_ProceduralBodyPose_Spec(Segment.Presentation);
+                PoseSpec.Set_Support(Support);
+                PoseSpec.Set_Conform(Conform);
+                Segment.BodyPose = utils_procedural_body_pose::Add(Segment.Gait, PoseSpec);
+            }
+            if (ck::Is_NOT_Valid(Segment.Gait) || Segment.Legs.Num() != InstanceRig.Get_Legs().Num() || ck::Is_NOT_Valid(Segment.BodyPose))
+            {
+                CompositionError = f"{InCourseIdentifier} {InSpeciesName} segment {SegmentIndex} with {InstanceRig.Get_Legs().Num()} legs: walker or body pose composition was rejected";
+            }
+            InOutCrawler.Handles.Legs.Append(Segment.Legs);
+            InOutCrawler.Handles.VisibleFeet.Append(Segment.VisibleFeet);
+            InOutCrawler.Handles.Segments.Add(Segment);
+        }
+
+        auto ChainSpec = FCk_Chain_Spec(ECk_Chain_Solver::PathHistory);
+        ChainSpec.Set_SampleSpacingCm(4.0f);
+        ChainSpec.Set_TeleportDistanceCm(0.0f);
+        InOutCrawler.Handles.Chain = utils_chain::Add(InOutCrawler.Handles.Root, ChainSpec);
+        if (ck::Is_NOT_Valid(InOutCrawler.Handles.Chain))
+        {
+            CompositionError = f"{InCourseIdentifier} {InSpeciesName}: the segment chain composition was rejected";
+            return;
+        }
+        for (auto Index = 0; Index < InOutCrawler.Handles.Segments.Num(); Index++)
+        {
+            auto LinkSpec = FCk_ChainLink_Spec(float32((Index + 1) * InProfile.SegmentSpacing));
+            LinkSpec.Set_Orientation(ECk_Chain_LinkOrientation::CopyHead);
+            utils_chain::Request_AttachLink(InOutCrawler.Handles.Chain,
+                FCk_Request_Chain_AttachLink(InOutCrawler.Handles.Segments[Index].Root, LinkSpec));
+        }
     }
 
     void Update(bool InRun = true, bool InDraw = false)
