@@ -75,6 +75,7 @@ public class CkTests : CkModuleRules
             "CkAttribute",
             "CkAudio",
             "CkCamera",
+            "CkChain",
             "CkCore",
             "CkCrowd",
             "CkCue",
