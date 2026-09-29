@@ -180,6 +180,32 @@ namespace ck_procedural_gym_assets
         return Legs;
     }
 
+    const FVector CentipedeSegmentHalfExtents = FVector(32.0, 24.0, 12.0);
+    const float CentipedeSegmentSpacing = 65.0;
+
+    // One segment's two pairs. Hips on the segment's side faces; feet 51 cm outboard, CentipedeRestDrop below; poles
+    // outboard as MakeCentipedeLegs. Ids L0 R0 L1 R1. Phase offsets are assigned per segment at spawn (see the fixture).
+    TArray<FCk_ProceduralLeg_Spec> MakeCentipedeSegmentLegs()
+    {
+        auto Lengths = TArray<float32>();
+        Lengths.Add(45.0f);
+        Lengths.Add(55.0f);
+        auto Legs = TArray<FCk_ProceduralLeg_Spec>();
+        for (auto Pair = 0; Pair < 2; Pair++)
+        {
+            auto HipX = Pair == 0 ? 15.0 : -15.0;
+            for (auto SideIndex = 0; SideIndex < 2; SideIndex++)
+            {
+                auto Side = SideIndex == 0 ? -1.0 : 1.0;
+                auto HipY = CentipedeSegmentHalfExtents.Y;
+                Legs.Add(MakeLegWithLengths(FName(SideIndex == 0 ? f"L{Pair}" : f"R{Pair}"), FVector(HipX, Side * HipY, 0.0),
+                    FVector(HipX, Side * (HipY + 51.0), -CentipedeRestDrop), FVector(HipX, Side * (HipY + 40.0), 70.0),
+                    0.0f, Lengths));
+            }
+        }
+        return Legs;
+    }
+
     // The poles sit outboard and slightly toward the body's end, so the knees point out instead of crossing under the belly.
     FCk_ProceduralLeg_Spec MakeBeastLeg(FName InId, float InFore, float InSide, float32 InPhaseOffset, TArray<float32> InLengths)
     {
@@ -339,6 +365,11 @@ namespace ck
     asset ProceduralGym_RigCentipede of UCk_ProceduralRig_Data
     {
         _Legs.Append(ck_procedural_gym_assets::MakeCentipedeLegs());
+    }
+
+    asset ProceduralGym_RigCentipedeSegment of UCk_ProceduralRig_Data
+    {
+        _Legs.Append(ck_procedural_gym_assets::MakeCentipedeSegmentLegs());
     }
 
     asset ProceduralGym_RigTentacled of UCk_ProceduralRig_Data
