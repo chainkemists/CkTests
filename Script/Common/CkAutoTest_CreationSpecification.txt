@@ -266,7 +266,7 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
         //    NOTE: most utils_*::Add calls take FCk_Handle& (ref). DoBeginPlay
         //    receives FCk_Handle by value; copy to a local lvalue first.
         auto LocalHandle = InHandle;
-        auto Params = FCk_Fragment_<Feature>_ParamsData(...);
+        auto Params = FCk_<Feature>_Spec(...);
         _Feature = utils_<feature>::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
 
         // 2. Declare the sequence. Descriptions are what a hang reports, so
