@@ -1947,6 +1947,45 @@ class ACk_AutoTest_Crowd_Disable_ReenableRestoresBody_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Crowd_EpisodeEnd_ReleasesSidewalkRoute_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 30.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Crowd_EpisodeEnd_ReleasesSidewalkRoute");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Crowd_EpisodeEnd_ReleasesSidewalkRoute_FailMovePolicy_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 45.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Crowd_EpisodeEnd_ReleasesSidewalkRoute_FailMovePolicy");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Crowd_EpisodeEnd_ReleasesSidewalkRoute_NoProgressExhausted_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 75.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Crowd_EpisodeEnd_ReleasesSidewalkRoute_NoProgressExhausted");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Crowd_Goal_ConfirmedSquatterHoldsLatecomer_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 30.0f;
