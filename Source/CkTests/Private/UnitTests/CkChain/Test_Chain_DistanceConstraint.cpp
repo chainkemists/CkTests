@@ -139,3 +139,126 @@ bool FCk_Chain_DistanceConstraint_IsOrderIndependentOfDeltaT::RunTest(const FStr
     TestTrue(TEXT("empty roster remains empty"), EmptyPoses.IsEmpty());
     return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCk_Chain_DistanceConstraint_InvalidInput_RejectsWithoutPartialMutation,
+    "Ck.Chain.DistanceConstraint.InvalidInput_RejectsWithoutPartialMutation", kCkUnitTestFlags)
+bool FCk_Chain_DistanceConstraint_InvalidInput_RejectsWithoutPartialMutation::RunTest(const FString& Parameters)
+{
+    using namespace ck::chain;
+    const auto Orientations = TArray<ECk_Chain_LinkOrientation>{ECk_Chain_LinkOrientation::FollowPath,
+        ECk_Chain_LinkOrientation::KeepOwn};
+    const auto Initial = TArray<FTransform>{FTransform{FQuat::Identity, FVector{-35, 0, 0}},
+        FTransform{FQuat::Identity, FVector{-70, 0, 0}}};
+    const auto SingleLength = TArray<float>{100.0f};
+    const auto LateInvalidLengths = TArray<float>{100.0f, -1.0f};
+    const auto ValidLengths = TArray<float>{100.0f, 100.0f};
+    const auto LateDerivedLengths = TArray<float>{1.0e20f, 100.0f};
+    const auto SingleKeepOwn = TArray<ECk_Chain_LinkOrientation>{ECk_Chain_LinkOrientation::KeepOwn};
+    const auto SingleFollowPath = TArray<ECk_Chain_LinkOrientation>{ECk_Chain_LinkOrientation::FollowPath};
+    const auto TestUntouched = [&](const TCHAR* InWhat, const TArray<FTransform>& InPoses, const TArray<FTransform>& InBefore) -> void
+    {
+        for (auto Index = 0; Index < InPoses.Num(); ++Index)
+        { TestTrue(InWhat, InPoses[Index].Equals(InBefore[Index], 0.0)); }
+    };
+
+    auto Poses = Initial;
+    AddExpectedError(TEXT("Chain distance solver input arrays must have matching lengths"), EAutomationExpectedErrorFlags::Contains, 2);
+    Solve_DistanceConstraint(FTransform::Identity, SingleLength, Orientations, FVector::UpVector, Poses);
+    TestUntouched(TEXT("mismatched arrays leave every pose untouched"), Poses, Initial);
+
+    AddExpectedError(TEXT("Chain distance solver link input is invalid"), EAutomationExpectedErrorFlags::Contains, 2);
+    Solve_DistanceConstraint(FTransform::Identity, LateInvalidLengths, Orientations, FVector::UpVector, Poses);
+    TestUntouched(TEXT("late invalid segment leaves the earlier pose untouched"), Poses, Initial);
+
+    AddExpectedError(TEXT("Chain distance solver head pose must be finite and normalized"), EAutomationExpectedErrorFlags::Contains, 2);
+    Solve_DistanceConstraint(FTransform{FQuat{0, 0, 0, 2}}, ValidLengths, Orientations, FVector::UpVector, Poses);
+    TestUntouched(TEXT("unnormalized head leaves every pose untouched"), Poses, Initial);
+
+    AddExpectedError(TEXT("Chain distance solver produced an unrepresentable segment"), EAutomationExpectedErrorFlags::Contains, 4);
+    Solve_DistanceConstraint(FTransform{FQuat::Identity, FVector{1.0e200, 0, 0}}, ValidLengths, Orientations,
+        FVector::UpVector, Poses);
+    TestUntouched(TEXT("segment lost at a huge head coordinate leaves every pose untouched"), Poses, Initial);
+
+    auto LateDerived = TArray<FTransform>{FTransform{FQuat::Identity, FVector{1, 0, 0}}, FTransform{FQuat::Identity, FVector{2, 0, 0}}};
+    const auto LateDerivedBefore = LateDerived;
+    Solve_DistanceConstraint(FTransform::Identity, LateDerivedLengths, Orientations, FVector::UpVector, LateDerived);
+    TestUntouched(TEXT("second segment lost at the first solved coordinate leaves the first pose untouched"), LateDerived, LateDerivedBefore);
+
+    auto FarButSolvable = TArray<FTransform>{FTransform{FQuat::Identity, FVector{1.0e18, 0, 0}}};
+    Solve_DistanceConstraint(FTransform::Identity, SingleLength, SingleKeepOwn,
+        FVector::UpVector, FarButSolvable);
+    TestTrue(TEXT("a far current pose still solves to a representable head-relative location"),
+        FarButSolvable[0].GetLocation().Equals(FVector{100, 0, 0}, 1.0e-3));
+
+    auto HugeOffset = TArray<FTransform>{FTransform{FQuat::Identity, FVector{1.0e200, 1.0e200, 0}}};
+    Solve_DistanceConstraint(FTransform::Identity, SingleLength, SingleFollowPath,
+        FVector::UpVector, HugeOffset);
+    TestTrue(TEXT("a finite huge offset normalizes to its direction"),
+        HugeOffset[0].GetLocation().Equals(FVector{100.0 / FMath::Sqrt(2.0), 100.0 / FMath::Sqrt(2.0), 0}, 1.0e-3));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCk_Chain_DistanceConstraint_NearUnitHeadRotationFallbackKeepsSegmentLength,
+    "Ck.Chain.DistanceConstraint.NearUnitHeadRotationFallbackKeepsSegmentLength", kCkUnitTestFlags)
+bool FCk_Chain_DistanceConstraint_NearUnitHeadRotationFallbackKeepsSegmentLength::RunTest(const FString& Parameters)
+{
+    using namespace ck::chain;
+    auto NearUnit = FRotator{0, 90, 0}.Quaternion();
+    NearUnit *= FMath::Sqrt(1.005);
+    const auto Head = FTransform{NearUnit, FVector{100, 200, 300}};
+    if (NOT TestTrue(TEXT("fixture rotation is inside the normalized tolerance"), Head.IsRotationNormalized()))
+    { return false; }
+
+    const auto Lengths = TArray<float>{100.0f};
+    const auto Orientations = TArray<ECk_Chain_LinkOrientation>{ECk_Chain_LinkOrientation::KeepOwn};
+    auto Poses = TArray<FTransform>{FTransform{FQuat::Identity, Head.GetLocation()}};
+    Solve_DistanceConstraint(Head, Lengths, Orientations, FVector::UpVector, Poses);
+    ck_test_chain_distanceconstraint::TestLengths(*this, Head, Lengths, Poses);
+    TestTrue(TEXT("coincident link falls back behind the head's facing"), Poses[0].GetLocation().Equals(FVector{100, 100, 300}, 1.0e-3));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCk_Chain_DistanceConstraint_HeadAlias_MatchesCopiedHead,
+    "Ck.Chain.DistanceConstraint.HeadAlias_MatchesCopiedHead", kCkUnitTestFlags)
+bool FCk_Chain_DistanceConstraint_HeadAlias_MatchesCopiedHead::RunTest(const FString& Parameters)
+{
+    using namespace ck::chain;
+    const auto Lengths = TArray<float>{100.0f, 100.0f, 100.0f};
+    const auto Orientations = TArray<ECk_Chain_LinkOrientation>{ECk_Chain_LinkOrientation::FollowPath,
+        ECk_Chain_LinkOrientation::FollowPath, ECk_Chain_LinkOrientation::FollowPath};
+    const auto Initial = TArray<FTransform>{FTransform{FQuat::Identity, FVector{100, 100, 0}}, FTransform::Identity, FTransform::Identity};
+
+    auto CopiedHeadPoses = Initial;
+    const auto HeadCopy = CopiedHeadPoses[1];
+    Solve_DistanceConstraint(HeadCopy, Lengths, Orientations, FVector::UpVector, CopiedHeadPoses);
+    TestFalse(TEXT("fixture rewrites the aliased element's rotation before the last link falls back to head backward"),
+        CopiedHeadPoses[1].GetRotation().Equals(HeadCopy.GetRotation(), 1.0e-3));
+
+    auto AliasedHeadPoses = Initial;
+    Solve_DistanceConstraint(AliasedHeadPoses[1], Lengths, Orientations, FVector::UpVector, AliasedHeadPoses);
+    for (auto Index = 0; Index < AliasedHeadPoses.Num(); ++Index)
+    { TestTrue(TEXT("aliased and copied heads produce the same poses"), AliasedHeadPoses[Index].Equals(CopiedHeadPoses[Index], 1.0e-3)); }
+
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCk_Chain_DistanceConstraint_ZeroLength_RetainsIncomingRotationForEveryMode,
+    "Ck.Chain.DistanceConstraint.ZeroLength_RetainsIncomingRotationForEveryMode", kCkUnitTestFlags)
+bool FCk_Chain_DistanceConstraint_ZeroLength_RetainsIncomingRotationForEveryMode::RunTest(const FString& Parameters)
+{
+    using namespace ck::chain;
+    const auto Head = FTransform{FRotator{0, 90, 0}.Quaternion(), FVector{50, 20, 0}};
+    const auto OwnRotation = FRotator{10, 37, 15}.Quaternion();
+    for (const auto Orientation : {ECk_Chain_LinkOrientation::FollowPath, ECk_Chain_LinkOrientation::CopyHead, ECk_Chain_LinkOrientation::KeepOwn})
+    {
+        auto Poses = TArray<FTransform>{FTransform{OwnRotation, FVector{300, -40, 0}, FVector{2, 3, 4}}};
+        const auto ZeroLength = TArray<float>{0.0f};
+        const auto SingleOrientation = TArray<ECk_Chain_LinkOrientation>{Orientation};
+        Solve_DistanceConstraint(Head, ZeroLength, SingleOrientation, FVector::UpVector, Poses);
+        TestTrue(TEXT("zero-length link lies at its predecessor"), Poses[0].GetLocation().Equals(Head.GetLocation(), 1.0e-3));
+        TestTrue(TEXT("zero-length link keeps its incoming rotation"), Poses[0].GetRotation().Equals(OwnRotation, 1.0e-3));
+        TestTrue(TEXT("zero-length link keeps its scale"), Poses[0].GetScale3D().Equals(FVector{2, 3, 4}, 1.0e-3));
+    }
+
+    return true;
+}
