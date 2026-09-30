@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC - NET AUTOMATION TEST: CHANNEL-OWNED SUBORDINATE (LEVER PROBE)
+// CK DYNAMIC - NET AUTOMATION TEST: CHANNEL-OWNED SUBORDINATE NEGATIVE CONTROL
 //============================================================================
 //
 // Same as DriverCarrierOnNotify EXCEPT B is spawned under the ActorRelay CHANNEL entity
@@ -13,9 +13,9 @@
 //    so channel-owned entities get HasOwningActorInChain=false on clients and their
 //    replicated fragments never cross the wire.)"
 //
-// So this test asserts the SAME correct behavior (handle resolves at notify time). If the
-// owning-actor chain is the lever, channel-owned B fails to net-translate and this test goes
-// RED - proving the dynamic-handle type is a red herring and the chain is the real cause.
+// This negative control requires the carrier notification to arrive, but its channel-owned
+// handle must remain unresolved on the client. DriverCarrierOnNotify is the positive
+// control: spawning B under the actor-bridged driver makes the handle resolve at notify time.
 //
 // Surface: Ck.Dynamic.Net.AS_DynamicFragment_DriverCarrierChannelOwned
 //============================================================================
@@ -104,10 +104,8 @@ class UCk_AutoTest_Net_DynamicFragment_DriverCarrierChannelOwned : UCk_AutoTest_
         { FinishFailure("OnRepNotify fired but the carrier is missing on the client"); return; }
 
         const auto& Carrier = Subject.Get_Fragment(FCk_Fragment_TESTONLY_DriverCarrier);
-        Assert_True(Carrier.Handle.IsValid(),
-            "the channel-owned subordinate's handle must resolve (validated) AT OnRepNotify time");
-        Assert_True((Carrier.Handle == Subject) == false,
-            "the carried handle should resolve to B, NOT the subject/driver itself");
+        Assert_True(Carrier.Handle.IsValid() == false,
+            "a server-only channel owner cannot make its subordinate handle resolve on the client");
 
         FinishSuccess();
     }
