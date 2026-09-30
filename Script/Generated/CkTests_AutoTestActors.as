@@ -1225,6 +1225,19 @@ class ACk_AutoTest_Chain_GetPoseAtDistanceMatchesPlacedLink_Actor : ACk_AutoTest
     }
 }
 
+class ACk_AutoTest_Chain_GetPoseAtDistanceUncoveredIsInvalid_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 6.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Chain_GetPoseAtDistanceUncoveredIsInvalid");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Chain_HeadTeleportReseedsInsteadOfStringing_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 6.0f;
@@ -1362,6 +1375,32 @@ class ACk_AutoTest_Chain_SplitCancelledDestroysNewChain_Actor : ACk_AutoTestRunn
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Chain_SplitCancelledDestroysNewChain");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Chain_SplitNewChainInheritsSourceModes_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 6.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Chain_SplitNewChainInheritsSourceModes");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Chain_SplitNewChainRequestsApplyAfterDrain_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 6.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Chain_SplitNewChainRequestsApplyAfterDrain");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
