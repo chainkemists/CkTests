@@ -54,6 +54,10 @@ namespace ck_tests_visual_lod_arbiter_tuners_pie
         FCk_VisualLodArbiter_RuntimeTuners ExpectedB;
         FCk_VisualLodArbiter_RuntimeTuners AuthoredB;
         bool bFixtureCreated = false;
+        bool bInitialWorldValid = false;
+        bool bInitialSlateReady = false;
+        bool bInitialReadinessReady = false;
+        FString InitialReadinessStage = TEXT("before-window");
         bool bUnavailableTunersExpanded = false;
         bool bUnavailableViewMounted = false;
         bool bUnavailableResetMounted = false;
@@ -352,50 +356,98 @@ bool FCkVisualLod_ArbiterTunersPie::RunTest(const FString&)
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
         FCk_NetAutoTest_ServerAction::CreateLambda([State](UWorld* InWorld) -> void
         {
-            if (!IsValid(InWorld) || !FSlateApplication::IsInitialized()) { return; }
+            State->bInitialWorldValid = IsValid(InWorld);
+            State->bInitialSlateReady = FSlateApplication::IsInitialized();
+            if (!State->bInitialWorldValid) { State->InitialReadinessStage = TEXT("no-server-world"); return; }
+            if (!State->bInitialSlateReady) { State->InitialReadinessStage = TEXT("slate-not-initialized"); return; }
 
             FSlateApplication& Slate = FSlateApplication::Get();
             State->Panel = SNew(SCkVisualLodDebuggerWindow);
             State->WeakPanel = State->Panel;
-            State->Window = SNew(SWindow).AutoCenter(EAutoCenter::None).ClientSize(FVector2D{360.0f, 520.0f})
+            State->Window = SNew(SWindow).AutoCenter(EAutoCenter::None).ClientSize(FVector2D{1280.0f, 900.0f})
                 .CreateTitleBar(false).HasCloseButton(false)[State->Panel.ToSharedRef()];
             Slate.AddWindow(State->Window.ToSharedRef(), true);
             Tick(Slate);
+            State->InitialReadinessStage = TEXT("window-mounted");
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
         FCk_NetAutoTest_ServerAction::CreateLambda([State](UWorld*) -> void
         {
-            if (!State->Panel.IsValid() || !FSlateApplication::IsInitialized()) { return; }
+            if (!State->Panel.IsValid())
+            {
+                if (State->bInitialWorldValid && State->bInitialSlateReady)
+                { State->InitialReadinessStage = TEXT("panel-missing-before-disclosure"); }
+                return;
+            }
+            if (!FSlateApplication::IsInitialized()) { State->InitialReadinessStage = TEXT("slate-missing-before-disclosure"); return; }
             const TSharedPtr<SCkDebug_InspectorPanel> Tuners = FindInspectorPanel(State->Panel.ToSharedRef());
             const TSharedPtr<SButton> TunersHeader = Tuners.IsValid() ? FindButtonDescendant(Tuners.ToSharedRef()) : nullptr;
-            if (!Tuners.IsValid() || !TunersHeader.IsValid()) { return; }
-            if (!Tuners->Is_Expanded() && !Click(FSlateApplication::Get(), TunersHeader.ToSharedRef())) { return; }
+            if (!Tuners.IsValid()) { State->InitialReadinessStage = TEXT("tuners-inspector-missing"); return; }
+            if (!TunersHeader.IsValid()) { State->InitialReadinessStage = TEXT("tuners-header-missing"); return; }
+            if (!Tuners->Is_Expanded() && !Click(FSlateApplication::Get(), TunersHeader.ToSharedRef()))
+            { State->InitialReadinessStage = TEXT("tuners-header-click-unhandled"); return; }
             Tick(FSlateApplication::Get());
             State->bUnavailableTunersExpanded = Tuners->Is_Expanded();
+            State->InitialReadinessStage = State->bUnavailableTunersExpanded
+                ? TEXT("disclosure-expanded") : TEXT("disclosure-still-collapsed");
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForCondition(
         FCk_NetAutoTest_Condition::CreateLambda([State]() -> bool
         {
-            if (!State->bUnavailableTunersExpanded || !State->Panel.IsValid()) { return false; }
+            if (!State->bUnavailableTunersExpanded || !State->Panel.IsValid())
+            {
+                if (State->bUnavailableTunersExpanded) { State->InitialReadinessStage = TEXT("panel-lost-during-first-wait"); }
+                return false;
+            }
             const TSharedPtr<FCkUiView> View = State->Panel->Get_ArbiterTunersView();
-            if (!View.IsValid() || !View->GetLastResult().Succeeded) { return false; }
+            if (!View.IsValid()) { State->InitialReadinessStage = TEXT("tuners-view-missing"); return false; }
+            if (!View->GetLastResult().Succeeded) { State->InitialReadinessStage = TEXT("tuners-view-load-failed"); return false; }
             const TSharedPtr<SButton> Reset = FindButton(View->GetRegion(TEXT("main")), TEXT("vl-arbiter-reset"));
-            if (!Reset.IsValid() || !FSlateApplication::Get().FindWidgetWindow(Reset.ToSharedRef()).IsValid()) { return false; }
+            if (!Reset.IsValid()) { State->InitialReadinessStage = TEXT("reset-button-missing"); return false; }
+            if (!FSlateApplication::IsInitialized()) { State->InitialReadinessStage = TEXT("slate-lost-during-first-wait"); return false; }
+            if (!FSlateApplication::Get().FindWidgetWindow(Reset.ToSharedRef()).IsValid())
+            { State->InitialReadinessStage = TEXT("reset-button-not-window-mounted"); return false; }
             State->bUnavailableViewMounted = true;
             State->bUnavailableResetMounted = true;
             State->bUnavailableResetDisabled = !Reset->IsEnabled();
+            State->bInitialReadinessReady = true;
+            State->InitialReadinessStage = TEXT("ready");
             return true;
         }), 15.0f));
 
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
-        FCk_NetAutoTest_ServerAction::CreateLambda([State](UWorld* InWorld) -> void
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
+        FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
         {
+            const bool bWorldValid = State->bInitialWorldValid;
+            const bool bSlateReady = FSlateApplication::IsInitialized();
+            const bool bPanelValid = State->Panel.IsValid();
+            const TSharedPtr<FCkUiView> View = bPanelValid ? State->Panel->Get_ArbiterTunersView() : nullptr;
+            const bool bViewValid = View.IsValid();
+            const bool bViewSucceeded = bViewValid && View->GetLastResult().Succeeded;
+            const TSharedPtr<SButton> Reset = bViewSucceeded
+                ? FindButton(View->GetRegion(TEXT("main")), TEXT("vl-arbiter-reset")) : nullptr;
+            const bool bResetValid = Reset.IsValid();
+            const bool bResetMounted = bResetValid && bSlateReady
+                && FSlateApplication::Get().FindWidgetWindow(Reset.ToSharedRef()).IsValid();
+            TestTrue(FString::Printf(TEXT("VisualLod initial tuner readiness stage=%s initialWorld=%d initialSlate=%d currentSlate=%d panel=%d expanded=%d view=%d accepted=%d reset=%d mounted=%d"),
+                *State->InitialReadinessStage, bWorldValid, State->bInitialSlateReady, bSlateReady, bPanelValid,
+                State->bUnavailableTunersExpanded, bViewValid, bViewSucceeded, bResetValid, bResetMounted),
+                State->bInitialReadinessReady);
+            return State->bInitialReadinessReady;
+        }), TEXT("VisualLod initial tuner readiness")));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([this, State](UWorld* InWorld) -> void
+        {
+            if (!TestTrue(TEXT("VisualLod tuner fixture has a live server world"), IsValid(InWorld))) { return; }
             UCk_VisualLodArbiter_Data* ConfigA = FindConfig(TEXT("Asset_VisualLodArbiterTunersPie_ConfigA"));
+            if (!TestTrue(TEXT("VisualLod tuner fixture ConfigA asset is loaded"), IsValid(ConfigA))) { return; }
             UCk_VisualLodArbiter_Data* ConfigB = FindConfig(TEXT("Asset_VisualLodArbiterTunersPie_ConfigB"));
+            if (!TestTrue(TEXT("VisualLod tuner fixture ConfigB asset is loaded"), IsValid(ConfigB))) { return; }
             UCk_IskmRenderer_Data* RendererData = FindRendererData();
-            if (!IsValid(InWorld) || !IsValid(ConfigA) || !IsValid(ConfigB) || !IsValid(RendererData)) { return; }
+            if (!TestTrue(TEXT("VisualLod tuner fixture renderer asset is loaded"), IsValid(RendererData))) { return; }
             State->Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InWorld);
             FCk_Handle ArbiterAEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(State->Owner);
             FCk_Handle ArbiterBEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(State->Owner);
