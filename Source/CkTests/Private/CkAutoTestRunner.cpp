@@ -281,6 +281,20 @@ TArray<FString>
     return _ExpectedLogErrors;
 }
 
+TArray<FString>
+    ACk_AutoTestRunner::
+    Get_ExpectedLogErrorsExact_Implementation() const
+{
+    return {};
+}
+
+TArray<FString>
+    ACk_AutoTestRunner::
+    Get_RequiredLogErrors_Implementation() const
+{
+    return {};
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 
 auto
@@ -1299,5 +1313,23 @@ auto
         { continue; }
         CurrentTest->AddExpectedErrorPlain(Pattern,
             EAutomationExpectedErrorFlags::Contains, SuppressAll);
+    }
+
+    // Expected messages are stored in an unordered set and stop at their first match.
+    // Exact mirror patterns cannot consume a longer required diagnostic.
+    for (const auto& Pattern : Get_ExpectedLogErrorsExact())
+    {
+        if (Pattern.IsEmpty())
+        { continue; }
+        CurrentTest->AddExpectedErrorPlain(Pattern,
+            EAutomationExpectedErrorFlags::Exact, SuppressAll);
+    }
+
+    for (const auto& Pattern : Get_RequiredLogErrors())
+    {
+        if (Pattern.IsEmpty())
+        { continue; }
+        CurrentTest->AddExpectedErrorPlain(Pattern,
+            EAutomationExpectedErrorFlags::Contains, 1);
     }
 }

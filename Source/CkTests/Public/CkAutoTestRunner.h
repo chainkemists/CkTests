@@ -111,6 +111,16 @@ public:
     TArray<FString> Get_ExpectedLogErrors() const;
     virtual TArray<FString> Get_ExpectedLogErrors_Implementation() const;
 
+    // Suppresses an entire message without also matching a longer diagnostic containing it.
+    UFUNCTION(BlueprintNativeEvent, Category = "Ck|AutoTest")
+    TArray<FString> Get_ExpectedLogErrorsExact() const;
+    virtual TArray<FString> Get_ExpectedLogErrorsExact_Implementation() const;
+
+    // Unlike Get_ExpectedLogErrors, every returned substring must appear exactly once.
+    UFUNCTION(BlueprintNativeEvent, Category = "Ck|AutoTest")
+    TArray<FString> Get_RequiredLogErrors() const;
+    virtual TArray<FString> Get_RequiredLogErrors_Implementation() const;
+
 public:
     virtual auto PrepareTest() -> void override;
     // Gates the engine's StartTest - and so the TimeLimit clock - on the AS test entity existing.

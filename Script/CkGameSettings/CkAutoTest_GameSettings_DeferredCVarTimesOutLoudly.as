@@ -7,8 +7,6 @@ class UCk_AutoTest_GameSettings_DeferredCVarTimesOutLoudly : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 10.0;
 
-    private float _WaitStartTimeSeconds = 0.0;
-
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
@@ -25,21 +23,23 @@ class UCk_AutoTest_GameSettings_DeferredCVarTimesOutLoudly : UCk_AutoTest_Base
             FCk_Request_GameSettings_SetValue_Float(n"astest.deferred.key", 0.75)),
             "set holds with the CVar missing (value goes to the deferred queue)");
 
-        _WaitStartTimeSeconds = System::GetGameTimeInSeconds();
-        WaitUntil(n"Check_TimeoutWindowElapsed", n"OnTimeoutWindowElapsed", 100000);
+        Assert_True(utils_game_settings::Get_HasPendingCVarApply(n"astest.deferred.key"),
+            "missing CVar leaves an apply pending before the timeout");
+        WaitUntil(n"Check_TimeoutCompleted", n"OnTimeoutCompleted", 100000);
     }
 
     UFUNCTION()
-    private void Check_TimeoutWindowElapsed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    private void Check_TimeoutCompleted(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         auto Result = OutResult;
-        Result.Set(System::GetGameTimeInSeconds() - _WaitStartTimeSeconds >= 3.0);
+        Result.Set(utils_game_settings::Get_HasPendingCVarApply(n"astest.deferred.key") == false);
     }
 
     UFUNCTION()
-    private void OnTimeoutWindowElapsed(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void OnTimeoutCompleted(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-
+        Assert_True(utils_game_settings::Get_HasPendingCVarApply(n"astest.deferred.key") == false,
+            "the production ticker removed the timed-out apply");
         Assert_Equals_Float(utils_game_settings::Get_SettingValue_Float(n"astest.deferred.key", -1.0), 0.75, 0.001,
             "the value survives the deferred-apply timeout");
 
@@ -64,13 +64,23 @@ class ACk_AutoTest_GameSettings_DeferredCVarTimesOutLoudly_Actor : ACk_AutoTestR
 {
     default _TestEntityScriptClass = UCk_AutoTest_GameSettings_DeferredCVarTimesOutLoudly;
 
-    // The timeout ensure is this test's expected observation - suppress it so the automation
-    // framework doesn't auto-fail the test on its own deliberate output. Plain substring match.
+    // The editor's short mirror is a separate error from the original diagnostic.
     UFUNCTION(BlueprintOverride)
-    TArray<FString> Get_ExpectedLogErrors() const
+    TArray<FString> Get_ExpectedLogErrorsExact() const
     {
         TArray<FString> Out;
-        Out.Add("GameSettings deferred apply for key");
+        Out.Add("[Server] ! TimedOut\nGameSettings deferred apply for key [astest.deferred.key] timed out, CVar [ck.astest.nonexistent.cvar] never registered within [1] seconds. The stored value is retained and will apply next boot.");
+        return Out;
+    }
+
+    // A missing timeout is a failure even if the stored value remains intact.
+    UFUNCTION(BlueprintOverride)
+    TArray<FString> Get_RequiredLogErrors() const
+    {
+        TArray<FString> Out;
+        // The editor mirrors the same ensure into CkEnsures without a callstack. Match only
+        // the original diagnostic so one timeout has one required automation occurrence.
+        Out.Add("GameSettings deferred apply for key [astest.deferred.key] timed out, CVar [ck.astest.nonexistent.cvar] never registered within [1] seconds. The stored value is retained and will apply next boot.\n\n == BP CallStack ==");
         return Out;
     }
 }
