@@ -72,9 +72,10 @@ class UCk_AutoTest_Chain_GetPoseAtDistanceMatchesPlacedLink : UCk_AutoTest_Base
     UFUNCTION()
     private void Step_Verify(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        auto Pose = utils_chain::Get_PoseAtDistance(_F.Chain, 250.0f);
-        Assert_True(Pose.GetLocation().Equals(_F.Location(0), 1.0), "Get_PoseAtDistance matches identity-offset placement");
-        Assert_True(Pose.GetLocation().Equals(FVector(500.0, 250.0, 0.0), 1.0), "query follows recorded corner");
+        auto Result = utils_chain::Get_PoseAtDistance(_F.Chain, 250.0f);
+        Assert_True(Result.Get_IsValid(), "covered distance returns a valid pose");
+        Assert_True(Result.Get_Pose().GetLocation().Equals(_F.Location(0), 1.0), "Get_PoseAtDistance matches identity-offset placement");
+        Assert_True(Result.Get_Pose().GetLocation().Equals(FVector(500.0, 250.0, 0.0), 1.0), "query follows recorded corner");
         FinishSuccess();
     }
 }
