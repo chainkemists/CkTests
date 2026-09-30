@@ -77,6 +77,7 @@ public class CkTests : CkModuleRules
             "CkCamera",
             "CkChain",
             "CkSway",
+            "CkRotateTowards",
             "CkCore",
             "CkCrowd",
             "CkCue",
