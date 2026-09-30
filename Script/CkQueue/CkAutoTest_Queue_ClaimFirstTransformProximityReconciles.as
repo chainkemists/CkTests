@@ -5,6 +5,8 @@ class UCk_AutoTest_Queue_ClaimFirstTransformProximityReconciles : UCk_AutoTest_B
 {
     default _TimeoutSeconds = 30.0f;
 
+    // Keep every 120 cm layout slot clear of the host's pawn at the origin.
+    private const FVector k_OwnerTargetLocation = FVector(600.0f, 0.0f, 0.0f);
     private FCk_Handle       _Owner;
     private FCk_Handle_Queue _Queue;
     private TArray<FCk_Handle> _Members;
@@ -21,10 +23,12 @@ class UCk_AutoTest_Queue_ClaimFirstTransformProximityReconciles : UCk_AutoTest_B
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        utils_transform::Add(_Owner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
+        utils_transform::Add(_Owner, FTransform(k_OwnerTargetLocation), ECk_Replication::DoesNotReplicate);
         _Queue = CreateQueue(_Owner);
         _Queue.BindTo_OnQueueMemberStateChanged(
             FCk_Delegate_Queue_OnMemberStateChanged(this, n"OnMemberStateChanged"));
+        _Queue.BindTo_OnQueueFormationStateChanged(
+            FCk_Delegate_Queue_OnFormationStateChanged(this, n"OnFormationStateChanged"));
 
         for (int32 Index = 0; Index < 3; ++Index)
         {
@@ -57,6 +61,37 @@ class UCk_AutoTest_Queue_ClaimFirstTransformProximityReconciles : UCk_AutoTest_B
     {
         if (InQueue == _Queue && InEvent.Get_Reason() == ECk_Queue_EventReason::SlotReached)
         { _SlotReachedEvents += 1; }
+        if (InQueue == _Queue)
+        { Log_QueueDiagnostic(f"member event reason={InEvent.Get_Reason() :n}"); }
+    }
+
+    UFUNCTION()
+    private void OnFormationStateChanged(FCk_Handle_Queue InQueue, FCk_Queue_FormationState InState)
+    {
+        if (InQueue != _Queue) { return; }
+        Log_QueueDiagnostic(f"formation state={InState.Get_State() :n} reason={InState.Get_Reason() :n} retry={InState.Get_RetryEpisode()} revision={InState.Get_QueueRevision()}");
+    }
+
+    private void Log_QueueDiagnostic(FString InContext)
+    {
+        if (ck::Is_NOT_Valid(_Queue))
+        {
+            LogDisplay(f"[QUEUE-CLAIM-FIRST-DIAG] {InContext} queue invalid");
+            return;
+        }
+
+        LogDisplay(f"[QUEUE-CLAIM-FIRST-DIAG] {InContext} queueState={_Queue.Get_State() :n} queueRevision={_Queue.Get_Revision()} members={_Queue.Get_MemberCount()} navHealth={utils_nav_surface::Get_ProviderHealth() :n} navRevision={utils_nav_surface::Get_SurfaceRevision()}");
+        int32 MemberIndex = 0;
+        for (const auto& Member : _Queue.Get_Members())
+        {
+            const auto Mover = Member.Get_Mover();
+            const bool HasMoverTransform = ck::IsValid(Mover) && utils_transform::Has(Mover);
+            const auto MoverLocation = HasMoverTransform
+                ? utils_transform::Get_EntityCurrentTransform(utils_transform::DoCastChecked(Mover)).GetLocation()
+                : FVector::ZeroVector;
+            LogDisplay(f"[QUEUE-CLAIM-FIRST-DIAG] memberIndex={MemberIndex} memberValid={ck::IsValid(Member.Get_Member())} state={Member.Get_State() :n} rank={Member.Get_Rank()} assignmentRevision={Member.Get_AssignmentRevision()} targetLocation={Member.Get_TargetWorldTransform().GetLocation()} moverValid={ck::IsValid(Mover)} hasMoverTransform={HasMoverTransform} moverLocation={MoverLocation}");
+            MemberIndex += 1;
+        }
     }
 
     UFUNCTION()
@@ -70,18 +105,72 @@ class UCk_AutoTest_Queue_ClaimFirstTransformProximityReconciles : UCk_AutoTest_B
     UFUNCTION()
     private void Check_QueueReady(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
+        auto Ready = ck::IsValid(_Queue) && _Queue.Get_State() == ECk_Queue_State::Ready;
+        if (Ready)
+        {
+            for (int32 Rank = 0; Rank < 3; ++Rank)
+            {
+                const auto Candidate = k_OwnerTargetLocation - FVector(120.0 * Rank, 0.0, 0.0);
+                auto Query = FCk_NavSurface_ProjectionQuery(Candidate);
+                Query.Set_SearchHalfExtents(FVector(50.0, 50.0, 104.0));
+                const auto Projected = utils_nav_surface::Try_ProjectPoint(Query);
+                if (Projected.Get_Status() != ECk_NavSurface_QueryStatus::Success ||
+                    Projected.Get_Location().Dist2D(Candidate) > 8.0)
+                {
+                    Ready = false;
+                    break;
+                }
+            }
+        }
         auto Result = OutResult;
-        Result.Set(ck::IsValid(_Queue) && _Queue.Get_State() == ECk_Queue_State::Ready);
+        Result.Set(Ready);
     }
 
     UFUNCTION()
     private void Step_RequestJoins(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
+        Log_FormationCandidates();
         for (const auto& Member : _Members)
         {
             auto Join = FCk_Request_Queue_Join(Member);
             Join.Set_Mover(Member);
             _Queue.Request_Join(Join);
+        }
+        Log_QueueDiagnostic("joins requested");
+    }
+
+    private void Log_FormationCandidates()
+    {
+        if (ck::Is_NOT_Valid(_Owner) || utils_transform::Has(_Owner) == false)
+        { return; }
+
+        const auto OwnerTransform = utils_transform::Get_EntityCurrentTransform(_Owner.As_Transform());
+        TArray<EObjectTypeQuery> PawnTypes;
+        PawnTypes.Add(EObjectTypeQuery::Pawn);
+        TArray<AActor> IgnoreActors;
+        for (int32 Rank = 0; Rank < 3; ++Rank)
+        {
+            const auto Candidate = OwnerTransform.TransformPosition(FVector(-120.0 * Rank, 0.0, 0.0));
+            auto Query = FCk_NavSurface_ProjectionQuery(Candidate);
+            Query.Set_SearchHalfExtents(FVector(50.0, 50.0, 104.0));
+            const auto Projected = utils_nav_surface::Try_ProjectPoint(Query);
+            LogDisplay(f"[QUEUE-FORMATION-CANDIDATE] rank {Rank} owner {OwnerTransform.GetLocation()} candidate {Candidate} status {Projected.Get_Status() :n}");
+            if (Projected.Get_Status() != ECk_NavSurface_QueryStatus::Success)
+            { continue; }
+
+            const auto Point = Projected.Get_Location();
+            const auto Center = Point + FVector(0.0, 0.0, 105.0);
+            TArray<AActor> OverlappingPawns;
+            System::CapsuleOverlapActors(Center, 50.0, 104.0, PawnTypes, APawn, IgnoreActors, OverlappingPawns);
+            LogDisplay(f"[QUEUE-FORMATION-CANDIDATE] rank {Rank} projected {Point} pawnObjects {OverlappingPawns.Num()}");
+            for (int32 Index = 0; Index < Math::Min(OverlappingPawns.Num(), 8); ++Index)
+            {
+                const auto Pawn = OverlappingPawns[Index];
+                if (System::IsValid(Pawn))
+                {
+                    LogDisplay(f"[QUEUE-FORMATION-PAWN] rank {Rank} actor {Pawn.GetName().ToString()} location {Pawn.GetActorLocation()}");
+                }
+            }
         }
     }
 
@@ -220,7 +309,6 @@ class UCk_AutoTest_Queue_ClaimFirstTransformProximityReconciles : UCk_AutoTest_B
 
     private FCk_Handle_Queue CreateQueue(FCk_Handle InOwner)
     {
-        utils_transform::Request_SetLocation(InOwner.As_Transform(), FVector(200.0f, 0.0f, 0.0f), ECk_LocalWorld::World);
         auto Params = FCk_Queue_Spec();
         Params.Set_LayoutAlgorithm(ECk_Queue_LayoutAlgorithm::Linear);
         Params.Set_SlotSpacingUu(120.0f);
