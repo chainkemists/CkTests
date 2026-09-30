@@ -11,9 +11,12 @@
 #include "CkProceduralAnimation/Debug/CkProceduralAnimation_Debug.h"
 #include "CkProceduralAnimation/Gait/CkProceduralGait_Utils.h"
 #include "CkProceduralAnimation/Leg/CkProceduralLeg_Utils.h"
+#include "CkAutoTest_Utils.h"
 #include "CkTests/Net/CkNetAutomation_Common.h"
 
 #include "Engine/World.h"
+#include "HAL/IConsoleManager.h"
+#include "HAL/PlatformTime.h"
 #include "Misc/AutomationTest.h"
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -24,7 +27,7 @@ namespace ck_test_procedural_body_pose_tilt_steps
 
     constexpr auto StepDegrees = 4.0;
     constexpr auto StepFrames = 5;
-    constexpr auto SettleFramesAfterSteps = 40;
+    constexpr auto SettleNominalFramesAfterSteps = 40;
     // The drawn body's turn is measured over the world time between samples, so a sample that spans a long frame or two frames
     // reads the spring's rate, not the length of the frame: 1.5 degrees a frame at 60 fps.
     constexpr auto MaxPresentationRateDegreesPerSecond = 1.5 * 60.0;
@@ -52,9 +55,10 @@ namespace ck_test_procedural_body_pose_tilt_steps
 
     // Disabling every leg but the first tilts the support pose by its whole max tilt toward the lost side in one frame.
     constexpr auto SupportJumpDegrees = 30.0;
-    constexpr auto SupportJumpSampleFrames = 90;
+    constexpr auto SupportJumpMinSamples = 90;
     constexpr auto MinTargetJumpDegrees = 29.0;
     constexpr auto MaxSettledTrailDegrees = 1.0;
+    constexpr auto SupportJumpDurationSeconds = SupportJumpMinSamples * NominalFrameSeconds;
 
     struct FWalker
     {
@@ -71,6 +75,7 @@ namespace ck_test_procedural_body_pose_tilt_steps
         FQuat LastTargetRotation = FQuat::Identity;
         double WorstPresentationRate = 0.0;
         int32 WorstFrame = INDEX_NONE;
+        double WorstPresentationRateElapsedSeconds = 0.0;
         double WorstBodyStepError = 0.0;
         double WorstTrail = 0.0;
         int32 WorstTrailFrame = INDEX_NONE;
@@ -97,14 +102,79 @@ namespace ck_test_procedural_body_pose_tilt_steps
     {
         TArray<FWalker> Walkers;
         int32 Frame = 0;
-        double LastDeltaSeconds = 0.0;
-
         TWeakObjectPtr<UWorld> DrivenWorld;
         FDelegateHandle DriveHandle;
         double DrivenPitch = 0.0;
         bool Driving = false;
         bool WasDriving = false;
         double LastSampleTime = 0.0;
+        double SupportJumpElapsedSeconds = 0.0;
+        double SupportJumpLargestLaterTargetStep = 0.0;
+        double TrialStartTime = 0.0;
+        int32 IssuedPitchSteps = 0;
+        double PendingPitchStepDegrees = 0.0;
+        double LastPitchIssueTime = 0.0;
+        double ShortestPitchIssueIntervalSeconds = TNumericLimits<double>::Max();
+        int32 PitchSampleCount = 0;
+        int32 PitchSamplesNear60Hz = 0;
+        int32 PitchSamplesNear120Hz = 0;
+        int32 PitchSamplesOther = 0;
+        double ShortestPitchSampleSeconds = TNumericLimits<double>::Max();
+        double LongestPitchSampleSeconds = 0.0;
+        bool MaxFPSFoundAtTrial = false;
+        double EffectiveMaxFPS = 0.0;
+        uint32 EffectiveMaxFPSPriority = 0;
+        bool TrialTimedOut = false;
+    };
+
+    class FScopedMaxFPS
+    {
+    public:
+        explicit FScopedMaxFPS(FName InName) : _Name(InName)
+        { UCk_Utils_AutoTest_UE::Request_PushCVarOverride(_Name, TEXT("60")); }
+
+        ~FScopedMaxFPS()
+        { UCk_Utils_AutoTest_UE::Request_PopCVarOverride(_Name); }
+
+        FScopedMaxFPS(const FScopedMaxFPS&) = delete;
+        auto operator=(const FScopedMaxFPS&) -> FScopedMaxFPS& = delete;
+
+    private:
+        FName _Name;
+    };
+
+    class FCk_Latent_ReleaseMaxFPS : public IAutomationLatentCommand
+    {
+    public:
+        FCk_Latent_ReleaseMaxFPS(FAutomationTestBase& InTest, TSharedPtr<FScopedMaxFPS> InLease,
+            FString InSavedValue, uint32 InSavedPriority)
+            : _Test(InTest), _Lease(MoveTemp(InLease)), _SavedValue(MoveTemp(InSavedValue)), _SavedPriority(InSavedPriority) {}
+
+        virtual bool Update() override
+        {
+            _Lease.Reset();
+            const auto Name = FName{TEXT("t.MaxFPS")};
+            if (NOT _Test.TestTrue(TEXT("t.MaxFPS still exists after the stepped trial"),
+                    UCk_Utils_AutoTest_UE::Get_CVarExists(Name)))
+            { return true; }
+
+            const auto& CVar = *IConsoleManager::Get().FindConsoleVariable(TEXT("t.MaxFPS"));
+            const auto RestoredValue = CVar.GetString();
+            const auto RestoredPriority = static_cast<uint32>(CVar.GetFlags() & ECVF_SetByMask);
+            UE_LOG(LogTemp, Display, TEXT("[TILT-60-CVAR] saved '%s'/0x%x restored '%s'/0x%x"),
+                *_SavedValue, _SavedPriority, *RestoredValue, RestoredPriority);
+            _Test.TestTrue(FString::Printf(TEXT("t.MaxFPS restores its exact value and SetBy priority after EndPIE "
+                    "(saved '%s'/0x%x, restored '%s'/0x%x)"),
+                    *_SavedValue, _SavedPriority, *RestoredValue, RestoredPriority),
+                RestoredValue == _SavedValue && RestoredPriority == _SavedPriority);
+            return true;
+        }
+
+    private:
+        FAutomationTestBase& _Test;
+        TSharedPtr<FScopedMaxFPS> _Lease;
+        FString _SavedValue;
+        uint32 _SavedPriority = 0;
     };
 
     auto
@@ -220,6 +290,7 @@ namespace ck_test_procedural_body_pose_tilt_steps
             {
                 Walker.WorstPresentationRate = PresentationRate;
                 Walker.WorstFrame = Frame;
+                Walker.WorstPresentationRateElapsedSeconds = InElapsed;
             }
 
             Walker.LastTrail = Get_TrailDegrees(Walker);
@@ -254,6 +325,32 @@ namespace ck_test_procedural_body_pose_tilt_steps
                 FCk_Request_Transform_SetRotation{FRotator{InDegrees, 0.0, 0.0}}, {});
         }
     }
+
+    // Samples on each automation tick, which advances the PIE world once. A wall-clock guard keeps a stalled world from
+    // hanging the suite; the final assertions report the incomplete world-time interval or sample count.
+    class FCk_Latent_SampleBodyPoseUntil : public IAutomationLatentCommand
+    {
+    public:
+        FCk_Latent_SampleBodyPoseUntil(TFunction<bool()> InSample, TFunction<void()> InOnTimeout)
+            : _Sample(MoveTemp(InSample)), _OnTimeout(MoveTemp(InOnTimeout)) {}
+
+        virtual bool Update() override
+        {
+            if (_StartWallSeconds < 0.0)
+            { _StartWallSeconds = FPlatformTime::Seconds(); }
+            if (_Sample())
+            { return true; }
+            if (FPlatformTime::Seconds() - _StartWallSeconds < WaitSeconds)
+            { return false; }
+            _OnTimeout();
+            return true;
+        }
+
+    private:
+        TFunction<bool()> _Sample;
+        TFunction<void()> _OnTimeout;
+        double _StartWallSeconds = -1.0;
+    };
 
     // Composes InState's walkers high above an empty map, without ground and without surface motion, so their bodies move
     // only when a test turns them, and waits until their gaits have solved. With no ground every foot probe is lost and the
@@ -313,8 +410,8 @@ namespace ck_test_procedural_body_pose_tilt_steps
             }), WaitSeconds, TEXT("Every walker's gait has solved and its body pose has settled")));
     }
 
-    // Pitches every body StepDegrees on each of InStepFrames consecutive frames and samples every frame until
-    // SettleFramesAfterSteps frames after the last step.
+    // Keeps the authored 4-degree steps 1/60 world-second apart while observing the presentation on every PIE tick.
+    // The trial includes the original 40 nominal-frame settling interval after the five nominal step frames.
     auto
         DoEnqueue_PitchSteps(
             const TSharedRef<FState>& InState,
@@ -325,24 +422,63 @@ namespace ck_test_procedural_body_pose_tilt_steps
             [InState](UWorld* InWorld)
             {
                 DoBegin_Sampling(InState);
-                InState->LastSampleTime = InWorld->GetTimeSeconds();
+                InState->DrivenWorld = InWorld;
+                InState->TrialStartTime = InWorld->GetTimeSeconds();
+                InState->LastSampleTime = InState->TrialStartTime;
+                InState->LastPitchIssueTime = InState->TrialStartTime;
+                InState->IssuedPitchSteps = 1;
+                InState->PendingPitchStepDegrees = StepDegrees;
+                InState->MaxFPSFoundAtTrial = UCk_Utils_AutoTest_UE::Get_CVarExists(FName{TEXT("t.MaxFPS")});
+                if (InState->MaxFPSFoundAtTrial)
+                {
+                    const auto& MaxFPS = *IConsoleManager::Get().FindConsoleVariable(TEXT("t.MaxFPS"));
+                    InState->EffectiveMaxFPS = MaxFPS.GetFloat();
+                    InState->EffectiveMaxFPSPriority = static_cast<uint32>(MaxFPS.GetFlags() & ECVF_SetByMask);
+                }
                 Request_Pitch(InState, StepDegrees);
             })));
-        for (auto Step = 1; Step <= InStepFrames + SettleFramesAfterSteps; ++Step)
-        {
-            ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(OneFrame));
-            ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
-                [InState, Step, InStepFrames](UWorld* InWorld)
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_SampleBodyPoseUntil(
+            [InState, InStepFrames]
+            {
+                if (NOT InState->DrivenWorld.IsValid())
+                { return false; }
+                const auto Now = InState->DrivenWorld->GetTimeSeconds();
+                const auto Elapsed = Now - InState->LastSampleTime;
+                if (Elapsed <= 0.0)
+                { return false; }
+
+                ++InState->PitchSampleCount;
+                InState->ShortestPitchSampleSeconds = FMath::Min(InState->ShortestPitchSampleSeconds, Elapsed);
+                InState->LongestPitchSampleSeconds = FMath::Max(InState->LongestPitchSampleSeconds, Elapsed);
+                if (Elapsed >= 1.0 / 150.0 && Elapsed <= 1.0 / 100.0)
+                { ++InState->PitchSamplesNear120Hz; }
+                else if (Elapsed >= 1.0 / 72.0 && Elapsed <= 1.0 / 50.0)
+                { ++InState->PitchSamplesNear60Hz; }
+                else
+                { ++InState->PitchSamplesOther; }
+
+                ++InState->Frame;
+                DoSample(InState, InState->PendingPitchStepDegrees, Elapsed);
+                InState->PendingPitchStepDegrees = 0.0;
+                InState->LastSampleTime = Now;
+
+                if (InState->IssuedPitchSteps < InStepFrames
+                    && Now - InState->LastPitchIssueTime + 1.0e-6 >= NominalFrameSeconds)
                 {
-                    InState->Frame = Step;
-                    InState->LastDeltaSeconds = InWorld->GetDeltaSeconds();
-                    const auto Now = InWorld->GetTimeSeconds();
-                    DoSample(InState, Step <= InStepFrames ? StepDegrees : 0.0, Now - InState->LastSampleTime);
-                    InState->LastSampleTime = Now;
-                    if (Step < InStepFrames)
-                    { Request_Pitch(InState, StepDegrees * (Step + 1)); }
-                })));
-        }
+                    InState->ShortestPitchIssueIntervalSeconds = FMath::Min(
+                        InState->ShortestPitchIssueIntervalSeconds, Now - InState->LastPitchIssueTime);
+                    InState->LastPitchIssueTime = Now;
+                    ++InState->IssuedPitchSteps;
+                    InState->PendingPitchStepDegrees = StepDegrees;
+                    Request_Pitch(InState, StepDegrees * InState->IssuedPitchSteps);
+                }
+
+                return Now - InState->LastPitchIssueTime >=
+                        (SettleNominalFramesAfterSteps + 1) * NominalFrameSeconds
+                    && InState->IssuedPitchSteps == InStepFrames
+                    && InState->PendingPitchStepDegrees == 0.0;
+            },
+            [InState] { InState->TrialTimedOut = true; }));
     }
 
     // Starts turning every body at SustainedRateDegreesPerSecond from the next tick of InWorld until it has turned
@@ -531,24 +667,69 @@ auto
 {
     using namespace ck_test_procedural_body_pose_tilt_steps;
 
+    const auto MaxFPSName = FName{TEXT("t.MaxFPS")};
+    if (NOT TestTrue(TEXT("The stepped trial can lease t.MaxFPS"), UCk_Utils_AutoTest_UE::Get_CVarExists(MaxFPSName)))
+    { return false; }
+
+    const auto& MaxFPS = *IConsoleManager::Get().FindConsoleVariable(TEXT("t.MaxFPS"));
+    const auto SavedMaxFPSValue = MaxFPS.GetString();
+    const auto SavedMaxFPSPriority = static_cast<uint32>(MaxFPS.GetFlags() & ECVF_SetByMask);
+    TSharedPtr<FScopedMaxFPS> MaxFPSLease = MakeShared<FScopedMaxFPS>(MaxFPSName);
+    if (NOT TestTrue(FString::Printf(TEXT("The stepped trial leases t.MaxFPS at 60 (effective %.3f, priority 0x%x)"),
+            MaxFPS.GetFloat(), static_cast<uint32>(MaxFPS.GetFlags() & ECVF_SetByMask)),
+            FMath::IsNearlyEqual(MaxFPS.GetFloat(), 60.0f, 0.01f)
+            && (MaxFPS.GetFlags() & ECVF_SetByMask) == ECVF_SetByConsole))
+    { return false; }
+
     const auto State = MakeSteppedWalkers();
     DoEnqueue_Walkers(this, State);
     DoEnqueue_PitchSteps(State, StepFrames);
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
         [this, State](UWorld*)
         {
+            UE_LOG(LogTemp, Display, TEXT("[TILT-60-CADENCE] cap %.3f/0x%x found %d ticks %d near60 %d near120 %d other %d "
+                    "min %.5f max %.5f world seconds"),
+                State->EffectiveMaxFPS, State->EffectiveMaxFPSPriority, State->MaxFPSFoundAtTrial,
+                State->PitchSampleCount, State->PitchSamplesNear60Hz, State->PitchSamplesNear120Hz,
+                State->PitchSamplesOther, State->ShortestPitchSampleSeconds, State->LongestPitchSampleSeconds);
+            TestFalse(TEXT("The stepped presentation trial completes in world time"), State->TrialTimedOut);
+            TestEqual(TEXT("All authored pitch steps were issued"), State->IssuedPitchSteps, StepFrames);
+            TestTrue(FString::Printf(TEXT("The pitch steps were spaced by at least 1/60 world second (shortest %.5f s)"),
+                State->ShortestPitchIssueIntervalSeconds),
+                State->ShortestPitchIssueIntervalSeconds + 1.0e-6 >= NominalFrameSeconds);
+            TestTrue(TEXT("The stepped trial covered its 60-Hz-equivalent settling interval"),
+                State->LastSampleTime - State->LastPitchIssueTime >=
+                    (SettleNominalFramesAfterSteps + 1) * NominalFrameSeconds);
+            TestTrue(FString::Printf(TEXT("The cap remains effective in PIE (found %d, value %.3f, priority 0x%x)"),
+                    State->MaxFPSFoundAtTrial, State->EffectiveMaxFPS, State->EffectiveMaxFPSPriority),
+                State->MaxFPSFoundAtTrial && FMath::IsNearlyEqual(State->EffectiveMaxFPS, 60.0, 0.01)
+                && State->EffectiveMaxFPSPriority == static_cast<uint32>(ECVF_SetByConsole));
+            TestTrue(FString::Printf(TEXT("Stepped world ticks respect the authored 60-Hz cap "
+                    "(n %d, 60-Hz %d, 120-Hz %d, other %d, min %.5f s, max %.5f s)"),
+                    State->PitchSampleCount, State->PitchSamplesNear60Hz, State->PitchSamplesNear120Hz,
+                    State->PitchSamplesOther, State->ShortestPitchSampleSeconds, State->LongestPitchSampleSeconds),
+                State->PitchSampleCount > 0 && State->PitchSamplesNear120Hz == 0
+                && State->ShortestPitchSampleSeconds + 0.001 >= NominalFrameSeconds);
             for (const auto& Walker : State->Walkers)
             {
-                TestTrue(FString::Printf(TEXT("The walker %s's body pitched %.0f degrees on each of %d frames, then held (worst error %.4f degrees)"),
+                UE_LOG(LogTemp, Display, TEXT("[TILT-60-RATE] walker=%s worst=%.3f interval=%.5f sample=%d"),
+                    *Walker.Name, Walker.WorstPresentationRate, Walker.WorstPresentationRateElapsedSeconds, Walker.WorstFrame);
+                TestTrue(FString::Printf(TEXT("The walker %s's body pitched %.0f degrees on each of %d world-time-spaced steps, then held (worst error %.4f degrees)"),
                     *Walker.Name, StepDegrees, StepFrames, Walker.WorstBodyStepError), Walker.WorstBodyStepError < BodyStepToleranceDegrees);
-                TestTrue(FString::Printf(TEXT("The walker %s's presentation up turns at most %.0f degrees per second (worst %.2f at frame %d, last dt %.4f s)"),
-                    *Walker.Name, MaxPresentationRateDegreesPerSecond, Walker.WorstPresentationRate, Walker.WorstFrame, State->LastDeltaSeconds),
+                TestTrue(FString::Printf(TEXT("The walker %s's presentation up turns at most %.0f degrees per second "
+                        "(worst %.2f at sample %d over %.4f world seconds; cap %.3f/0x%x; ticks n %d, 60-Hz %d, "
+                        "120-Hz %d, other %d, min %.5f, max %.5f world seconds)"),
+                    *Walker.Name, MaxPresentationRateDegreesPerSecond, Walker.WorstPresentationRate, Walker.WorstFrame,
+                    Walker.WorstPresentationRateElapsedSeconds, State->EffectiveMaxFPS, State->EffectiveMaxFPSPriority,
+                    State->PitchSampleCount, State->PitchSamplesNear60Hz, State->PitchSamplesNear120Hz,
+                    State->PitchSamplesOther, State->ShortestPitchSampleSeconds, State->LongestPitchSampleSeconds),
                     Walker.WorstPresentationRate <= MaxPresentationRateDegreesPerSecond);
                 TestEqual(FString::Printf(TEXT("The walker %s's body pose stays Ready"), *Walker.Name),
                     UCk_Utils_ProceduralBodyPose_UE::Get_Status(Walker.BodyPose), ECk_ProceduralAnimation_Status::Ready);
             }
         })));
     DoEnqueue_DestroyAndEndPie(State);
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_ReleaseMaxFPS(*this, MaxFPSLease, SavedMaxFPSValue, SavedMaxFPSPriority));
     return true;
 }
 
@@ -645,7 +826,9 @@ auto
         [State](UWorld* InWorld)
         {
             DoBegin_Sampling(State);
-            State->LastSampleTime = InWorld->GetTimeSeconds();
+            State->DrivenWorld = InWorld;
+            State->TrialStartTime = InWorld->GetTimeSeconds();
+            State->LastSampleTime = State->TrialStartTime;
             for (auto& LostWalker : State->Walkers)
             {
                 for (auto Index = 1; Index < LostWalker.Legs.Num(); ++Index)
@@ -655,34 +838,58 @@ auto
                 }
             }
         })));
-    for (auto Frame = 1; Frame <= SupportJumpSampleFrames; ++Frame)
-    {
-        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(OneFrame));
-        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
-            [State, Frame](UWorld* InWorld)
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_SampleBodyPoseUntil(
+        [State]
+        {
+            if (NOT State->DrivenWorld.IsValid())
+            { return false; }
+            const auto Now = State->DrivenWorld->GetTimeSeconds();
+            const auto Elapsed = Now - State->LastSampleTime;
+            if (Elapsed <= 0.0)
+            { return false; }
+
+            ++State->Frame;
+            State->SupportJumpElapsedSeconds = Now - State->TrialStartTime;
+            const auto PreviousTarget = State->Walkers[0].LastTargetRotation;
+            constexpr auto BodyStill = 0.0;
+            DoSample(State, BodyStill, Elapsed);
+            if (State->Frame > 1)
             {
-                State->Frame = Frame;
-                State->LastDeltaSeconds = InWorld->GetDeltaSeconds();
-                const auto Now = InWorld->GetTimeSeconds();
-                constexpr auto BodyStill = 0.0;
-                DoSample(State, BodyStill, Now - State->LastSampleTime);
-                State->LastSampleTime = Now;
-            })));
-    }
+                const auto TargetStep = FMath::RadiansToDegrees(
+                    PreviousTarget.AngularDistance(State->Walkers[0].LastTargetRotation));
+                State->SupportJumpLargestLaterTargetStep = FMath::Max(State->SupportJumpLargestLaterTargetStep, TargetStep);
+            }
+            State->LastSampleTime = Now;
+            return State->SupportJumpElapsedSeconds >= SupportJumpDurationSeconds
+                && State->Frame >= SupportJumpMinSamples;
+        },
+        [State] { State->TrialTimedOut = true; }));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(FCk_NetAutoTest_ServerAction::CreateLambda(
         [this, State](UWorld*)
         {
+            TestFalse(TEXT("The support-jump trial completes in world time"), State->TrialTimedOut);
+            TestTrue(FString::Printf(TEXT("The support jump was observed for at least %d samples (%d)"),
+                SupportJumpMinSamples, State->Frame), State->Frame >= SupportJumpMinSamples);
+            TestTrue(TEXT("The support-jump trial covered 1.5 world seconds"),
+                State->SupportJumpElapsedSeconds >= SupportJumpDurationSeconds);
             for (const auto& JumpWalker : State->Walkers)
             {
+                const auto Presentation = UCk_Utils_Transform_UE::Get_EntityCurrentTransform(JumpWalker.Presentation);
+                const auto Foot = UCk_Utils_ProceduralLeg_UE::Get_Foot(JumpWalker.Legs[0]);
+                const auto Hip = Presentation.TransformPosition(FVector{40.0, 30.0, 0.0});
+                const auto ReachMargin = 140.0 - FVector::Dist(Hip, Foot.Get_Position());
                 TestTrue(FString::Printf(TEXT("The walker %s's body stays still (worst tilt step %.4f degrees)"), *JumpWalker.Name,
                     JumpWalker.WorstBodyStepError), JumpWalker.WorstBodyStepError < BodyStepToleranceDegrees);
                 TestTrue(FString::Printf(TEXT("The walker %s's target pose tilts about %.0f degrees in one frame (worst step %.4f degrees)"),
                     *JumpWalker.Name, SupportJumpDegrees, JumpWalker.WorstTargetStep), JumpWalker.WorstTargetStep >= MinTargetJumpDegrees);
                 TestTrue(FString::Printf(TEXT("The walker %s's presentation up turns at most %.0f degrees per second (worst %.2f at frame %d, "
-                    "last dt %.4f s)"), *JumpWalker.Name, MaxPresentationRateDegreesPerSecond, JumpWalker.WorstPresentationRate, JumpWalker.WorstFrame,
-                    State->LastDeltaSeconds), JumpWalker.WorstPresentationRate <= MaxPresentationRateDegreesPerSecond);
-                TestTrue(FString::Printf(TEXT("The walker %s's presentation reaches its target pose within %d frames (trail %.4f degrees)"),
-                    *JumpWalker.Name, SupportJumpSampleFrames, JumpWalker.LastTrail), JumpWalker.LastTrail < MaxSettledTrailDegrees);
+                    "worst interval %.4f world seconds)"), *JumpWalker.Name, MaxPresentationRateDegreesPerSecond,
+                    JumpWalker.WorstPresentationRate, JumpWalker.WorstFrame, JumpWalker.WorstPresentationRateElapsedSeconds),
+                    JumpWalker.WorstPresentationRate <= MaxPresentationRateDegreesPerSecond);
+                TestTrue(FString::Printf(TEXT("The walker %s's presentation reaches its target pose after %.4f world seconds over %d samples "
+                    "(trail %.4f degrees; largest later target step %.4f degrees, final reach margin %.3f cm)"),
+                    *JumpWalker.Name, State->SupportJumpElapsedSeconds, State->Frame, JumpWalker.LastTrail,
+                    State->SupportJumpLargestLaterTargetStep, ReachMargin), JumpWalker.LastTrail < MaxSettledTrailDegrees);
                 TestEqual(FString::Printf(TEXT("The walker %s's body pose stays Ready"), *JumpWalker.Name),
                     UCk_Utils_ProceduralBodyPose_UE::Get_Status(JumpWalker.BodyPose), ECk_ProceduralAnimation_Status::Ready);
             }
