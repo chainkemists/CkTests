@@ -25,6 +25,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Camera",             ACk_CameraGym_GameMode,                  "", "CkCamera");
         CkGym_Cycler::RegisterProjectGym("Chain",              ACk_ChainGym_GameMode,                   "", "CkChain");
         CkGym_Cycler::RegisterProjectGym("Sway",               ACk_SwayGym_GameMode,                    "", "CkSway");
+        CkGym_Cycler::RegisterProjectGym("Rotate Towards",     ACk_RotateTowardsGym_GameMode,            "", "CkRotateTowards");
         CkGym_Cycler::RegisterProjectGym("Compass",            ACk_CompassGym_GameMode,                 "", "CkCompass");
         CkGym_Cycler::RegisterProjectGym("Crowd Avoidance Volume", ACk_CrowdGym_AvoidanceVolume_GameMode, "", "CkCrowd");
         CkGym_Cycler::RegisterProjectGym("Crowd Foundation",   ACk_CrowdGym_Foundation_GameMode,        "", "CkCrowd");
