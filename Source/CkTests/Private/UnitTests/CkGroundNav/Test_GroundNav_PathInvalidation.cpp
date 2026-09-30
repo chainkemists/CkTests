@@ -54,6 +54,7 @@
 #include "CkGroundNav/Path/CkGroundNavPath_Processor.h"
 #include "CkGroundNav/Path/CkGroundNavPath_Utils.h"
 
+#include "CkNavigation/NavSurface/CkNavSurface_AreaPolicy.h"
 #include "CkNavigation/NavSurface/CkNavSurface_Fragment.h"
 #include "CkNavigation/NavSurface/CkNavSurface_Processor.h"
 #include "CkNavigation/NavSurface/CkNavSurface_Utils.h"
@@ -1605,6 +1606,9 @@ bool FCkTest_GroundNav_Invalidation_CostOnlyPublishRepathsWhenSavedFilterDeniesC
     const FString& Parameters)
 {
     using namespace ck_test_groundnav_pathinvalidation;
+
+    ck::nav_surface::Register_AreaPolicy(TAG_CkTests_GroundNav_Invalidation_Dear.GetTag(),
+        FCk_NavSurface_AreaPolicy{ECk_NavSurface_AreaPolicyKind::Cost, 1.0f});
 
     auto Fixture = FInvalidationFixture{};
 
