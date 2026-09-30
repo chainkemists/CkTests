@@ -23,8 +23,8 @@ namespace
     constexpr auto kReadyTimeoutSeconds = 30.0f;
     constexpr auto kTeardownTimeoutSeconds = 5.0;
     const auto kEntryMapPath = FString{TEXT("/Engine/Maps/Entry")};
-    const auto kGameplayLayoutConfigPath = TEXT("/Game/BusterBlock/UI/LayoutConfig/Gameplay_LayoutConfig_BB_DA.Gameplay_LayoutConfig_BB_DA");
-    const auto kMenuLayerTagName = TEXT("UI.Layer.Menu");
+    const auto kLayoutConfigPath = TEXT("/Script/AngelscriptAssets.CkTests_UIDebugger_HistoryPie_Layout");
+    const auto kUiOnlyLayerTagName = TEXT("CkTests.UI.Layer.CkUIDebugger.HistoryPie.Secondary");
 
     struct FPrimaryLayoutTeardownState
     {
@@ -63,12 +63,24 @@ bool FCkTest_UI_PrimaryLayoutTeardown_DeactivatesRootBeforeChildren::RunTest(con
             if (NOT TestFalse(TEXT("entry-map client starts without a competing primary layout"), LayoutSubsystem->Has_Layout()))
             { return; }
 
-            auto* LayoutConfig = LoadObject<UCk_UI_LayoutConfigAsset_UE>(nullptr, kGameplayLayoutConfigPath);
-            if (NOT TestNotNull(TEXT("shipping Gameplay layout configuration loads"), LayoutConfig))
+            auto* LayoutConfig = LoadObject<UCk_UI_LayoutConfigAsset_UE>(nullptr, kLayoutConfigPath);
+            if (NOT TestNotNull(TEXT("source-owned CkTests layout configuration loads"), LayoutConfig))
             { return; }
 
-            const auto MenuLayerTag = FGameplayTag::RequestGameplayTag(FName{kMenuLayerTagName});
-            if (NOT TestTrue(TEXT("shipping Gameplay layout contains the Menu layer tag"), MenuLayerTag.IsValid()))
+            const auto UiOnlyLayerTag = FGameplayTag::RequestGameplayTag(FName{kUiOnlyLayerTagName}, false);
+            if (NOT TestTrue(TEXT("source-owned layout's UI-only layer tag is registered"), UiOnlyLayerTag.IsValid()))
+            { return; }
+
+            const auto LayerConfig = LayoutConfig->Get_LayerConfig(UiOnlyLayerTag);
+            if (NOT TestTrue(TEXT("source-owned layout contains its UI-only layer"), LayerConfig.IsSet()))
+            { return; }
+
+            if (NOT TestEqual(TEXT("selected layer uses UI-only input"),
+                LayerConfig.GetValue().Get_InputMode(), ECk_UI_InputMode::UIOnly))
+            { return; }
+
+            if (NOT TestEqual(TEXT("source-owned layout defaults to game input without an active layer"),
+                LayoutConfig->Get_DefaultInputMode(), ECk_UI_InputMode::GameOnly))
             { return; }
 
             LayoutSubsystem->CreateLayout(LayoutConfig);
@@ -80,15 +92,15 @@ bool FCkTest_UI_PrimaryLayoutTeardown_DeactivatesRootBeforeChildren::RunTest(con
             { return; }
 
             auto* OrdinaryChild = CreateWidget<UCommonActivatableWidget>(PlayerController);
-            if (NOT TestNotNull(TEXT("ordinary layer child is created for the production Menu layer"), OrdinaryChild))
+            if (NOT TestNotNull(TEXT("ordinary layer child is created for the source-owned UI-only layer"), OrdinaryChild))
             { return; }
 
-            if (NOT TestEqual(TEXT("ordinary child is accepted by the production Menu layer"),
-                Layout->PushWidgetInstanceToLayer(MenuLayerTag, OrdinaryChild), static_cast<UCommonActivatableWidget*>(OrdinaryChild)))
+            if (NOT TestEqual(TEXT("ordinary child is accepted by the production UI-only layer"),
+                Layout->PushWidgetInstanceToLayer(UiOnlyLayerTag, OrdinaryChild), static_cast<UCommonActivatableWidget*>(OrdinaryChild)))
             { return; }
 
             OrdinaryChild->ActivateWidget();
-            TestEqual(TEXT("ordinary Menu child selects the UI-only input mode"),
+            TestEqual(TEXT("ordinary UI-only layer child selects the UI-only input mode"),
                 Layout->Get_EffectiveInputMode(), ECk_UI_InputMode::UIOnly);
 
             if (NOT TestTrue(TEXT("ordinary child can be removed through the production layout API"), Layout->RemoveWidget(OrdinaryChild)))
@@ -101,8 +113,8 @@ bool FCkTest_UI_PrimaryLayoutTeardown_DeactivatesRootBeforeChildren::RunTest(con
             if (NOT TestNotNull(TEXT("teardown layer child is created"), TeardownChild))
             { return; }
 
-            if (NOT TestEqual(TEXT("teardown child is accepted by the production Menu layer"),
-                Layout->PushWidgetInstanceToLayer(MenuLayerTag, TeardownChild), static_cast<UCommonActivatableWidget*>(TeardownChild)))
+            if (NOT TestEqual(TEXT("teardown child is accepted by the production UI-only layer"),
+                Layout->PushWidgetInstanceToLayer(UiOnlyLayerTag, TeardownChild), static_cast<UCommonActivatableWidget*>(TeardownChild)))
             { return; }
 
             TeardownChild->ActivateWidget();
