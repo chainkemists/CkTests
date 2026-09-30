@@ -163,6 +163,7 @@ public class CkTests : CkModuleRules
             {
                 "UnrealEd",
                 "EditorSubsystem",
+                "SourceControl",
                 "CkUsfEditor",
                 // The Jolt incremental-cook planner and index remap are pure functions living in the
                 // editor cooker; their tests link against it directly.
