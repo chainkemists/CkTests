@@ -23,9 +23,8 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 bool FCkStateMachineNet_SmokeTest_PIEStartup::RunTest(const FString& Parameters)
 {
     // Pre-existing CkActorRelay / Iris incompatibility surfaces under multi-client PIE: the
-    // ActorRelay subsystem auto-spawns server-side actors, and Iris fires repeated
-    // FReplicationReader::ReadObject "Broken NetHandle" errors plus a handled ensure
-    // ("Disallowed to write first packet in batch") on the connecting client. Single-process
+    // ActorRelay subsystem auto-spawns server-side actors, and Iris can report
+    // FReplicationReader::ReadObject "Broken NetHandle" errors on the connecting client. Single-process
     // PIE tests (the 14 baseline AutoTests) never hit this because no client connects. Until
     // the underlying CkActorRelay multi-client wire-up is fixed (out-of-scope for this work-
     // stream), the smoke test suppresses log-error escalation broadly so harness-level checks

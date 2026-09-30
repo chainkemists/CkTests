@@ -1103,23 +1103,6 @@ bool FCkTest_StateMachine_AuthoredInspectorVariants::RunTest(const FString& Para
         return false;
     }
 
-    // The multi-client harness has a documented, pre-existing Iris startup incompatibility. Unreal
-    // forwards its one handled ensure as separate header, blank, condition, message, stack and volatile
-    // callstack records. Allow only that finite record shape: another ensure's header/condition/message
-    // remains an unexpected error, while an extra blank record also breaks the exact blank count.
-    AddExpectedErrorPlain(TEXT("LogOutputDevice: === Handled ensure: ==="),
-        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/1);
-    AddExpectedErrorPlain(TEXT("LogOutputDevice: "),
-        EAutomationExpectedErrorFlags::Exact, /*Occurrences=*/2);
-    AddExpectedErrorPlain(TEXT("LogOutputDevice: Ensure condition failed: false"),
-        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/1);
-    AddExpectedErrorPlain(TEXT("LogOutputDevice: Disallowed to write first packet in batch, with Iris this is not good!"),
-        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/1);
-    AddExpectedErrorPlain(TEXT("LogOutputDevice: Stack:"),
-        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/1);
-    AddExpectedErrorPlain(TEXT("LogOutputDevice: [Callstack]"),
-        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
-
     const auto Scenario = MakeShared<FVariantScenario>();
     Scenario->HierarchyClass = LoadAsStateClass(TEXT("/Script/Angelscript.Ck_SmTest_Hier_Parent_Engage"));
     Scenario->CascadeClass = LoadAsStateClass(TEXT("/Script/Angelscript.Ck_SmTest_GraphWalk_SubSmWrapper_State"));
