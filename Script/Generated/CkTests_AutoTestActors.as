@@ -3536,6 +3536,18 @@ class ACk_AutoTest_GameplayCamera_DefaultLayerResting_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_GameplayCamera_DirectorOnChildTransformResolvesOwningActor_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GameplayCamera_DirectorOnChildTransformResolvesOwningActor");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_GameplayCamera_MultiLayerMixedOps_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 10.0f;
@@ -3569,6 +3581,19 @@ class ACk_AutoTest_GameplayCamera_OneOnlyPrioritySlots_Actor : ACk_AutoTestRunne
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GameplayCamera_OneOnlyPrioritySlots");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GameplayCamera_OutputComponentFollowsView_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GameplayCamera_OutputComponentFollowsView");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
