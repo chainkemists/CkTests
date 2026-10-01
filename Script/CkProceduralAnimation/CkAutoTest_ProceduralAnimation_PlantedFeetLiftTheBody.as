@@ -6,11 +6,13 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
     default _AutoStageOriginField = false;
     private FCkProceduralAnimationGym_Fixture _Feet;
     private FCkProceduralAnimationGym_Fixture _Rays;
+    private FCk_Handle_Transform _RayOnlyRoot;
+    private FCk_Handle_SurfaceMotion _RayOnlyMotion;
     private FVector _FeetOrigin = FVector(120000.0, 315000.0, 600.0);
     private FVector _RaysOrigin = FVector(120000.0, 317500.0, 600.0);
     // 150 cm pillars with 50 x 50 cm tops on a 120 cm pitch, 25 cm from each landing. Six columns along +X, five rows across
     // the lane so every foot of the walker has tops within reach. The 70 cm gaps are wider than the crawler's clearance,
-    // so the control walker's rays can turn it onto a pillar's side and it dips into a gap.
+    // so standalone surface motion can turn onto a pillar's side and dip into a gap.
     private float _TopZ = 150.0;
     private float _PillarHalfSize = 25.0;
     private float _Pitch = 120.0;
@@ -26,12 +28,12 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
     private float _RaysDipClearances = 0.5;
     private float _StartTime = -1.0;
     private float _FeetMinZ = 100000.0;
-    private float _RaysMinZ = 100000.0;
+    private float _RayOnlyMinZ = 100000.0;
     private FString _FeetMinAt;
     private int32 _SampledFrames = 0;
     private int32 _FeetSourceFrames = 0;
     // A trusted plant of the PlantedFeet walker between the landings must stand on a top: its XY within a top, give or take
-    // this much. The control dips into the gaps as it must, onto their floor and the pillars' sides: only its trusted plants
+    // this much. The gait-driven Rays walker remains a contact-safety control: only its trusted plants
     // in the air at the tops' height, off every top, are wrong.
     private float _TopTolerance = 1.0;
     private float _AirPlantMinZ = 145.0;
@@ -46,10 +48,6 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
     private int32 _ReportedPlantsMax = 12;
     private int32 _ReportedPlants = 0;
     private TMap<FString, bool> _WasPlanted;
-    // Riding the feet casts no ray of its own; only foothold searches may add a few.
-    private float _RaysPerSolveMargin = 10.0;
-    private float _FeetRaysSum = 0.0;
-    private float _RaysRaysSum = 0.0;
     private TArray<FString> _SupportHistory;
     private bool _ReportedSupportLoss = false;
     private float _PreviousSupportFrameTime = -1.0;
@@ -262,6 +260,8 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
         DoAdd_Crossing(_Feet);
         DoAdd_Crossing(_Rays);
         Add_Step_WaitUntil("both walkers are composed on the first landing and evaluated", n"Check_Ready", 1200);
+        Add_Step("compose standalone ray-only surface motion at the control walker's start", n"Step_ComposeRayControl");
+        Add_Step_WaitUntil("standalone ray-only surface motion is ready", n"Check_RayControlReady");
         Add_Step("steer both walkers along +X at the gym speed", n"Step_Steer");
         Add_Step_WaitUntil("the PlantedFeet walker passes the last pillar while both bodies are sampled", n"Check_Crossed", 0, 14.0f);
         Add_Step("verify the planted feet held the body over the gaps and the rays alone did not", n"Step_Verify");
@@ -285,6 +285,31 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
 
     // The fixtures' own routes are not updated from here on: the test steers.
     UFUNCTION()
+    private void Step_ComposeRayControl(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        auto Entity = utils_entity_lifetime::Request_CreateEntity(_Rays.SceneRoot);
+        Entity.Request_OverrideToSelf();
+        _Rays.Entities.Add(Entity);
+        _RayOnlyRoot = utils_transform::Add(Entity,
+            utils_transform::Get_EntityCurrentTransform(_Rays.Crawlers[0].Handles.Root), ECk_Replication::DoesNotReplicate);
+        auto Profile = ck_procedural_gym::Get_SpeciesProfile(ECkProceduralAnimationGym_Species::Crawler8);
+        _RayOnlyMotion = utils_surface_motion::Add(_RayOnlyRoot, ck_procedural_gym::MakeMotionParams(
+            Profile.Clearance, Profile.SurfaceTurnRate, ECk_SurfaceMotion_HeightSource::Rays,
+            Profile.WallPolicy, Profile.MaxStepHeight));
+        Assert_True(ck::IsValid(_RayOnlyMotion), "The standalone ray-only control admits the same surface motion parameters");
+        Assert_True(utils_procedural_gait::DoCast(_RayOnlyRoot).IsSet() == false,
+            "The ray-only height control has no gait or planted-contact prerequisite");
+    }
+
+    UFUNCTION()
+    private void Check_RayControlReady(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Result = OutResult;
+        Result.Set(ck::IsValid(_RayOnlyMotion) &&
+            utils_surface_motion::Get_Status(_RayOnlyMotion) == ECk_ProceduralAnimation_Status::Ready);
+    }
+
+    UFUNCTION()
     private void Step_Steer(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         auto FeetMotion = _Feet.Crawlers[0].Handles.Motion;
@@ -295,6 +320,7 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
             "Precondition: the control walker keeps to its rays");
         utils_surface_motion::Request_Steering(FeetMotion, FCk_Request_SurfaceMotion_Steering(FVector::ForwardVector, ck_procedural_gym::TravelSpeed));
         utils_surface_motion::Request_Steering(RaysMotion, FCk_Request_SurfaceMotion_Steering(FVector::ForwardVector, ck_procedural_gym::TravelSpeed));
+        utils_surface_motion::Request_Steering(_RayOnlyMotion, FCk_Request_SurfaceMotion_Steering(FVector::ForwardVector, ck_procedural_gym::TravelSpeed));
         _StartTime = float(System::GetGameTimeInSeconds());
     }
 
@@ -304,14 +330,14 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
         auto Feet = _Feet.Crawlers[0].Handles;
         auto Rays = _Rays.Crawlers[0].Handles;
         auto FeetLocal = utils_transform::Get_EntityCurrentLocation(Feet.Root) - _FeetOrigin;
-        auto RaysLocal = utils_transform::Get_EntityCurrentLocation(Rays.Root) - _RaysOrigin;
+        auto RaysLocal = utils_transform::Get_EntityCurrentLocation(_RayOnlyRoot) - _RaysOrigin;
         _SampledFrames++;
         if (FeetLocal.Z < _FeetMinZ)
         {
             _FeetMinZ = FeetLocal.Z;
             _FeetMinAt = f"x {FeetLocal.X :.0}";
         }
-        _RaysMinZ = Math::Min(_RaysMinZ, RaysLocal.Z);
+        _RayOnlyMinZ = Math::Min(_RayOnlyMinZ, RaysLocal.Z);
         if (utils_surface_motion::Get_ContactSource(Feet.Motion) == ECk_SurfaceMotion_ContactSource::Feet)
         {
             _FeetSourceFrames++;
@@ -321,8 +347,6 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
         DoCheck_TrustedPlants(Feet.Legs, _FeetOrigin, "PlantedFeet");
         DoCheck_TrustedPlants(Rays.Legs, _RaysOrigin, "Rays");
         Report_FirstSupportLoss(FeetLocal);
-        _FeetRaysSum += utils_procedural_animation_debug::Get_RaysLastSolve(Feet.Gait);
-        _RaysRaysSum += utils_procedural_animation_debug::Get_RaysLastSolve(Rays.Gait);
 
         auto Elapsed = float(System::GetGameTimeInSeconds()) - _StartTime;
         auto Result = OutResult;
@@ -336,23 +360,19 @@ class UCk_AutoTest_ProceduralAnimation_PlantedFeetLiftTheBody : UCk_AutoTest_Bas
         auto FeetX = (utils_transform::Get_EntityCurrentLocation(_Feet.Crawlers[0].Handles.Root) - _FeetOrigin).X;
         auto FeetFloor = _TopZ + _FeetFloorClearances * Clearance;
         auto RaysDip = _TopZ + _RaysDipClearances * Clearance;
-        ck::Trace(f"[PLANTED-FEET] PlantedFeet walker: lowest body z {_FeetMinZ :.1} ({_FeetMinAt}), floor {FeetFloor :.1}, final x {FeetX :.0}, feet contact on {_FeetSourceFrames} of {_SampledFrames} frames, inward-unreachable events {_CandidateEvents}; Rays walker: lowest body z {_RaysMinZ :.1}, dip below {RaysDip :.1}");
+        ck::Trace(f"[PLANTED-FEET] PlantedFeet walker: lowest body z {_FeetMinZ :.1} ({_FeetMinAt}), floor {FeetFloor :.1}, final x {FeetX :.0}, feet contact on {_FeetSourceFrames} of {_SampledFrames} frames, inward-unreachable events {_CandidateEvents}; standalone Rays body: lowest z {_RayOnlyMinZ :.1}, dip below {RaysDip :.1}");
         Assert_True(_SampledFrames > 0, "Precondition: the crossing was sampled");
         Assert_True(FeetX > Get_LastColumnFarX(), f"The PlantedFeet walker passed the last pillar (x {FeetX :.0}, last pillar ends at {Get_LastColumnFarX() :.0})");
         Assert_True(_FeetMinZ >= FeetFloor,
             f"The PlantedFeet walker's body never fell below the tops plus 0.8 clearance (lowest z {_FeetMinZ :.1} at {_FeetMinAt}, floor {FeetFloor :.1})");
         Assert_True(_FeetSourceFrames > 0, "The PlantedFeet walker's surface motion reported a Feet contact");
-        Assert_True(_RaysMinZ < RaysDip,
-            f"Control: the Rays walker's body fell below the tops plus half a clearance (lowest z {_RaysMinZ :.1}, threshold {RaysDip :.1})");
+        Assert_True(_RayOnlyMinZ < RaysDip,
+            f"Control: standalone ray-only surface motion fell below the tops plus half a clearance (lowest z {_RayOnlyMinZ :.1}, threshold {RaysDip :.1})");
         Assert_True(_OffTopPlantFrames == 0,
             f"No trusted plant of the PlantedFeet walker stands off a top between the landings ({_OffTopPlantFrames} leg-frames; first: {_FirstOffTopPlant})");
         Assert_True(_RaysAirPlantFrames == 0,
             f"No trusted plant of the Rays walker stands in the air off a top between the landings ({_RaysAirPlantFrames} leg-frames; first: {_FirstRaysAirPlant})");
-        auto FeetRaysPerSolve = _FeetRaysSum / Math::Max(_SampledFrames, 1);
-        auto RaysRaysPerSolve = _RaysRaysSum / Math::Max(_SampledFrames, 1);
-        ck::Trace(f"[PLANTED-FEET] rays per solve: PlantedFeet {FeetRaysPerSolve :.1}, Rays {RaysRaysPerSolve :.1}; off-top plant leg-frames: PlantedFeet trusted {_OffTopPlantFrames}, Rays trusted in the air {_RaysAirPlantFrames} and on the gaps' floor or the pillars' sides {_RaysGroundOffTopPlantFrames}, untrusted {_UntrustedOffTopPlantFrames}");
-        Assert_True(FeetRaysPerSolve <= RaysRaysPerSolve + _RaysPerSolveMargin,
-            f"The PlantedFeet walker's rays per solve stay within {_RaysPerSolveMargin :.0} of the Rays walker's ({FeetRaysPerSolve :.1} against {RaysRaysPerSolve :.1})");
+        // Ray cost is checked by the Core test at an identical starting state. These walkers follow different paths.
         _Feet.Request_Destroy();
         _Rays.Request_Destroy();
     }

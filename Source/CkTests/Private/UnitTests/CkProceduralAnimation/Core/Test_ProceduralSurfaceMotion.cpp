@@ -1054,13 +1054,49 @@ auto
     const auto World = TArray<FSolid>{MakeHalfSpace(FVector::UpVector, FVector::ZeroVector)};
     const auto Cast = [&](const FVector& InStart, const FVector& InEnd) { return RayCast(World, InStart, InEnd); };
     const auto Feet = MakeFeetSupport(FVector{0.0, 0.0, BodyZ - Clearance}, FVector::UpVector, FVector{0.0, 0.0, BodyZ}, 500.0);
+    const auto Settings = MakeSettings();
+    const auto InitialBody = MakeBody(FVector{0.0, 0.0, BodyZ}, FVector::UpVector, FVector::ForwardVector);
+    const auto InitialState = MakeState(FVector::UpVector, FVector::ForwardVector, true);
+
+    // Compare Core ray work at the same body, state, settings, world, steer, and time step. Independent gait walkers
+    // take different paths, so their later foothold-search counts cannot measure the cost of feet support itself.
+    auto FeetBody = InitialBody;
+    auto FeetState = InitialState;
+    auto NoFeetBody = InitialBody;
+    auto NoFeetState = InitialState;
+    auto FeetRayCount = 0;
+    auto NoFeetRayCount = 0;
+    const auto FeetCast = [&](const FVector& InStart, const FVector& InEnd)
+    {
+        ++FeetRayCount;
+        return RayCast(World, InStart, InEnd);
+    };
+    const auto NoFeetCast = [&](const FVector& InStart, const FVector& InEnd)
+    {
+        ++NoFeetRayCount;
+        return RayCast(World, InStart, InEnd);
+    };
+    ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, Speed, Step, FeetCast, Feet, FeetBody, FeetState);
+    ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, Speed, Step, NoFeetCast, NoFeet, NoFeetBody, NoFeetState);
+    TestTrue(TEXT("Feet support is the contact source in the matched step"),
+        FeetState.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Feet);
+    TestTrue(TEXT("The matched feet-supported body holds its initial height"),
+        FMath::IsNearlyEqual(FeetBody.GetLocation().Z, BodyZ, DistanceTolerance));
+    TestTrue(TEXT("The lower floor is the no-feet body's contact source"),
+        NoFeetState.Get_ContactSource() == ck::EProceduralSurfaceContactSource::Down);
+    TestTrue(TEXT("Without feet support the same body moves toward the lower floor"),
+        NoFeetBody.GetLocation().Z < FeetBody.GetLocation().Z);
+    TestTrue(TEXT("The matched control performs a ray cast"), NoFeetRayCount > 0);
+    TestTrue(FString::Printf(TEXT("Feet support adds no Core rays (%d versus %d)"), FeetRayCount, NoFeetRayCount),
+        FeetRayCount <= NoFeetRayCount);
+
     auto Body = MakeBody(FVector{0.0, 0.0, BodyZ}, FVector::UpVector, FVector::ForwardVector);
     auto State = MakeState(FVector::UpVector, FVector::ForwardVector, true);
 
     constexpr auto Substeps = 30;
     for (auto Index = 0; Index < Substeps; ++Index)
     {
-        ck::StepProceduralSurfaceMotion(MakeSettings(), FVector::ForwardVector, Speed, Step, Cast, Feet, Body, State);
+        ck::StepProceduralSurfaceMotion(Settings, FVector::ForwardVector, Speed, Step, Cast, Feet, Body, State);
         if (NOT TestTrue(FString::Printf(TEXT("Substep %d: the body stays one clearance above the feet plane, 150 cm over the floor (z %.4f, source %d)"),
                 Index, Body.GetLocation().Z, Get_SourceValue(State)),
                 FMath::IsNearlyEqual(Body.GetLocation().Z, BodyZ, DistanceTolerance)
