@@ -9,6 +9,9 @@
 
 #include "Editor.h"
 #include "Engine/World.h"
+#include "UObject/StrongObjectPtr.h"
+
+#include <limits>
 
 #include "CkUsf/Outline/CkUsf_OutlineSubsystem.h"
 #include "CkUsf/Outline/CkUsf_OutlinePreset.h"
@@ -68,7 +71,41 @@ bool FCkTest_Usf_OutlineStencilAlloc::RunTest(const FString& Parameters)
         Values.Add(Value);
     }
 
+    AddExpectedErrorPlain(TEXT("thickness scale"), EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/-1);
+    AddExpectedErrorPlain(TEXT("overflows authored width"), EAutomationExpectedErrorFlags::Contains,
+        /*Occurrences=*/-1);
+    for (const auto InvalidScale : {-1.0f, std::numeric_limits<float>::quiet_NaN(),
+                                    std::numeric_limits<float>::infinity()})
+    {
+        Presets[0]->_ThicknessScale = InvalidScale;
+        TestEqual(TEXT("invalid scale cannot increment an existing slot's refcount"),
+            Subsystem->Get_OrAllocate_StencilFor(Presets[0]), static_cast<uint8>(0));
+    }
+    Presets[0]->_ThicknessScale = std::numeric_limits<float>::max();
+    TestEqual(TEXT("overflow scale cannot increment an existing slot's refcount"),
+        Subsystem->Get_OrAllocate_StencilFor(Presets[0]), static_cast<uint8>(0));
+    Presets[0]->_ThicknessScale = 1.0f;
+    Subsystem->Release_StencilFor(Presets[0]);
+
+    auto InvalidPreset = TStrongObjectPtr<UCkUsf_OutlinePreset>{NewObject<UCkUsf_OutlinePreset>(GetTransientPackage())};
+    for (const auto InvalidScale : {-1.0f, std::numeric_limits<float>::quiet_NaN(),
+                                    std::numeric_limits<float>::infinity()})
+    {
+        InvalidPreset->_ThicknessScale = InvalidScale;
+        TestEqual(TEXT("invalid scale cannot allocate a fresh slot"),
+            Subsystem->Get_OrAllocate_StencilFor(InvalidPreset.Get()), static_cast<uint8>(0));
+    }
+    InvalidPreset->_ThicknessScale = std::numeric_limits<float>::max();
+    TestEqual(TEXT("finite scale whose product overflows cannot allocate a fresh slot"),
+        Subsystem->Get_OrAllocate_StencilFor(InvalidPreset.Get()), static_cast<uint8>(0));
+    InvalidPreset->_ThicknessScale = 1.0f;
+    const auto ReclaimedValue = Subsystem->Get_OrAllocate_StencilFor(InvalidPreset.Get());
+    TestEqual(TEXT("rejected allocations preserved the released slot and refcount"), ReclaimedValue, Values[0]);
+    Subsystem->Release_StencilFor(InvalidPreset.Get());
+
     // ---- Re-allocating the same preset returns the same value (and increments its refcount) ----
+    const auto First = Subsystem->Get_OrAllocate_StencilFor(Presets[0]);
+    TestEqual(TEXT("released preset reclaims its original slot"), First, Values[0]);
     const auto Again = Subsystem->Get_OrAllocate_StencilFor(Presets[0]);
     TestEqual(TEXT("re-alloc of same preset returns same value"), Again, Values[0]);
 

@@ -25,6 +25,7 @@
 #include "ImageUtils.h"
 #include "RenderingThread.h"
 #include "TextureResource.h"
+#include "UObject/StrongObjectPtr.h"
 
 #include <limits>
 
@@ -348,6 +349,42 @@ bool FCkTest_Usf_SolidOutlineRendersToTexture::RunTest(const FString& Parameters
     const auto BroadPass = TestTrue(TEXT("broad feature has a dense five-pixel outline band"),
         Blobs[1].Area >= 600 && Blobs[1].Area <= 860 && Blobs[1].Width() >= 25 && Blobs[1].Width() <= 28);
 
+    auto ScaledPreset = TStrongObjectPtr<UCkUsf_OutlinePreset>{NewObject<UCkUsf_OutlinePreset>(World)};
+    ScaledPreset->_OutlineColor = FLinearColor(1.0f, 0.0f, 0.0f);
+    ScaledPreset->_OutlineBrightness = 1.0f;
+    ScaledPreset->_ThicknessScale = 2.0f;
+    const auto ScaledStencil = Subsystem->Get_OrAllocate_StencilFor(ScaledPreset.Get());
+    if (TestNotEqual(TEXT("second preset allocated its own stencil slot"), ScaledStencil, static_cast<uint8>(0)) == false)
+    { return false; }
+    auto ScaledPass = false;
+    {
+        ON_SCOPE_EXIT
+        {
+            Broad->SetCustomDepthStencilValue(Stencil);
+            Subsystem->Release_StencilFor(ScaledPreset.Get());
+        };
+        Broad->SetCustomDepthStencilValue(ScaledStencil);
+        auto ScaledBlobs = Find_RedBlobs(Capture_Read());
+        ScaledBlobs.Sort([](const FRedBlob& A, const FRedBlob& B) { return A.Area < B.Area; });
+        ScaledPass = TestTrue(TEXT("two presets render different thicknesses in the same frame"),
+            ScaledBlobs.Num() == 2 &&
+            FMath::Abs(ScaledBlobs[0].Width() - Blobs[0].Width()) <= 1 &&
+            ScaledBlobs[1].Width() >= Blobs[1].Width() + 7);
+
+        AddExpectedErrorPlain(TEXT("overflow active stencil"), EAutomationExpectedErrorFlags::Contains,
+            /*Occurrences=*/-1);
+        auto OverflowSettings = Screen5;
+        OverflowSettings.Set_ScreenSpaceThickness(std::numeric_limits<float>::max());
+        TestFalse(TEXT("settings whose active slot product overflows are rejected atomically"),
+            Subsystem->TrySet_ThicknessSettings(OverflowSettings));
+        OverflowSettings = Screen5;
+        OverflowSettings.Set_WorldSpaceThickness(std::numeric_limits<float>::max());
+        TestFalse(TEXT("inactive-space width cannot overflow an active slot on later space switch"),
+            Subsystem->TrySet_ThicknessSettings(OverflowSettings));
+        TestTrue(TEXT("overflow rejection preserves accepted settings"),
+            Same_Settings(Subsystem->Get_ThicknessSettings(), Screen5));
+    }
+
     auto ScreenFractional = Screen5;
     ScreenFractional.Set_ScreenSpaceThickness(5.5f);
     const auto FractionalAccepted = TestTrue(TEXT("positive fractional screen-space thickness is accepted"),
@@ -414,7 +451,7 @@ bool FCkTest_Usf_SolidOutlineRendersToTexture::RunTest(const FString& Parameters
     AddInfo(FString::Printf(TEXT("World-space band deltas: near=%d far=%d fov60=%d"), NearBand, FarBand, NarrowFovBand));
     const auto WorldScales = TestTrue(TEXT("world-space outline shrinks with distance and grows as FOV narrows"),
         NearBand > FarBand && NarrowFovBand > NearBand);
-    return NarrowPass && BroadPass && FractionalAccepted && FractionalRendered && WideAccepted && WideRendered &&
+    return NarrowPass && BroadPass && ScaledPass && FractionalAccepted && FractionalRendered && WideAccepted && WideRendered &&
            PixelInvariant && WorldAccepted && WorldScales;
 }
 
