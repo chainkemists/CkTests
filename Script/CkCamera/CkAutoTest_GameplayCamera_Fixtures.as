@@ -18,6 +18,12 @@ class ACkAutoTest_GameplayCamera_Helper : ACkAutoTest_ActorEntity_Helper
     UCk_CameraComponent CameraComponent;
 }
 
+// Same helper with the output component told to follow the view (the FollowView autotest).
+class ACkAutoTest_GameplayCamera_FollowViewHelper : ACkAutoTest_GameplayCamera_Helper
+{
+    default CameraComponent._Placement = ECk_Camera_OutputComponentPlacement::FollowView;
+}
+
 class UCk_AutoTest_CameraLayer_A : UCk_CameraLayer_EntityScript
 {
 }
