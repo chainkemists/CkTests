@@ -62,7 +62,7 @@ namespace ck_tests_ui_checkbox
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiCheckbox_Runtime,
     "Ck.UiAuthoring.Checkbox.RetainedModelBoundKeyboard",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiCheckbox_Runtime::RunTest(const FString&) -> bool
 {

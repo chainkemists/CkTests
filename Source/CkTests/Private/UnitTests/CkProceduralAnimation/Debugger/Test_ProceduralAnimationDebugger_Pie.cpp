@@ -232,7 +232,7 @@ namespace ck_test_procedural_animation_debugger_pie
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkProceduralAnimationDebugger_RealGymSnapshotAndLifecycle,
     "Ck.ProceduralAnimation.Debugger.PIE.RealGymSnapshotAndLifecycle",
-    ck_test_procedural_animation_debugger_pie::TestFlags)
+    ck_test_procedural_animation_debugger_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 auto
     FCkProceduralAnimationDebugger_RealGymSnapshotAndLifecycle::
@@ -642,7 +642,7 @@ auto
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkProceduralAnimationDebugger_LegActions,
     "Ck.ProceduralAnimation.Debugger.PIE.LegActions",
-    ck_test_procedural_animation_debugger_pie::TestFlags)
+    ck_test_procedural_animation_debugger_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 auto
     FCkProceduralAnimationDebugger_LegActions::

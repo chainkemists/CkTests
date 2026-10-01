@@ -202,7 +202,7 @@ auto FCkUiRetainedRegistry_Schema::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiRetainedRegistry_Lifecycle,
     "Ck.UiAuthoring.RetainedRegistry.LifecycleAndAtomicity",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiRetainedRegistry_Lifecycle::RunTest(const FString&) -> bool
 {

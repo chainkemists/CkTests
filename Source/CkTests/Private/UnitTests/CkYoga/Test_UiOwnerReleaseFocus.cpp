@@ -124,7 +124,7 @@ namespace ck_tests_ui_owner_release_focus
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiOwnerReleaseFocus,
     "Ck.UiAuthoring.OwnerRelease.Focus",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiOwnerReleaseFocus::RunTest(const FString&) -> bool
 {

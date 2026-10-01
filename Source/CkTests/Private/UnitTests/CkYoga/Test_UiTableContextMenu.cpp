@@ -9,7 +9,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiTableContextMenu,
-    "Ck.UiAuthoring.Table.ContextMenu", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    "Ck.UiAuthoring.Table.ContextMenu", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiTableContextMenu::RunTest(const FString&) -> bool
 {

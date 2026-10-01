@@ -157,7 +157,7 @@ namespace ck_tests_aggro_authored
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkTest_Aggro_AuthoredInspectorComposition,
-    "Ck.UiAuthoring.EcsDebugger.AggroInspector.AuthoredComposition", ck_tests_aggro_authored::kFlags)
+    "Ck.UiAuthoring.EcsDebugger.AggroInspector.AuthoredComposition", ck_tests_aggro_authored::kFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkTest_Aggro_AuthoredInspectorComposition::RunTest(const FString&)
 {

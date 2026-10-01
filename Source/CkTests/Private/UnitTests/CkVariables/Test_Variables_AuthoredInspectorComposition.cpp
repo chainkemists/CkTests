@@ -158,7 +158,7 @@ namespace ck_tests_variables_authored
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_Variables_AuthoredInspectorComposition,
     "Ck.UiAuthoring.EcsDebugger.VariablesInspector.AuthoredComposition",
-    ck_tests_variables_authored::kFlags)
+    ck_tests_variables_authored::kFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkTest_Variables_AuthoredInspectorComposition::RunTest(const FString&)
 {

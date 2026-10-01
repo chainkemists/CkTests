@@ -198,7 +198,7 @@ namespace ck_tests_ismproxy_authored_inspector
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_IsmProxy_AuthoredInspectorComposition,
     "CkTests.UnitTests.CkIsmRenderer.IsmProxy.AuthoredInspectorComposition",
-    ck_tests_ismproxy_authored_inspector::kTestFlags)
+    ck_tests_ismproxy_authored_inspector::kTestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkTest_IsmProxy_AuthoredInspectorComposition::RunTest(const FString&)
 {

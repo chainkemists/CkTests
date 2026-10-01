@@ -122,7 +122,7 @@ namespace ck_tests_ui_select_reentry
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSelectReentry_Reload,
     "Ck.UiAuthoring.Select.CallbackReentryReloadReconciles",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiSelectReentry_Reload::RunTest(const FString&) -> bool
 {
@@ -158,7 +158,7 @@ auto FCkUiSelectReentry_Reload::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSelectReentry_Teardown,
     "Ck.UiAuthoring.Select.CallbackReentryTeardownRejectsHeldInput",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiSelectReentry_Teardown::RunTest(const FString&) -> bool
 {

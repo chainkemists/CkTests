@@ -284,7 +284,7 @@ auto FCkUiAuthoringView_Lifetime::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiAuthoringView_Focus,
     "Ck.UiAuthoring.View.PreservesNativeAndExternalFocus",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiAuthoringView_Focus::RunTest(const FString&) -> bool
 {
@@ -603,7 +603,7 @@ auto FCkUiAuthoringView_DataBindings::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiAuthoringView_FocusRemoval,
     "Ck.UiAuthoring.View.ClearsRemovedStatelessFocus",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiAuthoringView_FocusRemoval::RunTest(const FString&) -> bool
 {

@@ -305,7 +305,7 @@ namespace ck_tests_ui_custom_slots_runtime
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiCustomSlots_Runtime,
     "Ck.UiAuthoring.CustomSlots.NativeRuntimeAndAtomicity",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiCustomSlots_Runtime::RunTest(const FString&) -> bool
 {

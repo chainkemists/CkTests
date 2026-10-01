@@ -252,7 +252,7 @@ namespace ck_tests_ui_retained_capture
     }
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiRetainedCapture_Runtime, "Ck.UiAuthoring.RetainedCapture.Runtime", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiRetainedCapture_Runtime, "Ck.UiAuthoring.RetainedCapture.Runtime", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiRetainedCapture_Runtime::RunTest(const FString&) -> bool
 {
@@ -348,7 +348,7 @@ auto FCkUiRetainedCapture_Runtime::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiRetainedCapture_Repeat,
     "Ck.UiAuthoring.RetainedCapture.RepeatedChildren",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiRetainedCapture_Repeat::RunTest(const FString&) -> bool
 {
@@ -424,7 +424,7 @@ auto FCkUiRetainedCapture_Repeat::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiRetainedCapture_Slots,
     "Ck.UiAuthoring.RetainedCapture.CustomSlots",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiRetainedCapture_Slots::RunTest(const FString&) -> bool
 {

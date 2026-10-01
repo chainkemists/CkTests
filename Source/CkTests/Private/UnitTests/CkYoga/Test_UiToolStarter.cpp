@@ -44,7 +44,7 @@ namespace ck_tests_ui_tool_starter
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiToolStarter,
     "Ck.CapabilityGallery.ToolStarter.InstalledContract",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiToolStarter::RunTest(const FString&) -> bool
 {

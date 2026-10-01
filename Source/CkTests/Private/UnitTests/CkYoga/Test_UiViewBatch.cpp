@@ -262,7 +262,7 @@ auto FCkUiViewBatch_PreflightAndFactoryAtomicity::RunTest(const FString&) -> boo
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkUiViewBatch_PublicationFocusAndReentry,
     "Ck.UiAuthoring.View.Batch.PublicationFocusAndReentry",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiViewBatch_PublicationFocusAndReentry::RunTest(const FString&) -> bool
 {

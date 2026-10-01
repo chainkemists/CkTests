@@ -218,7 +218,7 @@ auto CollectKeys(const TSharedPtr<const FCkUiCollection> &InCollection) -> TArra
 } // namespace ck_tests_goap_debugger_search_trace_authored_pie
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkGoapDebugger_SearchTraceAuthoredPie, "Ck.GoapDebugger.SearchTrace.Authored.PIE",
-                                 ck_tests_goap_debugger_search_trace_authored_pie::TestFlags)
+                                 ck_tests_goap_debugger_search_trace_authored_pie::TestFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkGoapDebugger_SearchTraceAuthoredPie::RunTest(const FString &)
 {

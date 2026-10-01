@@ -264,7 +264,7 @@ auto FCkUiSelectPopup_Reload::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiSelectPopup_Removal,
     "Ck.UiAuthoring.Select.PopupClosesOnRemoval",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiSelectPopup_Removal::RunTest(const FString&) -> bool
 {

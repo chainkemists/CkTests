@@ -77,7 +77,7 @@ namespace ck_tests_ui_multi_user_focus
     }
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiMultiUserFocus, "Ck.UiAuthoring.MultiUserFocus", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiMultiUserFocus, "Ck.UiAuthoring.MultiUserFocus", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiMultiUserFocus::RunTest(const FString&) -> bool
 {

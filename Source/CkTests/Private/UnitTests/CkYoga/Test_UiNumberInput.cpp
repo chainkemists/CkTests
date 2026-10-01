@@ -144,7 +144,7 @@ namespace ck_tests_ui_number_input
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiNumberInput_Runtime,
     "Ck.UiAuthoring.NumberInput.RetainedNative",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiNumberInput_Runtime::RunTest(const FString&) -> bool
 {
@@ -247,7 +247,7 @@ auto FCkUiNumberInput_Runtime::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiNumberInput_Integer,
     "Ck.UiAuthoring.NumberInput.IntegerBounds",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiNumberInput_Integer::RunTest(const FString&) -> bool
 {
@@ -288,7 +288,7 @@ auto FCkUiNumberInput_Integer::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiNumberInput_FractionalDigits,
     "Ck.UiAuthoring.NumberInput.FractionalDigits",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiNumberInput_FractionalDigits::RunTest(const FString&) -> bool
 {

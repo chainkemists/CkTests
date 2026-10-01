@@ -150,7 +150,7 @@ namespace ck_tests_camera_authored
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkTest_Camera_AuthoredInspectorComposition,
-    "Ck.UiAuthoring.EcsDebugger.CameraInspector.AuthoredComposition", ck_tests_camera_authored::kFlags)
+    "Ck.UiAuthoring.EcsDebugger.CameraInspector.AuthoredComposition", ck_tests_camera_authored::kFlags | EAutomationTestFlags::NonNullRHI)
 
 bool FCkTest_Camera_AuthoredInspectorComposition::RunTest(const FString&)
 {

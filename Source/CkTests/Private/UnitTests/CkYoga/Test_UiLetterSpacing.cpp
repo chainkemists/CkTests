@@ -49,7 +49,7 @@ namespace ck_tests_ui_letter_spacing
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkUiLetterSpacing,
     "Ck.UiAuthoring.LetterSpacing",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiLetterSpacing::RunTest(const FString&) -> bool
 {

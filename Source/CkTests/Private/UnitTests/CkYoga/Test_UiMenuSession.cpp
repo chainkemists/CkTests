@@ -24,7 +24,7 @@ namespace ck_tests_ui_menu_session
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiMenuSession_StandaloneLifetime,
     "Ck.UiAuthoring.Menus.StandaloneSessionLifetime",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiMenuSession_StandaloneLifetime::RunTest(const FString&) -> bool
 {

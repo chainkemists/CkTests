@@ -71,7 +71,7 @@ namespace ck_tests_ui_button_visual_style
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkUiButtonVisualStyle_Runtime,
     "Ck.UiAuthoring.Button.VisualStyle",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiButtonVisualStyle_Runtime::RunTest(const FString&) -> bool
 {

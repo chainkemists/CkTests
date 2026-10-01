@@ -515,7 +515,7 @@ auto FCkUiRepeat_FailedChildAtomicity::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiRepeat_RemovedItemClearsFocus,
     "Ck.UiAuthoring.Repeat.RemovedItemClearsFocus",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiRepeat_RemovedItemClearsFocus::RunTest(const FString&) -> bool
 {
