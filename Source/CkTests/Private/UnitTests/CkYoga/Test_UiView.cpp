@@ -336,7 +336,7 @@ auto FCkUiAuthoringView_Focus::RunTest(const FString&) -> bool
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkUiAuthoringView_DataBindings,
     "Ck.UiAuthoring.View.DataBindingsAndSearchRetention",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::NonNullRHI)
 
 auto FCkUiAuthoringView_DataBindings::RunTest(const FString&) -> bool
 {
@@ -511,6 +511,93 @@ auto FCkUiAuthoringView_DataBindings::RunTest(const FString&) -> bool
     const FCkUiLoadResult ExternalReload = View->TryReload(DataMarkup(), TEXT(""), TEXT("UiViewDataExternalFocus"));
     TestTrue(TEXT("External-focus data reload succeeds"), ExternalReload.Succeeded);
     TestTrue(TEXT("Data reload does not steal unrelated focus"), Slate.GetUserFocusedWidget(0) == ExternalInput);
+
+    bool bPlainNativeVisible = true;
+    bool bBoundNativeVisible = true;
+    bool bAllowBoundNative = true;
+    const auto PlainNative = SNew(SBox).WidthOverride(40.0f).HeightOverride(20.0f)
+        .Visibility_Lambda([&bPlainNativeVisible]() { return bPlainNativeVisible ? EVisibility::Visible : EVisibility::Collapsed; });
+    const auto BoundNative = SNew(SBox).WidthOverride(40.0f).HeightOverride(20.0f)
+        .Visibility_Lambda([&bBoundNativeVisible]() { return bBoundNativeVisible ? EVisibility::Visible : EVisibility::Collapsed; });
+    const auto TailNative = SNew(SBox).WidthOverride(40.0f).HeightOverride(20.0f);
+    auto NativeVisibilityData = FCkUiView::FDataBindings{};
+    NativeVisibilityData.Visibility.Add(TEXT("allow-bound"),
+        TAttribute<bool>::CreateLambda([&bAllowBoundNative]() { return bAllowBoundNative; }));
+    auto NativeVisibilityBindings = FCkUiView::FNativeBindings{
+        {TEXT("plain"), PlainNative}, {TEXT("bound"), BoundNative}, {TEXT("tail"), TailNative}};
+    const auto NativeVisibilityView = FCkUiView::Create(MoveTemp(NativeVisibilityBindings), {}, {},
+        FSlateFontInfo{}, MoveTemp(NativeVisibilityData));
+    const TSharedRef<SWidget> NativeVisibilityRegion = NativeVisibilityView->GetRegion(TEXT("visibility"));
+    FSlateWindowScope NativeVisibilityWindows{Slate};
+    const TSharedRef<SWindow> NativeVisibilityWindow = SNew(SWindow).AutoCenter(EAutoCenter::None)
+        .ClientSize(FVector2D{320.0f, 80.0f}).CreateTitleBar(false).HasCloseButton(false)
+        .FocusWhenFirstShown(false)[NativeVisibilityRegion];
+    NativeVisibilityWindows.Add(NativeVisibilityWindow);
+    const FString NativeVisibilityMarkup = TEXT("<ui version=\"1\"><region name=\"visibility\"><row id=\"visibility-root\" class=\"visibility-root\"><native id=\"plain-port\" bind=\"plain\"/><native id=\"bound-port\" bind=\"bound\" visible=\"allow-bound\"/><native id=\"tail-port\" bind=\"tail\"/></row></region></ui>");
+    const FCkUiLoadResult NativeVisibilityLoaded = NativeVisibilityView->TryReload(NativeVisibilityMarkup,
+        TEXT(".visibility-root { gap: 7px; }"), TEXT("UiViewNativeVisibility"));
+    if (!TestTrue(TEXT("Mounted native visibility document loads"), NativeVisibilityLoaded.Succeeded)) { return false; }
+    const TSharedRef<SWidget> NativeVisibilityRoot = RegionContent(NativeVisibilityView, TEXT("visibility"));
+    if (!TestEqual(TEXT("Native visibility row is a real flex panel"), NativeVisibilityRoot->GetTypeAsString(), FString(TEXT("SCkFlexBox"))))
+    { return false; }
+    const auto NativeVisibilityPanel = StaticCastSharedRef<SCkFlexBox>(NativeVisibilityRoot);
+    const TSharedPtr<SWidget> PlainPort = FindTagged(NativeVisibilityRoot, TEXT("plain-port"));
+    const TSharedPtr<SWidget> BoundPort = FindTagged(NativeVisibilityRoot, TEXT("bound-port"));
+    const TSharedPtr<SWidget> TailPort = FindTagged(NativeVisibilityRoot, TEXT("tail-port"));
+    if (!TestTrue(TEXT("Both native ports and the trailing port mount in the authored row"),
+        PlainPort.IsValid() && BoundPort.IsValid() && TailPort.IsValid())) { return false; }
+    const int64 NativeVisibilityRevision = NativeVisibilityView->GetRevision();
+    const auto HasArranged = [](const FArrangedChildren& InChildren, const TSharedPtr<SWidget>& InPort) -> bool
+    {
+        for (int32 Index = 0; Index < InChildren.Num(); ++Index)
+        { if (InChildren[Index].Widget == InPort) { return true; } }
+        return false;
+    };
+    const auto Full = Arrange(NativeVisibilityPanel, FVector2D{200.0f, 40.0f});
+    if (!TestTrue(TEXT("Three native ports initially arrange with the authored gap"), Full.Num() == 3
+        && Full[0].Widget == PlainPort && Full[1].Widget == BoundPort && Full[2].Widget == TailPort
+        && Full[1].Geometry.GetAbsolutePosition().X == Full[0].Geometry.GetAbsolutePosition().X + 47.0f
+        && Full[2].Geometry.GetAbsolutePosition().X == Full[1].Geometry.GetAbsolutePosition().X + 47.0f))
+    { return false; }
+
+    bPlainNativeVisible = false;
+    const auto PlainCollapsed = Arrange(NativeVisibilityPanel, FVector2D{200.0f, 40.0f});
+    TestTrue(TEXT("Plain native collapse removes its port and one flex gap"), PlainCollapsed.Num() == 2
+        && !HasArranged(PlainCollapsed, PlainPort) && HasArranged(PlainCollapsed, BoundPort)
+        && HasArranged(PlainCollapsed, TailPort)
+        && PlainCollapsed[1].Geometry.GetAbsolutePosition().X == PlainCollapsed[0].Geometry.GetAbsolutePosition().X + 47.0f);
+    bPlainNativeVisible = true;
+    const auto PlainRestored = Arrange(NativeVisibilityPanel, FVector2D{200.0f, 40.0f});
+    TestTrue(TEXT("Plain native returns to its original flex position without reload"), PlainRestored.Num() == 3
+        && HasArranged(PlainRestored, PlainPort)
+        && PlainRestored[1].Geometry.GetAbsolutePosition().X == Full[1].Geometry.GetAbsolutePosition().X);
+
+    bBoundNativeVisible = false;
+    const auto BoundCollapsed = Arrange(NativeVisibilityPanel, FVector2D{200.0f, 40.0f});
+    TestTrue(TEXT("Explicitly bound native collapse removes its port and one flex gap"), BoundCollapsed.Num() == 2
+        && HasArranged(BoundCollapsed, PlainPort) && !HasArranged(BoundCollapsed, BoundPort)
+        && HasArranged(BoundCollapsed, TailPort)
+        && BoundCollapsed[1].Geometry.GetAbsolutePosition().X == BoundCollapsed[0].Geometry.GetAbsolutePosition().X + 47.0f);
+    bAllowBoundNative = false;
+    bBoundNativeVisible = true;
+    const auto BoundStillSuppressed = Arrange(NativeVisibilityPanel, FVector2D{200.0f, 40.0f});
+    TestTrue(TEXT("Explicit false keeps the restored native out of flex layout"), BoundStillSuppressed.Num() == 2
+        && !HasArranged(BoundStillSuppressed, BoundPort));
+    bAllowBoundNative = true;
+    const auto BoundRestored = Arrange(NativeVisibilityPanel, FVector2D{200.0f, 40.0f});
+    TestTrue(TEXT("Explicitly bound native returns at the original position and restores both gaps"), BoundRestored.Num() == 3
+        && HasArranged(BoundRestored, BoundPort)
+        && BoundRestored[1].Geometry.GetAbsolutePosition().X == Full[1].Geometry.GetAbsolutePosition().X
+        && BoundRestored[2].Geometry.GetAbsolutePosition().X == Full[2].Geometry.GetAbsolutePosition().X);
+    TestTrue(TEXT("Native visibility cycling retains the exact mounted native widgets"),
+        CountWidget(NativeVisibilityRoot, PlainNative) == 1 && CountWidget(NativeVisibilityRoot, BoundNative) == 1
+        && CountWidget(NativeVisibilityRoot, TailNative) == 1);
+    TestTrue(TEXT("Native visibility cycling keeps the authored tree without reload"),
+        RegionContent(NativeVisibilityView, TEXT("visibility")) == NativeVisibilityRoot
+            && FindTagged(NativeVisibilityRoot, TEXT("plain-port")) == PlainPort
+            && FindTagged(NativeVisibilityRoot, TEXT("bound-port")) == BoundPort);
+    TestEqual(TEXT("Native visibility cycling does not advance the document revision"),
+        NativeVisibilityView->GetRevision(), NativeVisibilityRevision);
     return true;
 }
 
