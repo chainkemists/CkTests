@@ -142,6 +142,7 @@ public class CkTests : CkModuleRules
             "CkTagSet",
             "CkTargeting",
             "CkTimer",
+            "CkTween",
             "CkWidgets",
             "CkUI",
             "CkUICore",
