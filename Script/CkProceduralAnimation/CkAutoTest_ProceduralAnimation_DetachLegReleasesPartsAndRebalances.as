@@ -14,6 +14,9 @@ class UCk_AutoTest_ProceduralAnimation_DetachLegReleasesPartsAndRebalances : UCk
     private int32 _Detachments = 0;
     private TArray<FCk_Handle_Transform> _ReleasedParts;
     private TArray<float> _ReleasedZ;
+    private TArray<FCk_Handle_JoltBody> _ReleasedSegmentBodies;
+    private bool _Segment0HitFloor = false;
+    private bool _Segment1HitFloor = false;
     private FCk_Handle _ReleasedFoot;
     private int32 _LegSetChanges = 0;
     private int32 _EnabledCount = -1;
@@ -37,8 +40,8 @@ class UCk_AutoTest_ProceduralAnimation_DetachLegReleasesPartsAndRebalances : UCk
         Add_Step_WaitUntil("the walker walks for 1 s", n"Check_Walked");
         Add_Step("detach leg 1", n"Step_Detach");
         Add_Step_WaitUntil("the detach completes and releases its parts", n"Check_Detached");
-        Add_Step_WaitUntil("the survivors walk for 1.5 s while the debris falls", n"Check_WalkedAfterDetach");
-        Add_Step("verify release, rebalance and ragdoll", n"Step_Verify");
+        Add_Step_WaitUntil("the survivors walk for 1.5 s and both released segments hit the floor", n"Check_WalkedAfterDetach");
+        Add_Step("verify release, rebalance and floor impacts", n"Step_Verify");
         Add_Step_WaitUntil("the fixture is gone", n"Check_Destroyed");
         Run_Steps(InHandle);
     }
@@ -96,6 +99,42 @@ class UCk_AutoTest_ProceduralAnimation_DetachLegReleasesPartsAndRebalances : UCk
             _ReleasedZ.Add(utils_transform::Get_EntityCurrentLocation(Part).Z);
         }
         _Fixture.Request_RagdollReleasedParts(InLeg, InReleasedParts);
+        if (_Fixture.Bodies.IsEmpty() || ck::Is_NOT_Valid(_Fixture.Bodies[0]) || _ReleasedParts.Num() < 2)
+        {
+            FinishFailure("The released segments or the flat fixture's floor body are unavailable for impact evidence");
+            return;
+        }
+        for (auto Index = 0; Index < 2; Index++)
+        {
+            auto SegmentBody = utils_jolt_body::DoCast(FCk_Handle(_ReleasedParts[Index]));
+            if (SegmentBody.IsSet() == false || ck::Is_NOT_Valid(SegmentBody.GetValue()))
+            {
+                FinishFailure(f"Released segment {Index} has no Jolt body after the ragdoll recipe");
+                return;
+            }
+            if (utils_jolt_body::Get_MotionType(SegmentBody.GetValue()) != ECk_MotionType::Dynamic)
+            {
+                FinishFailure(f"Released segment {Index} is not a dynamic Jolt body");
+                return;
+            }
+            _ReleasedSegmentBodies.Add(SegmentBody.GetValue());
+            utils_jolt_body::BindTo_OnJoltBodyContactAdded(SegmentBody.GetValue(),
+                FCk_Delegate_JoltBody_OnContact(this, n"OnSegmentContactAdded"));
+        }
+    }
+
+    UFUNCTION()
+    private void OnSegmentContactAdded(FCk_Handle_JoltBody InBody, FCk_JoltBody_Payload_OnContact InPayload)
+    {
+        if (IsFinished() || _Fixture.Bodies.IsEmpty() || InPayload.Get_ContactNormal().Z <= 0.7)
+        { return; }
+        auto OtherBody = utils_jolt_body::DoCast(InPayload.Get_OtherEntity());
+        if (OtherBody.IsSet() == false || OtherBody.GetValue() != _Fixture.Bodies[0])
+        { return; }
+        if (_ReleasedSegmentBodies.Num() > 0 && InBody == _ReleasedSegmentBodies[0])
+        { _Segment0HitFloor = true; }
+        if (_ReleasedSegmentBodies.Num() > 1 && InBody == _ReleasedSegmentBodies[1])
+        { _Segment1HitFloor = true; }
     }
 
     UFUNCTION()
@@ -130,8 +169,13 @@ class UCk_AutoTest_ProceduralAnimation_DetachLegReleasesPartsAndRebalances : UCk
     private void Check_WalkedAfterDetach(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         _Fixture.Update();
+        if (Get_Elapsed() >= 8.0 && (_Segment0HitFloor == false || _Segment1HitFloor == false))
+        {
+            FinishFailure(f"Released segments did not both report an upward contact with the fixture floor within 8 s (segment 0 {_Segment0HitFloor}, segment 1 {_Segment1HitFloor})");
+            return;
+        }
         auto Result = OutResult;
-        Result.Set(Get_Elapsed() >= 1.5);
+        Result.Set(Get_Elapsed() >= 1.5 && _Segment0HitFloor && _Segment1HitFloor);
     }
 
     UFUNCTION()
@@ -149,6 +193,7 @@ class UCk_AutoTest_ProceduralAnimation_DetachLegReleasesPartsAndRebalances : UCk
         Assert_Equals_Int(utils_procedural_gait::Get_EnabledLegCount(Crawler.Handles.Gait), 3, "The gait counts three enabled legs");
         Assert_True(utils_procedural_gait::Get_Status(Crawler.Handles.Gait) == ECk_ProceduralAnimation_Status::Ready, "The gait keeps evaluating on the survivors");
         Assert_Equals_Int(utils_ensure::Get_EnsureCount() - _EnsuresBefore, 0, "Detaching and ragdolling fire no ensure");
+        Assert_True(_Segment0HitFloor && _Segment1HitFloor, "Both released segments contacted the fixture floor");
 
         auto Travel = (utils_transform::Get_EntityCurrentLocation(Crawler.Handles.Root) - _BodyAtDetach).Size();
         Assert_True(Travel > 100.0, f"The survivors keep walking after the detach ({Travel :.1} cm)");
@@ -162,15 +207,11 @@ class UCk_AutoTest_ProceduralAnimation_DetachLegReleasesPartsAndRebalances : UCk
                 continue;
             }
             auto Z = utils_transform::Get_EntityCurrentLocation(Part).Z;
-            Assert_True(Z > _Origin.Z - 2.0, f"Released part {Index} rests on the floor instead of falling through ({Z :.1})");
+            Assert_True(Z > _Origin.Z - 2.0, f"Released part {Index} stays above the fixture floor instead of falling through ({Z :.1})");
             if (FCk_Handle(Part) == _ReleasedFoot)
             {
                 // The foot was already planted on the floor, so it cannot drop further; it must not be launched.
-                Assert_True(Z < _ReleasedZ[Index] + 10.0, f"The released foot settles on the floor ({_ReleasedZ[Index] :.1} -> {Z :.1})");
-            }
-            else
-            {
-                Assert_True(Z < _ReleasedZ[Index] - 20.0, f"Released segment {Index} fell more than 20 cm ({_ReleasedZ[Index] :.1} -> {Z :.1})");
+                Assert_True(Z < _ReleasedZ[Index] + 10.0, f"The released foot is not launched upward ({_ReleasedZ[Index] :.1} -> {Z :.1})");
             }
         }
         _Fixture.Request_Destroy();
