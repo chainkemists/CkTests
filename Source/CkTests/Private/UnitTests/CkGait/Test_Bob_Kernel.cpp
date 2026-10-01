@@ -95,6 +95,21 @@ bool FCk_Bob_StrideTarget_ZeroAmount_BreathOnly::RunTest(const FString& Paramete
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCk_Bob_StrideTarget_SprintAmount_KeepsBreathOff,
+    "Ck.Gait.BobKernel.StrideTarget_SprintAmount_KeepsBreathOff", kCkUnitTestFlags)
+bool FCk_Bob_StrideTarget_SprintAmount_KeepsBreathOff::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_bob_kernel;
+    const auto Spec = FCk_Bob_Spec{};
+    const auto SprintClock = MakeClock(1.5f, 0.0f, UE_HALF_PI);
+    const auto Target = Compute_StrideTarget(Spec, SprintClock);
+    TestTrue(TEXT("sprint breath adds no vertical offset"), FMath::IsNearlyZero(Target._LocationCm.Z, 1.0e-4));
+    TestTrue(TEXT("sprint stride remains active"),
+        FMath::IsNearlyEqual(Compute_StrideTarget(Spec, MakeClock(1.5f, UE_HALF_PI, UE_HALF_PI))._LocationCm.Z,
+            -1.5f * Spec.Get_Stride().Get_VerticalCm(), 1.0e-4));
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCk_Bob_Target_Intensity_ScalesLocationAndRotation,
     "Ck.Gait.BobKernel.Target_Intensity_ScalesLocationAndRotation", kCkUnitTestFlags)
 bool FCk_Bob_Target_Intensity_ScalesLocationAndRotation::RunTest(const FString& Parameters)

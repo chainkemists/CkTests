@@ -1,7 +1,15 @@
 #include "Misc/AutomationTest.h"
+#include "Misc/ScopeExit.h"
 
 #include "CkGait/Gait/CkGait_Kernel.h"
+#include "CkGait/Gait/CkGait_Processor.h"
+#include "CkGait/Gait/CkGait_Utils.h"
+#include "CkCore/Validation/CkIsValid.h"
+#include "CkEcs/Registry/CkRegistry_SlotTable.h"
 #include "../CkUnitTest_Common.h"
+
+#include "GameFramework/FloatingPawnMovement.h"
+#include "UObject/StrongObjectPtr.h"
 
 #include <limits>
 
@@ -137,6 +145,88 @@ bool FCk_Gait_Step_Airborne_GroundSpeedIsZero_AmountDecays::RunTest(const FStrin
     StepFor(State, Spec, Airborne, 0.5f);
     TestTrue(TEXT("airborne speed ratio is 0"), FMath::IsNearlyEqual(State._SpeedRatio, 0.0f));
     TestTrue(TEXT("amount decayed while airborne"), State._Amount < AmountBefore * 0.1f);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCk_Gait_Step_NonFiniteGroundSpeed_RestsAndRecovers,
+    "Ck.Gait.Kernel.Step_NonFiniteGroundSpeed_RestsAndRecovers", kCkUnitTestFlags)
+bool FCk_Gait_Step_NonFiniteGroundSpeed_RestsAndRecovers::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_gait_kernel;
+    const auto Spec = FCk_Gait_Spec{};
+    const auto Moving = MakeMotion(FVector{420, 0, 0});
+    for (const auto InvalidSpeed : {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::infinity()})
+    {
+        auto State = FClockState{};
+        StepFor(State, Spec, Moving, 3.0f);
+        const auto MovingAmount = State._Amount;
+        const auto InvalidMotion = MakeMotion(FVector{InvalidSpeed, 0, 0});
+        Step_Clock(State, Spec, InvalidMotion, kFrameSeconds);
+        TestEqual(TEXT("non-finite ground speed produces a zero speed ratio"), State._SpeedRatio, 0.0f);
+        TestTrue(TEXT("amount relaxes toward rest"), State._Amount < MovingAmount);
+        TestTrue(TEXT("clock remains finite"),
+            FMath::IsFinite(State._Amount) && FMath::IsFinite(State._Phase) && FMath::IsFinite(State._BreathPhase));
+
+        const auto RestingAmount = State._Amount;
+        Step_Clock(State, Spec, Moving, kFrameSeconds);
+        TestTrue(TEXT("finite speed restores the speed ratio"), FMath::IsNearlyEqual(State._SpeedRatio, 1.0f, 1.0e-4f));
+        TestTrue(TEXT("amount starts recovering on the next finite frame"), State._Amount > RestingAmount);
+    }
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCk_Gait_Processor_NonFiniteVelocity_RestsAndRecovers,
+    "Ck.Gait.Processor.NonFiniteVelocity_RestsAndRecovers", kCkUnitTestFlags)
+bool FCk_Gait_Processor_NonFiniteVelocity_RestsAndRecovers::RunTest(const FString& Parameters)
+{
+    auto Registry = ck::registry_table::EnttRegistryType{};
+    const auto Slot = ck::registry_table::Allocate(&Registry);
+    ON_SCOPE_EXIT { ck::registry_table::Free(Slot); };
+
+    const TStrongObjectPtr<UFloatingPawnMovement> Movement{NewObject<UFloatingPawnMovement>(GetTransientPackage())};
+    if (NOT TestTrue(TEXT("movement source is valid"), Movement.IsValid()))
+    { return false; }
+
+    auto Owner = FCk_Handle{FCk_Entity{Registry.create()}, Slot};
+    auto Gait = UCk_Utils_Gait_UE::Add(Owner, FCk_Gait_Spec{Movement.Get(), FCk_Gait_StrideParams{}});
+    if (NOT TestTrue(TEXT("public Gait Add registers a valid feature"), ck::IsValid(Gait)
+        && Gait.Has_All<ck::FFragment_Gait_Tunables, ck::FFragment_Gait>()))
+    { return false; }
+
+    auto Tick = [&]()
+    {
+        ck::FProcessor_Gait_Update::ForEachEntity(FCk_Time{ck_test_gait_kernel::kFrameSeconds}, Gait,
+            Gait.Get<ck::FFragment_Gait_Tunables>(), Gait.Get<ck::FFragment_Gait>());
+    };
+
+    Movement->Velocity = FVector{420, 0, 0};
+    Tick();
+    TestTrue(TEXT("finite movement is sampled before rejection"),
+        UCk_Utils_Gait_UE::Get_LastMotion(Gait).Get_Velocity().Equals(Movement->Velocity));
+    const auto AmountBefore = UCk_Utils_Gait_UE::Get_Amount(Gait);
+
+    AddExpectedError(TEXT("sampled a non-finite velocity"), EAutomationExpectedErrorFlags::Contains, 2);
+    Movement->Velocity = FVector{std::numeric_limits<double>::quiet_NaN(), 0, 0};
+    Tick();
+    const auto RestMotion = UCk_Utils_Gait_UE::Get_LastMotion(Gait);
+    TestTrue(TEXT("rejected velocity publishes zero motion"), RestMotion.Get_Velocity().Equals(FVector::ZeroVector));
+    TestEqual(TEXT("rejected velocity publishes grounded footing"), RestMotion.Get_Footing(), ECk_Gait_Footing::Grounded);
+    TestEqual(TEXT("rejected velocity publishes standing stance"), RestMotion.Get_Stance(), ECk_Gait_Stance::Standing);
+    TestEqual(TEXT("rejected velocity has zero speed ratio"), UCk_Utils_Gait_UE::Get_SpeedRatio(Gait), 0.0f);
+    TestTrue(TEXT("rejected sample keeps clock finite"),
+        FMath::IsFinite(UCk_Utils_Gait_UE::Get_Amount(Gait))
+            && FMath::IsFinite(UCk_Utils_Gait_UE::Get_Phase(Gait))
+            && FMath::IsFinite(UCk_Utils_Gait_UE::Get_BreathPhase(Gait)));
+    TestTrue(TEXT("rejected sample relaxes amount"), UCk_Utils_Gait_UE::Get_Amount(Gait) < AmountBefore);
+
+    const auto RestingAmount = UCk_Utils_Gait_UE::Get_Amount(Gait);
+    Movement->Velocity = FVector{420, 0, 0};
+    Tick();
+    TestTrue(TEXT("finite follow-up publishes motion"),
+        UCk_Utils_Gait_UE::Get_LastMotion(Gait).Get_Velocity().Equals(Movement->Velocity));
+    TestTrue(TEXT("finite follow-up restores speed ratio"),
+        FMath::IsNearlyEqual(UCk_Utils_Gait_UE::Get_SpeedRatio(Gait), 1.0f, 1.0e-4f));
+    TestTrue(TEXT("finite follow-up grows amount"), UCk_Utils_Gait_UE::Get_Amount(Gait) > RestingAmount);
     return true;
 }
 
