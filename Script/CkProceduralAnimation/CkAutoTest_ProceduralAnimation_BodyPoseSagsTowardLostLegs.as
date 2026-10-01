@@ -63,7 +63,10 @@ class UCk_AutoTest_ProceduralAnimation_BodyPoseSagsTowardLostLegs : UCk_AutoTest
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        if (_Fixture.Create(InHandle, _Origin, ECkProceduralAnimationGym_Course::Flat, false, 1) == false)
+        auto Roster = TArray<ECkProceduralAnimationGym_Species>();
+        Roster.Add(ECkProceduralAnimationGym_Species::Crawler4);
+        if (_Fixture.Create_WithRoster(InHandle, _Origin, ECkProceduralAnimationGym_Course::Flat, Roster, false,
+            ECk_ProceduralBodyPose_ConformMode::None) == false)
         {
             FinishFailure("The isolated single-walker floor fixture could not be created");
             return;
